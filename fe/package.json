@@ -1,0 +1,63 @@
+{
+	"name": "sagitawedding-themes",
+	"version": "1.10",
+	"description": "Tema Yoga lengkap — Tailwind CSS v4 + EJS + Express. Fitur lengkap siap pakai untuk studio yoga, wellness & meditation.",
+	"type": "module",
+	"main": "server.ts",
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"dev": "npm run build:js && tsx watch server.ts",
+		"start": "npm run build:js && tsx server.ts",
+		"build:css": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify",
+		"watch:css": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch",
+		"build:js": "node scripts/build-js.mjs",
+		"watch:js": "node scripts/build-js.mjs --watch",
+		"typecheck": "tsc --noEmit && tsc -p tsconfig.browser.json",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"build": "npm run lint && npm run typecheck && npm run build:css && npm run build:js",
+		"dev:all": "concurrently \"npm run watch:css\" \"npm run watch:js\" \"tsx watch server.ts\""
+	},
+	"keywords": [
+		"yoga",
+		"tailwind",
+		"ejs",
+		"express",
+		"wellness",
+		"theme"
+	],
+	"author": "Serene Yoga",
+	"license": "MIT",
+	"dependencies": {
+		"compression": "^1.8.2",
+		"dotenv": "^18.0.10",
+		"ejs": "^7.0.2",
+		"express": "^5.3.0",
+		"express-rate-limit": "^8.7.0",
+		"helmet": "^8.3.0",
+		"html-minifier-terser": "^7.2.0",
+		"sanitize-html": "^2.18.0",
+		"tsx": "^4.23.15"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.15",
+		"@tailwindcss/cli": "^4.1.0",
+		"@types/compression": "^1.8.1",
+		"@types/ejs": "^3.1.5",
+		"@types/express": "^5.0.6",
+		"@types/node": "^26.6.4",
+		"@types/sanitize-html": "^2.16.2",
+		"@types/supertest": "^7.2.1",
+		"concurrently": "^10.0.7",
+		"esbuild": "^0.28.2",
+		"supertest": "^7.3.1",
+		"tailwindcss": "^4.1.0",
+		"typescript": "^7.0.2",
+		"vitest": "^5.0.3"
+	}
+}

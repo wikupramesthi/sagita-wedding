@@ -1,0 +1,129 @@
+<% /* ============================================================
+   SEO <head> — standar Google (dinamis dari API identitas website)
+   - title & description unik per halaman (boleh override via render)
+   - canonical absolut, robots, hreflang (multibahasa ?lang=)
+   - Open Graph + Twitter Card absolut, favicon dinamis
+   - JSON-LD Organization & WebSite, GA4 & site-verification opsional
+   ============================================================ */ %>
+<%
+const _site = typeof site !== "undefined" && site ? site : {};
+const _seo = typeof seo !== "undefined" && seo ? seo : {};
+const _siteUrl = typeof siteUrl !== "undefined" ? siteUrl : "";
+const _pageTitle = typeof title !== "undefined" && title ? title : ((_site.metaTitle || _site.name || "YogaRoots") + " — " + (_site.tagline || "Yoga, Meditation & Wellness"));
+const _description = (typeof metaDescription !== "undefined" && metaDescription ? metaDescription : (_seo.description || _site.metaDescription || _site.description || "")).toString().slice(0, 160);
+const _keywords = typeof metaKeywords !== "undefined" && metaKeywords ? metaKeywords : (_seo.keywords || _site.metaKeywords || "");
+const _robots = typeof robots !== "undefined" && robots ? robots : (_seo.robots || "index, follow");
+const _canonical = typeof currentUrl !== "undefined" ? currentUrl : _siteUrl;
+const _ogImageRaw = _seo.ogImage || _site.ogImage || "/img/yogaroots_about1.jpg";
+const _ogImage = /^https?:\/\//i.test(_ogImageRaw) ? _ogImageRaw : (_siteUrl + _ogImageRaw);
+const _faviconRaw = _site.faviconUrl || "/img/fav.png";
+const _favicon = /^https?:\/\//i.test(_faviconRaw) ? _faviconRaw : (_siteUrl + _faviconRaw);
+const _lang = typeof lang !== "undefined" && lang ? lang : "en";
+const _langCodes = typeof languages !== "undefined" ? languages.map((item) => item.code) : ["en"];
+const _jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": _siteUrl + "/#organization",
+      "name": _site.name || "YogaRoots",
+      "url": _siteUrl,
+      "slogan": _site.tagline || "",
+      "description": _site.description || "",
+      "logo": /^https?:\/\//i.test(_site.logoUrl || "") ? _site.logoUrl : (_siteUrl + (_site.logoUrl || "/img/logo.png")),
+      "image": _ogImage,
+      "email": _site.email || undefined,
+      "telephone": _site.phoneTel || undefined,
+      "address": _site.address ? { "@type": "PostalAddress", "streetAddress": _site.address } : undefined,
+      "sameAs": [_site.facebookHref, _site.instagramHref, _site.youtubeHref, _site.tiktokHref].filter(Boolean)
+    },
+    {
+      "@type": "WebSite",
+      "@id": _siteUrl + "/#website",
+      "url": _siteUrl,
+      "name": _site.name || "YogaRoots",
+      "inLanguage": _langCodes
+    }
+  ]
+};
+%>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title><%= _pageTitle %></title>
+<meta name="description" content="<%= _description %>" />
+<% if (_keywords) { %>
+<meta name="keywords" content="<%= _keywords %>" />
+<% } %>
+<meta name="robots" content="<%= _robots %>" />
+<meta name="author" content="<%= _site.name || "YogaRoots" %>" />
+<meta name="theme-color" content="#fffefd" />
+
+<link rel="canonical" href="<%= _canonical %>" />
+
+<!-- Hreflang: versi bahasa via ?lang= (standar Google multibahasa) -->
+<link rel="alternate" hreflang="x-default" href="<%= _canonical %>" />
+<% _langCodes.forEach((code) => { %>
+<link rel="alternate" hreflang="<%= code %>" href="<%= _canonical %>?lang=<%= code %>" />
+<% }) %>
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="<%= _lang %>" />
+<meta property="og:site_name" content="<%= _site.name || "YogaRoots" %>" />
+<meta property="og:title" content="<%= _pageTitle %>" />
+<meta property="og:description" content="<%= _description %>" />
+<meta property="og:url" content="<%= _canonical %>" />
+<meta property="og:image" content="<%= _ogImage %>" />
+<meta property="og:image:alt" content="<%= _pageTitle %>" />
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="<%= _pageTitle %>" />
+<meta name="twitter:description" content="<%= _description %>" />
+<meta name="twitter:image" content="<%= _ogImage %>" />
+
+<!-- Favicon dinamis (dari Identitas Website) -->
+<link rel="icon" href="<%= _favicon %>" />
+<link rel="apple-touch-icon" href="<%= _favicon %>" />
+
+<% if (_site.siteVerification) { %>
+<!-- Google Search Console verification (dari Identitas Website) -->
+<meta name="google-site-verification" content="<%= _site.siteVerification %>" />
+<% } %>
+
+<!-- Structured data: Organization & WebSite -->
+<script type="application/ld+json"><%- JSON.stringify(_jsonLd).replace(/</g, "\\u003c") %></script>
+
+<% if (_site.gaId) { %>
+<!-- Google Analytics 4 (ID dari Identitas Website) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=<%= encodeURIComponent(_site.gaId) %>"></script>
+<script nonce="<%= nonce %>">
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag("js", new Date());
+  gtag("config", "<%= _site.gaId %>");
+</script>
+<% } %>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+/>
+<link rel="preload" href="/css/output.css?v=<%= assetV %>" as="style" />
+<link rel="stylesheet" href="/css/output.css?v=<%= assetV %>" />
+<link rel="preload" href="/css/custom.css?v=<%= assetV %>" as="style" />
+<link rel="stylesheet" href="/css/custom.css?v=<%= assetV %>" />
+
+<script nonce="<%= nonce %>">
+  (function () {
+    try {
+      const saved = localStorage.getItem("serene-dark");
+      const prefers = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (saved === "true" || (!saved && prefers))
+        document.documentElement.classList.add("dark");
+    } catch (e) {}
+  })();
+</script>

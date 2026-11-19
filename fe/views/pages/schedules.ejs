@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="<%= lang || 'en' %>">
+  <head>
+    <%- include('../partials/head') %>
+  </head>
+
+  <body class="antialiased bg-cream">
+    <%- include('../partials/navbar') %>
+
+    <section class="bg-cream pt-6 sm:pt-10 pb-6 sm:pb-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div
+          class="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
+        >
+          <div>
+            <span
+              class="text-xs font-bold tracking-[0.2em] text-terracotta-600"
+            >
+              <%= t.classesEyebrow %>
+            </span>
+
+            <h1 class="font-display text-3xl sm:text-4xl md:text-5xl font-bold mt-2 leading-tight">
+              <%= t.classesTitle %>
+            </h1>
+
+            <p class="text-stone-warm mt-3 max-w-2xl leading-relaxed text-[15px] sm:text-base">
+              <%= t.classesDesc %>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================= -->
+    <!-- MAIN CONTENT -->
+    <!-- ========================================= -->
+
+    <section class="bg-cream pb-16 sm:pb-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-[240px_1fr] gap-5 lg:gap-8">
+          <!-- ===================================== -->
+          <!-- FILTER -->
+          <!-- ===================================== -->
+
+          <!-- Mobile filter toggle -->
+          <div class="lg:hidden">
+            <button
+              id="filterToggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="filterAside"
+              class="w-full flex items-center justify-between bg-white rounded-2xl border border-sage-100 px-4 py-3.5 text-sm font-semibold shadow-sm active:scale-[0.99] transition"
+            >
+              <span class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="21" y2="21"/><line x1="4" x2="20" y1="14" y2="14"/><line x1="4" x2="20" y1="7" y2="7"/><line x1="12" x2="12" y1="3" y2="7"/><line x1="12" x2="12" y1="10" y2="14"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                Filter Classes
+                <span id="filterActiveDot" class="hidden w-2 h-2 rounded-full bg-terracotta-600"></span>
+              </span>
+              <svg id="filterChevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-200"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+
+          <aside id="filterAside" class="hidden lg:block">
+            <div
+              class="bg-white rounded-[20px] sm:rounded-[24px] border border-sage-100 p-4 sm:p-5 lg:sticky lg:top-28"
+            >
+              <div class="flex items-center justify-between mb-5">
+                <h3 class="font-semibold"><%= t.filterTitle %></h3>
+
+                <button
+                  id="resetFilters"
+                  type="button"
+                  class="text-xs text-sage-700 font-semibold"
+                >
+                  Reset
+                </button>
+              </div>
+
+              <!-- LEVEL -->
+
+              <div class="mb-6">
+                <h4
+                  class="text-xs font-bold uppercase tracking-wider text-stone-warm mb-3"
+                >
+                  Level
+                </h4>
+
+                <div class="space-y-2" data-filter-group="level">
+                  <label class="flex items-center gap-3 cursor-pointer py-1.5 sm:py-1 min-h-[40px] sm:min-h-0">
+                    <input
+                      type="checkbox"
+                      value=""
+                      checked
+                      class="w-5 h-5 sm:w-4 sm:h-4 accent-sage-700 shrink-0"
+                    />
+                    <span class="text-sm"><%= t.classFilterAll %></span>
+                  </label>
+
+                  <label class="flex items-center gap-3 cursor-pointer py-1.5 sm:py-1 min-h-[40px] sm:min-h-0">
+                    <input
+                      type="checkbox"
+                      value="foundation"
+                      class="w-5 h-5 sm:w-4 sm:h-4 accent-sage-700 shrink-0"
+                    />
+                    <span class="text-sm"><%= t.classFilterFoundation %></span>
+                  </label>
+
+                  <label class="flex items-center gap-3 cursor-pointer py-1.5 sm:py-1 min-h-[40px] sm:min-h-0">
+                    <input
+                      type="checkbox"
+                      value="intermediate"
+                      class="w-5 h-5 sm:w-4 sm:h-4 accent-sage-700 shrink-0"
+                    />
+                    <span class="text-sm"><%= t.classFilterIntermediate %></span>
+                  </label>
+
+                  <label class="flex items-center gap-3 cursor-pointer py-1.5 sm:py-1 min-h-[40px] sm:min-h-0">
+                    <input
+                      type="checkbox"
+                      value="advance"
+                      class="w-5 h-5 sm:w-4 sm:h-4 accent-sage-700 shrink-0"
+                    />
+                    <span class="text-sm"><%= t.classFilterAdvance %></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- TIME -->
+
+              <div class="mb-6">
+                <h4
+                  class="text-xs font-bold uppercase tracking-wider text-stone-warm mb-3"
+                >
+                  Time
+                </h4>
+
+                <div class="space-y-2" data-filter-group="time">
+                  <label class="flex items-center gap-3 cursor-pointer py-1.5 sm:py-1 min-h-[40px] sm:min-h-0">
+                    <input
+                      type="checkbox"
+                      value=""
+                      checked
+                      class="w-5 h-5 sm:w-4 sm:h-4 accent-sage-700 shrink-0"
+                    />
+                    <span class="text-sm"><%= t.filterAllTimes %></span>
+                  </label>
+
+                  <label class="flex items-center gap-3 cursor-pointer py-1.5 sm:py-1 min-h-[40px] sm:min-h-0">
+                    <input
+                      type="checkbox"
+                      value="morning"
+                      class="w-5 h-5 sm:w-4 sm:h-4 accent-sage-700 shrink-0"
+                    />
+                    <span class="text-sm"><%= t.filterMorning %></span>
+                  </label>
+
+                  <label class="flex items-center gap-3 cursor-pointer py-1.5 sm:py-1 min-h-[40px] sm:min-h-0">
+                    <input
+                      type="checkbox"
+                      value="afternoon"
+                      class="w-5 h-5 sm:w-4 sm:h-4 accent-sage-700 shrink-0"
+                    />
+                    <span class="text-sm"><%= t.filterAfternoon %></span>
+                  </label>
+
+                  <label class="flex items-center gap-3 cursor-pointer py-1.5 sm:py-1 min-h-[40px] sm:min-h-0">
+                    <input
+                      type="checkbox"
+                      value="evening"
+                      class="w-5 h-5 sm:w-4 sm:h-4 accent-sage-700 shrink-0"
+                    />
+                    <span class="text-sm">Evening</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- STUDIO -->
+
+              <div>
+                <h4
+                  class="text-xs font-bold uppercase tracking-wider text-stone-warm mb-3"
+                >
+                  Studio
+                </h4>
+
+                <div
+                  id="studioFilters"
+                  class="space-y-2"
+                  data-filter-group="studio"
+                >
+                  <label class="flex items-center gap-3 cursor-pointer py-1.5 sm:py-1 min-h-[40px] sm:min-h-0">
+                    <input
+                      type="checkbox"
+                      value=""
+                      checked
+                      class="w-5 h-5 sm:w-4 sm:h-4 accent-sage-700 shrink-0"
+                    />
+                    <span class="text-sm">All Studios</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- ===================================== -->
+          <!-- SCHEDULE -->
+          <!-- ===================================== -->
+
+          <main class="min-w-0">
+            <!-- DATE SELECTOR -->
+            <div
+              class="bg-white rounded-[20px] sm:rounded-[24px] border border-sage-100 p-2 sm:p-3 shadow-sm mb-4 sm:mb-5"
+            >
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+                  <button
+                    id="weekPrev"
+                    type="button"
+                    aria-label="Previous week"
+                    class="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-sage-100 flex items-center justify-center hover:bg-sage-50 active:bg-sage-100 transition"
+                  >
+                    <span class="text-lg leading-none">‹</span>
+                  </button>
+
+                  <div id="dateRow" class="flex gap-1.5 sm:gap-2 flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory"></div>
+
+                  <button
+                    id="weekNext"
+                    type="button"
+                    aria-label="Next week"
+                    class="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-sage-100 flex items-center justify-center hover:bg-sage-50 active:bg-sage-100 transition"
+                  >
+                    <span class="text-lg leading-none">›</span>
+                  </button>
+                </div>
+                <button
+                  id="todayBtn"
+                  type="button"
+                  class="w-full sm:w-auto shrink-0 px-3 h-9 sm:h-10 rounded-full border border-sage-100 text-[11px] sm:text-xs font-semibold text-sage-700 hover:bg-sage-50 active:bg-sage-100 transition"
+                >
+                  Today
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="flex flex-col gap-1.5 sm:gap-3 mb-4 sm:mb-5 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div class="min-w-0">
+                <h2 id="scheduleTitle" class="text-lg sm:text-xl font-bold truncate"></h2>
+
+                <p id="scheduleCount" class="text-[13px] sm:text-sm text-stone-warm mt-0.5 sm:mt-1"></p>
+              </div>
+
+              <div
+                id="scheduleFilterNote"
+                class="text-xs sm:text-sm text-stone-warm shrink-0"
+              >
+                Showing all classes
+              </div>
+            </div>
+
+            <div id="scheduleList" class="min-w-0"></div>
+          </main>
+        </div>
+
+        <%- include('../partials/cta-help') %>
+      </div>
+    </section>
+
+    <%- include('../partials/footer') %>
+
+  </body>
+</html>
