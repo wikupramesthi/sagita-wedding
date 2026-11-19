@@ -50,7 +50,7 @@ class MemberBookingTest extends TestCase
 
         $this->schedule = ClassSchedule::create([
             'class_uuid' => $class->uuid,
-            'studio_uuid' => null,
+            'venue_uuid' => null,
             'day' => $day,
             'date' => $this->today,
             'start_time' => now()->copy()->addHours(5)->format('H:i:s'),
@@ -142,7 +142,7 @@ class MemberBookingTest extends TestCase
     {
         $other = ClassSchedule::create([
             'class_uuid' => $this->schedule->class_uuid,
-            'studio_uuid' => null,
+            'venue_uuid' => null,
             'day' => strtolower(now()->format('l')),
             'date' => $this->today,
             'start_time' => now()->copy()->addHours(5)->addMinutes(30)->format('H:i:s'),
@@ -183,7 +183,7 @@ class MemberBookingTest extends TestCase
     {
         $soon = ClassSchedule::create([
             'class_uuid' => $this->schedule->class_uuid,
-            'studio_uuid' => null,
+            'venue_uuid' => null,
             'day' => strtolower(now()->format('l')),
             'date' => $this->today,
             'start_time' => now()->copy()->addHour()->format('H:i:s'),

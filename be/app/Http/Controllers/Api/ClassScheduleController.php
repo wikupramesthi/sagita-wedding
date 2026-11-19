@@ -20,7 +20,7 @@ class ClassScheduleController extends Controller
      * ?date=2026-09-15
      * ?level=foundation
      * ?time=morning
-     * ?studio_uuid=uuid
+     * ?venue_uuid=uuid
      * ?page=1
      * ?per_page=10
      */
@@ -50,10 +50,10 @@ class ClassScheduleController extends Controller
                     'in:morning,afternoon,evening',
                 ],
 
-                'studio_uuid' => [
+                'venue_uuid' => [
                     'nullable',
                     'uuid',
-                    'exists:studios,uuid',
+                    'exists:venues,uuid',
                 ],
 
                 'page' => [
@@ -93,7 +93,7 @@ class ClassScheduleController extends Controller
             $query = ClassSchedule::query()
                 ->with([
                     'class.instructor',
-                    'studio',
+                    'venue',
                 ])
                 ->where('day', $day)
                 ->where('status', 'active');
@@ -118,15 +118,15 @@ class ClassScheduleController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | FILTER STUDIO
+            | FILTER VENUE
             |--------------------------------------------------------------------------
             */
 
-            if ($request->filled('studio_uuid')) {
+            if ($request->filled('venue_uuid')) {
 
                 $query->where(
-                    'studio_uuid',
-                    $request->studio_uuid
+                    'venue_uuid',
+                    $request->venue_uuid
                 );
             }
 
@@ -284,14 +284,14 @@ class ClassScheduleController extends Controller
 
                         /*
                         |--------------------------------------------------------------------------
-                        | STUDIO
+                        | VENUE
                         |--------------------------------------------------------------------------
                         */
 
-                        'studio' => [
-                            'uuid' => $schedule->studio?->uuid,
-                            'name' => $schedule->studio?->name,
-                            'address' => $schedule->studio?->address,
+                        'venue' => [
+                            'uuid' => $schedule->venue?->uuid,
+                            'name' => $schedule->venue?->name,
+                            'address' => $schedule->venue?->address,
                         ],
                     ];
                 });
@@ -342,7 +342,7 @@ class ClassScheduleController extends Controller
             Log::error(
                 'Class schedule index error: ' . $e->getMessage(),
                 [
-                    'request' => $request->only(['date', 'level', 'time', 'studio_uuid', 'page', 'per_page']),
+                    'request' => $request->only(['date', 'level', 'time', 'venue_uuid', 'page', 'per_page']),
                     'trace' => $e->getTraceAsString(),
                 ]
             );
@@ -376,7 +376,7 @@ class ClassScheduleController extends Controller
             $schedule = ClassSchedule::query()
                 ->with([
                     'class.instructor',
-                    'studio',
+                    'venue',
                 ])
                 ->where('uuid', $uuid)
                 ->where('status', 'active')
@@ -477,17 +477,17 @@ class ClassScheduleController extends Controller
 
                     /*
                 |--------------------------------------------------------------------------
-                | STUDIO
+                | VENUE
                 |--------------------------------------------------------------------------
                 */
 
-                    'studio' => [
+                    'venue' => [
 
-                        'uuid' => $schedule->studio?->uuid,
+                        'uuid' => $schedule->venue?->uuid,
 
-                        'name' => $schedule->studio?->name,
+                        'name' => $schedule->venue?->name,
 
-                        'address' => $schedule->studio?->address,
+                        'address' => $schedule->venue?->address,
 
                     ],
 

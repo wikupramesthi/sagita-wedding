@@ -43,25 +43,25 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="studio_uuid" class="form-label">
-                            Studio <span class="text-danger">*</span>
+                        <label for="venue_uuid" class="form-label">
+                            Venue <span class="text-danger">*</span>
                         </label>
 
-                        <select name="studio_uuid" id="studio_uuid"
-                            class="form-select @error('studio_uuid') is-invalid @enderror" required>
+                        <select name="venue_uuid" id="venue_uuid"
+                            class="form-select @error('venue_uuid') is-invalid @enderror" required>
 
-                            <option value="">Select Studio</option>
+                            <option value="">Select Venue</option>
 
-                            @foreach ($studios as $studio)
-                                <option value="{{ $studio->uuid }}"
-                                    {{ old('studio_uuid') == $studio->uuid ? 'selected' : '' }}>
-                                    {{ $studio->name }}
+                            @foreach ($venues as $venue)
+                                <option value="{{ $venue->uuid }}"
+                                    {{ old('venue_uuid') == $venue->uuid ? 'selected' : '' }}>
+                                    {{ $venue->name }}
                                 </option>
                             @endforeach
 
                         </select>
 
-                        @error('studio_uuid')
+                        @error('venue_uuid')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>

@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Studio;
+use App\Models\Venue;
 use App\Models\Class\ClassSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class StudioController extends Controller
+class VenueController extends Controller
 {
     /**
-     * Display a listing of the studios.
+     * Display a listing of the venues.
      */
     public function index(Request $request)
     {
@@ -21,7 +21,7 @@ class StudioController extends Controller
         $status = $request->query('status', '');
         $status = in_array($status, ['active', 'inactive'], true) ? $status : '';
 
-        $query = Studio::query();
+        $query = Venue::query();
 
         if ($q !== '') {
             $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q) . '%';
@@ -36,38 +36,38 @@ class StudioController extends Controller
             $query->where('status', $status);
         }
 
-        $studios = (clone $query)->withCount('schedules')->latest()->get();
+        $venues = (clone $query)->withCount('schedules')->latest()->get();
 
         // Stats follow the active filter so numbers stay in sync with the data.
         $stats = [
             'total' => (clone $query)->count(),
             'active' => (clone $query)->where('status', 'active')->count(),
             'inactive' => (clone $query)->where('status', 'inactive')->count(),
-            'schedules' => ClassSchedule::whereIn('studio_uuid', (clone $query)->select('studios.uuid'))->count(),
+            'schedules' => ClassSchedule::whereIn('venue_uuid', (clone $query)->select('venues.uuid'))->count(),
         ];
 
         return view(
-            'pages.studios.index',
-            compact('studios', 'stats', 'q', 'status')
+            'pages.venues.index',
+            compact('venues', 'stats', 'q', 'status')
         );
     }
 
     /**
-     * Show the form for creating a new studio.
+     * Show the form for creating a new venue.
      */
     public function create()
     {
-        return view('pages.studios.create');
+        return view('pages.venues.create');
     }
 
     /**
-     * Store a newly created studio.
+     * Store a newly created venue.
      */
     public function store(Request $request)
     {
         $request->validate([
             'name'            => 'required|string|max:255',
-            'slug'            => 'nullable|string|max:255|unique:studios,slug',
+            'slug'            => 'nullable|string|max:255|unique:venues,slug',
             'excerpt'         => 'nullable|string',
             'description'     => 'nullable|string',
             'address'         => 'required|string',
@@ -86,10 +86,10 @@ class StudioController extends Controller
 
             if ($request->hasFile('image')) {
                 $imagePath = $request->file('image')
-                    ->store('studios', 'public');
+                    ->store('venues', 'public');
             }
 
-            Studio::create([
+            Venue::create([
                 'uuid'            => (string) Str::uuid(),
                 'name'            => $request->name,
                 'slug'            => $request->slug
@@ -108,10 +108,10 @@ class StudioController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('studios.index')
+                ->route('venues.index')
                 ->with(
                     'success',
-                    'Studio data has been saved successfully.'
+                    'Venue data has been saved successfully.'
                 );
         } catch (\Throwable $th) {
 
@@ -125,24 +125,24 @@ class StudioController extends Controller
     }
 
     /**
-     * Show the form for editing the specified studio.
+     * Show the form for editing the specified venue.
      */
-    public function edit(Studio $studio)
+    public function edit(Venue $venue)
     {
         return view(
-            'pages.studios.edit',
-            compact('studio')
+            'pages.venues.edit',
+            compact('venue')
         );
     }
 
     /**
-     * Update the specified studio.
+     * Update the specified venue.
      */
-    public function update(Request $request, Studio $studio)
+    public function update(Request $request, Venue $venue)
     {
         $request->validate([
             'name'            => 'required|string|max:255',
-            'slug'            => 'nullable|string|max:255|unique:studios,slug,' . $studio->uuid . ',uuid',
+            'slug'            => 'nullable|string|max:255|unique:venues,slug,' . $venue->uuid . ',uuid',
             'excerpt'         => 'nullable|string',
             'description'     => 'nullable|string',
             'address'         => 'required|string',
@@ -175,25 +175,25 @@ class StudioController extends Controller
             if ($request->hasFile('image')) {
 
                 if (
-                    $studio->image &&
-                    Storage::disk('public')->exists($studio->image)
+                    $venue->image &&
+                    Storage::disk('public')->exists($venue->image)
                 ) {
-                    Storage::disk('public')->delete($studio->image);
+                    Storage::disk('public')->delete($venue->image);
                 }
 
                 $data['image'] = $request->file('image')
-                    ->store('studios', 'public');
+                    ->store('venues', 'public');
             }
 
-            $studio->update($data);
+            $venue->update($data);
 
             DB::commit();
 
             return redirect()
-                ->route('studios.index')
+                ->route('venues.index')
                 ->with(
                     'success',
-                    'Studio data has been updated successfully.'
+                    'Venue data has been updated successfully.'
                 );
         } catch (\Throwable $th) {
 
@@ -207,45 +207,45 @@ class StudioController extends Controller
     }
 
     /**
-     * Remove the specified studio.
+     * Remove the specified venue.
      */
-    public function destroy(Studio $studio)
+    public function destroy(Venue $venue)
     {
         try {
 
-            // Studio tidak boleh dihapus jika masih
+            // Venue tidak boleh dihapus jika masih
             // digunakan oleh class schedule.
-            if ($studio->schedules()->exists()) {
+            if ($venue->schedules()->exists()) {
                 return redirect()
-                    ->route('studios.index')
+                    ->route('venues.index')
                     ->with(
                         'error',
-                        'This studio cannot be deleted because it is still used by a class schedule.'
+                        'This venue cannot be deleted because it is still used by a class schedule.'
                     );
             }
 
             if (
-                $studio->image &&
-                Storage::disk('public')->exists($studio->image)
+                $venue->image &&
+                Storage::disk('public')->exists($venue->image)
             ) {
-                Storage::disk('public')->delete($studio->image);
+                Storage::disk('public')->delete($venue->image);
             }
 
-            $studio->delete();
+            $venue->delete();
 
             return redirect()
-                ->route('studios.index')
+                ->route('venues.index')
                 ->with(
                     'success',
-                    'Studio data has been deleted successfully.'
+                    'Venue data has been deleted successfully.'
                 );
         } catch (\Throwable $th) {
 
             return redirect()
-                ->route('studios.index')
+                ->route('venues.index')
                 ->with(
                     'error',
-                    'Failed to delete studio: ' . $th->getMessage()
+                    'Failed to delete venue: ' . $th->getMessage()
                 );
         }
     }

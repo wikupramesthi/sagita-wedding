@@ -26,7 +26,7 @@ const ALLOWED_KEYS = [
 	"date",
 	"level",
 	"time",
-	"studio_uuid",
+	"venue_uuid",
 	"date_from",
 	"date_to",
 	"page",

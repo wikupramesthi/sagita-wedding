@@ -29,7 +29,7 @@ class MemberScheduleController extends Controller
         }
 
         $search = trim((string) $request->query('search', ''));
-        $studioUuid = $request->query('studio', '');
+        $venueUuid = $request->query('venue', '');
         $level = $request->query('level', '');
         if (! in_array($level, ['foundation', 'intermediate', 'advance'], true)) {
             $level = '';
@@ -44,7 +44,7 @@ class MemberScheduleController extends Controller
             ->latest('started_at')
             ->first();
 
-        $base = ClassSchedule::with(['class.instructor', 'studio'])
+        $base = ClassSchedule::with(['class.instructor', 'venue'])
             ->withCount([
                 'bookings as bookings_count' => function ($q) {
                     $q->whereIn('status', ['confirmed', 'attended']);
@@ -64,10 +64,10 @@ class MemberScheduleController extends Controller
             });
         }
 
-        if ($studioUuid !== '' && \App\Models\Studio::where('uuid', $studioUuid)->exists()) {
-            $base->where('studio_uuid', $studioUuid);
+        if ($venueUuid !== '' && \App\Models\Venue::where('uuid', $venueUuid)->exists()) {
+            $base->where('venue_uuid', $venueUuid);
         } else {
-            $studioUuid = '';
+            $venueUuid = '';
         }
 
         if ($level !== '') {
@@ -76,13 +76,13 @@ class MemberScheduleController extends Controller
             });
         }
 
-        $studios = \App\Models\Studio::orderBy('name')->get(['uuid', 'name']);
+        $venues = \App\Models\Venue::orderBy('name')->get(['uuid', 'name']);
 
         $filterView = [
             'search' => $search,
-            'studioUuid' => $studioUuid,
+            'venueUuid' => $venueUuid,
             'level' => $level,
-            'studios' => $studios,
+            'venues' => $venues,
         ];
 
         if ($tab === 'today') {

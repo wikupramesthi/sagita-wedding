@@ -70,7 +70,7 @@ class BatchApiTest extends TestCase
             ->assertJsonStructure(['errors' => ['slug']]);
     }
 
-    public function test_schedules_batch_returns_schedules_and_studios(): void
+    public function test_schedules_batch_returns_schedules_and_venues(): void
     {
         $this->api()
             ->getJson('/api/batch/schedules')
@@ -80,7 +80,7 @@ class BatchApiTest extends TestCase
                 'data' => [
                     'date',
                     'schedules',
-                    'studios',
+                    'venues',
                     'meta',
                 ],
             ]);

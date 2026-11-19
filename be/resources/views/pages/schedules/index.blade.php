@@ -27,9 +27,9 @@
     <div class="card mb-4">
         <div class="card-body">
             <div class="d-flex gap-2 flex-wrap mb-3">
-                <a href="{{ route('schedules.index', array_filter(['tab' => 'today', 'search' => $search ?? null, 'studio' => $studioUuid ?? null, 'level' => $level ?? null])) }}"
+                <a href="{{ route('schedules.index', array_filter(['tab' => 'today', 'search' => $search ?? null, 'venue' => $venueUuid ?? null, 'level' => $level ?? null])) }}"
                     class="btn {{ $tab === 'today' ? 'btn-primary' : 'btn-light' }}">Today</a>
-                <a href="{{ route('schedules.index', array_filter(['tab' => 'upcoming', 'search' => $search ?? null, 'studio' => $studioUuid ?? null, 'level' => $level ?? null])) }}"
+                <a href="{{ route('schedules.index', array_filter(['tab' => 'upcoming', 'search' => $search ?? null, 'venue' => $venueUuid ?? null, 'level' => $level ?? null])) }}"
                     class="btn {{ $tab === 'upcoming' ? 'btn-primary' : 'btn-light' }}">Upcoming (7 days)</a>
                 <a href="{{ route('bookings.my') }}" class="btn btn-outline-secondary ms-auto">My Bookings</a>
                 <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary">My Orders</a>
@@ -41,10 +41,10 @@
                         placeholder="Search class or instructor" autocomplete="off">
                 </div>
                 <div class="col-md-3">
-                    <select name="studio" class="form-select" onchange="this.form.submit()">
-                        <option value="">All studios</option>
-                        @foreach (($studios ?? []) as $studio)
-                            <option value="{{ $studio->uuid }}" @selected(($studioUuid ?? '') === $studio->uuid)>{{ $studio->name }}</option>
+                    <select name="venue" class="form-select" onchange="this.form.submit()">
+                        <option value="">All venues</option>
+                        @foreach (($venues ?? []) as $venue)
+                            <option value="{{ $venue->uuid }}" @selected(($venueUuid ?? '') === $venue->uuid)>{{ $venue->name }}</option>
                         @endforeach
                     </select>
                 </div>

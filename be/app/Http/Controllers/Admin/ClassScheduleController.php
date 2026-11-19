@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Class\ClassModel;
 use App\Models\Class\ClassSchedule;
 use App\Models\Payment\Order;
-use App\Models\Studio;
+use App\Models\Venue;
 use App\Services\MembershipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,11 +25,11 @@ class ClassScheduleController extends Controller
         $day = (string) $request->get('day', '');
         $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         $day = in_array($day, $days, true) ? $day : '';
-        $studioUuid = (string) $request->get('studio_uuid', '');
+        $venueUuid = (string) $request->get('venue_uuid', '');
 
         $query = ClassSchedule::with([
             'class.instructor',
-            'studio'
+            'venue'
         ])->where('status', 'active');
 
         if ($search !== '') {
@@ -43,8 +43,8 @@ class ClassScheduleController extends Controller
             $query->where('day', $day);
         }
 
-        if ($studioUuid !== '') {
-            $query->where('studio_uuid', $studioUuid);
+        if ($venueUuid !== '') {
+            $query->where('venue_uuid', $venueUuid);
         }
 
         $schedules = (clone $query)
@@ -67,14 +67,14 @@ class ClassScheduleController extends Controller
             'total' => (clone $query)->count(),
             'monday_friday' => (clone $query)->whereIn('day', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])->count(),
             'weekend' => (clone $query)->whereIn('day', ['saturday', 'sunday'])->count(),
-            'studios' => (clone $query)->distinct('studio_uuid')->count('studio_uuid'),
+            'venues' => (clone $query)->distinct('venue_uuid')->count('venue_uuid'),
         ];
 
         $classes = ClassModel::where('is_active', true)
             ->orderBy('name')
             ->get();
 
-        $studios = Studio::where('status', 'active')
+        $venues = Venue::where('status', 'active')
             ->orderBy('name')
             ->get();
 
@@ -112,11 +112,11 @@ class ClassScheduleController extends Controller
             compact(
                 'schedules',
                 'classes',
-                'studios',
+                'venues',
                 'stats',
                 'search',
                 'day',
-                'studioUuid',
+                'venueUuid',
                 'isMember',
                 'activePackage',
                 'pendingOrder',
@@ -139,7 +139,7 @@ class ClassScheduleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'studio_uuid' => 'required|uuid|exists:studios,uuid',
+            'venue_uuid' => 'required|uuid|exists:venues,uuid',
             'class_uuid' => 'required|uuid|exists:classes,uuid',
             'day' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'start_time' => 'required|date_format:H:i',
@@ -167,8 +167,8 @@ class ClassScheduleController extends Controller
                 ->withInput();
         }
 
-        // Cek bentrok pada studio yang sama
-        $conflict = ClassSchedule::where('studio_uuid', $request->studio_uuid)
+        // Cek bentrok pada venue yang sama
+        $conflict = ClassSchedule::where('venue_uuid', $request->venue_uuid)
             ->where('day', $request->day)
             ->where('status', 'active')
             ->where(function ($query) use ($request) {
@@ -188,7 +188,7 @@ class ClassScheduleController extends Controller
         if ($conflict) {
             return back()
                 ->withErrors([
-                    'start_time' => 'This studio already has a class scheduled at this time.'
+                    'start_time' => 'This venue already has a class scheduled at this time.'
                 ])
                 ->withInput();
         }
@@ -199,7 +199,7 @@ class ClassScheduleController extends Controller
 
             ClassSchedule::create([
                 'uuid' => (string) Str::uuid(),
-                'studio_uuid' => $request->studio_uuid,
+                'venue_uuid' => $request->venue_uuid,
                 'class_uuid' => $request->class_uuid,
                 'day' => $request->day,
                 'start_time' => $request->start_time,
@@ -247,7 +247,7 @@ class ClassScheduleController extends Controller
     public function update($uuid, Request $request)
     {
         $request->validate([
-            'studio_uuid' => 'required|uuid|exists:studios,uuid',
+            'venue_uuid' => 'required|uuid|exists:venues,uuid',
             'class_uuid' => 'required|uuid|exists:classes,uuid',
             'day' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'start_time' => 'required|date_format:H:i',
@@ -267,11 +267,11 @@ class ClassScheduleController extends Controller
         |--------------------------------------------------------------------------
         | Check Schedule Conflict
         |--------------------------------------------------------------------------
-        | Hanya boleh ada satu kelas pada studio yang sama,
+        | Hanya boleh ada satu kelas pada venue yang sama,
         | di hari dan waktu yang saling bertabrakan.
         */
 
-            $conflict = ClassSchedule::where('studio_uuid', $request->studio_uuid)
+            $conflict = ClassSchedule::where('venue_uuid', $request->venue_uuid)
                 ->where('day', $request->day)
                 ->where('status', 'active')
                 ->where('uuid', '!=', $schedule->uuid)
@@ -296,12 +296,12 @@ class ClassScheduleController extends Controller
                     ->withInput()
                     ->withErrors([
                         'start_time' =>
-                        'This studio already has a class scheduled at this time.'
+                        'This venue already has a class scheduled at this time.'
                     ]);
             }
 
             $schedule->update([
-                'studio_uuid' => $request->studio_uuid,
+                'venue_uuid' => $request->venue_uuid,
                 'class_uuid' => $request->class_uuid,
                 'day' => $request->day,
                 'start_time' => $request->start_time,

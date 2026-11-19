@@ -31,8 +31,8 @@ function scheduleParams(req: Request): Record<string, string | number> {
 	if (level) params.level = level;
 	const time = cleanText(str(req.query.time), { max: 30, label: "time" });
 	if (time) params.time = time;
-	const studio = str(req.query.studio_uuid).trim();
-	if (UUID_RE.test(studio)) params.studio_uuid = studio;
+	const venue = str(req.query.venue_uuid).trim();
+	if (UUID_RE.test(venue)) params.venue_uuid = venue;
 	const perPage = Number.parseInt(str(req.query.per_page), 10) || 50;
 	params.per_page = Math.min(Math.max(perPage, 1), 50);
 	return params;
@@ -51,7 +51,7 @@ router.get(
 	},
 );
 
-// Class schedules (clean proxy: forwards date/level/time/studio filters)
+// Class schedules (clean proxy: forwards date/level/time/venue filters)
 router.get(
 	"/class-schedules",
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -64,7 +64,7 @@ router.get(
 	},
 );
 
-// Satu request untuk jadwal + daftar studio (dipakai browser halaman /schedules).
+// Satu request untuk jadwal + daftar venue (dipakai browser halaman /schedules).
 router.get(
 	"/batch/schedules",
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -74,7 +74,7 @@ router.get(
 			res.json({
 				date: data?.date || "",
 				schedules: Array.isArray(data?.schedules) ? data.schedules : [],
-				studios: Array.isArray(data?.studios) ? data.studios : [],
+				venues: Array.isArray(data?.venues) ? data.venues : [],
 				meta: data?.meta || {},
 			});
 		} catch (err) {

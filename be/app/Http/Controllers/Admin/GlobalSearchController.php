@@ -9,7 +9,7 @@ use App\Models\Event;
 use App\Models\Faq;
 use App\Models\Package\Package;
 use App\Models\Page;
-use App\Models\Studio;
+use App\Models\Venue;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -62,8 +62,8 @@ class GlobalSearchController extends Controller
             $push('Paket', $p->name, null, route('packages.edit', $p->uuid));
         }
 
-        foreach (Studio::where('name', 'like', $like)->limit(self::PER_GROUP)->get(['uuid', 'name']) as $s) {
-            $push('Studio', $s->name, null, route('studios.edit', $s->uuid));
+        foreach (Venue::where('name', 'like', $like)->limit(self::PER_GROUP)->get(['uuid', 'name']) as $venue) {
+            $push('Venue', $venue->name, null, route('venues.edit', $venue->uuid));
         }
 
         foreach (Page::where('title', 'like', $like)->limit(self::PER_GROUP)->get(['uuid', 'title']) as $pg) {

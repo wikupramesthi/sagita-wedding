@@ -95,7 +95,7 @@ class MembershipController extends Controller
             abort(403);
         }
 
-        $bookings = ClassBooking::with(['schedule.class', 'schedule.studio'])
+        $bookings = ClassBooking::with(['schedule.class', 'schedule.venue'])
             ->where('user_uuid', $membership->user_uuid)
             ->latest('booked_at')
             ->limit(20)

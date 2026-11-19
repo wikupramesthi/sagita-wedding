@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Str;
 
-class Studio extends Model
+class Venue extends Model
 {
     use HasUuids;
 
-    protected $table = 'studios';
+    protected $table = 'venues';
 
     protected $primaryKey = 'uuid';
     public $incrementing = false;
@@ -34,44 +34,44 @@ class Studio extends Model
 
     protected static function booted()
     {
-        static::creating(function ($studio) {
-            if (empty($studio->uuid)) {
-                $studio->uuid = (string) Str::uuid();
+        static::creating(function ($venue) {
+            if (empty($venue->uuid)) {
+                $venue->uuid = (string) Str::uuid();
             }
 
-            if (empty($studio->slug)) {
-                $studio->slug = Str::slug($studio->name);
+            if (empty($venue->slug)) {
+                $venue->slug = Str::slug($venue->name);
             }
         });
 
-        static::updating(function ($studio) {
-            if ($studio->isDirty('name')) {
-                $studio->slug = Str::slug($studio->name);
+        static::updating(function ($venue) {
+            if ($venue->isDirty('name')) {
+                $venue->slug = Str::slug($venue->name);
             }
         });
     }
 
     /**
-     * Studio schedules
+     * Venue schedules
      */
     public function schedules()
     {
         return $this->hasMany(
             ClassSchedule::class,
-            'studio_uuid',
+            'venue_uuid',
             'uuid'
         );
     }
 
     /**
-     * Classes available at this studio
+     * Classes available at this venue
      */
     public function classes()
     {
         return $this->belongsToMany(
             ClassModel::class,
             'class_schedules',
-            'studio_uuid',
+            'venue_uuid',
             'class_uuid',
             'uuid',
             'uuid'

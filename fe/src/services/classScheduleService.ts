@@ -8,7 +8,7 @@ export async function getClassSchedules(
 		"date",
 		"level",
 		"time",
-		"studio_uuid",
+		"venue_uuid",
 		"page",
 		"per_page",
 	]);

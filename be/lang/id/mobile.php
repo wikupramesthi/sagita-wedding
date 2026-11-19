@@ -56,7 +56,7 @@ return [
     'my_orders' => 'Order Saya',
     'no_classes_day' => 'Tidak ada kelas hari itu.',
     'search_class_instructor' => 'Cari kelas atau instruktur',
-    'all_studios' => 'Semua studio',
+    'all_venues' => 'Semua venue',
     'all_levels' => 'Semua level',
 
     // Aksi booking & status

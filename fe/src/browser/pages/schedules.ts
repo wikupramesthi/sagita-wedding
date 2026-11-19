@@ -7,17 +7,17 @@ interface ScheduleItem {
 	capacity?: number | null;
 	class?: { name?: string; description?: string; level?: string };
 	instructor?: { name?: string };
-	studio?: { uuid?: string; name?: string };
+	venue?: { uuid?: string; name?: string };
 }
 
-interface Studio {
+interface Venue {
 	uuid: string;
 	name?: string;
 }
 
 interface BatchPayload {
 	schedules?: ScheduleItem[];
-	studios?: Studio[];
+	venues?: Venue[];
 	date?: string;
 }
 
@@ -26,7 +26,7 @@ interface State {
 	weekStart: Date;
 	level: string;
 	time: string;
-	studio: string;
+	venue: string;
 }
 
 const startOfDay = (d: Date) =>
@@ -47,7 +47,7 @@ const state: State = {
 	weekStart: startOfWeek(new Date()),
 	level: "",
 	time: "",
-	studio: "",
+	venue: "",
 };
 
 const dateRow = $("dateRow");
@@ -55,7 +55,7 @@ const scheduleList = $("scheduleList");
 const scheduleTitle = $("scheduleTitle");
 const scheduleCount = $("scheduleCount");
 const scheduleFilterNote = $("scheduleFilterNote");
-const studioFilters = $("studioFilters");
+const venueFilters = $("venueFilters");
 
 const CARD =
 	'<div class="bg-white rounded-[20px] sm:rounded-[24px] border border-sage-100 p-6 sm:p-10 text-center';
@@ -166,7 +166,7 @@ function bindGroup(name: string) {
 		}
 		state.level = groupValue("level");
 		state.time = groupValue("time");
-		state.studio = groupValue("studio");
+		state.venue = groupValue("venue");
 		loadSchedules();
 	});
 }
@@ -179,37 +179,37 @@ $("resetFilters")?.addEventListener("click", () => {
 	});
 	state.level = "";
 	state.time = "";
-	state.studio = "";
+	state.venue = "";
 	loadSchedules();
 });
 
-function renderStudioOptions(studios: Studio[]) {
-	if (!studioFilters) return;
-	if (state.studio && !studios.some((s) => s.uuid === state.studio))
-		state.studio = "";
-	const current = state.studio;
+function renderVenueOptions(venues: Venue[]) {
+	if (!venueFilters) return;
+	if (state.venue && !venues.some((venue) => venue.uuid === state.venue))
+		state.venue = "";
+	const current = state.venue;
 	let html =
 		optionLabel +
 		'<input type="checkbox" value="" ' +
 		(current === "" ? "checked" : "") +
 		optionBox +
-		'<span class="text-sm">All Studios</span></label>';
-	studios.forEach((s) => {
+		'<span class="text-sm">All Venues</span></label>';
+	venues.forEach((venue) => {
 		html +=
 			optionLabel +
 			'<input type="checkbox" value="' +
-			escapeHtml(s.uuid) +
+			escapeHtml(venue.uuid) +
 			'" ' +
-			(current === s.uuid ? "checked" : "") +
+			(current === venue.uuid ? "checked" : "") +
 			optionBox +
 			'<span class="text-sm">' +
-			escapeHtml(s.name) +
+			escapeHtml(venue.name) +
 			"</span></label>";
 	});
-	studioFilters.innerHTML = html;
-	if (!studios.length) {
-		studioFilters.innerHTML =
-			'<p class="text-sm text-stone-warm">No studios scheduled for this date.</p>';
+	venueFilters.innerHTML = html;
+	if (!venues.length) {
+		venueFilters.innerHTML =
+			'<p class="text-sm text-stone-warm">No venues scheduled for this date.</p>';
 	}
 }
 
@@ -333,7 +333,7 @@ function renderSchedule(s: ScheduleItem): string {
 		escapeHtml(s.instructor?.name || "—") +
 		"</span></span>" +
 		'<span class="inline-flex items-center gap-1.5 min-w-0 max-w-full"><span class="truncate">' +
-		escapeHtml(s.studio?.name || "—") +
+		escapeHtml(s.venue?.name || "—") +
 		"</span></span></div></div>" +
 		'<div class="flex sm:items-center gap-3 md:block md:w-[150px] shrink-0 border-t border-sage-50 md:border-0 pt-3.5 md:pt-0">' +
 		'<div class="flex-1 md:flex-none min-w-0">' +
@@ -366,9 +366,9 @@ function renderSchedules(list: ScheduleItem[]) {
 	const active: string[] = [];
 	if (state.level) active.push(capitalize(state.level));
 	if (state.time) active.push(capitalize(state.time));
-	if (state.studio) {
+	if (state.venue) {
 		const st = document.querySelector<HTMLInputElement>(
-			`[data-filter-group="studio"] input[value="${state.studio}"]`,
+			`[data-filter-group="venue"] input[value="${state.venue}"]`,
 		);
 		active.push(st?.closest("label")?.querySelector("span")?.textContent || "");
 	}
@@ -392,7 +392,7 @@ function renderSchedules(list: ScheduleItem[]) {
 function syncFilterDot() {
 	const dot = $("filterActiveDot");
 	if (!dot) return;
-	dot.classList.toggle("hidden", !(state.level || state.time || state.studio));
+	dot.classList.toggle("hidden", !(state.level || state.time || state.venue));
 }
 
 async function loadSchedules() {
@@ -405,13 +405,13 @@ async function loadSchedules() {
 	};
 	if (state.level) params.level = state.level;
 	if (state.time) params.time = state.time;
-	if (state.studio) params.studio_uuid = state.studio;
+	if (state.venue) params.venue_uuid = state.venue;
 	try {
 		const data = await fetchBatch(params);
-		renderStudioOptions(Array.isArray(data.studios) ? data.studios : []);
+		renderVenueOptions(Array.isArray(data.venues) ? data.venues : []);
 		renderSchedules(Array.isArray(data.schedules) ? data.schedules : []);
 	} catch {
-		renderStudioOptions([]);
+		renderVenueOptions([]);
 		scheduleList.innerHTML =
 			CARD +
 			' text-terracotta-600 text-sm sm:text-base">Failed to load classes. Please try again.</div>';
@@ -441,7 +441,7 @@ function loadAll() {
 
 bindGroup("level");
 bindGroup("time");
-bindGroup("studio");
+bindGroup("venue");
 
 renderDates();
 loadAll();

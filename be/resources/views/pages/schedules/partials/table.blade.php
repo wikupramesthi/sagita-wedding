@@ -7,7 +7,7 @@
                 <th>Time</th>
                 <th>Class</th>
                 <th>Instructor</th>
-                <th>Studio</th>
+                <th>Venue</th>
                 <th class="text-center">Slots</th>
                 <th class="text-end">Action</th>
             </tr>
@@ -31,7 +31,7 @@
                         @endif
                     </td>
                     <td>{{ $schedule->class?->instructor?->name ?? '-' }}</td>
-                    <td>{{ $schedule->studio?->name ?? '-' }}</td>
+                    <td>{{ $schedule->venue?->name ?? '-' }}</td>
                     <td class="text-center">
                         @if ($remaining <= 0 && empty($myBooking))
                             <span class="badge bg-danger-subtle text-danger">Full</span>

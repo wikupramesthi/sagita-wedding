@@ -1,13 +1,13 @@
 @extends('layouts.app')
-@section('title', 'Add Studio')
+@section('title', 'Add Venue')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Add Studio" page="Studios" active="Add Studio" route="{{ route('studios.index') }}" />
+<x-breadcrumb title="Add Venue" page="Venues" active="Add Venue" route="{{ route('venues.index') }}" />
 @endsection
 
 <section class="section">
-    <form action="{{ route('studios.store') }}"
+    <form action="{{ route('venues.store') }}"
         method="POST"
         enctype="multipart/form-data">
 
@@ -23,11 +23,11 @@
                     <div class="card-body p-4">
 
                         <h5 class="fw-bold mb-1">
-                            Studio Information
+                            Venue Information
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Enter the basic information about this studio.
+                            Enter the basic information about this venue.
                         </p>
 
 
@@ -35,7 +35,7 @@
                         <div class="mb-4">
 
                             <label for="name" class="form-label fw-semibold">
-                                Studio Name <span class="text-danger">*</span>
+                                Venue Name <span class="text-danger">*</span>
                             </label>
 
                             <input type="text"
@@ -70,7 +70,7 @@
                                 placeholder="yogaroots-jakarta">
 
                             <div class="form-text">
-                                Leave blank to generate automatically from the studio name.
+                                Leave blank to generate automatically from the venue name.
                             </div>
 
                             @error('slug')
@@ -93,7 +93,7 @@
                                 name="excerpt"
                                 rows="3"
                                 class="form-control @error('excerpt') is-invalid @enderror"
-                                placeholder="A short description of the studio...">{{ old('excerpt') }}</textarea>
+                                placeholder="A short description of the venue...">{{ old('excerpt') }}</textarea>
 
                             @error('excerpt')
                             <div class="invalid-feedback">
@@ -115,7 +115,7 @@
                                 name="description"
                                 rows="7"
                                 class="form-control @error('description') is-invalid @enderror"
-                                placeholder="Describe the studio, facilities, atmosphere, and other information...">{{ old('description') }}</textarea>
+                                placeholder="Describe the venue, facilities, atmosphere, and other information...">{{ old('description') }}</textarea>
 
                             @error('description')
                             <div class="invalid-feedback">
@@ -140,7 +140,7 @@
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Provide the studio's location and contact details.
+                            Provide the venue's location and contact details.
                         </p>
 
 
@@ -155,7 +155,7 @@
                                 name="address"
                                 rows="4"
                                 class="form-control @error('address') is-invalid @enderror"
-                                placeholder="Enter the complete studio address..."
+                                placeholder="Enter the complete venue address..."
                                 required>{{ old('address') }}</textarea>
 
                             @error('address')
@@ -204,7 +204,7 @@
                                     name="email"
                                     class="form-control @error('email') is-invalid @enderror"
                                     value="{{ old('email') }}"
-                                    placeholder="studio@yogaroots.com">
+                                    placeholder="venue@yogaroots.com">
 
                                 @error('email')
                                 <div class="invalid-feedback">
@@ -232,7 +232,7 @@
                                 placeholder="https://maps.google.com/...">
 
                             <div class="form-text">
-                                Paste the Google Maps location link for this studio.
+                                Paste the Google Maps location link for this venue.
                             </div>
 
                             @error('google_maps_url')
@@ -253,17 +253,17 @@
             {{-- Sidebar --}}
             <div class="col-12 col-lg-4">
 
-                {{-- Studio Image --}}
+                {{-- Venue Image --}}
                 <div class="card border-0 shadow-sm">
 
                     <div class="card-body p-4">
 
                         <h5 class="fw-bold mb-1">
-                            Studio Image
+                            Venue Image
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Upload a representative image of the studio.
+                            Upload a representative image of the venue.
                         </p>
 
 
@@ -319,7 +319,7 @@
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Set the visibility of this studio.
+                            Set the visibility of this venue.
                         </p>
 
 
@@ -367,10 +367,10 @@
                         <button type="submit"
                             class="btn btn-primary w-100 mb-2">
                             <i class="bi bi-check-lg me-1"></i>
-                            Save Studio
+                            Save Venue
                         </button>
 
-                        <a href="{{ route('studios.index') }}"
+                        <a href="{{ route('venues.index') }}"
                             class="btn btn-light w-100">
                             Cancel
                         </a>
@@ -409,7 +409,7 @@
         reader.onload = function(e) {
             preview.innerHTML = `
                 <img src="${e.target.result}"
-                    alt="Studio Preview"
+                    alt="Venue Preview"
                     class="w-100 h-100"
                     style="object-fit: cover;">
             `;

@@ -22,7 +22,7 @@
 .schedule-class { font-size: 13px; font-weight: 500; margin-top: 3px; }
 .schedule-duration { font-size: 12px; opacity: .85; }
 .schedule-instructor { font-size: 12px; margin-top: 2px; }
-.schedule-studio { font-size: 12px; margin-top: 2px; opacity: .85; }
+.schedule-venue { font-size: 12px; margin-top: 2px; opacity: .85; }
 .schedule-empty { text-align: center; color: #aaa; font-size: 12px; padding: 20px 5px; }
 .schedule-legend { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
 .schedule-legend.foundation { background: #e5dfd1; }
@@ -104,7 +104,7 @@
         <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-primary"><i class="bx bx-calendar"></i></div><div><div class="ml-stat-value">{{ number_format($stats['total']) }}</div><div class="ml-stat-label">Total Schedules</div></div></div></div></div></div>
         <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-success"><i class="bx bx-calendar-check"></i></div><div><div class="ml-stat-value">{{ number_format($stats['monday_friday']) }}</div><div class="ml-stat-label">Weekdays</div></div></div></div></div></div>
         <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-warning"><i class="bx bx-sun"></i></div><div><div class="ml-stat-value">{{ number_format($stats['weekend']) }}</div><div class="ml-stat-label">Weekend</div></div></div></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-violet"><i class="bx bx-building"></i></div><div><div class="ml-stat-value">{{ number_format($stats['studios']) }}</div><div class="ml-stat-label">Studios</div></div></div></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-violet"><i class="bx bx-building"></i></div><div><div class="ml-stat-value">{{ number_format($stats['venues']) }}</div><div class="ml-stat-label">Venues</div></div></div></div></div></div>
     </div>
 
     <div class="card shadow-sm mb-3">
@@ -120,11 +120,11 @@
                             @endforeach
                         </select>
                     </div>
-                    <div><label class="form-label small mb-0">Studio</label>
-                        <select name="studio_uuid" class="form-select form-select-sm" style="min-width:160px;">
+                    <div><label class="form-label small mb-0">Venue</label>
+                        <select name="venue_uuid" class="form-select form-select-sm" style="min-width:160px;">
                             <option value="">All</option>
-                            @foreach ($studios as $studio)
-                            <option value="{{ $studio->uuid }}" @selected($studioUuid === $studio->uuid)>{{ $studio->name }}</option>
+                            @foreach ($venues as $venue)
+                            <option value="{{ $venue->uuid }}" @selected($venueUuid === $venue->uuid)>{{ $venue->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -189,7 +189,7 @@
                                     @endif
                                 </div>
                                 <div class="schedule-instructor">{{ $schedule->class->instructor->name ?? '-' }}</div>
-                                <div class="schedule-studio"><i class="bi bi-geo-alt me-1"></i>{{ $schedule->studio->name ?? '-' }}</div>
+                                <div class="schedule-venue"><i class="bi bi-geo-alt me-1"></i>{{ $schedule->venue->name ?? '-' }}</div>
                             </div>
                             @empty
                             <div class="schedule-empty">No class</div>

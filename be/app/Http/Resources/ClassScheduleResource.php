@@ -62,10 +62,10 @@ class ClassScheduleResource extends JsonResource
             ],
 
 
-            'studio' => [
-                'uuid' => $this->studio?->uuid,
-                'name' => $this->studio?->name,
-                'address' => $this->studio?->address,
+            'venue' => [
+                'uuid' => $this->venue?->uuid,
+                'name' => $this->venue?->name,
+                'address' => $this->venue?->address,
             ],
 
         ];

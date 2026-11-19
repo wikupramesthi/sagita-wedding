@@ -253,7 +253,7 @@ class BatchController extends Controller
     {
         $date = (string) ($request->input('date') ?: now()->toDateString());
 
-        // Daftar studio sengaja diambil tanpa filter studio/level/time agar
+        // Daftar venue diambil tanpa filter venue/level/time agar
         // pilihan filter tidak saling menghilang saat user memilih salah satu.
         $allRequest = Request::create('/api/class-schedules', 'GET', [
             'date' => $date,
@@ -264,9 +264,9 @@ class BatchController extends Controller
             'schedules',
         ) ?? [];
 
-        $studios = collect($all)
-            ->pluck('studio')
-            ->filter(fn ($studio) => is_array($studio) && !empty($studio['uuid']))
+        $venues = collect($all)
+            ->pluck('venue')
+            ->filter(fn ($venue) => is_array($venue) && !empty($venue['uuid']))
             ->unique('uuid')
             ->values()
             ->all();
@@ -274,7 +274,7 @@ class BatchController extends Controller
         $filteredRequest = Request::create('/api/class-schedules', 'GET', [
             'date' => $date,
             'per_page' => 50,
-        ] + $request->only(['level', 'time', 'studio_uuid']));
+        ] + $request->only(['level', 'time', 'venue_uuid']));
         $filtered = $this->paginated(
             app(ClassScheduleController::class)->index($filteredRequest),
             'schedules',
@@ -283,7 +283,7 @@ class BatchController extends Controller
         return [
             'date' => $date,
             'schedules' => $filtered['schedules'] ?? [],
-            'studios' => $studios,
+            'venues' => $venues,
             'meta' => $filtered['meta'] ?? [],
         ];
     }

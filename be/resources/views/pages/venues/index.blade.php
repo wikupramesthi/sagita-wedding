@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Studios')
+@section('title', 'Venues')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Studios" page="Studios" active="All Studios" route="{{ route('studios.index') }}" />
+<x-breadcrumb title="Venues" page="Venues" active="All Venues" route="{{ route('venues.index') }}" />
 @endsection
 
 @if (session('success'))
@@ -29,19 +29,19 @@
         <div class="col-6 col-xl-3">
             <div class="card shadow-sm"><div class="card-body py-2 px-3"><div class="ml-stat">
                 <div class="ml-stat-icon ic-primary"><i class="bx bx-building"></i></div>
-                <div><div class="ml-stat-value">{{ number_format($stats['total']) }}</div><div class="ml-stat-label">Total Studios</div></div>
+                <div><div class="ml-stat-value">{{ number_format($stats['total']) }}</div><div class="ml-stat-label">Total Venues</div></div>
             </div></div></div>
         </div>
         <div class="col-6 col-xl-3">
             <div class="card shadow-sm"><div class="card-body py-2 px-3"><div class="ml-stat">
                 <div class="ml-stat-icon ic-success"><i class="bx bx-check-shield"></i></div>
-                <div><div class="ml-stat-value">{{ number_format($stats['active']) }}</div><div class="ml-stat-label">Active Studios</div></div>
+                <div><div class="ml-stat-value">{{ number_format($stats['active']) }}</div><div class="ml-stat-label">Active Venues</div></div>
             </div></div></div>
         </div>
         <div class="col-6 col-xl-3">
             <div class="card shadow-sm"><div class="card-body py-2 px-3"><div class="ml-stat">
                 <div class="ml-stat-icon ic-warning"><i class="bx bx-pause-circle"></i></div>
-                <div><div class="ml-stat-value">{{ number_format($stats['inactive']) }}</div><div class="ml-stat-label">Inactive Studios</div></div>
+                <div><div class="ml-stat-value">{{ number_format($stats['inactive']) }}</div><div class="ml-stat-label">Inactive Venues</div></div>
             </div></div></div>
         </div>
         <div class="col-6 col-xl-3">
@@ -55,28 +55,28 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body py-2 px-3">
             <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
-                <form method="GET" action="{{ route('studios.index') }}" class="d-flex flex-wrap align-items-end gap-2 flex-grow-1">
+                <form method="GET" action="{{ route('venues.index') }}" class="d-flex flex-wrap align-items-end gap-2 flex-grow-1">
                     <div style="flex:1 1 160px;min-width:0;"><label class="form-label small mb-0">Search</label><input type="text" name="q" value="{{ $q }}" class="form-control form-control-sm w-100" placeholder="Name, address..." autocomplete="off"></div>
                     <div style="flex:1 1 130px;min-width:0;max-width:200px;"><label class="form-label small mb-0">Status</label><select name="status" class="form-select form-select-sm w-100"><option value="">All</option><option value="active" @selected($status==='active')>Active</option><option value="inactive" @selected($status==='inactive')>Inactive</option></select></div>
-                    <div class="d-flex gap-1"><button type="submit" class="btn btn-sm btn-success"><i class="bi bi-funnel"></i> Filter</button><a href="{{ route('studios.index') }}" class="btn btn-sm btn-light">Reset</a></div>
+                    <div class="d-flex gap-1"><button type="submit" class="btn btn-sm btn-success"><i class="bi bi-funnel"></i> Filter</button><a href="{{ route('venues.index') }}" class="btn btn-sm btn-light">Reset</a></div>
                 </form>
-                @can('studios.create')
-                <a href="{{ route('studios.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add Studio</a>
+                @can('venues.create')
+                <a href="{{ route('venues.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add Venue</a>
                 @endcan
             </div>
         </div>
     </div>
 
     <div class="row g-4">
-        @forelse ($studios as $studio)
+        @forelse ($venues as $venue)
         <div class="col-12 col-md-6 col-xl-4">
 
             <div class="card border-0 shadow-sm h-100 overflow-hidden">
                 <div class="position-relative">
 
-                    @if ($studio->image)
-                    <img src="{{ asset('storage/' . $studio->image) }}"
-                        alt="{{ $studio->name }}"
+                    @if ($venue->image)
+                    <img src="{{ asset('storage/' . $venue->image) }}"
+                        alt="{{ $venue->name }}"
                         class="w-100"
                         style="height: 210px; object-fit: cover;"
                         loading="lazy">
@@ -92,7 +92,7 @@
 
 
                     <div class="position-absolute top-0 end-0 m-3">
-                        @if ($studio->status === 'active')
+                        @if ($venue->status === 'active')
                         <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
                             <i class="bi bi-circle-fill me-1"
                                 style="font-size: 7px;"></i>
@@ -117,23 +117,23 @@
                 <div class="card-body p-4 pb-0">
                     <h5 class="fw-bold mb-2"
                         style="color: var(--bs-heading-color);">
-                        {{ $studio->name }}
+                        {{ $venue->name }}
                     </h5>
 
-                    @if ($studio->excerpt)
+                    @if ($venue->excerpt)
                     <p class="text-muted small mb-3">
-                        {{ $studio->excerpt }}
+                        {{ $venue->excerpt }}
                     </p>
                     @endif
 
 
                     {{-- Address --}}
-                    @if ($studio->address)
+                    @if ($venue->address)
 
                     <div class="d-flex align-items-start gap-2 mb-2">
                         <i class="bi bi-geo-alt text-secondary mt-1"></i>
                         <span class="small text-muted">
-                            {{ $studio->address }}
+                            {{ $venue->address }}
                         </span>
 
                     </div>
@@ -142,12 +142,12 @@
 
 
                     {{-- Phone --}}
-                    @if ($studio->phone)
+                    @if ($venue->phone)
 
                     <div class="d-flex align-items-center gap-2 mb-3">
                         <i class="bi bi-telephone text-secondary"></i>
                         <span class="small text-muted">
-                            {{ $studio->phone }}
+                            {{ $venue->phone }}
                         </span>
 
                     </div>
@@ -163,8 +163,8 @@
                             <i class="bi bi-calendar3 text-secondary"></i>
 
                             <span class="small text-muted">
-                                {{ $studio->schedules_count ?? 0 }}
-                                {{ ($studio->schedules_count ?? 0) == 1 ? 'Schedule' : 'Schedules' }}
+                                {{ $venue->schedules_count ?? 0 }}
+                                {{ ($venue->schedules_count ?? 0) == 1 ? 'Schedule' : 'Schedules' }}
                             </span>
 
                         </div>
@@ -177,8 +177,8 @@
                     <div class="d-flex gap-2">
 
                         {{-- View Map --}}
-                        @if ($studio->google_maps_url)
-                        <a href="{{ $studio->google_maps_url }}"
+                        @if ($venue->google_maps_url)
+                        <a href="{{ $venue->google_maps_url }}"
                             target="_blank"
                             rel="noopener noreferrer"
                             class="btn btn-sm btn-outline-primary flex-fill">
@@ -190,8 +190,8 @@
                         @endif
 
 
-                        @can('studios.update')
-                        <a href="{{ route('studios.edit', $studio->uuid) }}"
+                        @can('venues.update')
+                        <a href="{{ route('venues.edit', $venue->uuid) }}"
                             class="btn btn-sm btn-outline-dark flex-fill">
 
                             <i class="bi bi-pencil me-1"></i>
@@ -199,18 +199,18 @@
                         </a>
                         @endcan
 
-                        @can('studios.destroy')
-                        <form action="{{ route('studios.destroy', $studio->uuid) }}"
+                        @can('venues.destroy')
+                        <form action="{{ route('venues.destroy', $venue->uuid) }}"
                             method="POST"
                             class="flex-fill"
-                            id="deleteStudioForm_{{ $studio->uuid }}">
+                            id="deleteVenueForm_{{ $venue->uuid }}">
 
                             @csrf
                             @method('DELETE')
 
                             <button type="button"
                                 class="btn btn-sm btn-danger w-100"
-                                onclick="showDeleteStudio('{{ $studio->uuid }}')">
+                                onclick="showDeleteVenue('{{ $venue->uuid }}')">
 
                                 <i class="bi bi-trash me-1"></i>
                                 Delete
@@ -249,24 +249,24 @@
 
                     <h5 class="fw-bold mb-2"
                         style="color: var(--bs-heading-color);">
-                        No Studios Found
+                        No Venues Found
                     </h5>
 
                     <p class="text-muted mb-4">
                         @if ($q !== '' || $status !== '')
                         Try a different keyword or filter, or
-                        <a href="{{ route('studios.index') }}">reset the filter</a>.
+                        <a href="{{ route('venues.index') }}">reset the filter</a>.
                         @else
-                        Add your first YogaRoots studio location.
+                        Add your first YogaRoots venue location.
                         @endif
                     </p>
 
-                    @can('studios.create')
+                    @can('venues.create')
                     @if ($q === '' && $status === '')
-                    <a href="{{ route('studios.create') }}"
+                    <a href="{{ route('venues.create') }}"
                         class="btn btn-primary px-4">
                         <i class="bi bi-plus-lg me-1"></i>
-                        Add Studio
+                        Add Venue
                     </a>
                     @endif
                     @endcan
@@ -286,11 +286,11 @@
 
 {{-- Delete Confirmation --}}
 <script>
-    function showDeleteStudio(uuid) {
+    function showDeleteVenue(uuid) {
 
         Swal.fire({
-            title: 'Delete Studio?',
-            text: 'This studio will be permanently deleted. Are you sure?',
+            title: 'Delete Venue?',
+            text: 'This venue will be permanently deleted. Are you sure?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, Delete It!',
@@ -300,7 +300,7 @@
 
             if (result.isConfirmed) {
                 document
-                    .getElementById('deleteStudioForm_' + uuid)
+                    .getElementById('deleteVenueForm_' + uuid)
                     .submit();
             }
 

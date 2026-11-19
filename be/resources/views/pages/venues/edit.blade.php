@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Studio')
+@section('title', 'Edit Venue')
 
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Edit Studio" page="Studios" active="Edit Studio" route="{{ route('studios.index') }}" />
+<x-breadcrumb title="Edit Venue" page="Venues" active="Edit Venue" route="{{ route('venues.index') }}" />
 @endsection
 
 <section class="section">
-    <form action="{{ route('studios.update', $studio->uuid) }}"
+    <form action="{{ route('venues.update', $venue->uuid) }}"
         method="POST"
         enctype="multipart/form-data">
 
@@ -26,11 +26,11 @@
                     <div class="card-body p-4">
 
                         <h5 class="fw-bold mb-1">
-                            Studio Information
+                            Venue Information
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Update the basic information about this studio.
+                            Update the basic information about this venue.
                         </p>
 
 
@@ -38,14 +38,14 @@
                         <div class="mb-4">
 
                             <label for="name" class="form-label fw-semibold">
-                                Studio Name <span class="text-danger">*</span>
+                                Venue Name <span class="text-danger">*</span>
                             </label>
 
                             <input type="text"
                                 id="name"
                                 name="name"
                                 class="form-control @error('name') is-invalid @enderror"
-                                value="{{ old('name', $studio->name) }}"
+                                value="{{ old('name', $venue->name) }}"
                                 placeholder="e.g. YogaRoots Jakarta"
                                 required>
 
@@ -69,11 +69,11 @@
                                 id="slug"
                                 name="slug"
                                 class="form-control @error('slug') is-invalid @enderror"
-                                value="{{ old('slug', $studio->slug) }}"
+                                value="{{ old('slug', $venue->slug) }}"
                                 placeholder="yogaroots-jakarta">
 
                             <div class="form-text">
-                                Used as the studio's URL identifier.
+                                Used as the venue's URL identifier.
                             </div>
 
                             @error('slug')
@@ -96,7 +96,7 @@
                                 name="excerpt"
                                 rows="3"
                                 class="form-control @error('excerpt') is-invalid @enderror"
-                                placeholder="A short description of the studio...">{{ old('excerpt', $studio->excerpt) }}</textarea>
+                                placeholder="A short description of the venue...">{{ old('excerpt', $venue->excerpt) }}</textarea>
 
                             @error('excerpt')
                             <div class="invalid-feedback">
@@ -118,7 +118,7 @@
                                 name="description"
                                 rows="7"
                                 class="form-control @error('description') is-invalid @enderror"
-                                placeholder="Describe the studio, facilities, atmosphere, and other information...">{{ old('description', $studio->description) }}</textarea>
+                                placeholder="Describe the venue, facilities, atmosphere, and other information...">{{ old('description', $venue->description) }}</textarea>
 
                             @error('description')
                             <div class="invalid-feedback">
@@ -143,7 +143,7 @@
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Update the studio's location and contact details.
+                            Update the venue's location and contact details.
                         </p>
 
 
@@ -158,8 +158,8 @@
                                 name="address"
                                 rows="4"
                                 class="form-control @error('address') is-invalid @enderror"
-                                placeholder="Enter the complete studio address..."
-                                required>{{ old('address', $studio->address) }}</textarea>
+                                placeholder="Enter the complete venue address..."
+                                required>{{ old('address', $venue->address) }}</textarea>
 
                             @error('address')
                             <div class="invalid-feedback">
@@ -183,7 +183,7 @@
                                     id="phone"
                                     name="phone"
                                     class="form-control @error('phone') is-invalid @enderror"
-                                    value="{{ old('phone', $studio->phone) }}"
+                                    value="{{ old('phone', $venue->phone) }}"
                                     placeholder="+62 812 3456 7890">
 
                                 @error('phone')
@@ -206,8 +206,8 @@
                                     id="email"
                                     name="email"
                                     class="form-control @error('email') is-invalid @enderror"
-                                    value="{{ old('email', $studio->email) }}"
-                                    placeholder="studio@yogaroots.com">
+                                    value="{{ old('email', $venue->email) }}"
+                                    placeholder="venue@yogaroots.com">
 
                                 @error('email')
                                 <div class="invalid-feedback">
@@ -231,11 +231,11 @@
                                 id="google_maps_url"
                                 name="google_maps_url"
                                 class="form-control @error('google_maps_url') is-invalid @enderror"
-                                value="{{ old('google_maps_url', $studio->google_maps_url) }}"
+                                value="{{ old('google_maps_url', $venue->google_maps_url) }}"
                                 placeholder="https://maps.google.com/...">
 
                             <div class="form-text">
-                                Paste the Google Maps location link for this studio.
+                                Paste the Google Maps location link for this venue.
                             </div>
 
                             @error('google_maps_url')
@@ -246,11 +246,11 @@
 
 
                             {{-- View Map --}}
-                            @if ($studio->google_maps_url)
+                            @if ($venue->google_maps_url)
 
                             <div class="mt-2">
 
-                                <a href="{{ $studio->google_maps_url }}"
+                                <a href="{{ $venue->google_maps_url }}"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="btn btn-sm btn-outline-primary">
@@ -276,17 +276,17 @@
             {{-- Sidebar --}}
             <div class="col-12 col-lg-4">
 
-                {{-- Studio Image --}}
+                {{-- Venue Image --}}
                 <div class="card border-0 shadow-sm">
 
                     <div class="card-body p-4">
 
                         <h5 class="fw-bold mb-1">
-                            Studio Image
+                            Venue Image
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Update the studio image if needed.
+                            Update the venue image if needed.
                         </p>
 
 
@@ -296,10 +296,10 @@
                                 class="rounded overflow-hidden bg-light d-flex align-items-center justify-content-center mb-3"
                                 style="height: 220px;">
 
-                                @if ($studio->image)
+                                @if ($venue->image)
 
-                                <img src="{{ asset('storage/' . $studio->image) }}"
-                                    alt="{{ $studio->name }}"
+                                <img src="{{ asset('storage/' . $venue->image) }}"
+                                    alt="{{ $venue->name }}"
                                     class="w-100 h-100"
                                     style="object-fit: cover;">
 
@@ -354,7 +354,7 @@
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Set the visibility of this studio.
+                            Set the visibility of this venue.
                         </p>
 
 
@@ -370,12 +370,12 @@
                                 required>
 
                                 <option value="active"
-                                    {{ old('status', $studio->status) === 'active' ? 'selected' : '' }}>
+                                    {{ old('status', $venue->status) === 'active' ? 'selected' : '' }}>
                                     Active
                                 </option>
 
                                 <option value="inactive"
-                                    {{ old('status', $studio->status) === 'inactive' ? 'selected' : '' }}>
+                                    {{ old('status', $venue->status) === 'inactive' ? 'selected' : '' }}>
                                     Inactive
                                 </option>
 
@@ -403,11 +403,11 @@
                             class="btn btn-primary w-100 mb-2">
 
                             <i class="bi bi-check-lg me-1"></i>
-                            Update Studio
+                            Update Venue
 
                         </button>
 
-                        <a href="{{ route('studios.index') }}"
+                        <a href="{{ route('venues.index') }}"
                             class="btn btn-light w-100">
 
                             Cancel
@@ -443,7 +443,7 @@
         reader.onload = function(e) {
             preview.innerHTML = `
                 <img src="${e.target.result}"
-                    alt="Studio Preview"
+                    alt="Venue Preview"
                     class="w-100 h-100"
                     style="object-fit: cover;">
             `;

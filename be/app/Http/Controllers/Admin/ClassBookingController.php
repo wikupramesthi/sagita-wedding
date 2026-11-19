@@ -46,7 +46,7 @@ class ClassBookingController extends Controller
             'uuid' => ['required', 'uuid'],
         ]);
 
-        $booking = ClassBooking::with(['user', 'schedule.class', 'schedule.studio'])
+        $booking = ClassBooking::with(['user', 'schedule.class', 'schedule.venue'])
             ->where('uuid', $validated['uuid'])
             ->first();
 
@@ -87,7 +87,7 @@ class ClassBookingController extends Controller
             return redirect()->route('bookings.my');
         }
 
-        $query = ClassBooking::with(['user', 'schedule.class', 'schedule.studio']);
+        $query = ClassBooking::with(['user', 'schedule.class', 'schedule.venue']);
 
         if (!$isAdmin) {
             $query->where('user_uuid', $user->uuid);

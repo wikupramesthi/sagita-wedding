@@ -188,7 +188,7 @@
                                     <span class="d-block">{{ ucfirst($booking->schedule?->day ?? '-') }}</span>
                                     <small class="log-muted">
                                         {{ substr((string) $booking->schedule?->start_time, 0, 5) }}–{{ substr((string) $booking->schedule?->end_time, 0, 5) }}
-                                        • {{ $booking->schedule?->studio?->name ?? '' }}
+                                        • {{ $booking->schedule?->venue?->name ?? '' }}
                                     </small>
                                 </td>
                                 <td>

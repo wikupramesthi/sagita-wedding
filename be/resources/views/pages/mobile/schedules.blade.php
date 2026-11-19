@@ -55,9 +55,9 @@
 
         {{-- TABS --}}
         <div class="d-flex gap-2 mt-4">
-            <a href="{{ route('schedules.index', array_filter(['tab' => 'today', 'search' => $search ?? null, 'studio' => $studioUuid ?? null, 'level' => $level ?? null])) }}"
+            <a href="{{ route('schedules.index', array_filter(['tab' => 'today', 'search' => $search ?? null, 'venue' => $venueUuid ?? null, 'level' => $level ?? null])) }}"
                 class="filter d-inline-block text-decoration-none {{ $tab === 'today' ? 'active' : '' }}">{{ __('mobile.today') }}</a>
-            <a href="{{ route('schedules.index', array_filter(['tab' => 'upcoming', 'search' => $search ?? null, 'studio' => $studioUuid ?? null, 'level' => $level ?? null])) }}"
+            <a href="{{ route('schedules.index', array_filter(['tab' => 'upcoming', 'search' => $search ?? null, 'venue' => $venueUuid ?? null, 'level' => $level ?? null])) }}"
                 class="filter d-inline-block text-decoration-none {{ $tab === 'upcoming' ? 'active' : '' }}">{{ __('mobile.upcoming') }}</a>
         </div>
 
@@ -69,17 +69,17 @@
                 <input type="search" name="search" value="{{ $search ?? '' }}"
                     class="border-0 bg-transparent w-100 small" style="outline:none"
                     placeholder="{{ __('mobile.search_class_instructor') }}" autocomplete="off">
-                @if (!empty($search) || !empty($studioUuid) || !empty($level))
+                @if (!empty($search) || !empty($venueUuid) || !empty($level))
                     <a href="{{ route('schedules.index', ['tab' => $tab]) }}" class="text-muted2" aria-label="Clear filters">
                         <i class="bi bi-x-circle"></i>
                     </a>
                 @endif
             </div>
             <div class="d-flex gap-2 mt-2">
-                <select name="studio" class="form-control form-control-sm" onchange="this.form.submit()" aria-label="Studio filter">
-                    <option value="">{{ __('mobile.all_studios') }}</option>
-                    @foreach (($studios ?? []) as $studio)
-                        <option value="{{ $studio->uuid }}" @selected(($studioUuid ?? '') === $studio->uuid)>{{ $studio->name }}</option>
+                <select name="venue" class="form-control form-control-sm" onchange="this.form.submit()" aria-label="Venue filter">
+                    <option value="">{{ __('mobile.all_venues') }}</option>
+                    @foreach (($venues ?? []) as $venue)
+                        <option value="{{ $venue->uuid }}" @selected(($venueUuid ?? '') === $venue->uuid)>{{ $venue->name }}</option>
                     @endforeach
                 </select>
                 <select name="level" class="form-control form-control-sm" onchange="this.form.submit()" aria-label="Level filter">

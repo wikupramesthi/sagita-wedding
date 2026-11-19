@@ -3,7 +3,7 @@
 namespace App\Models\Class;
 
 use App\Models\Payment\Order;
-use App\Models\Studio;
+use App\Models\Venue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,7 +21,7 @@ class ClassSchedule extends Model
 
     protected $fillable = [
         'class_uuid',
-        'studio_uuid',
+        'venue_uuid',
         'day',
         'start_time',
         'end_time',
@@ -60,11 +60,11 @@ class ClassSchedule extends Model
         );
     }
 
-    public function studio(): BelongsTo
+    public function venue(): BelongsTo
     {
         return $this->belongsTo(
-            Studio::class,
-            'studio_uuid',
+            Venue::class,
+            'venue_uuid',
             'uuid'
         );
     }

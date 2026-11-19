@@ -56,7 +56,7 @@ return [
     'my_orders' => 'My Orders',
     'no_classes_day' => 'No classes that day.',
     'search_class_instructor' => 'Search class or instructor',
-    'all_studios' => 'All studios',
+    'all_venues' => 'All venues',
     'all_levels' => 'All levels',
 
     // Booking actions & statuses

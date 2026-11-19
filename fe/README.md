@@ -58,8 +58,8 @@ fe/
 ## API internal
 
 - `GET /api/classes` → proxy rapi ke backend
-- `GET /api/class-schedules` → jadwal kelas (filter `date`, `level`, `time`, `studio_uuid`)
-- `GET /api/batch/schedules` → jadwal + daftar studio dalam satu request
+- `GET /api/class-schedules` → jadwal kelas (filter `date`, `level`, `time`, `venue_uuid`)
+- `GET /api/batch/schedules` → jadwal + daftar venue dalam satu request
 - `GET /api/contact/captcha` → soal captcha + `captcha_id`
 - `POST /api/contact` `{nama,email,no_telp,isi,captcha_id,captcha_answer}` → teruskan ke backend
 - `POST /api/booking` → **501 Not Implemented** (backend belum punya endpoint booking; booking publik lewat WhatsApp)
