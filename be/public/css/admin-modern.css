@@ -2897,6 +2897,13 @@ body.modal-open header {
     border-radius: 0 !important;
 }
 
+#main-content .input-group > .form-control,
+#main-content .input-group > .form-select {
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+}
+
 #main-content .input-group > :first-child {
     border-top-left-radius: 0.5rem !important;
     border-bottom-left-radius: 0.5rem !important;

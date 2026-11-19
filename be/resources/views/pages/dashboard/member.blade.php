@@ -235,7 +235,7 @@
         <div class="col-6 col-lg-3 col-md-6">
             <div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat">
                 <div class="ml-stat-icon ic-warning"><i class="bx bx-user-voice"></i></div>
-                <div><div class="ml-stat-value">{{ $jumlahInstruktur }}</div><div class="ml-stat-label">Total Instructors</div></div>
+                <div><div class="ml-stat-value">{{ $jumlahInstruktur }}</div><div class="ml-stat-label">Total Vendors</div></div>
             </div></div></div>
         </div>
         <div class="col-6 col-lg-3 col-md-6">
