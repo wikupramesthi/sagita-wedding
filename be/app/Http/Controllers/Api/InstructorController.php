@@ -21,7 +21,7 @@ class InstructorController extends Controller
             $perPage = $request->input('per_page', 20);
 
             $instructors = User::role('instruktur')
-                ->with('specializations')
+                ->with('vendors_categories')
                 ->orderBy('name')
                 ->paginate($perPage);
 

@@ -4,18 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
-
-class Specializaty extends Model
+class VendorsCategory extends Model
 {
     use HasFactory;
 
-    protected $table = 'specializations';
+    protected $table = 'vendors_categories';
 
     protected $primaryKey = 'uuid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -40,8 +41,8 @@ class Specializaty extends Model
     {
         return $this->belongsToMany(
             User::class,
-            'user_specialization',
-            'specialization_uuid',
+            'user_vendors_category',
+            'vendors_category_uuid',
             'user_uuid',
             'uuid',
             'uuid'

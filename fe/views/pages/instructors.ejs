@@ -89,15 +89,15 @@
                             <% } %>
 
 
-                            <!-- SPECIALIZATIONS -->
+                            <!-- VENDOR CATEGORIES -->
                             <% if (
-                                ins.specializations &&
-                                ins.specializations.length > 0
+                                ins.vendors_categories &&
+                                ins.vendors_categories.length > 0
                             ) { %>
 
                                 <div class="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
 
-                                    <% ins.specializations.slice(0, 2).forEach(spec => { %>
+                                    <% ins.vendors_categories.slice(0, 2).forEach(spec => { %>
 
                                         <span
                                             class="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-semibold text-sage-800 shadow-sm"
@@ -108,12 +108,12 @@
                                     <% }) %>
 
 
-                                    <% if (ins.specializations.length > 2) { %>
+                                    <% if (ins.vendors_categories.length > 2) { %>
 
                                         <span
                                             class="bg-sage-800/90 text-white px-3 py-1.5 rounded-full text-[10px] font-semibold"
                                         >
-                                            +<%= ins.specializations.length - 2 %>
+                                            +<%= ins.vendors_categories.length - 2 %>
                                         </span>
 
                                     <% } %>

@@ -25,12 +25,12 @@
                     <div class="col-md-8">
                         <table class="table table-sm table-borderless">
                             <tr>
-                                <th class="text-muted" style="width: 35%;">Specialization</th>
+                                <th class="text-muted" style="width: 35%;">Vendor Category</th>
                                 <td>
                                     <div class="d-flex flex-wrap gap-1">
-                                        @forelse ($user->specializations as $specialization)
+                                        @forelse ($user->vendors_categories as $vendors_category)
                                         <span class="badge bg-primary">
-                                            {{ $specialization->name }}
+                                            {{ $vendors_category->name }}
                                         </span>
                                         @empty
                                         <span class="text-muted">-</span>

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Specializaty;
+use App\Models\VendorsCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -22,13 +22,13 @@ class InstrukturController extends Controller
         $search = trim((string) $request->get('search', ''));
         $jenisKelamin = (string) $request->get('jenis_kelamin', '');
         $jenisKelamin = in_array($jenisKelamin, ['L', 'P'], true) ? $jenisKelamin : '';
-        $specializationUuid = (string) $request->get('specialization', '');
+        $vendorsCategoryUuid = (string) $request->get('vendors_category', '');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
         $query = User::whereHas('roles', function ($query) {
             $query->where('name', 'instruktur');
-        })->with('specializations');
+        })->with('vendors_categories');
 
         if ($search !== '') {
             $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search) . '%';
@@ -49,9 +49,9 @@ class InstrukturController extends Controller
             $query->where('jenis_kelamin', $jenisKelamin);
         }
 
-        if ($specializationUuid !== '') {
-            $query->whereHas('specializations', function ($q) use ($specializationUuid) {
-                $q->where('specializations.uuid', $specializationUuid);
+        if ($vendorsCategoryUuid !== '') {
+            $query->whereHas('vendors_categories', function ($q) use ($vendorsCategoryUuid) {
+                $q->where('vendors_categories.uuid', $vendorsCategoryUuid);
             });
         }
 
@@ -64,17 +64,17 @@ class InstrukturController extends Controller
             'new_month' => (clone $query)->where('created_at', '>=', now()->startOfMonth())->count(),
         ];
 
-        $specializations = Specializaty::where('is_active', 'active')
+        $vendors_categories = VendorsCategory::where('is_active', 'active')
             ->orderBy('name')
             ->get();
 
         return view('pages.instruktur.index', [
             'users' => $users,
-            'specializations' => $specializations,
+            'vendors_categories' => $vendors_categories,
             'stats' => $stats,
             'search' => $search,
             'jenisKelamin' => $jenisKelamin,
-            'specializationUuid' => $specializationUuid,
+            'vendorsCategoryUuid' => $vendorsCategoryUuid,
             'startDate' => $startDate,
             'endDate' => $endDate,
         ]);
@@ -85,8 +85,8 @@ class InstrukturController extends Controller
      */
     public function create()
     {
-        $specializations = Specializaty::where('is_active', 'active')->get();
-        return view('pages.instruktur.create', compact('specializations'));
+        $vendors_categories = VendorsCategory::where('is_active', 'active')->get();
+        return view('pages.instruktur.create', compact('vendors_categories'));
     }
 
     /**
@@ -111,8 +111,8 @@ class InstrukturController extends Controller
             'tiktok'         => 'nullable|string|max:255',
             'youtube'        => 'nullable|string|max:255',
             'biografi'       => 'nullable|string',
-            'specializations' => 'required|array|min:1',
-            'specializations.*' => 'exists:specializations,uuid',
+            'vendors_categories' => 'required|array|min:1',
+            'vendors_categories.*' => 'exists:vendors_categories,uuid',
         ]);
 
         DB::beginTransaction();
@@ -143,12 +143,12 @@ class InstrukturController extends Controller
 
             $user->assignRole('instruktur');
 
-            // Save the instructor specializations // 
-            foreach ($request->specializations as $specializationUuid) {
-                DB::table('user_specialization')->insert([
+            // Save the instructor vendor categories //
+            foreach ($request->vendors_categories as $vendorsCategoryUuid) {
+                DB::table('user_vendors_category')->insert([
                     'uuid'                => (string) Str::uuid(),
                     'user_uuid'           => $user->uuid,
-                    'specialization_uuid' => $specializationUuid,
+                    'vendors_category_uuid' => $vendorsCategoryUuid,
                 ]);
             }
 
@@ -176,11 +176,11 @@ class InstrukturController extends Controller
         $authUser = auth()->user();
 
         if ($authUser->hasRole(['admin', 'super-admin'])) {
-            $specializations = Specializaty::where('is_active', 'active')->get();
+            $vendors_categories = VendorsCategory::where('is_active', 'active')->get();
 
             return view('pages.instruktur.edit', compact(
                 'instruktur',
-                'specializations'
+                'vendors_categories'
             ));
         }
 
@@ -188,11 +188,11 @@ class InstrukturController extends Controller
             abort(403, 'You do not have access to this data.');
         }
 
-        $specializations = Specializaty::where('is_active', 'active')->get();
+        $vendors_categories = VendorsCategory::where('is_active', 'active')->get();
 
         return view('pages.instruktur.edit', compact(
             'instruktur',
-            'specializations'
+            'vendors_categories'
         ));
     }
 
@@ -220,9 +220,9 @@ class InstrukturController extends Controller
             'youtube'        => 'nullable|string|max:255',
             'biografi'       => 'nullable|string',
 
-            // Specialization
-            'specializations'   => 'required|array|min:1',
-            'specializations.*' => 'exists:specializations,uuid',
+            // Vendor Category
+            'vendors_categories'   => 'required|array|min:1',
+            'vendors_categories.*' => 'exists:vendors_categories,uuid',
         ]);
 
         DB::beginTransaction();
@@ -254,25 +254,25 @@ class InstrukturController extends Controller
 
             $instruktur->update($data);
 
-            // Delete the old specializations
-            DB::table('user_specialization')
+            // Delete the old vendor categories
+            DB::table('user_vendors_category')
                 ->where('user_uuid', $instruktur->uuid)
                 ->delete();
 
 
-            // Insert the new specializations
-            $specializations = [];
+            // Insert the new vendor categories
+            $vendors_categories = [];
 
-            foreach ($request->specializations as $specializationUuid) {
-                $specializations[] = [
+            foreach ($request->vendors_categories as $vendorsCategoryUuid) {
+                $vendors_categories[] = [
                     'uuid'                => (string) Str::uuid(),
                     'user_uuid'           => $instruktur->uuid,
-                    'specialization_uuid' => $specializationUuid,
+                    'vendors_category_uuid' => $vendorsCategoryUuid,
                 ];
             }
 
-            DB::table('user_specialization')
-                ->insert($specializations);
+            DB::table('user_vendors_category')
+                ->insert($vendors_categories);
 
             DB::commit();
             return redirect()->route('instruktur.index')->with('success', 'Instructor successfully updated.');
@@ -317,11 +317,11 @@ class InstrukturController extends Controller
         if ($user->hasRole('user')) {
 
             $instructors = User::role('instruktur')
-                ->with('specializations')
+                ->with('vendors_categories')
                 ->select(['uuid', 'name', 'avatar', 'biografi', 'pengalaman'])
                 ->get();
 
-            $specializations = Specializaty::where('is_active', 'active')
+            $vendors_categories = VendorsCategory::where('is_active', 'active')
                 ->orderBy('name')
                 ->get();
 
@@ -330,7 +330,7 @@ class InstrukturController extends Controller
                 compact(
                     'user',
                     'instructors',
-                    'specializations'
+                    'vendors_categories'
                 )
             );
         }

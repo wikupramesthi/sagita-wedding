@@ -249,10 +249,10 @@
                                     </div>
 
 
-                                    @if ($schedule->class->instructor->specializations && $schedule->class->instructor->specializations->count())
+                                    @if ($schedule->class->instructor->vendors_categories && $schedule->class->instructor->vendors_categories->count())
                                         <div class="small text-muted mt-1">
 
-                                            {{ $schedule->class->instructor->specializations->pluck('name')->join(' · ') }}
+                                            {{ $schedule->class->instructor->vendors_categories->pluck('name')->join(' · ') }}
 
                                         </div>
                                     @else

@@ -20,11 +20,11 @@ class InstructorResource extends JsonResource
             'pengalaman' => $this->pengalaman,
             'biografi' => $this->biografi,
 
-            'specializations' => $this->specializations->map(function ($specialization) {
+            'vendors_categories' => $this->vendors_categories->map(function ($vendors_category) {
                 return [
-                    'uuid' => $specialization->uuid,
-                    'name' => $specialization->name,
-                    'slug' => $specialization->slug,
+                    'uuid' => $vendors_category->uuid,
+                    'name' => $vendors_category->name,
+                    'slug' => $vendors_category->slug,
                 ];
             }),
         ];

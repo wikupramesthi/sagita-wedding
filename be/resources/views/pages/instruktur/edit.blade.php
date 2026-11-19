@@ -48,35 +48,35 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="specializations" class="small mb-1">
-                        Select Specializations <span class="text-danger">*</span>
+                    <label for="vendors_categories" class="small mb-1">
+                        Select Vendor Categories <span class="text-danger">*</span>
                     </label>
 
                     @php
-                    $selectedSpecializations = old(
-                    'specializations',
-                    $instruktur->specializations->pluck('uuid')->toArray()
+                    $selectedVendorsCategories = old(
+                    'vendors_categories',
+                    $instruktur->vendors_categories->pluck('uuid')->toArray()
                     );
                     @endphp
 
                     <select
                         class="form-control"
-                        id="specializations"
-                        name="specializations[]"
+                        id="vendors_categories"
+                        name="vendors_categories[]"
                         multiple
                         required>
 
-                        @foreach ($specializations as $specialization)
+                        @foreach ($vendors_categories as $vendors_category)
                         <option
-                            value="{{ $specialization->uuid }}"
-                            {{ in_array($specialization->uuid, $selectedSpecializations) ? 'selected' : '' }}>
-                            {{ $specialization->name }}
+                            value="{{ $vendors_category->uuid }}"
+                            {{ in_array($vendors_category->uuid, $selectedVendorsCategories) ? 'selected' : '' }}>
+                            {{ $vendors_category->name }}
                         </option>
                         @endforeach
 
                     </select>
 
-                    @error('specializations')
+                    @error('vendors_categories')
                     <div class="text-danger small mt-1">
                         {{ $message }}
                     </div>

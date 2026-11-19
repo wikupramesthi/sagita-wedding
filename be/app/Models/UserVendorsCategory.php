@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Str;
 
-class UserSpecialization extends Pivot
+class UserVendorsCategory extends Pivot
 {
-    protected $table = 'user_specialization';
+    protected $table = 'user_vendors_category';
 
     public $incrementing = false;
 

@@ -17,7 +17,7 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\SpecializatyController;
+use App\Http\Controllers\Admin\VendorsCategoryController;
 use App\Http\Controllers\Admin\FileDownloadController;
 use App\Http\Controllers\Admin\InstrukturController;
 use App\Http\Controllers\Admin\VenueController;
@@ -163,7 +163,7 @@ Route::group(['middleware' => ['web', 'auth', 'verified'], 'prefix' => 'backend'
     Route::put('banner/album/{album}', [BannerController::class, 'updateAlbum'])->name('banner.updateAlbum');
     Route::delete('banner/album/{album}', [BannerController::class, 'destroyAlbum'])->name('banner.destroyAlbum');
     Route::resource('categories', CategoryController::class);
-    Route::resource('specializations', SpecializatyController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('vendors_categories', VendorsCategoryController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::delete('articles/bulk', [ArticleController::class, 'bulkDestroy'])->name('articles.bulkDestroy');
     Route::resource('articles', ArticleController::class)->except(['show']);
     Route::resource('account', AccountController::class);

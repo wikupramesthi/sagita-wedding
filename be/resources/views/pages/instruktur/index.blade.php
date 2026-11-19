@@ -38,11 +38,11 @@
                 <form method="GET" action="{{ route('instruktur.index') }}" class="d-flex flex-wrap align-items-end gap-2">
                     <div><label class="form-label small mb-0">Search</label><input type="text" name="search" value="{{ $search }}" class="form-control form-control-sm" placeholder="Name, email..." style="min-width:180px;" autocomplete="off"></div>
                     <div><label class="form-label small mb-0">Gender</label><select name="jenis_kelamin" class="form-select form-select-sm" style="min-width:130px;"><option value="">All</option><option value="L" @selected($jenisKelamin==='L')>Male</option><option value="P" @selected($jenisKelamin==='P')>Female</option></select></div>
-                    <div><label class="form-label small mb-0">Specialization</label>
-                        <select name="specialization" class="form-select form-select-sm" style="min-width:160px;">
+                    <div><label class="form-label small mb-0">Vendor Category</label>
+                        <select name="vendors_category" class="form-select form-select-sm" style="min-width:160px;">
                             <option value="">All</option>
-                            @foreach ($specializations as $specialization)
-                            <option value="{{ $specialization->uuid }}" @selected($specializationUuid===$specialization->uuid)>{{ $specialization->name }}</option>
+                            @foreach ($vendors_categories as $vendors_category)
+                            <option value="{{ $vendors_category->uuid }}" @selected($vendorsCategoryUuid===$vendors_category->uuid)>{{ $vendors_category->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -81,7 +81,7 @@
                 <table class="table table-hover mb-0" style="font-size:0.9rem;">
                     <thead class="table-light">
                         <tr>
-                            <th>No.</th><th>Photo</th><th>Full Name</th><th>Specialization</th><th>Gender</th><th class="hide-sm">Email</th><th>Experience</th><th>Actions</th>
+                            <th>No.</th><th>Photo</th><th>Full Name</th><th>Vendor Category</th><th>Gender</th><th class="hide-sm">Email</th><th>Experience</th><th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,8 +98,8 @@
                             <td><span class="fw-semibold d-block" style="font-size:0.9rem;">{{ $user->name }}</span></td>
                             <td>
                                 <div class="d-flex flex-wrap gap-1">
-                                    @forelse ($user->specializations as $specialization)
-                                    <span class="badge bg-primary-subtle text-primary">{{ $specialization->name }}</span>
+                                    @forelse ($user->vendors_categories as $vendors_category)
+                                    <span class="badge bg-primary-subtle text-primary">{{ $vendors_category->name }}</span>
                                     @empty
                                     <span class="text-muted">-</span>
                                     @endforelse

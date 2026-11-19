@@ -43,13 +43,13 @@
                 class="filter active"
                 data-f="Semua">{{ __('mobile.all') }}</button>
 
-            @foreach($specializations as $specialization)
+            @foreach($vendors_categories as $vendors_category)
 
             <button
                 type="button"
                 class="filter"
-                data-f="{{ $specialization->name }}">
-                {{ $specialization->name }}
+                data-f="{{ $vendors_category->name }}">
+                {{ $vendors_category->name }}
             </button>
 
             @endforeach
@@ -76,8 +76,8 @@
             $avatar = asset('dist/assets/images/avatar.jpg');
             }
 
-            $specializationNames = $instructor
-            ->specializations
+            $vendorsCategoryNames = $instructor
+            ->vendors_categories
             ->pluck('name')
             ->implode(',');
             @endphp
@@ -91,7 +91,7 @@
                 data-avatar="{{ $avatar }}"
                 data-bio="{{ $instructor->biografi ?? __('mobile.default_bio') }}"
                 data-experience="{{ $instructor->pengalaman ?? __('mobile.default_experience') }}"
-                data-specializations="{{ strtolower($specializationNames) }}">
+                data-vendors-categories="{{ strtolower($vendorsCategoryNames) }}">
 
                 <img
                     class="img-teacher"
@@ -103,14 +103,14 @@
 
                 <div class="p-3">
 
-                    {{-- Specializations --}}
+                    {{-- Vendor Categories --}}
                     <div class="d-flex flex-wrap gap-2">
 
-                        @forelse ($instructor->specializations as $specialization)
+                        @forelse ($instructor->vendors_categories as $vendors_category)
 
                         <span
                             class="chip bg-sage-soft text-sage m-micro">
-                            {{ $specialization->name }}
+                            {{ $vendors_category->name }}
                         </span>
 
                         @empty
@@ -248,7 +248,7 @@
                 style="overflow-y:auto;">
 
                 <div
-                    id="modalInstructorSpecializations"
+                    id="modalInstructorVendorCategories"
                     class="d-flex flex-wrap gap-2 mb-2">
                 </div>
 
@@ -326,21 +326,21 @@
                 const name =
                     instructor.dataset.name || '';
 
-                const specializations =
-                    instructor.dataset.specializations || '';
+                const vendors_categories =
+                    instructor.dataset.vendorsCategories || '';
 
 
-                // Search nama atau specialization
+                // Search nama atau kategori vendor
                 const searchMatch =
                     keyword === '' ||
                     name.includes(keyword) ||
-                    specializations.includes(keyword);
+                    vendors_categories.includes(keyword);
 
 
-                // Filter specialization
+                // Filter vendors_category
                 const filterMatch =
                     activeFilter === 'Semua' ||
-                    specializations
+                    vendors_categories
                     .split(',')
                     .map(item => item.trim())
                     .includes(
@@ -442,8 +442,8 @@
             instructor.dataset.experience ||
             {{ __('mobile.default_experience') }};
 
-        const specializations =
-            instructor.dataset.specializations || '';
+        const vendors_categories =
+            instructor.dataset.vendorsCategories || '';
 
 
         // Avatar
@@ -476,25 +476,25 @@
         ).textContent = bio;
 
 
-        // Specializations
-        const specializationContainer =
+        // Vendor Categories
+        const vendorsCategoryContainer =
             document.getElementById(
-                'modalInstructorSpecializations'
+                'modalInstructorVendorCategories'
             );
 
-        specializationContainer.innerHTML = '';
+        vendorsCategoryContainer.innerHTML = '';
 
 
-        if (specializations.trim()) {
+        if (vendors_categories.trim()) {
 
-            specializations
+            vendors_categories
                 .split(',')
-                .forEach(function(specialization) {
+                .forEach(function(vendors_category) {
 
-                    specialization =
-                        specialization.trim();
+                    vendors_category =
+                        vendors_category.trim();
 
-                    if (!specialization) {
+                    if (!vendors_category) {
                         return;
                     }
 
@@ -507,16 +507,16 @@
                     chip.style.fontSize = '10px';
 
                     chip.textContent =
-                        specialization;
+                        vendors_category;
 
-                    specializationContainer
+                    vendorsCategoryContainer
                         .appendChild(chip);
 
                 });
 
         } else {
 
-            specializationContainer.innerHTML = `
+            vendorsCategoryContainer.innerHTML = `
             <span
                 class="chip bg-sage-soft text-sage m-micro">
                 Yoga Instructor

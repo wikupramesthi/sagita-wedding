@@ -3,26 +3,25 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Specializaty;
+use App\Models\VendorsCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
-class SpecializatyController extends Controller
+class VendorsCategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $specializations = Specializaty::withCount([
-            'users as specializations_count'
+        $vendors_categories = VendorsCategory::withCount([
+            'users as vendors_categories_count',
         ])->get();
 
         return view(
-            'pages.specializations.index',
-            compact('specializations')
+            'pages.vendors_categories.index',
+            compact('vendors_categories')
         );
     }
 
@@ -32,13 +31,13 @@ class SpecializatyController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:specializations,name',
+            'name' => 'required|unique:vendors_categories,name',
             'description' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
         try {
-            Specializaty::create([
+            VendorsCategory::create([
                 'uuid' => (string) Str::uuid(),
                 'name' => $request->name,
                 'slug' => Str::slug($request->name),
@@ -46,9 +45,11 @@ class SpecializatyController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->back()->with('success', 'Specialization category successfully added.');
+
+            return redirect()->back()->with('success', 'Vendor category successfully added.');
         } catch (\Throwable $th) {
             DB::rollBack();
+
             return redirect()->back()->with('error', $th->getMessage());
         }
     }
@@ -59,13 +60,13 @@ class SpecializatyController extends Controller
     public function update($uuid, Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:specializations,name,' . $uuid . ',uuid',
+            'name' => 'required|unique:vendors_categories,name,'.$uuid.',uuid',
             'description' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
         try {
-            $item = Specializaty::where('uuid', $uuid)->firstOrFail();
+            $item = VendorsCategory::where('uuid', $uuid)->firstOrFail();
 
             $item->update([
                 'name' => $request->name,
@@ -74,9 +75,11 @@ class SpecializatyController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->back()->with('success', 'Specialization category successfully changed.');
+
+            return redirect()->back()->with('success', 'Vendor category successfully changed.');
         } catch (\Throwable $th) {
             DB::rollBack();
+
             return redirect()->back()->with('error', $th->getMessage());
         }
     }
@@ -88,13 +91,15 @@ class SpecializatyController extends Controller
     {
         DB::beginTransaction();
         try {
-            $item = specializaty::where('uuid', $uuid)->firstOrFail();
+            $item = VendorsCategory::where('uuid', $uuid)->firstOrFail();
             $item->delete();
 
             DB::commit();
-            return redirect()->back()->with('success', 'Specialization category successfully deleted.');
+
+            return redirect()->back()->with('success', 'Vendor category successfully deleted.');
         } catch (\Throwable $th) {
             DB::rollBack();
+
             return redirect()->back()->with('error', $th->getMessage());
         }
     }

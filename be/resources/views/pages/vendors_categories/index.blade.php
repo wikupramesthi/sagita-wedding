@@ -3,7 +3,7 @@
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Instructors" page="Instructors" active="Yoga Specialization" route="{{ route('specializations.index') }}" />
+<x-breadcrumb title="Instructors" page="Instructors" active="Vendor Category" route="{{ route('vendors_categories.index') }}" />
 @endsection
 <!-- Content -->
 <section class="section">
@@ -12,8 +12,8 @@
         <div class="d-flex">
             <i class="bi-bell-fill text-white fs-1 me-3 flex-shrink-0 align-self-start"></i>
             <div class="text-white mt-0">
-                Manage the Specializations available in the system.<br>
-                Add, update, or deactivate specializations to support instructor and class management.
+                Manage the Vendor Categories available in the system.<br>
+                Add, update, or deactivate vendor categories to support instructor and class management.
             </div>
         </div>
     </div>
@@ -21,10 +21,10 @@
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center ">
-                <h4 class="fw-normal mb-0 text-body">Yoga Specialization</h4>
-                @can('specializations.store')
+                <h4 class="fw-normal mb-0 text-body">Vendor Category</h4>
+                @can('vendors_categories.store')
                 <button type="button" class="btn btn-primary btn-md" data-bs-toggle="modal"
-                    data-bs-target="#modal-form-add-specializations">
+                    data-bs-target="#modal-form-add-vendors_categories">
                     <i class="bi bi-plus-lg"></i>
                     Add New
                 </button>
@@ -38,7 +38,7 @@
                     <thead>
                         <tr>
                             <th>No.</th>
-                            <th>Yoga Specialization</th>
+                            <th>Vendor Category</th>
                             <th>Description</th>
                             <th>Total Vendors</th>
                             <th>Edit</th>
@@ -46,32 +46,32 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($specializations as $item)
+                        @foreach ($vendors_categories as $item)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->description }}</td>
-                            <td>{{ $item->specializations_count }}</td>
+                            <td>{{ $item->vendors_categories_count }}</td>
 
                             <td>
-                                @can('specializations.update')
+                                @can('vendors_categories.update')
                                 <a data-bs-toggle="modal"
-                                    data-bs-target="#modal-form-edit-specializations-{{ $item->uuid }}"
+                                    data-bs-target="#modal-form-edit-vendors_categories-{{ $item->uuid }}"
                                     class="btn btn-icon btn-success text-white">
                                     <i class="bi bi-pencil-square"></i> Edit
                                 </a>
-                                @include('pages.specializations.modal-edit')
+                                @include('pages.vendors_categories.modal-edit')
                                 @endcan
                             </td>
 
                             <td>
-                                @can('specializations.destroy')
+                                @can('vendors_categories.destroy')
                                 <a onclick="showSweetAlert('{{ $item->uuid }}')" title="Delete"
                                     class="btn btn-icon btn-danger text-white">
                                     <i class="bi bi-x-square"></i> Delete
                                 </a>
                                 <form id="deleteForm_{{ $item->uuid }}"
-                                    action="{{ route('specializations.destroy', $item->uuid) }}" method="POST">
+                                    action="{{ route('vendors_categories.destroy', $item->uuid) }}" method="POST">
                                     @method('DELETE')
                                     @csrf
                                 </form>
@@ -89,7 +89,7 @@
 <!-- / Content -->
 
 <!--/ Basic Bootstrap Table -->
-@include('pages.specializations.modal-create')
+@include('pages.vendors_categories.modal-create')
 
 <script>
     function showSweetAlert(getId) {

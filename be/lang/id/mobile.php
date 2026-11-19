@@ -222,7 +222,7 @@ return [
     'find_instructor' => 'Cari Instrukturmu',
     'teacher' => 'Teacher',
     'meet_teachers' => 'Kenali teachermu',
-    'meet_teachers_desc' => 'Instruktur & spesialisasi',
+    'meet_teachers_desc' => 'Instruktur & kategori vendor',
 
     // Event
     'events_workshops' => 'Event & Workshop',
@@ -274,7 +274,7 @@ return [
     'no_instructors' => 'Belum Ada Instruktur',
     'no_instructors_desc' => 'Belum ada instruktur tersedia saat ini.',
     'no_instructors_found' => 'Instruktur Tidak Ditemukan',
-    'try_another' => 'Coba nama atau spesialisasi lain.',
+    'try_another' => 'Coba nama atau kategori vendor lain.',
     'view_profile' => 'Lihat Profil',
     'minutes_short' => 'mnt',
 

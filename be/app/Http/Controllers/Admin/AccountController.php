@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Account;
 use App\Models\Kecamatan;
 use App\Models\Kelurahan;
-use App\Models\Specializaty;
+use App\Models\VendorsCategory;
 use Illuminate\View\View;
 
 class AccountController extends Controller
@@ -23,7 +23,7 @@ class AccountController extends Controller
     {
         $user = $request->user();
 
-        $specializations = Specializaty::where('is_active', 'active')
+        $vendors_categories = VendorsCategory::where('is_active', 'active')
             ->orderBy('name')
             ->get();
 
@@ -34,14 +34,14 @@ class AccountController extends Controller
             return view('pages.mobile.profile-update', [
                 'user' => $user,
                 'kecamatans' => $kecamatans,
-                'specializations' => $specializations,
+                'vendors_categories' => $vendors_categories,
             ]);
         }
 
         return view('profile.update', [
             'user' => $user,
             'kecamatans' => $kecamatans,
-            'specializations' => $specializations,
+            'vendors_categories' => $vendors_categories,
         ]);
     }
 
@@ -127,20 +127,20 @@ class AccountController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Specialization Validation
+    | Vendor Category Validation
     |--------------------------------------------------------------------------
     |
-    | User biasa tidak wajib memiliki specialization.
-    | Role selain user wajib memiliki minimal 1 specialization.
+    | User biasa tidak wajib memiliki kategori vendor.
+    | Role selain user wajib memiliki minimal 1 kategori vendor.
     |
     */
 
         if ($user->hasRole('user')) {
-            $rules['specializations'] = 'nullable|array';
-            $rules['specializations.*'] = 'nullable|uuid|exists:specializations,uuid';
+            $rules['vendors_categories'] = 'nullable|array';
+            $rules['vendors_categories.*'] = 'nullable|uuid|exists:vendors_categories,uuid';
         } else {
-            $rules['specializations'] = 'required|array|min:1';
-            $rules['specializations.*'] = 'uuid|exists:specializations,uuid';
+            $rules['vendors_categories'] = 'required|array|min:1';
+            $rules['vendors_categories.*'] = 'uuid|exists:vendors_categories,uuid';
         }
 
 
@@ -203,11 +203,11 @@ class AccountController extends Controller
 
 
         if (!$user->hasRole('user')) {
-            $user->specializations()->sync(
-                $validated['specializations'] ?? []
+            $user->vendors_categories()->sync(
+                $validated['vendors_categories'] ?? []
             );
         } else {
-            $user->specializations()->detach();
+            $user->vendors_categories()->detach();
         }
         return redirect()
             ->back()

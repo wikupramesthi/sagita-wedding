@@ -222,7 +222,7 @@ return [
     'find_instructor' => 'Find Your Instructor',
     'teacher' => 'Teacher',
     'meet_teachers' => 'Meet your teachers',
-    'meet_teachers_desc' => 'Instructors & specializations',
+    'meet_teachers_desc' => 'Instructors & vendor categories',
 
     // Events
     'events_workshops' => 'Events & Workshops',
@@ -274,7 +274,7 @@ return [
     'no_instructors' => 'No Instructors Available',
     'no_instructors_desc' => 'There are no instructors available at the moment.',
     'no_instructors_found' => 'No Instructors Found',
-    'try_another' => 'Try another name or specialization.',
+    'try_another' => 'Try another name or vendor category.',
     'view_profile' => 'View Profile',
     'minutes_short' => 'min',
 

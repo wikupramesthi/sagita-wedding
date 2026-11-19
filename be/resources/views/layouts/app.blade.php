@@ -189,8 +189,8 @@
 
     <script>
         $(document).ready(function() {
-            $('#specializations').select2({
-                placeholder: 'Select specialization',
+            $('#vendors_categories').select2({
+                placeholder: 'Select vendor category',
                 width: '100%',
                 closeOnSelect: false
             });

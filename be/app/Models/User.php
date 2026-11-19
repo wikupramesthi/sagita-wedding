@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Str;
-use App\Models\Specializaty;
+use App\Models\VendorsCategory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 // payment
@@ -132,16 +132,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Kelurahan::class);
     }
 
-    public function specializations()
+    public function vendors_categories()
     {
         return $this->belongsToMany(
-            Specializaty::class,
-            'user_specialization',
+            VendorsCategory::class,
+            'user_vendors_category',
             'user_uuid',
-            'specialization_uuid',
+            'vendors_category_uuid',
             'uuid',
             'uuid'
-        )->using(UserSpecialization::class);
+        )->using(UserVendorsCategory::class);
     }
 
     public function package()

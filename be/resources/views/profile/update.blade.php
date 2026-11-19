@@ -551,38 +551,38 @@
                         </div>
 
 
-                        {{-- Specializations --}}
+                        {{-- Vendor Categories --}}
                         <div class="mb-4">
 
-                            <label for="specializations"
+                            <label for="vendors_categories"
                                 class="form-label fw-medium">
 
-                                Specializations
+                                Vendor Categories
                                 <span class="text-danger">*</span>
 
                             </label>
 
                             @php
-                            $selectedSpecializations = old(
-                            'specializations',
-                            $user->specializations->pluck('uuid')->toArray()
+                            $selectedVendorsCategories = old(
+                            'vendors_categories',
+                            $user->vendors_categories->pluck('uuid')->toArray()
                             );
                             @endphp
 
                             <select
                                 class="form-control"
-                                id="specializations"
-                                name="specializations[]"
+                                id="vendors_categories"
+                                name="vendors_categories[]"
                                 multiple
                                 required>
 
-                                @foreach ($specializations as $specialization)
+                                @foreach ($vendors_categories as $vendors_category)
 
                                 <option
-                                    value="{{ $specialization->uuid }}"
-                                    {{ in_array($specialization->uuid, $selectedSpecializations) ? 'selected' : '' }}>
+                                    value="{{ $vendors_category->uuid }}"
+                                    {{ in_array($vendors_category->uuid, $selectedVendorsCategories) ? 'selected' : '' }}>
 
-                                    {{ $specialization->name }}
+                                    {{ $vendors_category->name }}
 
                                 </option>
 
@@ -590,7 +590,7 @@
 
                             </select>
 
-                            @error('specializations')
+                            @error('vendors_categories')
 
                             <div class="text-danger small mt-1">
                                 {{ $message }}

@@ -105,7 +105,7 @@ export interface Instructor {
 	avatar?: string;
 	pengalaman?: string;
 	biografi?: string;
-	specializations?: { name: string }[];
+	vendors_categories?: { name: string }[];
 }
 
 /** Event / workshop. */
