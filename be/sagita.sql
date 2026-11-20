@@ -499,6 +499,7 @@ CREATE TABLE `consultations` (
   `uuid` char(36) NOT NULL,
   `full_name` varchar(150) NOT NULL,
   `whatsapp` varchar(20) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
   `wedding_date` date DEFAULT NULL,
   `guest_estimate` enum('Di bawah 200 tamu','200–500 tamu','500–1.000 tamu','Di atas 1.000 tamu') DEFAULT NULL,
   `venue` varchar(255) DEFAULT NULL,
@@ -512,7 +513,7 @@ CREATE TABLE `consultations` (
   `handled_by` bigint(20) UNSIGNED DEFAULT NULL,
   `follow_up_at` datetime DEFAULT NULL,
   `lead_status` enum('New','Contacted','Interested','Negotiation','Converted','Lost') NOT NULL DEFAULT 'New',
-  `source` varchar(50) NOT NULL DEFAULT 'Website',
+  `source` varchar(50) NOT NULL DEFAULT 'website',
   `converted_to_booking_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -2258,7 +2259,11 @@ INSERT INTO `routes` (`id`, `route`, `permission_name`, `status`, `description`,
 (241, 'konsultasi.edit', 'konsultasi.index', 1, NULL, '2026-11-20 05:27:33', '2026-11-20 05:27:33'),
 (242, 'konsultasi.update', 'konsultasi.index', 1, NULL, '2026-11-20 05:27:33', '2026-11-20 05:27:33'),
 (243, 'konsultasi.destroy', 'konsultasi.index', 1, NULL, '2026-11-20 05:27:33', '2026-11-20 05:27:33'),
-(244, 'pengguna.update-status', 'pengguna.index', 1, NULL, '2026-11-20 05:38:38', '2026-11-20 05:38:38');
+(244, 'pengguna.update-status', 'pengguna.index', 1, NULL, '2026-11-20 05:38:38', '2026-11-20 05:38:38'),
+(245, 'konsultasi.update-lead', 'konsultasi.index', 1, NULL, '2026-11-20 06:30:00', '2026-11-20 06:30:00'),
+(246, 'konsultasi.pdf-preview', 'konsultasi.index', 1, NULL, '2026-11-20 06:45:00', '2026-11-20 06:45:00'),
+(247, 'konsultasi.pdf-stream', 'konsultasi.index', 1, NULL, '2026-11-20 06:45:00', '2026-11-20 06:45:00'),
+(248, 'konsultasi.pdf-download', 'konsultasi.index', 1, NULL, '2026-11-20 06:45:00', '2026-11-20 06:45:00');
 
 -- --------------------------------------------------------
 

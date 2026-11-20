@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -40,7 +39,7 @@ class Event extends Model
         parent::boot();
 
         static::creating(function ($event) {
-            if (!$event->uuid) {
+            if (! $event->uuid) {
                 $event->uuid = (string) Str::uuid();
             }
         });
@@ -48,6 +47,6 @@ class Event extends Model
 
     public function gambar()
     {
-        return asset('storage/' . $this->gambar);
+        return asset('storage/'.$this->gambar);
     }
 }

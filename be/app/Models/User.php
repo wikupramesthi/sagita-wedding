@@ -73,23 +73,99 @@ class User extends Authenticatable implements MustVerifyEmail
         return self::SOURCE_LABELS + [self::SOURCE_UNKNOWN_KEY => self::SOURCE_UNKNOWN_LABEL];
     }
 
-    public static function sourceStats(callable $baseQuery): array
+    public static function normalizeProspectFilters(array $filters): array
     {
-        $keys = array_keys(self::SOURCE_LABELS);
-        $stats = [];
+        $status = (string) ($filters['status'] ?? '');
+        $sumber = (string) ($filters['sumber'] ?? '');
+        $startDate = (string) ($filters['start_date'] ?? '');
+        $endDate = (string) ($filters['end_date'] ?? '');
 
-        foreach ($keys as $key) {
-            $stats[$key] = $baseQuery()->where('sumber_informasi', $key)->count();
+        if (! array_key_exists($status, self::PROSPECT_STATUS_LABELS)) {
+            $status = '';
         }
 
-        $stats[self::SOURCE_UNKNOWN_KEY] = $baseQuery()
-            ->where(function ($query) use ($keys) {
-                $query->whereNull('sumber_informasi')
-                    ->orWhereNotIn('sumber_informasi', $keys);
-            })
-            ->count();
+        if ($sumber !== self::SOURCE_UNKNOWN_KEY && ! array_key_exists($sumber, self::SOURCE_LABELS)) {
+            $sumber = '';
+        }
 
-        return $stats;
+        $datePattern = '/^\d{4}-\d{2}-\d{2}$/';
+
+        return [
+            'q' => trim((string) ($filters['q'] ?? '')),
+            'status' => $status,
+            'sumber' => $sumber,
+            'start_date' => preg_match($datePattern, $startDate) ? $startDate : '',
+            'end_date' => preg_match($datePattern, $endDate) ? $endDate : '',
+        ];
+    }
+
+    public static function applyProspectFilters($query, array $filters): void
+    {
+        $query->when($filters['q'] !== '', function ($query) use ($filters) {
+            $query->where(function ($query) use ($filters) {
+                $query->where('name', 'like', "%{$filters['q']}%")
+                    ->orWhere('email', 'like', "%{$filters['q']}%")
+                    ->orWhere('no_hp', 'like', "%{$filters['q']}%");
+            });
+        })
+            ->when($filters['status'] !== '', fn ($query) => $query->where('prospect_status', $filters['status']))
+            ->when($filters['sumber'] !== '', function ($query) use ($filters) {
+                if ($filters['sumber'] === self::SOURCE_UNKNOWN_KEY) {
+                    $query->where(function ($query) {
+                        $query->whereNull('sumber_informasi')
+                            ->orWhereNotIn('sumber_informasi', array_keys(self::SOURCE_LABELS));
+                    });
+
+                    return;
+                }
+
+                $query->where('sumber_informasi', $filters['sumber']);
+            })
+            ->when($filters['start_date'] !== '', fn ($query) => $query->whereDate('created_at', '>=', $filters['start_date']))
+            ->when($filters['end_date'] !== '', fn ($query) => $query->whereDate('created_at', '<=', $filters['end_date']));
+    }
+
+    public static function prospectStats(callable $baseQuery): array
+    {
+        $knownSources = array_keys(self::SOURCE_LABELS);
+
+        $sourceRows = $baseQuery()
+            ->selectRaw('users.sumber_informasi as source, COUNT(*) as total')
+            ->groupBy('users.sumber_informasi')
+            ->pluck('total', 'source')
+            ->map(fn ($total) => (int) $total);
+
+        $statusRows = $baseQuery()
+            ->selectRaw('users.prospect_status as prospect_status, COUNT(*) as total')
+            ->groupBy('users.prospect_status')
+            ->pluck('total', 'prospect_status')
+            ->map(fn ($total) => (int) $total);
+
+        $sources = [];
+
+        foreach (array_keys(self::sourceFilterOptions()) as $key) {
+            if ($key === self::SOURCE_UNKNOWN_KEY) {
+                $sources[$key] = (int) $sourceRows
+                    ->reject(fn ($total, $source) => in_array($source, $knownSources, true))
+                    ->sum();
+
+                continue;
+            }
+
+            $sources[$key] = (int) ($sourceRows[$key] ?? 0);
+        }
+
+        $statuses = [];
+
+        foreach (array_keys(self::PROSPECT_STATUS_LABELS) as $key) {
+            $statuses[$key] = (int) ($statusRows[$key] ?? 0);
+        }
+
+        return [
+            'total' => array_sum($sources),
+            'sources' => $sources,
+            'statuses' => $statuses,
+        ];
     }
 
     /**

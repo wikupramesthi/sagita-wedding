@@ -72,7 +72,7 @@
                     <div class="argon-footer d-flex flex-wrap justify-content-center align-items-center gap-2 text-center">
                         <span>&copy; <script>
                                 document.write(new Date().getFullYear())
-                            </script> YogaRoots.</span>
+                            </script> Sagita Wedding Planner.</span>
                         <span class="argon-footer-dot" aria-hidden="true"></span>
                         <span>All rights reserved</span>
                     </div>
@@ -237,7 +237,11 @@
         (function() {
             // Auto-logout after 30 minutes without activity (DBMSDA-style).
             // 2 minutes before expiry show the choice: Stay signed in / Logout.
-            const INACTIVE_TIMEOUT_MIN = {{ (int) config('session.inactive_timeout', 30) }};
+            const INACTIVE_TIMEOUT_MIN = {
+                {
+                    (int) config('session.inactive_timeout', 30)
+                }
+            };
             const WARNING_BEFORE_MIN = 2;
             const INACTIVE_MS = INACTIVE_TIMEOUT_MIN * 60 * 1000;
             const WARNING_MS = WARNING_BEFORE_MIN * 60 * 1000;
@@ -377,6 +381,7 @@
             }
 
             let throttle = false;
+
             function onActivity() {
                 if (warningShown) return;
                 if (throttle) return;
@@ -386,7 +391,9 @@
             }
 
             ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
-                document.addEventListener(evt, onActivity, { passive: true });
+                document.addEventListener(evt, onActivity, {
+                    passive: true
+                });
             });
 
             resetTimer();
@@ -395,7 +402,8 @@
     @endauth
 
     <script>
-        $(document).on("click", ".mark-as-read", function(e) {            e.preventDefault();
+        $(document).on("click", ".mark-as-read", function(e) {
+            e.preventDefault();
 
             let id = $(this).data("id");
             let $item = $(this).closest(".notification-item");

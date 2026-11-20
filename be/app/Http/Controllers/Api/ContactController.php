@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Consultation;
-use App\Models\Kontak;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -89,23 +87,15 @@ class ContactController extends Controller
         $whatsapp = (string) $request->input('no_telp');
         $concept = strip_tags((string) $request->input('isi'));
 
-        DB::transaction(function () use ($request, $fullName, $whatsapp, $concept) {
-            Kontak::create([
-                'nama' => $fullName,
-                'email' => (string) $request->input('email'),
-                'no_telp' => $whatsapp,
-                'isi' => $concept,
-            ]);
-
-            Consultation::create([
-                'full_name' => $fullName,
-                'whatsapp' => $whatsapp,
-                'wedding_concept' => $concept,
-                'consultation_status' => 'Pending',
-                'lead_status' => 'New',
-                'source' => 'Website',
-            ]);
-        });
+        Consultation::create([
+            'full_name' => $fullName,
+            'email' => strtolower((string) $request->input('email')),
+            'whatsapp' => $whatsapp,
+            'wedding_concept' => $concept,
+            'consultation_status' => 'Pending',
+            'lead_status' => 'New',
+            'source' => 'website',
+        ]);
 
         return response()->json([
             'success' => true,

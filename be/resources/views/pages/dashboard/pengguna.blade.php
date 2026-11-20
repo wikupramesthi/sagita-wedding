@@ -50,7 +50,7 @@
                                     ][$key] }}"></i>
                         </div>
                         <div>
-                            <div class="ml-stat-value">{{ number_format($stats[$key]) }}</div>
+                            <div class="ml-stat-value">{{ number_format($stats['statuses'][$key]) }}</div>
                             <div class="ml-stat-label">{{ $label }}</div>
                         </div>
                     </div>
@@ -133,11 +133,11 @@
                     </select>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <input type="date" name="start_date" value="{{ request('start_date') }}" class="form-control"
+                    <input type="date" name="start_date" value="{{ $start_date }}" class="form-control"
                         aria-label="Dari tanggal">
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <input type="date" name="end_date" value="{{ request('end_date') }}" class="form-control"
+                    <input type="date" name="end_date" value="{{ $end_date }}" class="form-control"
                         aria-label="Sampai tanggal">
                 </div>
                 <div class="col-12 col-md-3 d-flex gap-2">

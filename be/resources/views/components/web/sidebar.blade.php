@@ -123,21 +123,5 @@
             </ul>
         </div>
 
-        {{-- Sidenav Footer --}}
-        <div class="sidenav-footer">
-            <div class="card card-plain shadow-none border-0 text-center mb-2">
-                <div class="card-body p-3">
-                    <div class="docs-info">
-                        <h6 class="mb-0 fw-bold">Need Help?</h6>
-                        <p class="text-xs mb-0 text-muted">Have questions or issues? Contact us via WhatsApp.</p>
-                    </div>
-                </div>
-            </div>
-            <a href="https://wa.me/6281321221270?text=Hello%20Yoga%20Roots%2C%20I%20need%20some%20help"
-                target="_blank" rel="noopener" class="btn btn-dark btn-sm w-100">
-                <i class="bi bi-whatsapp me-1"></i> Chat via WhatsApp
-            </a>
-        </div>
-
     </div>
 </div>

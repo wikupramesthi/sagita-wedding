@@ -33,7 +33,7 @@
                             <i class="bi bi-bell bi-sub fs-4"></i>
 
                             @php
-                                $unreadCount = auth()->user()->unreadNotifications->count();
+                                $unreadCount ??= auth()->user()->unreadNotifications()->count();
                             @endphp
 
                             @if ($unreadCount > 0)

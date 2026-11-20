@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers\ManagementAccess;
 
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ManagementAccess\StorePermissionRequest;
 use App\Http\Requests\ManagementAccess\UpdatePermissionRequest;
-use App\Http\Requests\ManagementAccess\UpdateRouteRequest;
+use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
-
-
+use Spatie\Permission\Models\Role;
 
 class PermissionController extends Controller
 {
@@ -23,8 +20,8 @@ class PermissionController extends Controller
         $permissions = Permission::query()
             ->when(! blank($request->search), function ($query) use ($request) {
                 return $query
-                    ->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('guard_name', 'like', '%' . $request->search . '%');
+                    ->where('name', 'like', '%'.$request->search.'%')
+                    ->orWhere('guard_name', 'like', '%'.$request->search.'%');
             })
             ->with('roles', function ($query) {
                 return $query->select('id', 'name');
@@ -54,7 +51,7 @@ class PermissionController extends Controller
     public function store(StorePermissionRequest $request)
     {
         Permission::create($request->validated())
-                ?->assignRole(! blank($request->roles) ? $request->roles : array());
+            ?->assignRole(! blank($request->roles) ? $request->roles : []);
 
         return back()->with('success', 'Permission has been created successfully!');
 
@@ -82,7 +79,7 @@ class PermissionController extends Controller
     public function update(UpdatePermissionRequest $request, Permission $permission)
     {
         $permission->update($request->validated())
-            && $permission->syncRoles(! blank($request->roles) ? $request->roles : array());
+            && $permission->syncRoles(! blank($request->roles) ? $request->roles : []);
 
         return back()->with('success', 'Permission has been updated successfully!');
     }

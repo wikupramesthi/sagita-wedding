@@ -19,58 +19,17 @@ class PenggunaExport implements FromView, ShouldAutoSize, WithTitle
 
     public function view(): View
     {
-        $q = trim((string) $this->request->query('q', ''));
-        $status = (string) $this->request->query('status', '');
-        $sumber = (string) $this->request->query('sumber', '');
+        $filters = User::normalizeProspectFilters($this->request->all());
+        $baseQuery = fn () => User::role('user');
 
-        if (! array_key_exists($status, User::PROSPECT_STATUS_LABELS)) {
-            $status = '';
-        }
-
-        if ($sumber !== User::SOURCE_UNKNOWN_KEY && ! array_key_exists($sumber, User::SOURCE_LABELS)) {
-            $sumber = '';
-        }
-
-        $baseQuery = fn () => User::role('user')
-            ->when($q !== '', function ($query) use ($q) {
-                $query->where(function ($query) use ($q) {
-                    $query->where('name', 'like', "%{$q}%")
-                        ->orWhere('email', 'like', "%{$q}%")
-                        ->orWhere('no_hp', 'like', "%{$q}%");
-                });
-            })
-            ->when($status !== '', fn ($query) => $query->where('prospect_status', $status))
-            ->when($this->request->filled('tahun'), fn ($query) => $query->whereYear('created_at', $this->request->tahun))
-            ->when($this->request->filled('start_date'), fn ($query) => $query->whereDate('created_at', '>=', $this->request->start_date))
-            ->when($this->request->filled('end_date'), fn ($query) => $query->whereDate('created_at', '<=', $this->request->end_date));
-
-        $query = $baseQuery()
-            ->with(['userPackages.package', 'latestOrder.package'])
-            ->when($sumber !== '', function ($query) use ($sumber) {
-                if ($sumber === User::SOURCE_UNKNOWN_KEY) {
-                    $query->where(function ($query) {
-                        $query->whereNull('sumber_informasi')
-                            ->orWhereNotIn('sumber_informasi', array_keys(User::SOURCE_LABELS));
-                    });
-
-                    return;
-                }
-
-                $query->where('sumber_informasi', $sumber);
-            });
+        $query = $baseQuery()->with(['userPackages.package', 'latestOrder.package']);
+        User::applyProspectFilters($query, $filters);
 
         return view('pages.dashboard.exports', [
             'pengguna' => $query->orderBy('created_at', 'desc')->get(),
-            'sourceStats' => User::sourceStats($baseQuery),
+            'sourceStats' => User::prospectStats($baseQuery)['sources'],
             'sourceOptions' => User::sourceFilterOptions(),
-            'filters' => [
-                'q' => $q,
-                'status' => $status,
-                'sumber' => $sumber,
-                'tahun' => $this->request->tahun,
-                'start_date' => $this->request->start_date,
-                'end_date' => $this->request->end_date,
-            ],
+            'filters' => $filters,
         ]);
     }
 

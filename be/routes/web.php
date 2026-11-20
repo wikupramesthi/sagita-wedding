@@ -238,7 +238,13 @@ Route::group(['middleware' => ['web', 'auth', 'verified'], 'prefix' => 'backend'
     Route::post('class-bookings/direct-check-in', [ClassBookingController::class, 'directCheckin'])->name('class-bookings.directCheckin')->middleware('throttle:120,1');
     // end payment
 
-    Route::resource('konsultasi', ConsultationController::class);
+    Route::get('konsultasi/pdf/preview', [ConsultationController::class, 'pdfPreview'])->name('konsultasi.pdf-preview');
+    Route::get('konsultasi/pdf/stream', [ConsultationController::class, 'pdfStream'])->name('konsultasi.pdf-stream');
+    Route::get('konsultasi/pdf/download', [ConsultationController::class, 'pdfDownload'])->name('konsultasi.pdf-download');
+    Route::put('konsultasi/{consultation}/lead', [ConsultationController::class, 'updateLead'])->name('konsultasi.update-lead');
+    Route::resource('konsultasi', ConsultationController::class)->parameters([
+        'konsultasi' => 'consultation',
+    ]);
     Route::get('vendor/arsip', [VendorController::class, 'archive'])->name('vendor.archive');
     Route::post('vendor/restore', [VendorController::class, 'restore'])->name('vendor.restore');
     Route::resource('vendor', VendorController::class);

@@ -1,131 +1,218 @@
 @extends('layouts.app')
-@section('title', 'Detail Konsultasi')
+@section('title', 'Detail Calon Pelanggan')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Detail Konsultasi" page="Layanan" active="Detail Konsultasi" route="{{ route('konsultasi.show', $consultation->uuid) }}" />
+<x-breadcrumb title="Detail Calon Pelanggan" page="Data Prospek" active="Konsultasi" route="{{ route('konsultasi.show', $consultation->uuid) }}" />
 @endsection
 
 <section class="section">
-    <div class="card">
-        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <h4 class="fw-normal mb-0 text-body">Detail Pertanyaan Konsultasi</h4>
-            <div class="d-flex gap-2">
+    <div class="card lead-hero-card mb-3">
+        <div class="card-body d-flex flex-column flex-lg-row gap-3 justify-content-between align-items-lg-center">
+            <div class="d-flex align-items-center gap-3">
+                <span class="lead-hero-avatar">{{ $consultation->initials }}</span>
+                <div>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <h4 class="fw-semibold mb-0 text-body">{{ $consultation->full_name }}</h4>
+                        <span class="badge {{ $consultation->lead_priority_badge_class }}"><i class="{{ $consultation->lead_priority_icon }} me-1"></i>Prioritas {{ $consultation->lead_priority }}</span>
+                        <span class="badge {{ $consultation->lead_status_badge_class }}">{{ $consultation->lead_status_label }}</span>
+                        <span class="badge {{ $consultation->status_badge_class }}">{{ $consultation->status_label }}</span>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        <i class="bx bx-calendar me-1"></i> Masuk {{ $consultation->created_at->translatedFormat('d F Y H:i') }}
+                        <span class="mx-2">•</span>
+                        <i class="{{ $consultation->source_icon }} me-1"></i> Informasi dari mana: {{ $consultation->source_label }}
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('konsultasi.pdf-preview', ['uuid' => $consultation->uuid]) }}" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i> Preview PDF</a>
+                <a href="{{ $consultation->whatsapp_link }}" target="_blank" rel="noopener" class="btn btn-success"><i class="bx bxl-whatsapp me-1"></i> Hubungi WhatsApp</a>
                 @can('konsultasi.index')
-                    <a href="{{ route('konsultasi.edit', $consultation->uuid) }}" class="btn btn-sm btn-success"><i class="bi bi-pencil-square"></i> Ubah</a>
+                    <a href="{{ route('konsultasi.edit', $consultation->uuid) }}" class="btn btn-light"><i class="bi bi-pencil-square me-1"></i> Ubah Data</a>
                 @endcan
-                <a href="{{ route('konsultasi.index') }}" class="btn btn-sm btn-light"><i class="bi bi-arrow-left"></i> Kembali</a>
+                <a href="{{ route('konsultasi.index') }}" class="btn btn-light"><i class="bi bi-arrow-left me-1"></i> Kembali</a>
             </div>
         </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Nama Calon Pengantin / Pasangan</div>
-                        <div class="fw-semibold">{{ $consultation->full_name }}</div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-8">
+            <div class="card h-100 mb-3">
+                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Profil Calon Pelanggan</h5></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Nama Lengkap</div>
+                            <div class="lead-detail-value">{{ $consultation->full_name }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Nomor WhatsApp</div>
+                            <div class="lead-detail-value">{{ $consultation->whatsapp }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Email</div>
+                            <div class="lead-detail-value">{{ $consultation->email ?: '—' }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Informasi dari mana</div>
+                            <div class="lead-detail-value"><i class="{{ $consultation->source_icon }} me-1"></i>{{ $consultation->source_label }}</div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Nomor WhatsApp</div>
-                        <div class="fw-semibold">{{ $consultation->whatsapp }}</div>
+            </div>
+
+            <div class="card h-100 mb-3">
+                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Rencana Pernikahan</h5></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Tanggal Pernikahan</div>
+                            <div class="lead-detail-value">{{ $consultation->wedding_date?->translatedFormat('d F Y') ?? '—' }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Estimasi Tamu</div>
+                            <div class="lead-detail-value">{{ $consultation->guest_estimate ?: '—' }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Lokasi / Venue</div>
+                            <div class="lead-detail-value">{{ $consultation->venue ?: '—' }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Paket yang Diminati</div>
+                            <div class="lead-detail-value">{{ $consultation->package?->name ?? 'Belum memilih paket' }}</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="lead-detail-label">Konsep Pernikahan</div>
+                            @if ($consultation->wedding_concept)
+                                <div class="lead-detail-value" style="white-space: pre-line;">{{ $consultation->wedding_concept }}</div>
+                            @else
+                                <div class="lead-detail-value text-muted">—</div>
+                            @endif
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Rencana Tanggal Pernikahan</div>
-                        <div class="fw-semibold">{{ optional($consultation->wedding_date)->format('d M Y') ?? '—' }}</div>
+            </div>
+
+            <div class="card h-100">
+                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Jadwal & Catatan Konsultasi</h5></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <div class="lead-detail-label">Tanggal Konsultasi</div>
+                            <div class="lead-detail-value">{{ $consultation->consultation_date?->translatedFormat('d F Y') ?? '—' }}</div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="lead-detail-label">Jam Konsultasi</div>
+                            <div class="lead-detail-value">{{ $consultation->consultation_time ?: '—' }}</div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="lead-detail-label">Metode</div>
+                            <div class="lead-detail-value">{{ $consultation->method_label }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Penanggung Jawab</div>
+                            <div class="lead-detail-value">{{ $consultation->handler?->name ?? 'Belum ditugaskan' }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="lead-detail-label">Status Konsultasi</div>
+                            <div class="mt-1"><span class="badge {{ $consultation->status_badge_class }}">{{ $consultation->status_label }}</span></div>
+                        </div>
+                        <div class="col-12">
+                            <div class="lead-detail-label">Catatan Tim</div>
+                            @if ($consultation->admin_notes)
+                                <div class="lead-detail-value" style="white-space: pre-line;">{{ $consultation->admin_notes }}</div>
+                            @else
+                                <div class="lead-detail-value text-muted">Belum ada catatan.</div>
+                            @endif
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Estimasi Jumlah Tamu</div>
-                        <div class="fw-semibold">{{ $consultation->guest_estimate ?? '—' }}</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            @can('konsultasi.index')
+                <div class="card mb-3">
+                    <div class="card-header"><h5 class="fw-normal mb-0 text-body">Perbarui Pipeline</h5></div>
+                    <div class="card-body">
+                        <form action="{{ route('konsultasi.update-lead', $consultation->uuid) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <div class="mb-3">
+                                <label for="lead_status" class="form-label small text-muted">Status Calon Pelanggan</label>
+                                <select id="lead_status" name="lead_status" class="form-select" required>
+                                    @foreach (\App\Models\Consultation::LEAD_STATUS_LABELS as $value => $label)
+                                        <option value="{{ $value }}" @selected($consultation->lead_status === $value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="handled_by" class="form-label small text-muted">Penanggung Jawab</label>
+                                <select id="handled_by" name="handled_by" class="form-select">
+                                    <option value="">Belum ditugaskan</option>
+                                    @foreach ($admins as $admin)
+                                        <option value="{{ $admin->id }}" @selected($consultation->handled_by === $admin->id)>{{ $admin->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="follow_up_at" class="form-label small text-muted">Jadwal Tindak Lanjut</label>
+                                <input type="datetime-local" id="follow_up_at" name="follow_up_at" value="{{ $consultation->follow_up_at?->format('Y-m-d\TH:i') }}" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle me-1"></i> Simpan Pipeline</button>
+                        </form>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Paket</div>
-                        <div class="fw-semibold">{{ $consultation->package?->name ?? '—' }}</div>
+            @endcan
+
+            <div class="card mb-3">
+                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Skor Ketertarikan</h5></div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-baseline mb-2">
+                        <span class="lead-score-value">{{ $consultation->lead_score }}/10</span>
+                        <span class="badge {{ $consultation->lead_priority_badge_class }}">{{ $consultation->lead_priority }}</span>
+                    </div>
+                    <div class="progress lead-score-progress" role="progressbar" aria-label="Skor ketertarikan" aria-valuenow="{{ min($consultation->lead_score * 10, 100) }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar {{ $consultation->lead_priority === 'Tinggi' ? 'bg-danger' : ($consultation->lead_priority === 'Sedang' ? 'bg-warning' : 'bg-secondary') }}" style="width: {{ min($consultation->lead_score * 10, 100) }}%"></div>
+                    </div>
+                    <div class="small text-muted mt-2">Skor dihitung dari status lead, kelengkapan rencana, paket, jadwal konsultasi, dan status konsultasi.</div>
+                    <div class="lead-score-checks mt-3">
+                        <div class="{{ $consultation->lead_status ? 'text-success' : 'text-muted' }}"><i class="bx bx-check-circle me-1"></i> Status lead terisi</div>
+                        <div class="{{ $consultation->wedding_date ? 'text-success' : 'text-muted' }}"><i class="bx bx-check-circle me-1"></i> Tanggal pernikahan</div>
+                        <div class="{{ $consultation->package_id ? 'text-success' : 'text-muted' }}"><i class="bx bx-check-circle me-1"></i> Paket diminati</div>
+                        <div class="{{ $consultation->consultation_date ? 'text-success' : 'text-muted' }}"><i class="bx bx-check-circle me-1"></i> Jadwal konsultasi</div>
                     </div>
                 </div>
-                <div class="col-12">
-                    <div class="border rounded p-3">
-                        <div class="small text-muted">Lokasi / Venue</div>
-                        <div class="fw-semibold">{{ $consultation->venue ?? '—' }}</div>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <div class="border rounded p-3">
-                        <div class="small text-muted">Konsep Pernikahan</div>
-                        <div>{{ $consultation->wedding_concept ? nl2br(e($consultation->wedding_concept)) : '—' }}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Tanggal Konsultasi</div>
-                        <div class="fw-semibold">{{ optional($consultation->consultation_date)->format('d M Y') ?? '—' }}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Jam Konsultasi</div>
-                        <div class="fw-semibold">{{ $consultation->consultation_time ? \Illuminate\Support\Carbon::parse($consultation->consultation_time)->format('H:i') : '—' }}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Metode Konsultasi</div>
-                        <div class="fw-semibold">{{ $consultation->method_label }}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Status Konsultasi</div>
-                        <div><span class="badge {{ $consultation->status_badge_class }}">{{ $consultation->status_label }}</span></div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Jadwal Tindak Lanjut</div>
-                        <div class="fw-semibold">{{ optional($consultation->follow_up_at)->format('d M Y H:i') ?? '—' }}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Status Calon Pelanggan</div>
-                        <div><span class="badge {{ $consultation->lead_status_badge_class }}">{{ $consultation->lead_status_label }}</span></div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Sumber Calon Pelanggan</div>
-                        <div class="fw-semibold">{{ $consultation->source }}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Waktu Konversi ke Booking</div>
-                        <div class="fw-semibold">{{ optional($consultation->converted_to_booking_at)->format('d M Y H:i') ?? '—' }}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Admin yang Menangani</div>
-                        <div class="fw-semibold">{{ $consultation->handler?->name ?? 'Belum ditentukan' }}</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3 h-100">
-                        <div class="small text-muted">Waktu Pendaftaran</div>
-                        <div class="fw-semibold">{{ $consultation->created_at?->format('d M Y H:i') }}</div>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <div class="border rounded p-3">
-                        <div class="small text-muted">Catatan Admin</div>
-                        <div>{{ $consultation->admin_notes ? nl2br(e($consultation->admin_notes)) : '—' }}</div>
-                    </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Riwayat Lead</h5></div>
+                <div class="card-body">
+                    <ul class="lead-timeline">
+                        <li>
+                            <span class="lead-timeline-icon bg-primary"><i class="bx bx-user-plus"></i></span>
+                            <div><strong>Formulir diterima</strong><div class="small text-muted">{{ $consultation->created_at->translatedFormat('d M Y H:i') }}</div></div>
+                        </li>
+                        <li>
+                            <span class="lead-timeline-icon {{ $consultation->follow_up_state === 'overdue' ? 'bg-danger' : 'bg-info text-dark' }}"><i class="bx bx-phone-call"></i></span>
+                            <div>
+                                <strong>Tindak lanjut: {{ $consultation->follow_up_label }}</strong>
+                                <div class="small text-muted">{{ $consultation->follow_up_date_label }}</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="lead-timeline-icon {{ $consultation->converted_to_booking_at ? 'bg-success' : 'bg-secondary' }}"><i class="bx bx-check-double"></i></span>
+                            <div>
+                                <strong>Konversi booking</strong>
+                                <div class="small text-muted">{{ $consultation->converted_to_booking_at?->translatedFormat('d M Y H:i') ?? 'Belum dikonversi' }}</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="lead-timeline-icon bg-light text-dark"><i class="bx bx-refresh"></i></span>
+                            <div><strong>Terakhir diperbarui</strong><div class="small text-muted">{{ $consultation->updated_at->translatedFormat('d M Y H:i') }}</div></div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>

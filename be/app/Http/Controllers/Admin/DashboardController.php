@@ -122,50 +122,46 @@ class DashboardController extends Controller
         ];
 
         if (! $isMember) {
-            $charts = Cache::remember('dashboard.admin.charts.'.sha1($startDate.'|'.$endDate), 300, function () use ($startDate, $endDate) {
+            $adminData = Cache::remember('dashboard.admin.summary.'.sha1($startDate.'|'.$endDate), 300, function () use ($countBetween, $makeStat, $makeSnapshot, $startDate, $endDate) {
+                $newOrdersCount = $countBetween(Order::where('status', 'pending'), 'created_at', $startDate, $endDate);
+                $newMembershipCount = $countBetween(UserPackage::where('status', 'active'), 'started_at', $startDate, $endDate);
+                $revenueMonth = (float) Order::where('status', 'paid')
+                    ->whereBetween('paid_at', [$startDate.' 00:00:00', $endDate.' 23:59:59'])
+                    ->sum('amount');
+
                 return [
                     'revenueChart' => $this->revenueSeries($startDate, $endDate),
                     'site' => $this->siteAnalytics($startDate, $endDate),
+                    'stats' => [
+                        $makeStat('Member baru', User::role('user'), 'created_at', 'bi bi-people', 'purple', 'pengguna.index'),
+                        $makeStat('Vendor baru', User::role('vendor'), 'created_at', 'bi bi-person-badge', 'blue', 'vendor.index'),
+                        $makeSnapshot('Venue aktif', (int) Venue::where('status', 'active')->count(), 'bi bi-geo-alt', 'green', 'venues.index'),
+                        $makeSnapshot('Kategori vendor aktif', (int) VendorsCategory::where('is_active', 'active')->count(), 'bi bi-shop', 'cyan', 'vendors_categories.index'),
+                        $makeStat('Pertanyaan masuk', Consultation::query(), 'created_at', 'bi bi-chat-left-text', 'turquoise', 'konsultasi.index'),
+                        $makeStat('Pesanan baru', Order::query(), 'created_at', 'bi bi-bag-plus', 'yellow', 'orders.index'),
+                        $makeStat('Paket', Package::query(), 'created_at', 'bi bi-box-seam', 'pink', 'packages.index'),
+                        $makeStat('Kelas', ClassModel::query(), 'created_at', 'bi bi-book', 'red', 'classes.index'),
+                        $makeStat('Event', Event::query(), 'created_at', 'bi bi-calendar-event', 'green', 'events.index'),
+                        $makeStat('Artikel', Article::query(), 'created_at', 'bi bi-file-earmark-text', 'blue', 'articles.index'),
+                    ],
+                    'funnel' => [
+                        ['label' => 'Pertanyaan', 'value' => $countBetween(Consultation::query(), 'created_at', $startDate, $endDate)],
+                        ['label' => 'Pesanan', 'value' => $countBetween(Order::query(), 'created_at', $startDate, $endDate)],
+                        ['label' => 'Lunas', 'value' => $countBetween(Order::where('status', 'paid'), 'paid_at', $startDate, $endDate)],
+                        ['label' => 'Keanggotaan aktif', 'value' => $newMembershipCount],
+                    ],
+                    'newOrdersCount' => $newOrdersCount,
+                    'newMembershipCount' => $newMembershipCount,
+                    'revenueMonth' => $revenueMonth,
+                    'revenueTotal' => (float) Order::where('status', 'paid')->sum('amount'),
+                    'security' => [
+                        'failedLogins' => (int) FailedLogin::where('created_at', '>=', now()->subDay())->count(),
+                        'lockouts' => (int) LoginLockout::active()->count(),
+                    ],
                 ];
             });
 
-            $newOrdersCount = $countBetween(Order::where('status', 'pending'), 'created_at', $startDate, $endDate);
-            $newMembershipCount = $countBetween(UserPackage::where('status', 'active'), 'started_at', $startDate, $endDate);
-            $revenueMonth = (float) Order::where('status', 'paid')
-                ->whereBetween('paid_at', [$startDate.' 00:00:00', $endDate.' 23:59:59'])
-                ->sum('amount');
-
-            $stats = [
-                $makeStat('Member baru', User::role('user'), 'created_at', 'bi bi-people', 'purple', 'pengguna.index'),
-                $makeStat('Vendor baru', User::role('vendor'), 'created_at', 'bi bi-person-badge', 'blue', 'vendor.index'),
-                $makeSnapshot('Venue aktif', (int) Venue::where('status', 'active')->count(), 'bi bi-geo-alt', 'green', 'venues.index'),
-                $makeSnapshot('Kategori vendor aktif', (int) VendorsCategory::where('is_active', 'active')->count(), 'bi bi-shop', 'cyan', 'vendors_categories.index'),
-                $makeStat('Pertanyaan masuk', Consultation::query(), 'created_at', 'bi bi-chat-left-text', 'turquoise', 'konsultasi.index'),
-                $makeStat('Pesanan baru', Order::query(), 'created_at', 'bi bi-bag-plus', 'yellow', 'orders.index'),
-                $makeStat('Paket', Package::query(), 'created_at', 'bi bi-box-seam', 'pink', 'packages.index'),
-                $makeStat('Kelas', ClassModel::query(), 'created_at', 'bi bi-book', 'red', 'classes.index'),
-                $makeStat('Event', Event::query(), 'created_at', 'bi bi-calendar-event', 'green', 'events.index'),
-                $makeStat('Artikel', Article::query(), 'created_at', 'bi bi-file-earmark-text', 'blue', 'articles.index'),
-            ];
-
-            $funnel = [
-                ['label' => 'Pertanyaan', 'value' => $countBetween(Kontak::query(), 'created_at', $startDate, $endDate)],
-                ['label' => 'Pesanan', 'value' => $countBetween(Order::query(), 'created_at', $startDate, $endDate)],
-                ['label' => 'Lunas', 'value' => $countBetween(Order::where('status', 'paid'), 'paid_at', $startDate, $endDate)],
-                ['label' => 'Keanggotaan aktif', 'value' => $newMembershipCount],
-            ];
-
-            $data = array_merge($data, $charts, [
-                'stats' => $stats,
-                'funnel' => $funnel,
-                'newOrdersCount' => $newOrdersCount,
-                'newMembershipCount' => $newMembershipCount,
-                'revenueMonth' => $revenueMonth,
-                'revenueTotal' => (float) Order::where('status', 'paid')->sum('amount'),
-                'security' => [
-                    'failedLogins' => (int) FailedLogin::where('created_at', '>=', now()->subDay())->count(),
-                    'lockouts' => (int) LoginLockout::active()->count(),
-                ],
+            $data = array_merge($data, $adminData, [
                 'actionQueue' => $this->actionQueue(),
                 'recentOrders' => Order::with('user', 'package')->latest()->take(5)->get(),
                 'recentMemberships' => UserPackage::with('user', 'package')->latest('started_at')->take(5)->get(),
@@ -366,10 +362,10 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $openMessages = Kontak::whereIn('status', ['open', 'in_progress'])
+        $openMessages = Consultation::whereIn('consultation_status', ['Pending', 'Confirmed'])
             ->latest()
             ->take(5)
-            ->get();
+            ->get(['full_name', 'email', 'whatsapp', 'wedding_concept']);
 
         $expiring = UserPackage::with('user', 'package')
             ->where('status', 'active')
@@ -386,7 +382,7 @@ class DashboardController extends Controller
                 ->whereDate('booking_date', today())
                 ->count(),
             'messages' => $openMessages,
-            'messageCount' => (int) Kontak::whereIn('status', ['open', 'in_progress'])->count(),
+            'messageCount' => (int) Consultation::whereIn('consultation_status', ['Pending', 'Confirmed'])->count(),
             'expiring' => $expiring,
             'expiringCount' => (int) UserPackage::where('status', 'active')
                 ->whereBetween('expired_at', [now(), now()->addDays(7)])

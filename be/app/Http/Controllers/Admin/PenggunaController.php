@@ -13,61 +13,18 @@ class PenggunaController extends Controller
 {
     public function index(Request $request)
     {
-        $q = trim((string) $request->query('q', ''));
-        $status = (string) $request->query('status', '');
-        $sumber = (string) $request->query('sumber', '');
-
-        if (! array_key_exists($status, User::PROSPECT_STATUS_LABELS)) {
-            $status = '';
-        }
-
-        if ($sumber !== User::SOURCE_UNKNOWN_KEY && ! array_key_exists($sumber, User::SOURCE_LABELS)) {
-            $sumber = '';
-        }
-
+        $filters = User::normalizeProspectFilters($request->all());
         $baseQuery = fn () => User::role('user');
 
-        $users = $baseQuery()
-            ->with(['userPackages.package', 'latestOrder.package'])
-            ->when($q !== '', function ($query) use ($q) {
-                $query->where(function ($query) use ($q) {
-                    $query->where('name', 'like', "%{$q}%")
-                        ->orWhere('email', 'like', "%{$q}%")
-                        ->orWhere('no_hp', 'like', "%{$q}%");
-                });
-            })
-            ->when($status !== '', fn ($query) => $query->where('prospect_status', $status))
-            ->when($sumber !== '', function ($query) use ($sumber) {
-                if ($sumber === User::SOURCE_UNKNOWN_KEY) {
-                    $query->where(function ($query) {
-                        $query->whereNull('sumber_informasi')
-                            ->orWhereNotIn('sumber_informasi', array_keys(User::SOURCE_LABELS));
-                    });
+        $query = $baseQuery()->with(['userPackages.package', 'latestOrder.package']);
+        User::applyProspectFilters($query, $filters);
 
-                    return;
-                }
+        $users = $query->latest()->paginate(10)->withQueryString();
+        $stats = User::prospectStats($baseQuery);
 
-                $query->where('sumber_informasi', $sumber);
-            })
-            ->when($request->filled('tahun'), fn ($query) => $query->whereYear('created_at', $request->tahun))
-            ->when($request->filled('start_date'), fn ($query) => $query->whereDate('created_at', '>=', $request->start_date))
-            ->when($request->filled('end_date'), fn ($query) => $query->whereDate('created_at', '<=', $request->end_date))
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
-
-        $stats = [
-            'total' => $baseQuery()->count(),
-            'sources' => User::sourceStats($baseQuery),
-        ];
-
-        foreach (User::PROSPECT_STATUS_LABELS as $key => $label) {
-            $stats[$key] = $baseQuery()->where('prospect_status', $key)->count();
-        }
-
-        $sourceOptions = User::sourceFilterOptions();
-
-        return view('pages.dashboard.pengguna', compact('users', 'stats', 'q', 'status', 'sumber', 'sourceOptions'));
+        return view('pages.dashboard.pengguna', compact('users', 'stats') + [
+            'sourceOptions' => User::sourceFilterOptions(),
+        ] + $filters);
     }
 
     public function updateStatus(Request $request, User $user)

@@ -45,7 +45,7 @@
     <h3 style="text-align: center;">Laporan Data Calon Pelanggan</h3>
     <p style="text-align: center;">Dicetak pada {{ now()->translatedFormat('d F Y H:i') }}</p>
 
-    @if (! empty($filters['q']) || ! empty($filters['status']) || ! empty($filters['sumber']) || ! empty($filters['tahun']) || ! empty($filters['start_date']) || ! empty($filters['end_date']))
+    @if (! empty($filters['q']) || ! empty($filters['status']) || ! empty($filters['sumber']) || ! empty($filters['start_date']) || ! empty($filters['end_date']))
         <p style="margin-top: 12px;">
             <strong>Filter:</strong>
             @if (! empty($filters['q']))
@@ -56,9 +56,6 @@
             @endif
             @if (! empty($filters['sumber']))
                 | Sumber <u>{{ $sourceOptions[$filters['sumber']] ?? '-' }}</u>
-            @endif
-            @if (! empty($filters['tahun']))
-                | Tahun <u>{{ $filters['tahun'] }}</u>
             @endif
             @if (! empty($filters['start_date']))
                 | Dari <u>{{ \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') }}</u>

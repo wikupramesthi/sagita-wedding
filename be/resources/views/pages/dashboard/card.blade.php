@@ -123,8 +123,8 @@
                             @forelse ($actionQueue['messages'] as $message)
                                 <div class="d-flex align-items-center gap-2 {{ $loop->last ? '' : 'border-bottom pb-2 mb-2' }}">
                                     <div class="flex-grow-1 min-w-0">
-                                        <div class="fw-semibold small text-truncate">{{ $message->nama }} <span class="text-muted fw-normal">· {{ $message->email ?: $message->no_telp }}</span></div>
-                                        <div class="small text-muted text-truncate">{{ \Illuminate\Support\Str::limit($message->isi, 80) }}</div>
+                                        <div class="fw-semibold small text-truncate">{{ $message->full_name }} <span class="text-muted fw-normal">· {{ $message->email ?: $message->whatsapp }}</span></div>
+                                        <div class="small text-muted text-truncate">{{ \Illuminate\Support\Str::limit($message->wedding_concept, 80) }}</div>
                                     </div>
                                     <a href="{{ route('konsultasi.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right"></i></a>
                                 </div>

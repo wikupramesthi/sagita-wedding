@@ -1,24 +1,17 @@
 @extends('layouts.app')
-@section('title', 'Ubah Konsultasi')
+@section('title', 'Ubah Calon Pelanggan')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Ubah Konsultasi" page="Layanan" active="Ubah Konsultasi" route="{{ route('konsultasi.edit', $consultation->uuid) }}" />
+<x-breadcrumb title="Ubah Calon Pelanggan" page="Data Prospek" active="Ubah" route="{{ route('konsultasi.edit', $consultation->uuid) }}" />
 @endsection
 
 <section class="section">
-    <div class="card">
-        <div class="card-header">
-            <h4 class="fw-normal mb-0 text-body">Ubah Pertanyaan Konsultasi</h4>
-        </div>
-        <div class="card-body">
-            @include('pages.konsultasi._form', [
-                'consultation' => $consultation,
-                'action' => route('konsultasi.update', $consultation->uuid),
-                'method' => 'PUT',
-                'submitLabel' => 'Perbarui Data',
-            ])
-        </div>
-    </div>
+    @include('pages.konsultasi._form', [
+        'consultation' => $consultation,
+        'action' => route('konsultasi.update', $consultation->uuid),
+        'method' => 'PUT',
+        'submitLabel' => 'Perbarui Calon Pelanggan',
+    ])
 </section>
 @endsection
