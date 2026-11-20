@@ -118,7 +118,7 @@ $consultation = $consultation ?? new \App\Models\Consultation();
                             @error('venue')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="form-field">
+                        <div class="form-field form-field-full">
                             <label for="wedding_concept" class="form-label fw-semibold">Konsep Pernikahan</label>
                             <textarea id="wedding_concept" name="wedding_concept" rows="2" class="form-control @error('wedding_concept') is-invalid @enderror" placeholder="Tema, warna, atau gaya dekorasi.">{{ old('wedding_concept', $consultation->wedding_concept) }}</textarea>
                             @error('wedding_concept')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -220,7 +220,7 @@ $consultation = $consultation ?? new \App\Models\Consultation();
                                     @error('converted_to_booking_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
-                                <div class="form-field">
+                                <div class="form-field form-field-full">
                                     <label for="admin_notes" class="form-label fw-semibold">Catatan Tim</label>
                                     <textarea id="admin_notes" name="admin_notes" rows="3" class="form-control @error('admin_notes') is-invalid @enderror" placeholder="Catatan hasil telepon atau status negosiasi.">{{ old('admin_notes', $consultation->admin_notes) }}</textarea>
                                     @error('admin_notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -283,17 +283,26 @@ $consultation = $consultation ?? new \App\Models\Consultation();
         grid-column: span 1 / span 1;
     }
 
+    .konsultasi-form .form-field-full {
+        grid-column: 1 / -1;
+    }
+
     .konsultasi-form .form-card {
         overflow: hidden;
     }
 
     .konsultasi-form .form-card-header {
-        display: flex;
+        display: flex !important;
+        flex-direction: row;
         align-items: center;
         gap: 12px;
         padding: 20px 24px;
         background: transparent;
         border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .konsultasi-form .form-card-header > div {
+        min-width: 0;
     }
 
     .konsultasi-form .konsultasi-content .form-card-header {

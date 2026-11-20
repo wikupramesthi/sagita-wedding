@@ -376,9 +376,9 @@
                                             <input type="date" name="follow_up_at" value="{{ $item->follow_up_at?->format('Y-m-d') }}" class="form-control form-control-sm" aria-label="Tanggal tindak lanjut {{ $item->full_name }}">
                                             <button type="submit" class="btn btn-sm btn-outline-secondary" title="Simpan tanggal tindak lanjut"><i class="bi bi-check2"></i></button>
                                         </div>
-                                        <span class="badge {{ $item->follow_up_badge_class }} mt-2">{{ $item->follow_up_label }}</span>
-                                        <div class="small text-muted">{{ $item->follow_up_date_label }}</div>
-                                        <div class="mt-2"><span class="badge {{ $item->sla_badge_class }}" title="Target respons: {{ $item->sla_deadline_label }}">{{ $item->sla_label }}</span></div>
+                                        <span class="badge konsultasi-followup-badge {{ $item->follow_up_badge_class }} mt-2" data-state="{{ $item->follow_up_state }}">{{ $item->follow_up_label }}</span>
+                                        <div class="small text-muted konsultasi-followup-date">{{ $item->follow_up_date_label }}</div>
+                                        <div class="mt-2"><span class="badge konsultasi-sla-badge {{ $item->sla_badge_class }}" data-state="{{ $item->sla_state }}" title="Target respons: {{ $item->sla_deadline_label }}">{{ $item->sla_label }}</span></div>
                                     </form>
                                 </td>
                                 <td class="col-action text-end">
@@ -805,10 +805,53 @@
     }
 
     #main-content .lead-table .badge {
+        display: inline-flex;
+        align-items: center;
         font-size: .72rem !important;
         line-height: 1.2 !important;
         padding: .3em .5em !important;
         white-space: nowrap !important;
+    }
+
+    #main-content .lead-table .konsultasi-followup-badge[data-state="upcoming"],
+    #main-content .lead-table .konsultasi-sla-badge[data-state="safe"] {
+        background-color: #d7e5d3 !important;
+        color: #304b35 !important;
+        border: 1px solid #bfd2b9;
+    }
+
+    #main-content .lead-table .konsultasi-followup-badge[data-state="today"],
+    #main-content .lead-table .konsultasi-sla-badge[data-state="warning"] {
+        background-color: #f2dfb9 !important;
+        color: #674718 !important;
+        border: 1px solid #e6ca91;
+    }
+
+    #main-content .lead-table .konsultasi-followup-badge[data-state="overdue"],
+    #main-content .lead-table .konsultasi-sla-badge[data-state="breach"] {
+        background-color: #efd0cc !important;
+        color: #73332e !important;
+        border: 1px solid #dfb4ae;
+    }
+
+    #main-content .lead-table .konsultasi-followup-badge[data-state="done"],
+    #main-content .lead-table .konsultasi-sla-badge[data-state="done"] {
+        background-color: #d7e5d3 !important;
+        color: #304b35 !important;
+        border: 1px solid #bfd2b9;
+    }
+
+    #main-content .lead-table .konsultasi-followup-badge[data-state="none"],
+    #main-content .lead-table .konsultasi-sla-badge[data-state="met"] {
+        background-color: #e8ddd0 !important;
+        color: #554333 !important;
+        border: 1px solid #d8c6b3;
+    }
+
+    #main-content .lead-table .konsultasi-followup-date {
+        margin-top: .3rem;
+        font-size: .75rem;
+        line-height: 1.35;
     }
 
     @media (min-width: 576px) {
@@ -923,11 +966,12 @@
             width: 0 !important;
         }
 
-        #main-content .lead-table col.col-check { width: 10% !important; }
-        #main-content .lead-table col.col-no { width: 7% !important; }
-        #main-content .lead-table col.col-customer { width: 39% !important; }
-        #main-content .lead-table col.col-pipeline { width: 28% !important; }
-        #main-content .lead-table col.col-action { width: 16% !important; }
+        #main-content .lead-table .col-no { display: none; }
+        #main-content .lead-table col.col-no { width: 0 !important; }
+        #main-content .lead-table col.col-check { width: 8% !important; }
+        #main-content .lead-table col.col-customer { width: 30% !important; }
+        #main-content .lead-table col.col-pipeline { width: 50% !important; }
+        #main-content .lead-table col.col-action { width: 12% !important; }
 
         #main-content .card-header .small.text-muted {
             display: none;
