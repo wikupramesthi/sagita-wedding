@@ -796,6 +796,10 @@
         table-layout: fixed;
     }
 
+    #main-content .konsultasi-table-shell {
+        overflow: visible !important;
+    }
+
     #main-content .lead-table .form-check-input {
         margin: 0 !important;
     }
