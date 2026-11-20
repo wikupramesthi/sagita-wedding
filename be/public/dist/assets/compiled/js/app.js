@@ -7676,9 +7676,10 @@
                 new PerfectScrollbar(r, { wheelPropagation: !1 });
             }
             setTimeout(() => {
-                this.forceElementVisibility(
-                    document.querySelector(".sidebar-item.active")
-                );
+                const activeItem = document.querySelector(".sidebar-item.active");
+                if (activeItem) {
+                    this.forceElementVisibility(activeItem);
+                }
             }, 300);
         }
         onResize() {
@@ -7738,6 +7739,7 @@
             );
         }
         forceElementVisibility(z) {
+            if (!z) return;
             this.isElementInViewport(z) || z.scrollIntoView(!1);
         }
     }

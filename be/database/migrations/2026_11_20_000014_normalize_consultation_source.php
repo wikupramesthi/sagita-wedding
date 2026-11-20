@@ -11,7 +11,7 @@ return new class extends Migration
             DB::table('consultations')->where('source', $legacy)->update(['source' => $key]);
         }
 
-        DB::statement("ALTER TABLE `consultations` ALTER COLUMN `source` SET DEFAULT 'website'");
+        DB::statement("ALTER TABLE `consultations` MODIFY `source` VARCHAR(50) NOT NULL DEFAULT 'website'");
     }
 
     public function down(): void
@@ -20,7 +20,7 @@ return new class extends Migration
             DB::table('consultations')->where('source', $key)->update(['source' => $legacy]);
         }
 
-        DB::statement("ALTER TABLE `consultations` ALTER COLUMN `source` SET DEFAULT 'Website'");
+        DB::statement("ALTER TABLE `consultations` MODIFY `source` VARCHAR(50) NOT NULL DEFAULT 'website'");
     }
 
     private function legacyMap(): array

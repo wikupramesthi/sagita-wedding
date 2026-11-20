@@ -108,9 +108,10 @@ class Sidebar {
 
         // Scroll into active sidebar
         setTimeout(() => {
-            this.forceElementVisibility(
-                document.querySelector(".sidebar-item.active")
-            );
+            const activeItem = document.querySelector(".sidebar-item.active");
+            if (activeItem) {
+                this.forceElementVisibility(activeItem);
+            }
         }, 300);
     }
 
@@ -211,6 +212,7 @@ class Sidebar {
     }
 
     forceElementVisibility(el) {
+        if (!el) return;
         if (!this.isElementInViewport(el)) {
             el.scrollIntoView(false);
         }

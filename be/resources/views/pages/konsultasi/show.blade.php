@@ -27,8 +27,13 @@
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('konsultasi.pdf-preview', ['uuid' => $consultation->uuid]) }}" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i> Preview PDF</a>
-                <a href="{{ $consultation->whatsapp_link }}" target="_blank" rel="noopener" class="btn btn-success"><i class="bx bxl-whatsapp me-1"></i> Hubungi WhatsApp</a>
+                <a href="{{ $consultation->whatsapp_link }}?text={{ rawurlencode($consultation->whatsapp_message) }}" target="_blank" rel="noopener" class="btn btn-success"><i class="bx bxl-whatsapp me-1"></i> Hubungi WhatsApp</a>
                 @can('konsultasi.index')
+                    <form action="{{ route('konsultasi.remind', $consultation->uuid) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-warning"><i class="bi bi-bell me-1"></i> Kirim Pengingat</button>
+                    </form>
+                    <a href="{{ route('konsultasi.duplicates') }}" class="btn btn-outline-secondary"><i class="bi bi-diagram-3 me-1"></i> Cek Duplikat</a>
                     <a href="{{ route('konsultasi.edit', $consultation->uuid) }}" class="btn btn-light"><i class="bi bi-pencil-square me-1"></i> Ubah Data</a>
                 @endcan
                 <a href="{{ route('konsultasi.index') }}" class="btn btn-light"><i class="bi bi-arrow-left me-1"></i> Kembali</a>
@@ -186,6 +191,40 @@
                 </div>
             </div>
 
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center gap-2">
+                    <h5 class="fw-normal mb-0 text-body">Riwayat Perubahan</h5>
+                    <span class="badge bg-light text-body">{{ count($history) }}</span>
+                </div>
+                <div class="card-body p-0">
+                    @if ($history === [])
+                        <div class="p-4 small text-muted">Belum ada perubahan yang tercatat.</div>
+                    @else
+                        <div class="konsultasi-history">
+                            @foreach ($history as $entry)
+                                <div class="konsultasi-history-item">
+                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                        <span class="badge {{ $entry['badge'] }}">{{ $entry['event_label'] }}</span>
+                                        <span class="small text-muted ms-auto">{{ $entry['time'] }}</span>
+                                    </div>
+                                    <div class="small fw-semibold mt-2">{{ $entry['actor'] }}</div>
+                                    @foreach ($entry['changes'] as $change)
+                                        <div class="konsultasi-history-change">
+                                            <div class="small text-muted">{{ $change['label'] }}</div>
+                                            <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                                                <span class="konsultasi-history-value old">{{ $change['old'] }}</span>
+                                                <i class="bi bi-arrow-right small text-muted"></i>
+                                                <span class="konsultasi-history-value new">{{ $change['new'] }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header"><h5 class="fw-normal mb-0 text-body">Riwayat Lead</h5></div>
                 <div class="card-body">
@@ -218,4 +257,52 @@
         </div>
     </div>
 </section>
+
+@push('after-style')
+<style>
+    .konsultasi-history {
+        max-height: 420px;
+        overflow-y: auto;
+    }
+
+    .konsultasi-history-item {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--bs-border-color, #e9ecef);
+    }
+
+    .konsultasi-history-item:last-child {
+        border-bottom: 0;
+    }
+
+    .konsultasi-history-change {
+        margin-top: 10px;
+        padding-left: 10px;
+        border-left: 2px solid var(--bs-border-color, #e9ecef);
+    }
+
+    .konsultasi-history-value {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        min-width: 0;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .konsultasi-history-value.old {
+        background: var(--bs-tertiary-bg, rgba(0, 0, 0, .04));
+        color: var(--bs-secondary-color, #6c757d);
+        text-decoration: line-through;
+    }
+
+    .konsultasi-history-value.new {
+        background: var(--modern-primary-soft, #f5f0ea);
+        color: var(--modern-primary, #6e5b42);
+        font-weight: 600;
+    }
+</style>
+@endpush
 @endsection

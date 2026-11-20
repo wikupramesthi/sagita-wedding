@@ -499,7 +499,9 @@ CREATE TABLE `consultations` (
   `uuid` char(36) NOT NULL,
   `full_name` varchar(150) NOT NULL,
   `whatsapp` varchar(20) NOT NULL,
+  `whatsapp_e164` varchar(20) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
+  `email_normalized` varchar(255) DEFAULT NULL,
   `wedding_date` date DEFAULT NULL,
   `guest_estimate` enum('Di bawah 200 tamu','200–500 tamu','500–1.000 tamu','Di atas 1.000 tamu') DEFAULT NULL,
   `venue` varchar(255) DEFAULT NULL,
@@ -512,8 +514,12 @@ CREATE TABLE `consultations` (
   `admin_notes` text DEFAULT NULL,
   `handled_by` bigint(20) UNSIGNED DEFAULT NULL,
   `follow_up_at` datetime DEFAULT NULL,
+  `reminder_sent_at` timestamp NULL DEFAULT NULL,
   `lead_status` enum('New','Contacted','Interested','Negotiation','Converted','Lost') NOT NULL DEFAULT 'New',
   `source` varchar(50) NOT NULL DEFAULT 'website',
+  `merged_into_uuid` char(36) DEFAULT NULL,
+  `merged_at` timestamp NULL DEFAULT NULL,
+  `merged_by` char(36) DEFAULT NULL,
   `converted_to_booking_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -1178,7 +1184,12 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (85, '2026_11_20_000007_translate_remaining_event_menu_label', 44),
 (86, '2026_11_20_000008_create_contact_inquiries_table', 45),
 (87, '2026_11_20_000009_rename_kontak_module_to_konsultasi', 46),
-(88, '2026_11_20_000010_add_prospect_status_to_users_table', 47);
+(88, '2026_11_20_000010_add_prospect_status_to_users_table', 47),
+(89, '2026_11_20_000011_add_email_to_consultations_table', 48),
+(90, '2026_11_20_000012_add_konsultasi_update_lead_route', 48),
+(91, '2026_11_20_000013_add_konsultasi_pdf_routes', 48),
+(92, '2026_11_20_000014_normalize_consultation_source', 48),
+(93, '2026_11_20_000015_enhance_konsultasi_pipeline', 48);
 
 -- --------------------------------------------------------
 
@@ -2263,7 +2274,14 @@ INSERT INTO `routes` (`id`, `route`, `permission_name`, `status`, `description`,
 (245, 'konsultasi.update-lead', 'konsultasi.index', 1, NULL, '2026-11-20 06:30:00', '2026-11-20 06:30:00'),
 (246, 'konsultasi.pdf-preview', 'konsultasi.index', 1, NULL, '2026-11-20 06:45:00', '2026-11-20 06:45:00'),
 (247, 'konsultasi.pdf-stream', 'konsultasi.index', 1, NULL, '2026-11-20 06:45:00', '2026-11-20 06:45:00'),
-(248, 'konsultasi.pdf-download', 'konsultasi.index', 1, NULL, '2026-11-20 06:45:00', '2026-11-20 06:45:00');
+(248, 'konsultasi.pdf-download', 'konsultasi.index', 1, NULL, '2026-11-20 06:45:00', '2026-11-20 06:45:00'),
+(249, 'konsultasi.bulk', 'konsultasi.index', 1, NULL, '2026-11-20 07:30:00', '2026-11-20 07:30:00'),
+(250, 'konsultasi.export', 'konsultasi.index', 1, NULL, '2026-11-20 07:30:00', '2026-11-20 07:30:00'),
+(251, 'konsultasi.kanban', 'konsultasi.index', 1, NULL, '2026-11-20 07:30:00', '2026-11-20 07:30:00'),
+(252, 'konsultasi.calendar', 'konsultasi.index', 1, NULL, '2026-11-20 07:30:00', '2026-11-20 07:30:00'),
+(253, 'konsultasi.duplicates', 'konsultasi.index', 1, NULL, '2026-11-20 07:30:00', '2026-11-20 07:30:00'),
+(254, 'konsultasi.merge', 'konsultasi.index', 1, NULL, '2026-11-20 07:30:00', '2026-11-20 07:30:00'),
+(255, 'konsultasi.remind', 'konsultasi.index', 1, NULL, '2026-11-20 07:30:00', '2026-11-20 07:30:00');
 
 -- --------------------------------------------------------
 
@@ -2811,7 +2829,18 @@ ALTER TABLE `class_schedules`
 -- Indexes for table `consultations`
 --
 ALTER TABLE `consultations`
-  ADD PRIMARY KEY (`uuid`);
+  ADD PRIMARY KEY (`uuid`),
+  ADD KEY `cons_created_at_idx` (`created_at`),
+  ADD KEY `cons_status_created_idx` (`consultation_status`,`created_at`),
+  ADD KEY `cons_lead_created_idx` (`lead_status`,`created_at`),
+  ADD KEY `cons_source_created_idx` (`source`,`created_at`),
+  ADD KEY `cons_followup_lead_idx` (`follow_up_at`,`lead_status`),
+  ADD KEY `cons_handler_lead_idx` (`handled_by`,`lead_status`),
+  ADD KEY `cons_package_idx` (`package_id`),
+  ADD KEY `cons_converted_idx` (`converted_to_booking_at`),
+  ADD KEY `cons_email_norm_idx` (`email_normalized`),
+  ADD KEY `cons_wa_e164_idx` (`whatsapp_e164`),
+  ADD KEY `cons_merged_into_idx` (`merged_into_uuid`);
 
 --
 -- Indexes for table `disabilities`

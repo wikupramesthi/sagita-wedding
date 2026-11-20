@@ -2,17 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ManagementAccess\Route;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
 
 class RouteSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-    public function run() : void
+    public function run(): void
     {
         Model::unguard();
 
@@ -35,6 +34,28 @@ class RouteSeeder extends Seeder
         //         'permission_name' => 'setting_update',
         //     ],
         // ]);
+
+        // Konsultasi
+        Route::insert([
+            ['route' => 'konsultasi.index', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.create', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.store', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.show', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.edit', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.update', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.destroy', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.update-lead', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.pdf-preview', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.pdf-stream', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.pdf-download', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.export', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.kanban', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.calendar', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.duplicates', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.bulk', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.merge', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.remind', 'permission_name' => 'konsultasi.index'],
+        ]);
 
         // User Management
         Route::insert([

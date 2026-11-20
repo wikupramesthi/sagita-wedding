@@ -4,17 +4,17 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Spatie\Permission\PermissionRegistrar;
 
 class PermissionSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-    public function run() : void
+    public function run(): void
     {
         // Reset cached roles and permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
             // menu
@@ -24,6 +24,9 @@ class PermissionSeeder extends Seeder
 
             // Dashboard
             'dashboard.index',
+
+            // Konsultasi
+            'konsultasi.index',
 
             // General Settings
             // 'setting.index',
@@ -35,7 +38,7 @@ class PermissionSeeder extends Seeder
             'user.update',
             'user.destroy',
 
-            //profile
+            // profile
             // 'profile.edit',
             // 'profile.update',
 
@@ -45,7 +48,7 @@ class PermissionSeeder extends Seeder
             'menu-group.update',
             'menu-group.destroy',
 
-            //menu-item
+            // menu-item
             'menu-item.index',
             'menu-item.store',
             'menu-item.update',

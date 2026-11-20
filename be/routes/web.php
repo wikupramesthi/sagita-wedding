@@ -241,6 +241,13 @@ Route::group(['middleware' => ['web', 'auth', 'verified'], 'prefix' => 'backend'
     Route::get('konsultasi/pdf/preview', [ConsultationController::class, 'pdfPreview'])->name('konsultasi.pdf-preview');
     Route::get('konsultasi/pdf/stream', [ConsultationController::class, 'pdfStream'])->name('konsultasi.pdf-stream');
     Route::get('konsultasi/pdf/download', [ConsultationController::class, 'pdfDownload'])->name('konsultasi.pdf-download');
+    Route::get('konsultasi/export', [ConsultationController::class, 'export'])->name('konsultasi.export');
+    Route::get('konsultasi/kanban', [ConsultationController::class, 'kanban'])->name('konsultasi.kanban');
+    Route::get('konsultasi/calendar', [ConsultationController::class, 'calendar'])->name('konsultasi.calendar');
+    Route::get('konsultasi/duplicates', [ConsultationController::class, 'duplicates'])->name('konsultasi.duplicates');
+    Route::post('konsultasi/bulk', [ConsultationController::class, 'bulk'])->name('konsultasi.bulk');
+    Route::post('konsultasi/merge', [ConsultationController::class, 'merge'])->name('konsultasi.merge');
+    Route::post('konsultasi/{consultation}/remind', [ConsultationController::class, 'remind'])->name('konsultasi.remind');
     Route::put('konsultasi/{consultation}/lead', [ConsultationController::class, 'updateLead'])->name('konsultasi.update-lead');
     Route::resource('konsultasi', ConsultationController::class)->parameters([
         'konsultasi' => 'consultation',
