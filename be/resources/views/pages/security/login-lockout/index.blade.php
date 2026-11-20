@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Login Blocks')
+@section('title', 'Blokir Login')
 
 @section('content')
 
@@ -90,7 +90,7 @@
                     <label class="security-filter-label" for="filterType">Tipe</label>
                     <select name="type" id="filterType" class="form-select">
                         <option value="">Semua Tipe</option>
-                        <option value="ip" @selected($type === 'ip')>IP Address</option>
+                        <option value="ip" @selected($type === 'ip')>Alamat IP</option>
                         <option value="email" @selected($type === 'email')>Email</option>
                     </select>
                 </div>
@@ -107,7 +107,7 @@
                         <i class="bi bi-funnel"></i> Filter
                     </button>
                     <a href="{{ route('security.login-lockout.index') }}" class="btn btn-light">
-                        <i class="bi bi-arrow-clockwise"></i> Reset
+                        <i class="bi bi-arrow-clockwise"></i> Atur Ulang
                     </a>
                 </div>
             </form>
@@ -231,14 +231,11 @@
 @push('after-script')
     <script>
         function unlockLoginLockout(id) {
-            Swal.fire({
+            sagitaConfirm({
                 title: 'Buka blokir?',
-                text: 'Pengguna/IP ini akan diizinkan mencoba login kembali.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Buka!',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#22c55e'
+                message: 'Pengguna/IP ini akan diizinkan mencoba login kembali.',
+                variant: 'unlock',
+                confirmText: 'Ya, Buka!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('unlock-login-lockout-' + id).submit();
@@ -272,14 +269,11 @@
         function bulkUnlock() {
             const ids = Array.from(document.querySelectorAll('.lockout-check:checked')).map(c => c.value);
             if (ids.length === 0) return;
-            Swal.fire({
+            sagitaConfirm({
                 title: 'Buka ' + ids.length + ' blokir terpilih?',
-                text: 'IP/Email yang dipilih akan diizinkan login kembali.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Buka!',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#22c55e'
+                message: 'IP/Email yang dipilih akan diizinkan login kembali.',
+                variant: 'unlock',
+                confirmText: 'Ya, Buka!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     const form = document.getElementById('bulk-unlock-form');

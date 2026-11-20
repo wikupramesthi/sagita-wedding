@@ -260,7 +260,7 @@ $consultation = $consultation ?? new \App\Models\Consultation();
     .konsultasi-form .konsultasi-side {
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 12px;
         min-width: 0;
     }
 
@@ -289,6 +289,7 @@ $consultation = $consultation ?? new \App\Models\Consultation();
 
     .konsultasi-form .form-card {
         overflow: hidden;
+        margin: 0;
     }
 
     .konsultasi-form .form-card-header {

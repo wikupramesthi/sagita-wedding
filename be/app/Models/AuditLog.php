@@ -34,12 +34,12 @@ class AuditLog extends Model
     public function getEventLabelAttribute(): string
     {
         return match ($this->event) {
-            'created' => 'Added',
-            'updated' => 'Updated',
-            'deleted' => 'Deleted',
-            'restored' => 'Restored',
+            'created' => 'Dibuat',
+            'updated' => 'Diperbarui',
+            'deleted' => 'Dihapus',
+            'restored' => 'Dipulihkan',
             'whatsapp_opened' => 'WhatsApp Dibuka',
-            default => ucfirst((string) $this->event),
+            default => 'Lainnya',
         };
     }
 

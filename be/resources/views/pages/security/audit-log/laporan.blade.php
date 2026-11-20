@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Audit Log Report</title>
+    <title>Laporan Log Audit</title>
     <style>
         @page { margin: 22px 28px 42px 28px; }
         * { box-sizing: border-box; }
@@ -37,15 +37,15 @@
 </head>
 <body>
 <div class="footer">
-    <table style="width:100%; border-collapse:collapse;"><tr><td>Audit Log Report — YogaRoots</td><td style="text-align:right;">Page <span class="pagenum"></span></td></tr></table>
+    <table style="width:100%; border-collapse:collapse;"><tr><td>Laporan Log Audit — Sagita Wedding</td><td style="text-align:right;">Halaman <span class="pagenum"></span></td></tr></table>
 </div>
 
 <table class="kop-table">
     <tr>
-        <td class="kop-logo"><img src="{{ public_path('img/logo-yogaroots.png') }}" style="height:60px;" alt="Logo"></td>
+        <td class="kop-logo"><img src="{{ public_path('img/logo.png') }}" style="height:60px;" alt="Logo"></td>
         <td class="kop-text">
-            <div class="instansi">YOGAROOTS</div>
-            <div class="instansi">STUDIO WELLNESS, YOGA &amp; MINDFULNESS</div>
+            <div class="instansi">SAGITA WEDDING</div>
+            <div class="instansi">SISTEM MANAJEMEN PERKAWINAN</div>
             <div class="sub">Jakarta, Indonesia</div>
         </td>
         <td class="kop-logo"></td>
@@ -54,42 +54,42 @@
 <hr class="kop-rule"><hr class="kop-rule2">
 
 <div class="judul">
-    <h1>AUDIT TRAIL REPORT</h1>
-    <div class="periode">Period: {{ $periode }}</div>
+    <h1>LAPORAN LOG AUDIT</h1>
+    <div class="periode">Periode: {{ $periode }}</div>
 </div>
 
 <table class="meta">
-    <tr><td style="width:22%;">User Filter</td><td style="width:35%;">: {{ $filterUser }}</td><td style="width:18%;">Printed by</td><td>: {{ $dicetakOleh }}</td></tr>
-    <tr><td>Activity Filter</td><td>: {{ $filterEvent }}</td><td>Print time</td><td>: {{ $waktuCetak }} WIB</td></tr>
-    <tr><td>Module Filter</td><td>: {{ $filterModel }}</td><td>Total records</td><td>: {{ number_format($total) }} records</td></tr>
-    @if(!empty($search))<tr><td>Search</td><td colspan="3">: {{ $search }}</td></tr>@endif
+    <tr><td style="width:22%;">Filter Pengguna</td><td style="width:35%;">: {{ $filterUser }}</td><td style="width:18%;">Dicetak Oleh</td><td>: {{ $dicetakOleh }}</td></tr>
+    <tr><td>Filter Aktivitas</td><td>: {{ $filterEvent }}</td><td>Waktu Cetak</td><td>: {{ $waktuCetak }} WIB</td></tr>
+    <tr><td>Filter Modul</td><td>: {{ $filterModel }}</td><td>Total Entri</td><td>: {{ number_format($total) }} entri</td></tr>
+    @if(!empty($search))<tr><td>Pencarian</td><td colspan="3">: {{ $search }}</td></tr>@endif
 </table>
 
 <div class="filter-box">
-    <strong>Note:</strong> This report was automatically generated from <em>Audit Log</em> YogaRoots. Each data change (created/updated/deleted/restored) is recorded with user, IP, and time for audit purposes.
+    <strong>Catatan:</strong> Laporan ini dibuat otomatis dari <em>Log Audit</em> Sagita Wedding. Setiap perubahan data (dibuat/diperbarui/dihapus/dipulihkan) dicatat beserta pengguna, alamat IP, dan waktu untuk keperluan audit.
 </div>
 
-<div class="section-title">ACTIVITY LIST ({{ number_format($total) }})</div>
+<div class="section-title">DAFTAR AKTIVITAS ({{ number_format($total) }})</div>
 <table class="data-table">
     <thead>
         <tr>
             <th style="width:4%;">No</th>
-            <th style="width:13%;">Time</th>
-            <th style="width:14%;">User</th>
-            <th style="width:8%;">Activity</th>
-            <th style="width:12%;">Module</th>
+            <th style="width:13%;">Waktu</th>
+            <th style="width:14%;">Pengguna</th>
+            <th style="width:8%;">Aktivitas</th>
+            <th style="width:12%;">Modul</th>
             <th style="width:20%;">Data</th>
-            <th style="width:14%;">IP Address</th>
-            <th style="width:15%;">Changes</th>
+            <th style="width:14%;">Alamat IP</th>
+            <th style="width:15%;">Perubahan</th>
         </tr>
     </thead>
     <tbody>
         @forelse ($logs as $i => $log)
         <tr>
             <td>{{ $i + 1 }}</td>
-            <td>{{ $log->created_at?->format('d/m/Y H:i') ?? '-' }}<br><small style="color:#6b7280;">{{ $log->created_at?->diffForHumans() }}</small></td>
+            <td>{{ $log->created_at?->translatedFormat('d M Y H:i') ?? '-' }}<br><small style="color:#6b7280;">{{ $log->created_at?->diffForHumans() }}</small></td>
             <td>{{ $log->user_name ?? 'Sistem' }}<br><small style="color:#6b7280;">{{ $log->user_email ?? '-' }}</small></td>
-            <td><span class="badge badge-{{ $log->event }}">{{ ucfirst($log->event) }}</span></td>
+            <td><span class="badge badge-{{ $log->event }}">{{ $log->event_label }}</span></td>
             <td>{{ class_basename($log->auditable_type) }}</td>
             <td>{{ $log->auditable_label ?? '-' }}<br><small style="color:#6b7280;">#{{ $log->auditable_id }}</small></td>
             <td style="font-family: monospace;">{{ $log->ip_address ?? '-' }}</td>
@@ -101,7 +101,7 @@
                     @foreach(array_slice($changes, 0, 3) as $field => $vals)
                         <div><strong>{{ $field }}:</strong> {{ is_scalar($vals['old'] ?? null) ? \Illuminate\Support\Str::limit((string)($vals['old'] ?? '-'), 20) : '-' }} → {{ is_scalar($vals['new'] ?? null) ? \Illuminate\Support\Str::limit((string)($vals['new'] ?? '-'), 20) : '-' }}</div>
                     @endforeach
-                    @if(count($changes) > 3)<small style="color:#6b7280;">+{{ count($changes)-3 }} field lain</small>@endif
+                    @if(count($changes) > 3)<small style="color:#6b7280;">+{{ count($changes)-3 }} kolom lain</small>@endif
                 @endif
             </td>
         </tr>
@@ -116,14 +116,14 @@
         <td>
             <div class="esign">
                 <strong>E-Sign / Verifikasi:</strong><br>
-                Dokumen ini dicetak otomatis dari sistem YogaRoots. Keaslian dapat diverifikasi dengan mencocokkan waktu cetak &amp; filter di atas dengan data di menu <em>Keamanan &gt; Audit Log</em>.<br>
+                Dokumen ini dicetak otomatis dari sistem Sagita Wedding. Keaslian dapat diverifikasi dengan mencocokkan waktu cetak &amp; filter di atas dengan data di menu <em>Keamanan &gt; Log Audit</em>.<br>
                 Hash: {{ md5($waktuCetak . $total . $periode) }}
             </div>
         </td>
         <td>
             <div class="ttd-box">
                 Jakarta, {{ now()->translatedFormat('d F Y') }}<br>
-                Management YogaRoots<br><br><br><br>
+                Manajemen Sagita Wedding<br><br><br><br>
                 <strong><u>( ........................................ )</u></strong>..
             </div>
         </td>

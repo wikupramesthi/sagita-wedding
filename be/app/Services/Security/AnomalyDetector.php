@@ -90,15 +90,15 @@ class AnomalyDetector
         $flags = [];
 
         if ($activity->user_uuid && in_array($activity->user_uuid, $suspiciousUsers, true)) {
-            $flags[] = 'Login from multiple IPs';
+            $flags[] = 'Login dari beberapa alamat IP';
         }
 
         if ($activity->ip_address && in_array($activity->ip_address, $suspiciousIps, true)) {
-            $flags[] = 'Risky IP';
+            $flags[] = 'IP berisiko';
         }
 
         if ($this->isOffHours($activity->logged_in_at)) {
-            $flags[] = 'Unusual hour';
+            $flags[] = 'Jam tidak biasa';
         }
 
         return $flags;
@@ -112,11 +112,11 @@ class AnomalyDetector
         $flags = [];
 
         if ($attempt->ip_address && in_array($attempt->ip_address, $suspiciousIps, true)) {
-            $flags[] = 'Risky IP';
+            $flags[] = 'IP berisiko';
         }
 
         if (blank($attempt->user_uuid)) {
-            $flags[] = 'Unknown account';
+            $flags[] = 'Akun tidak terdaftar';
         }
 
         return $flags;

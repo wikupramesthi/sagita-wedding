@@ -33,6 +33,6 @@ class LoginLockout extends Model
 
     public function getTypeLabelAttribute(): string
     {
-        return $this->type === 'email' ? 'Email' : 'IP Address';
+        return $this->type === 'email' ? 'Email' : 'Alamat IP';
     }
 }

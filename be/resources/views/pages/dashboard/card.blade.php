@@ -563,6 +563,10 @@
         min-width: 0;
     }
 
+    #main-content .dashboard-details > .row > [class*="col-"] > .card {
+        margin-bottom: 0;
+    }
+
     #main-content .dashboard-home .row.g-4,
     #main-content .dashboard-home .row.g-3 {
         --bs-gutter-x: var(--dashboard-gap);

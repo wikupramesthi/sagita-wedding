@@ -34,7 +34,7 @@ class AuditLogController extends Controller
             'deleted' => (clone $base)->where('event', 'deleted')->count(),
         ];
 
-        $events = ['created', 'updated', 'deleted', 'restored'];
+        $events = $this->eventLabels();
 
         $models = AuditLog::query()
             ->whereNotNull('auditable_type')
@@ -102,13 +102,13 @@ class AuditLogController extends Controller
 
         $periode = '-';
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $periode = $request->input('start_date').' to '.$request->input('end_date');
+            $periode = $request->input('start_date').' sampai '.$request->input('end_date');
         } elseif ($request->filled('start_date')) {
-            $periode = 'Since '.$request->input('start_date');
+            $periode = 'Sejak '.$request->input('start_date');
         } elseif ($request->filled('end_date')) {
-            $periode = 'Until '.$request->input('end_date');
+            $periode = 'Hingga '.$request->input('end_date');
         } else {
-            $periode = 'All Periods';
+            $periode = 'Semua Periode';
         }
 
         $filterUser = '-';
@@ -117,19 +117,32 @@ class AuditLogController extends Controller
             $filterUser = $u ? ($u->user_name.' ('.$u->user_email.')') : $request->input('user_uuid');
         }
 
+        $eventFilter = $request->input('event');
+        $eventLabels = $this->eventLabels();
+
         $pdf = Pdf::loadView('pages.security.audit-log.laporan', [
             'logs' => $logs,
             'total' => $logs->count(),
             'periode' => $periode,
             'filterUser' => $filterUser,
-            'filterEvent' => $request->input('event', 'All'),
-            'filterModel' => $request->input('model') ? class_basename($request->input('model')) : 'All',
+            'filterEvent' => $eventFilter ? ($eventLabels[$eventFilter] ?? $eventFilter) : 'Semua',
+            'filterModel' => $request->input('model') ? class_basename($request->input('model')) : 'Semua',
             'dicetakOleh' => $request->user()->name ?? 'Sistem',
             'waktuCetak' => now()->translatedFormat('d F Y H:i'),
             'search' => $request->input('search'),
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download('audit-log-'.now()->format('Ymd-His').'.pdf');
+    }
+
+    private function eventLabels(): array
+    {
+        return [
+            'created' => 'Dibuat',
+            'updated' => 'Diperbarui',
+            'deleted' => 'Dihapus',
+            'restored' => 'Dipulihkan',
+        ];
     }
 
     private function filteredQuery(Request $request)

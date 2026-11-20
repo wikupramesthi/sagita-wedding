@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Failed Login')
+@section('title', 'Login Gagal')
 
 @section('content')
 
 @section('breadcrumb')
-    <x-breadcrumb title="Failed Login" page="Security" active="Failed Login"
+    <x-breadcrumb title="Login Gagal" page="Keamanan" active="Login Gagal"
         route="{{ route('security.failed-login.index') }}" />
 @endsection
 
@@ -32,7 +32,7 @@
                         <div class="ml-stat-icon ic-danger"><i class="bx bx-shield-x"></i></div>
                         <div>
                             <div class="ml-stat-value">{{ number_format($stats['total']) }}</div>
-                            <div class="ml-stat-label">Total Failed</div>
+                            <div class="ml-stat-label">Total Login Gagal</div>
                         </div>
                     </div>
                 </div>
@@ -45,7 +45,7 @@
                         <div class="ml-stat-icon ic-warning"><i class="bx bx-time-five"></i></div>
                         <div>
                             <div class="ml-stat-value">{{ number_format($stats['last24']) }}</div>
-                            <div class="ml-stat-label">Last 24 Hours</div>
+                            <div class="ml-stat-label">24 Jam Terakhir</div>
                         </div>
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                         <div class="ml-stat-icon ic-primary"><i class="bx bx-globe"></i></div>
                         <div>
                             <div class="ml-stat-value">{{ number_format($stats['unique_ip']) }}</div>
-                            <div class="ml-stat-label">Unique IPs</div>
+                            <div class="ml-stat-label">Alamat IP Unik</div>
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                         <div class="ml-stat-icon ic-violet"><i class="bx bx-envelope"></i></div>
                         <div>
                             <div class="ml-stat-value">{{ number_format($stats['unique_email']) }}</div>
-                            <div class="ml-stat-label">Unique Emails</div>
+                            <div class="ml-stat-label">Email Unik</div>
                         </div>
                     </div>
                 </div>
@@ -113,11 +113,11 @@
                             value="{{ $endDate }}">
                     </div>
                     <div class="d-flex gap-2">
-<button type="submit" class="btn btn-success">
-                        <i class="bi bi-funnel"></i> Filter
-                    </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-funnel"></i> Filter
+                        </button>
                         <a href="{{ route('security.failed-login.index') }}" class="btn btn-light">
-                            <i class="bi bi-arrow-clockwise"></i> Reset
+                            <i class="bi bi-arrow-clockwise"></i> Atur Ulang
                         </a>
                     </div>
                 </form>
@@ -138,7 +138,7 @@
             <div class="d-flex align-items-center gap-2">
                 <h5 class="card-title mb-0">Login Gagal</h5>
                 <span class="badge bg-danger-subtle text-danger">{{ number_format($attempts->total()) }}
-                    percobaan</span>
+                    entri</span>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <p class="text-muted small mb-0 d-none d-md-block">Percobaan login yang gagal beserta alamat IP-nya.</p>
@@ -164,7 +164,7 @@
                             @endcan
                             <th>Email</th>
                             <th>Perangkat</th>
-                            <th>IP Address</th>
+                            <th>Alamat IP</th>
                             <th>Tanda</th>
                             <th>Waktu</th>
                             <th class="text-end">Aksi</th>
@@ -241,7 +241,7 @@
                     <div class="text-muted small">
                         Menampilkan <strong>{{ $attempts->firstItem() }}</strong> -
                         <strong>{{ $attempts->lastItem() }}</strong> dari
-                        <strong>{{ $attempts->total() }}</strong> percobaan
+                        <strong>{{ $attempts->total() }}</strong> entri
                     </div>
                     <div>{{ $attempts->links('pagination::minimal') }}</div>
                 </div>
@@ -258,14 +258,9 @@
 @push('after-script')
     <script>
         function deleteFailedLogin(id) {
-            Swal.fire({
+            sagitaConfirm({
                 title: 'Hapus catatan ini?',
-                text: 'Catatan percobaan login ini akan dihapus permanen.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#f43f5e'
+                message: 'Catatan percobaan login ini akan dihapus permanen.'
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('delete-failed-login-' + id).submit();
@@ -274,14 +269,10 @@
         }
 
         function clearFailedLogins() {
-            Swal.fire({
+            sagitaConfirm({
                 title: 'Bersihkan semua catatan?',
-                text: 'Seluruh riwayat login gagal akan dihapus permanen.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Bersihkan!',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#f43f5e'
+                message: 'Seluruh riwayat login gagal akan dihapus permanen.',
+                confirmText: 'Ya, Bersihkan!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('clear-failed-login-form').submit();
@@ -315,14 +306,9 @@
         function bulkDeleteFailed() {
             const ids = Array.from(document.querySelectorAll('.failed-check:checked')).map(c => c.value);
             if (ids.length === 0) return;
-            Swal.fire({
+            sagitaConfirm({
                 title: 'Hapus ' + ids.length + ' catatan terpilih?',
-                text: 'Data yang dipilih akan dihapus permanen.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#f43f5e'
+                message: 'Data yang dipilih akan dihapus permanen.'
             }).then((result) => {
                 if (result.isConfirmed) {
                     const form = document.getElementById('bulk-delete-failed-form');

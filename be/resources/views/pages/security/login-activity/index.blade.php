@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Login Activity')
+@section('title', 'Aktivitas Login')
 
 @section('content')
 
 @section('breadcrumb')
-    <x-breadcrumb title="Login Activity" page="Security" active="Login Activity"
+    <x-breadcrumb title="Aktivitas Login" page="Keamanan" active="Aktivitas Login"
         route="{{ route('security.login-activity.index') }}" />
 @endsection
 
@@ -32,7 +32,7 @@
                         <div class="ml-stat-icon ic-primary"><i class="bx bx-log-in-circle"></i></div>
                         <div>
                             <div class="ml-stat-value">{{ number_format($stats['total']) }}</div>
-                            <div class="ml-stat-label">Total Logins</div>
+                            <div class="ml-stat-label">Total Login</div>
                         </div>
                     </div>
                 </div>
@@ -45,7 +45,7 @@
                         <div class="ml-stat-icon ic-success"><i class="bx bx-calendar-check"></i></div>
                         <div>
                             <div class="ml-stat-value">{{ number_format($stats['today']) }}</div>
-                            <div class="ml-stat-label">Today</div>
+                            <div class="ml-stat-label">Hari Ini</div>
                         </div>
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                         <div class="ml-stat-icon ic-warning"><i class="bx bx-time-five"></i></div>
                         <div>
                             <div class="ml-stat-value">{{ number_format($stats['week']) }}</div>
-                            <div class="ml-stat-label">Last 7 Days</div>
+                            <div class="ml-stat-label">7 Hari Terakhir</div>
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                         <div class="ml-stat-icon ic-violet"><i class="bx bx-user-check"></i></div>
                         <div>
                             <div class="ml-stat-value">{{ number_format($stats['unique']) }}</div>
-                            <div class="ml-stat-label">Unique Users</div>
+                            <div class="ml-stat-label">Pengguna Unik</div>
                         </div>
                     </div>
                 </div>
@@ -84,7 +84,7 @@
                         <div class="ml-stat-icon ic-danger"><i class="bx bx-alarm-exclamation"></i></div>
                         <div>
                             <div class="ml-stat-value">{{ number_format($stats['suspicious']) }}</div>
-                            <div class="ml-stat-label">Suspicious</div>
+                            <div class="ml-stat-label">Mencurigakan</div>
                         </div>
                     </div>
                 </div>
@@ -98,17 +98,17 @@
             <form method="GET" action="{{ route('security.login-activity.index') }}"
                 class="security-filter-form d-flex flex-wrap align-items-end gap-3">
                 <div>
-                    <label class="security-filter-label" for="filterSearch">Search</label>
+                    <label class="security-filter-label" for="filterSearch">Cari</label>
                     <input type="text" name="search" id="filterSearch" class="form-control"
-                        placeholder="Name, email, or IP..." value="{{ $search }}" style="min-width: 220px;">
+                        placeholder="Nama, email, atau IP..." value="{{ $search }}" style="min-width: 220px;">
                 </div>
                 <div>
-                    <label class="security-filter-label" for="filterStart">From Date</label>
+                    <label class="security-filter-label" for="filterStart">Dari Tanggal</label>
                     <input type="date" name="start_date" id="filterStart" class="form-control"
                         value="{{ $startDate }}">
                 </div>
                 <div>
-                    <label class="security-filter-label" for="filterEnd">To Date</label>
+                    <label class="security-filter-label" for="filterEnd">Sampai Tanggal</label>
                     <input type="date" name="end_date" id="filterEnd" class="form-control" value="{{ $endDate }}">
                 </div>
                 <div class="d-flex gap-2 align-items-end">
@@ -116,12 +116,12 @@
                         <i class="bi bi-funnel"></i> Filter
                     </button>
                     <a href="{{ route('security.login-activity.index') }}" class="btn btn-light">
-                        <i class="bi bi-arrow-clockwise"></i> Reset
+                        <i class="bi bi-arrow-clockwise"></i> Atur Ulang
                     </a>
                     @can('login-activity.destroy')
                         @if ($stats['total'] > 0)
                             <button type="button" class="btn btn-outline-danger" onclick="clearLoginActivities()">
-                                <i class="bi bi-eraser"></i> Clear All
+                                <i class="bi bi-eraser"></i> Bersihkan Semua
                             </button>
                         @endif
                     @endcan
@@ -134,15 +134,15 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="d-flex align-items-center gap-2">
-                <h5 class="card-title mb-0">Login History</h5>
+                <h5 class="card-title mb-0">Riwayat Login</h5>
                 <span class="badge bg-primary-subtle text-primary">{{ number_format($activities->total()) }}
-                    records</span>
+                    entri</span>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <p class="text-muted small mb-0 d-none d-md-block">Successful login activity recorded in the system.</p>
+                <p class="text-muted small mb-0 d-none d-md-block">Aktivitas login berhasil yang tercatat di sistem.</p>
                 @can('login-activity.destroy')
                 <button type="button" id="bulkDeleteLoginActivityBtn" class="btn btn-sm btn-danger d-none" onclick="bulkDeleteLoginActivity()">
-                    <i class="bi bi-trash"></i> Delete selected (<span id="bulkCountLoginActivity">0</span>)
+                    <i class="bi bi-trash"></i> Hapus terpilih (<span id="bulkCountLoginActivity">0</span>)
                 </button>
                 @endcan
             </div>
@@ -160,12 +160,12 @@
                             @can('login-activity.destroy')
                             <th style="width:36px;"><input type="checkbox" id="checkAllLoginActivity" class="form-check-input"></th>
                             @endcan
-                            <th>User</th>
-                            <th>Device</th>
-                            <th>IP Address</th>
-                            <th>Flags</th>
-                            <th>Time</th>
-                            <th class="text-end">Actions</th>
+                            <th>Pengguna</th>
+                            <th>Perangkat</th>
+                            <th>Alamat IP</th>
+                            <th>Tanda</th>
+                            <th>Waktu</th>
+                            <th class="text-end">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
@@ -176,7 +176,7 @@
                                 <td><input type="checkbox" class="form-check-input login-activity-check" value="{{ $activity->id }}"></td>
                                 @endcan
                                 <td class="log-user">
-                                    <span class="log-user-name d-block">{{ $activity->name ?? 'Unknown' }}</span>
+                                    <span class="log-user-name d-block">{{ $activity->name ?? 'Tidak diketahui' }}</span>
                                     <small class="log-muted">{{ $activity->email ?? '-' }}</small>
                                 </td>
                                 <td>
@@ -205,7 +205,7 @@
                                 <td class="text-end">
                                     @can('login-activity.destroy')
                                         <button type="button" class="btn btn-sm btn-danger text-white"
-                                            title="Delete" onclick="deleteLoginActivity({{ $activity->id }})">
+                                            title="Hapus" onclick="deleteLoginActivity({{ $activity->id }})">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                         <form id="delete-login-activity-{{ $activity->id }}"
@@ -221,7 +221,7 @@
                             <tr>
                                 <td colspan="7" class="text-center text-muted py-4">
                                     <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                                    No login activity recorded yet.
+                                    Belum ada aktivitas login yang tercatat.
                                 </td>
                             </tr>
                         @endforelse
@@ -232,9 +232,9 @@
             @if ($activities->hasPages())
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-4">
                     <div class="text-muted small">
-                        Showing <strong>{{ $activities->firstItem() }}</strong> -
-                        <strong>{{ $activities->lastItem() }}</strong> of
-                        <strong>{{ $activities->total() }}</strong> records
+                        Menampilkan <strong>{{ $activities->firstItem() }}</strong> -
+                        <strong>{{ $activities->lastItem() }}</strong> dari
+                        <strong>{{ $activities->total() }}</strong> entri
                     </div>
                     <div>{{ $activities->links('pagination::minimal') }}</div>
                 </div>
@@ -251,14 +251,9 @@
 @push('after-script')
     <script>
         function deleteLoginActivity(id) {
-            Swal.fire({
+            sagitaConfirm({
                 title: 'Hapus catatan login ini?',
-                text: 'Catatan ini akan dihapus permanen.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#f43f5e'
+                message: 'Catatan ini akan dihapus permanen.'
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('delete-login-activity-' + id).submit();
@@ -267,14 +262,10 @@
         }
 
         function clearLoginActivities() {
-            Swal.fire({
-                title: 'Hapus semua catatan?',
-                text: 'Seluruh riwayat login akan dihapus permanen.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#f43f5e'
+            sagitaConfirm({
+                title: 'Bersihkan semua catatan?',
+                message: 'Seluruh riwayat login akan dihapus permanen.',
+                confirmText: 'Ya, Bersihkan!'
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById('clear-login-activity-form').submit();
@@ -308,14 +299,9 @@
         function bulkDeleteLoginActivity() {
             const ids = Array.from(document.querySelectorAll('.login-activity-check:checked')).map(c => c.value);
             if (ids.length === 0) return;
-            Swal.fire({
+            sagitaConfirm({
                 title: 'Hapus ' + ids.length + ' catatan terpilih?',
-                text: 'Data yang dipilih akan dihapus permanen.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#f43f5e'
+                message: 'Data yang dipilih akan dihapus permanen.'
             }).then((result) => {
                 if (result.isConfirmed) {
                     const form = document.getElementById('bulk-delete-login-activity-form');

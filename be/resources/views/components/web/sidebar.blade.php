@@ -5,11 +5,7 @@
         {{-- Sidenav Header --}}
         <div class="sidenav-header">
             <a href="{{ route('dashboard.index') }}" class="navbar-brand m-0 d-flex align-items-center sidebar-brand">
-                <span class="sidebar-brand__mark" aria-hidden="true">S</span>
-                <span class="sidebar-brand__text">
-                    <span class="sidebar-brand__name">Sagita <strong>Wedding</strong></span>
-                    <small>Admin Panel</small>
-                </span>
+                <img src="{{ asset('img/logo.WebP') }}" alt="Sagita Wedding" class="sidebar-brand__mark">
             </a>
 
             <div class="sidebar-toggler x">

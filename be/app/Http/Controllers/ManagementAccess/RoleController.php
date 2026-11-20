@@ -4,7 +4,7 @@ namespace App\Http\Controllers\ManagementAccess;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use Spatie\Permission\Models\Permission;
@@ -20,9 +20,12 @@ class RoleController extends Controller
     {
         $roles = Role::query()
             ->when(! blank($request->search), function ($query) use ($request) {
-                return $query
-                    ->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('guard_name', 'like', '%' . $request->search . '%');
+                $term = '%' . $request->search . '%';
+
+                return $query->where(function ($query) use ($term) {
+                    $query->where('name', 'like', $term)
+                        ->orWhere('guard_name', 'like', $term);
+                });
             })
             ->with('permissions', function ($query) {
                 return $query->select('id', 'name');
@@ -32,36 +35,88 @@ class RoleController extends Controller
 
         $users = User::query()
             ->when(! blank($request->search), function ($query) use ($request) {
-                return $query
-                    ->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('email', 'like', '%' . $request->search . '%');
+                $term = '%' . $request->search . '%';
+
+                return $query->where(function ($query) use ($term) {
+                    $query->where('name', 'like', $term)
+                        ->orWhere('email', 'like', $term);
+                });
             })
             ->with('roles', function ($query) {
                 return $query->select('name');
             })
             ->latest()
             ->paginate(10);
-        // $permissions = Permission::orderBy('name')->get();
 
-        DB::statement("SET SQL_MODE=''");
-        $role_permission = Permission::select('name', 'id')->groupBy('name')->get();
+        $permissions = Permission::orderBy('name')
+            ->get(['id', 'name'])
+            ->groupBy(fn ($p) => Str::before($p->name, '.'));
 
-        $permissions = array();
+        $groupLabels = [
+            'article' => 'Artikel',
+            'audit-log' => 'Log Audit',
+            'banner' => 'Media',
+            'category' => 'Kategori',
+            'class' => 'Kelas',
+            'class-bookings' => 'Pemesanan Kelas',
+            'dashboard' => 'Dasbor',
+            'event' => 'Acara',
+            'failed-login' => 'Login Gagal',
+            'faq' => 'FAQ',
+            'filedownload' => 'Unduhan',
+            'konsultasi' => 'Konsultasi',
+            'login-activity' => 'Aktivitas Login',
+            'login-lockout' => 'Blokir Login',
+            'memberships' => 'Keanggotaan',
+            'menu' => 'Menu',
+            'menu-group' => 'Grup Menu',
+            'menu-item' => 'Item Menu',
+            'notification' => 'Notifikasi',
+            'orders' => 'Pesanan',
+            'pages' => 'Halaman',
+            'permission' => 'Izin',
+            'poll' => 'Polling',
+            'role' => 'Role',
+            'route' => 'Rute',
+            'testimonial' => 'Testimoni',
+            'user' => 'Pengguna',
+            'vendor' => 'Vendor',
+            'website-identity' => 'Identitas Website',
+        ];
 
-        foreach ($role_permission as $per) {
+        $actionLabels = [
+            'access-management' => 'Manajemen Akses',
+            'approve' => 'Setujui',
+            'bulk' => 'Aksi Massal',
+            'cancel' => 'Batalkan',
+            'checkin' => 'Check-in',
+            'create' => 'Tambah',
+            'delete' => 'Hapus',
+            'destroy' => 'Hapus',
+            'edit' => 'Ubah',
+            'export' => 'Ekspor',
+            'import' => 'Impor',
+            'index' => 'Lihat',
+            'keamanan' => 'Keamanan',
+            'main-menu' => 'Menu Utama',
+            'merge' => 'Gabung',
+            'memberships' => 'Keanggotaan',
+            'pengaturan' => 'Pengaturan',
+            'proof' => 'Bukti',
+            'reject' => 'Tolak',
+            'role-permission' => 'Izin Role',
+            'show' => 'Detail',
+            'store' => 'Tambah',
+            'update' => 'Ubah',
+        ];
 
-            $key = substr($per->name, 0, strpos($per->name, "."));
-
-            if (str_starts_with($per->name, $key)) {
-
-                $permissions[$key][] = $per;
-            }
-
-        }
-
-        // dd($permission);
-
-        return view('management-access.role.index', compact('roles', 'users', 'permissions'));
+        return view('management-access.role.index', compact(
+            'roles',
+            'users',
+            'permissions',
+            'groupLabels',
+            'actionLabels'
+        ));
     }
 
     /**
@@ -69,7 +124,6 @@ class RoleController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -78,10 +132,9 @@ class RoleController extends Controller
     public function store(StoreRoleRequest $request)
     {
         Role::create($request->validated())
-                ?->givePermissionTo(! blank($request->permissions) ? $request->permissions : array());
+            ?->givePermissionTo(! blank($request->permissions) ? $request->permissions : []);
 
-        return back()->with('success', 'Role has been created successfully!');
-
+        return back()->with('success', 'Role berhasil ditambahkan.');
     }
 
     /**
@@ -89,7 +142,6 @@ class RoleController extends Controller
      */
     public function show(string $id)
     {
-        //
     }
 
     /**
@@ -97,7 +149,6 @@ class RoleController extends Controller
      */
     public function edit(string $id)
     {
-        //
     }
 
     /**
@@ -106,11 +157,11 @@ class RoleController extends Controller
     public function update(UpdateRoleRequest $request, Role $role)
     {
         $role->update($request->validated())
-            && $role->syncPermissions(! blank($request->permissions) ? $request->permissions : array());
+            && $role->syncPermissions(! blank($request->permissions) ? $request->permissions : []);
 
-        return back()->with('success', 'Role has been updated successfully!');
-
+        return back()->with('success', 'Role berhasil diperbarui.');
     }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -118,7 +169,6 @@ class RoleController extends Controller
     {
         $role->delete();
 
-        return back()->with('success', 'Role has been deleted successfully!');
-
+        return back()->with('success', 'Role berhasil dihapus.');
     }
 }

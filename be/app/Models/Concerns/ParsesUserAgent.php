@@ -29,7 +29,7 @@ trait ParsesUserAgent
             }
         }
 
-        return $ua === '' ? 'Unknown' : 'Other';
+        return $ua === '' ? 'Tidak diketahui' : 'Lainnya';
     }
 
     public function platform(): string
@@ -52,7 +52,7 @@ trait ParsesUserAgent
             }
         }
 
-        return $ua === '' ? 'Unknown' : 'Other';
+        return $ua === '' ? 'Tidak diketahui' : 'Lainnya';
     }
 
     public function deviceType(): string
@@ -64,9 +64,9 @@ trait ParsesUserAgent
         }
 
         if (preg_match('/Mobile|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i', $ua)) {
-            return 'Mobile';
+            return 'Seluler';
         }
 
-        return $ua === '' ? 'Unknown' : 'Desktop';
+        return $ua === '' ? 'Tidak diketahui' : 'Desktop';
     }
 }
