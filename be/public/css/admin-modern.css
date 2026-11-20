@@ -927,6 +927,7 @@ header .navbar-collapse {
     display: flex;
     align-items: center;
     justify-content: center;
+    float: none;
     font-size: 1.45rem;
     color: #fff;
     box-shadow: none;
@@ -1799,8 +1800,7 @@ footer {
 }
 #main-content .table-responsive {
     border-radius: 1rem;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden !important;
 }
 
 /* Tabel tidak boleh scroll ke samping: biarkan sel membungkus supaya
@@ -4843,8 +4843,7 @@ html[data-bs-theme="dark"] .media-status {
     }
     /* Tabel: bisa discroll horizontal di dalam card, tidak memotong halaman */
     .card .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
     }
     .card .table td,
     .card .table th {

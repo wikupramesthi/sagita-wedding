@@ -29,7 +29,7 @@
     @endphp
     <details class="konsultasi-mobile-fold" open>
         <summary><i class="bi bi-grid me-1"></i> Ringkasan lead</summary>
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-8 g-2 g-md-3 mb-3 konsultasi-stat-grid">
+        <div class="konsultasi-stat-grid mb-3">
             @foreach ($leadStats as $stat)
                 <div>
                     <div class="card h-100">
@@ -474,6 +474,26 @@
         display: none;
     }
 
+    #main-content .konsultasi-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .75rem;
+    }
+
+    #main-content .konsultasi-stat-grid > div {
+        min-width: 0;
+    }
+
+    #main-content .konsultasi-stat-grid .stats-icon i {
+        font-size: .9rem;
+    }
+
+    @media (min-width: 768px) {
+        #main-content .konsultasi-stat-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+
     #main-content .konsultasi-toolbar {
         gap: .5rem;
     }
@@ -634,10 +654,6 @@
     }
 
     @media (min-width: 1200px) {
-        #main-content .konsultasi-stat-grid {
-            --bs-gutter-x: .5rem;
-        }
-
         #main-content .konsultasi-stat-grid .card-body {
             gap: .5rem;
             padding: .55rem .65rem;
@@ -772,10 +788,6 @@
         border-radius: 12px;
         background: var(--bs-body-bg, #fff);
         box-shadow: 0 12px 32px rgba(0, 0, 0, .16);
-    }
-
-    #main-content .table-responsive {
-        overflow: hidden !important;
     }
 
     #main-content .table-responsive .lead-table {

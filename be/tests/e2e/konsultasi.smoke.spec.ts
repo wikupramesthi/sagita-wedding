@@ -47,8 +47,17 @@ test('konsultasi module smoke', async ({ page }) => {
         await expect(page.locator('.konsultasi-toolbar .btn-soft-' + tone).first()).toBeVisible();
     }
 
-    const statHeight = await page.locator('.konsultasi-stat-grid').evaluate((el) => el.getBoundingClientRect().height);
-    expect(statHeight).toBeLessThan(140);
+    const statGrid = await page.locator('.konsultasi-stat-grid').evaluate((el) => {
+        const style = getComputedStyle(el);
+        return {
+            columns: style.gridTemplateColumns.split(' ').filter(Boolean).length,
+            rows: style.gridTemplateRows.split(' ').filter(Boolean).length,
+            cards: el.querySelectorAll(':scope > div').length,
+        };
+    });
+    expect(statGrid.columns).toBe(4);
+    expect(statGrid.rows).toBe(2);
+    expect(statGrid.cards).toBe(8);
 
     await expect(page.locator('.konsultasi-followup-control input[type="date"]').first()).toBeVisible();
 

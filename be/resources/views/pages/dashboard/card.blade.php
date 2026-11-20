@@ -1,5 +1,5 @@
 {{-- Dashboard admin --}}
-<div class="dashboard-home d-grid gap-4">
+<div class="dashboard-home">
 
     @php
         $localNow = now('Asia/Jakarta');
@@ -552,6 +552,23 @@
 
 @push('after-style')
 <style>
+    #main-content .dashboard-home {
+        --dashboard-gap: 1rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--dashboard-gap);
+    }
+
+    #main-content .dashboard-home > * {
+        min-width: 0;
+    }
+
+    #main-content .dashboard-home .row.g-4,
+    #main-content .dashboard-home .row.g-3 {
+        --bs-gutter-x: var(--dashboard-gap);
+        --bs-gutter-y: var(--dashboard-gap);
+    }
+
     #main-content .dashboard-pipeline-tile {
         border: 1px solid var(--bs-border-color, #e9ecef);
         border-radius: 12px;
@@ -643,7 +660,7 @@
         #main-content .dashboard-stat-grid {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: .75rem;
+            gap: var(--dashboard-gap);
             margin: 0;
         }
 
@@ -746,7 +763,8 @@
 
     @media (max-width: 575.98px) {
         #main-content .dashboard-home {
-            gap: 1rem;
+            --dashboard-gap: .75rem;
+            gap: var(--dashboard-gap);
         }
 
         #main-content .dashboard-welcome {
@@ -763,8 +781,8 @@
 
         #main-content .dashboard-stat-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            gap: .5rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--dashboard-gap);
             margin: 0;
         }
 
