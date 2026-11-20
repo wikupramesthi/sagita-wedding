@@ -3281,18 +3281,6 @@ html[data-bs-theme="dark"] #main > footer .argon-footer-dot {
     pointer-events: none;
 }
 
-.app-loader__logo {
-    height: 40px;
-    width: auto;
-    max-width: 60vw;
-    object-fit: contain;
-    animation: appLoaderPulse 1.8s ease-in-out infinite;
-}
-
-.app-loader__logo--dark {
-    display: none;
-}
-
 .app-loader__spinner {
     width: 34px;
     height: 34px;
@@ -3313,14 +3301,6 @@ html[data-bs-theme="dark"] .app-loader {
     background: #0f1424;
 }
 
-html[data-bs-theme="dark"] .app-loader__logo--light {
-    display: none;
-}
-
-html[data-bs-theme="dark"] .app-loader__logo--dark {
-    display: block;
-}
-
 html[data-bs-theme="dark"] .app-loader__spinner {
     border-color: rgba(255, 255, 255, 0.18);
     border-top-color: #fff;
@@ -3333,18 +3313,6 @@ html[data-bs-theme="dark"] .app-loader__text {
 @keyframes appLoaderSpin {
     to {
         transform: rotate(360deg);
-    }
-}
-
-@keyframes appLoaderPulse {
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.75;
-        transform: scale(0.985);
     }
 }
 

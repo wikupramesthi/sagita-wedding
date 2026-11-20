@@ -43,8 +43,6 @@
 
 <body>
     <div class="app-loader" id="app-loader">
-        <img src="{{ asset('img/logo-yogaroots.png') }}" alt="YogaRoots" class="app-loader__logo app-loader__logo--light">
-        <img src="{{ asset('img/logo-white.png') }}" alt="YogaRoots" class="app-loader__logo app-loader__logo--dark">
         <div class="app-loader__spinner" role="status">
             <span class="visually-hidden">Memuat...</span>
         </div>

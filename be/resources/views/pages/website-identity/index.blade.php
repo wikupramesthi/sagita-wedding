@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', 'Website Identity')
-@section('content')
+@section('title', 'Identitas Website')
 
 @section('breadcrumb')
-<x-breadcrumb title="Website Identity" page="Settings" active="Website Identity" route="{{ route('website-identity.index') }}" />
+<x-breadcrumb title="Identitas Website" page="Pengaturan" active="Identitas Website" route="{{ route('website-identity.index') }}" />
 @endsection
 
+@section('content')
 <section class="section">
     @if (session('success'))
     <div class="alert alert-success alert-dismissible mb-3 mt-3 fade show" role="alert">
@@ -24,7 +24,7 @@
     </div>
     @endif
 
-    <form action="{{ route('website-identity.update') }}" method="POST" enctype="multipart/form-data">
+    <form id="website-identity-form" action="{{ route('website-identity.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -34,12 +34,12 @@
                 {{-- General Information --}}
                 <div class="card mb-4">
                     <div class="card-header py-3">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle text-primary me-2"></i>General Information</h6>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle text-primary me-2"></i>Informasi Umum</h6>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="site_name" class="form-label fw-semibold">Site Name <span class="text-danger">*</span></label>
+                                <label for="site_name" class="form-label fw-semibold">Nama Situs <span class="text-danger">*</span></label>
                                 <input type="text" name="site_name" id="site_name"
                                     class="form-control @error('site_name') is-invalid @enderror"
                                     value="{{ old('site_name', $identitas->site_name) }}" required>
@@ -48,7 +48,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="site_title" class="form-label fw-semibold">Site Title <span class="text-danger">*</span></label>
+                                <label for="site_title" class="form-label fw-semibold">Judul Situs <span class="text-danger">*</span></label>
                                 <input type="text" name="site_title" id="site_title"
                                     class="form-control @error('site_title') is-invalid @enderror"
                                     value="{{ old('site_title', $identitas->site_title) }}" required>
@@ -61,16 +61,16 @@
                                 <input type="text" name="tagline" id="tagline"
                                     class="form-control @error('tagline') is-invalid @enderror"
                                     value="{{ old('tagline', $identitas->tagline) }}"
-                                    placeholder="e.g. Quality Yoga for Everyone">
+                                    placeholder="Contoh: Wujudkan pernikahan impian Anda">
                                 @error('tagline')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-12">
-                                <label for="short_description" class="form-label fw-semibold">Short Description</label>
+                                <label for="short_description" class="form-label fw-semibold">Deskripsi Singkat</label>
                                 <textarea name="short_description" id="short_description" rows="3"
                                     class="form-control @error('short_description') is-invalid @enderror"
-                                    placeholder="Brief website description...">{{ old('short_description', $identitas->short_description) }}</textarea>
+                                    placeholder="Deskripsi singkat website...">{{ old('short_description', $identitas->short_description) }}</textarea>
                                 @error('short_description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -82,7 +82,7 @@
                 {{-- Contact & Social Media --}}
                 <div class="card mb-4">
                     <div class="card-header py-3">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-telephone text-primary me-2"></i>Contact &amp; Social Media</h6>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-telephone text-primary me-2"></i>Kontak &amp; Media Sosial</h6>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">

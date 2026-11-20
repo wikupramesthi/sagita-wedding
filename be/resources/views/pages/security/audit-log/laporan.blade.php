@@ -42,7 +42,7 @@
 
 <table class="kop-table">
     <tr>
-        <td class="kop-logo"><img src="{{ public_path('img/logo.png') }}" style="height:60px;" alt="Logo"></td>
+        <td class="kop-logo"><img src="{{ public_path('img/logo.webp') }}" style="height:60px;" alt="Logo Sagita Wedding"></td>
         <td class="kop-text">
             <div class="instansi">SAGITA WEDDING</div>
             <div class="instansi">SISTEM MANAJEMEN PERKAWINAN</div>
