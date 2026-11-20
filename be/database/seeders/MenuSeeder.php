@@ -2,17 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\ManagementAccess\MenuItem;
 use App\Models\ManagementAccess\MenuGroup;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\ManagementAccess\MenuItem;
+use Illuminate\Database\Seeder;
 
 class MenuSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-    public function run() : void
+    public function run(): void
     {
         $menuMain = MenuGroup::create([
             'name' => 'Main Menu',
@@ -31,14 +30,14 @@ class MenuSeeder extends Seeder
         ]);
 
         $menuRolePermission = MenuGroup::create([
-            'name' => 'Roles & Permissions',
+            'name' => 'Role dan Akses',
             'icon' => 'bx-shield-quarter',
             'permission_name' => 'menu.role-permission',
             'position' => 2,
         ]);
 
         MenuItem::create([
-            'name' => 'Permissions Management',
+            'name' => 'Module Role',
             // 'icon' => 'ri-shield-star-line',
             'route' => 'permission.index',
             'permission_name' => 'permission.index',
@@ -47,7 +46,7 @@ class MenuSeeder extends Seeder
         ]);
 
         MenuItem::create([
-            'name' => 'Roles Management',
+            'name' => 'Master Role',
             // 'icon' => 'ri-shield-user-line',
             'route' => 'role.index',
             'permission_name' => 'role.index',
@@ -79,7 +78,6 @@ class MenuSeeder extends Seeder
             'menu_group_id' => $menuAccess->id,
             'position' => 2,
         ]);
-
 
         MenuItem::create([
             'name' => 'Menu Management',

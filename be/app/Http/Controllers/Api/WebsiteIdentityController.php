@@ -49,15 +49,15 @@ class WebsiteIdentityController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Website identity retrieved successfully',
+                'message' => 'Identitas website berhasil diambil',
                 'data' => $data,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Website identity fetch error: ' . $e->getMessage());
+            Log::error('Gagal mengambil identitas website: '.$e->getMessage());
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to fetch website identity',
+                'message' => 'Gagal mengambil identitas website',
                 'data' => null,
             ], 500);
         }

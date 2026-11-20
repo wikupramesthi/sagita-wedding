@@ -97,7 +97,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="phone" class="form-label fw-semibold">Phone / WhatsApp No.</label>
+                                <label for="phone" class="form-label fw-semibold">No. Telepon / WhatsApp</label>
                                 <input type="text" name="phone" id="phone"
                                     class="form-control @error('phone') is-invalid @enderror"
                                     value="{{ old('phone', $identitas->phone) }}"
@@ -107,16 +107,16 @@
                                 @enderror
                             </div>
                             <div class="col-12">
-                                <label for="address" class="form-label fw-semibold">Address</label>
+                                <label for="address" class="form-label fw-semibold">Alamat</label>
                                 <textarea name="address" id="address" rows="3"
                                     class="form-control @error('address') is-invalid @enderror"
-                                    placeholder="Street, city, postal code...">{{ old('address', $identitas->address) }}</textarea>
+                                    placeholder="Jalan, kota, kode pos...">{{ old('address', $identitas->address) }}</textarea>
                                 @error('address')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="facebook_url" class="form-label fw-semibold"><i class="bi bi-facebook text-primary me-1"></i>Facebook URL</label>
+                                <label for="facebook_url" class="form-label fw-semibold"><i class="bi bi-facebook text-primary me-1"></i>URL Facebook</label>
                                 <input type="url" name="facebook_url" id="facebook_url"
                                     class="form-control @error('facebook_url') is-invalid @enderror"
                                     value="{{ old('facebook_url', $identitas->facebook_url) }}"
@@ -126,7 +126,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="instagram_url" class="form-label fw-semibold"><i class="bi bi-instagram text-danger me-1"></i>Instagram URL</label>
+                                <label for="instagram_url" class="form-label fw-semibold"><i class="bi bi-instagram text-danger me-1"></i>URL Instagram</label>
                                 <input type="url" name="instagram_url" id="instagram_url"
                                     class="form-control @error('instagram_url') is-invalid @enderror"
                                     value="{{ old('instagram_url', $identitas->instagram_url) }}"
@@ -136,7 +136,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="youtube_url" class="form-label fw-semibold"><i class="bi bi-youtube text-danger me-1"></i>Youtube URL</label>
+                                <label for="youtube_url" class="form-label fw-semibold"><i class="bi bi-youtube text-danger me-1"></i>URL YouTube</label>
                                 <input type="url" name="youtube_url" id="youtube_url"
                                     class="form-control @error('youtube_url') is-invalid @enderror"
                                     value="{{ old('youtube_url', $identitas->youtube_url) }}"
@@ -146,7 +146,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="tiktok_url" class="form-label fw-semibold"><i class="bi bi-tiktok me-1"></i>Tiktok URL</label>
+                                <label for="tiktok_url" class="form-label fw-semibold"><i class="bi bi-tiktok me-1"></i>URL TikTok</label>
                                 <input type="url" name="tiktok_url" id="tiktok_url"
                                     class="form-control @error('tiktok_url') is-invalid @enderror"
                                     value="{{ old('tiktok_url', $identitas->tiktok_url) }}"
@@ -167,36 +167,36 @@
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label for="meta_title" class="form-label fw-semibold">Meta Title</label>
+                                <label for="meta_title" class="form-label fw-semibold">Judul Meta</label>
                                 <input type="text" name="meta_title" id="meta_title"
                                     class="form-control @error('meta_title') is-invalid @enderror"
                                     value="{{ old('meta_title', $identitas->meta_title) }}"
-                                    placeholder="Page title shown in search results">
+                                    placeholder="Judul halaman yang tampil di hasil pencarian">
                                 @error('meta_title')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-12">
-                                <label for="meta_description" class="form-label fw-semibold">Meta Description</label>
+                                <label for="meta_description" class="form-label fw-semibold">Deskripsi Meta</label>
                                 <textarea name="meta_description" id="meta_description" rows="3"
                                     class="form-control @error('meta_description') is-invalid @enderror"
-                                    placeholder="Brief description for search engines...">{{ old('meta_description', $identitas->meta_description) }}</textarea>
+                                    placeholder="Deskripsi singkat untuk mesin pencari...">{{ old('meta_description', $identitas->meta_description) }}</textarea>
                                 @error('meta_description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-12">
-                                <label for="meta_keywords" class="form-label fw-semibold">Meta Keywords</label>
+                                <label for="meta_keywords" class="form-label fw-semibold">Kata Kunci Meta</label>
                                 <textarea name="meta_keywords" id="meta_keywords" rows="2"
                                     class="form-control @error('meta_keywords') is-invalid @enderror"
-                                    placeholder="keyword one, keyword two, keyword three...">{{ old('meta_keywords', $identitas->meta_keywords) }}</textarea>
-                                <div class="form-text">Separate keywords with commas.</div>
+                                    placeholder="kata kunci satu, kata kunci dua, kata kunci tiga...">{{ old('meta_keywords', $identitas->meta_keywords) }}</textarea>
+                                <div class="form-text">Pisahkan kata kunci dengan koma.</div>
                                 @error('meta_keywords')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="google_analytics_id" class="form-label fw-semibold">Google Analytics ID</label>
+                                <label for="google_analytics_id" class="form-label fw-semibold">ID Google Analytics</label>
                                 <input type="text" name="google_analytics_id" id="google_analytics_id"
                                     class="form-control @error('google_analytics_id') is-invalid @enderror"
                                     value="{{ old('google_analytics_id', $identitas->google_analytics_id) }}"
@@ -206,11 +206,11 @@
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="google_site_verification" class="form-label fw-semibold">Google Site Verification</label>
+                                <label for="google_site_verification" class="form-label fw-semibold">Verifikasi Situs Google</label>
                                 <input type="text" name="google_site_verification" id="google_site_verification"
                                     class="form-control @error('google_site_verification') is-invalid @enderror"
                                     value="{{ old('google_site_verification', $identitas->google_site_verification) }}"
-                                    placeholder="Verification code">
+                                    placeholder="Kode verifikasi">
                                 @error('google_site_verification')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -225,19 +225,19 @@
                 {{-- Branding --}}
                 <div class="card mb-4">
                     <div class="card-header py-3">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-palette text-primary me-2"></i>Branding</h6>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-palette text-primary me-2"></i>Identitas Visual</h6>
                     </div>
                     <div class="card-body">
                         <div class="mb-4">
                             <label for="logo" class="form-label fw-semibold">Logo</label>
-                            <div class="form-text mt-0 mb-2">Transparent PNG, max 2MB.</div>
+                            <div class="form-text mt-0 mb-2">PNG transparan, maks. 2MB.</div>
                             @if ($identitas->logoUrl())
                             <div class="d-flex align-items-center gap-2 mb-2 p-2 border rounded bg-light">
-                                <img src="{{ $identitas->logoUrl() }}" alt="Logo preview" class="rounded bg-white border" style="height:44px; width:44px; object-fit:contain; padding:4px;">
+                                <img src="{{ $identitas->logoUrl() }}" alt="Pratinjau logo" class="rounded bg-white border" style="height:44px; width:44px; object-fit:contain; padding:4px;">
                                 <span class="text-muted small text-truncate flex-grow-1" title="{{ basename($identitas->logo) }}">{{ \Illuminate\Support\Str::limit(basename($identitas->logo), 22) }}</span>
                                 <div class="form-check mb-0 flex-shrink-0">
-                                    <input class="form-check-input" type="checkbox" name="remove_logo" id="remove_logo" value="1">
-                                    <label class="form-check-label small" for="remove_logo">Delete</label>
+                                    <input class="form-check-input" type="checkbox" name="remove_logo" id="remove_logo" value="1" data-label="Logo">
+                                    <label class="form-check-label small" for="remove_logo">Hapus</label>
                                 </div>
                             </div>
                             @endif
@@ -250,14 +250,14 @@
 
                         <div class="mb-4">
                             <label for="favicon" class="form-label fw-semibold">Favicon</label>
-                            <div class="form-text mt-0 mb-2">ICO / PNG 32x32, max 1MB.</div>
+                            <div class="form-text mt-0 mb-2">ICO / PNG 32x32, maks. 1MB.</div>
                             @if ($identitas->faviconUrl())
                             <div class="d-flex align-items-center gap-2 mb-2 p-2 border rounded bg-light">
-                                <img src="{{ $identitas->faviconUrl() }}" alt="Favicon preview" class="rounded bg-white border" style="height:32px; width:32px; object-fit:contain; padding:2px;">
+                                <img src="{{ $identitas->faviconUrl() }}" alt="Pratinjau favicon" class="rounded bg-white border" style="height:32px; width:32px; object-fit:contain; padding:2px;">
                                 <span class="text-muted small text-truncate flex-grow-1" title="{{ basename($identitas->favicon) }}">{{ \Illuminate\Support\Str::limit(basename($identitas->favicon), 22) }}</span>
                                 <div class="form-check mb-0 flex-shrink-0">
-                                    <input class="form-check-input" type="checkbox" name="remove_favicon" id="remove_favicon" value="1">
-                                    <label class="form-check-label small" for="remove_favicon">Delete</label>
+                                    <input class="form-check-input" type="checkbox" name="remove_favicon" id="remove_favicon" value="1" data-label="Favicon">
+                                    <label class="form-check-label small" for="remove_favicon">Hapus</label>
                                 </div>
                             </div>
                             @endif
@@ -269,15 +269,15 @@
                         </div>
 
                         <div class="mb-0">
-                            <label for="og_image" class="form-label fw-semibold">OG Image</label>
-                            <div class="form-text mt-0 mb-2">1200x630 px, max 3MB.</div>
+                            <label for="og_image" class="form-label fw-semibold">Gambar OG</label>
+                            <div class="form-text mt-0 mb-2">1200x630 px, maks. 3MB.</div>
                             @if ($identitas->ogImageUrl())
                             <div class="d-flex align-items-center gap-2 mb-2 p-2 border rounded bg-light">
-                                <img src="{{ $identitas->ogImageUrl() }}" alt="OG image preview" class="rounded bg-white border" style="height:44px; width:76px; object-fit:cover;">
+                                <img src="{{ $identitas->ogImageUrl() }}" alt="Pratinjau gambar OG" class="rounded bg-white border" style="height:44px; width:76px; object-fit:cover;">
                                 <span class="text-muted small text-truncate flex-grow-1" title="{{ basename($identitas->og_image) }}">{{ \Illuminate\Support\Str::limit(basename($identitas->og_image), 22) }}</span>
                                 <div class="form-check mb-0 flex-shrink-0">
-                                    <input class="form-check-input" type="checkbox" name="remove_og_image" id="remove_og_image" value="1">
-                                    <label class="form-check-label small" for="remove_og_image">Delete</label>
+                                    <input class="form-check-input" type="checkbox" name="remove_og_image" id="remove_og_image" value="1" data-label="Gambar OG">
+                                    <label class="form-check-label small" for="remove_og_image">Hapus</label>
                                 </div>
                             </div>
                             @endif
@@ -293,72 +293,90 @@
                 {{-- Actions + meta in one white card --}}
                 <div class="card border-0 shadow-sm mb-4" style="border-radius:1rem;">
                     <div class="card-body p-3">
-                        @can('website-identity.update')
                         <div class="d-grid gap-2">
+                            @can('website-identity.update')
                             <button type="submit" class="btn btn-primary fw-bold py-2 shadow-sm" style="border-radius:.75rem;">
-                                <i class="bi bi-check-lg me-1"></i>Save Identity
+                                <i class="bi bi-check-lg me-1"></i>Simpan Identitas
                             </button>
-                            <a href="{{ route('website-identity.index') }}" class="btn btn-light border fw-semibold py-2 shadow-sm" style="border-radius:.75rem;">Cancel</a>
+                            @endcan
+                            <a href="{{ route('website-identity.index') }}" class="btn btn-light border fw-semibold py-2 shadow-sm" style="border-radius:.75rem;">Batal</a>
                         </div>
                         <hr class="my-3">
-                        @endcan
                         <div class="d-flex justify-content-between align-items-center small px-1 py-1">
                             <span class="text-muted">UUID</span>
                             <span class="text-dark fw-semibold" title="{{ $identitas->uuid }}">{{ \Illuminate\Support\Str::limit($identitas->uuid, 20) }}</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center small px-1 py-1">
-                            <span class="text-muted">Updated</span>
+                            <span class="text-muted">Diperbarui</span>
                             <span class="text-dark fw-semibold">{{ optional($identitas->updated_at)->format('d/m/Y H:i') ?? '-' }}</span>
                         </div>
                     </div>
                 </div>
 
                 {{-- Important Information --}}
-                <div class="card border-0 shadow-sm mb-4" style="border-radius:1rem; background: linear-gradient(135deg, #5b6cff 0%, #8b5cf6 100%);">
-                    <div class="card-body text-white p-3">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width:44px; height:44px; border-radius:.8rem; background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.35);">
-                                <i class="bi bi-stars fs-5"></i>
-                            </span>
+                <div class="card border-0 shadow-sm mb-4 identity-tip">
+                    <div class="identity-tip__glow"></div>
+                    <div class="identity-tip__body">
+                        <div class="identity-tip__head">
+                            <span class="identity-tip__icon"><i class="bi bi-stars"></i></span>
                             <div>
-                                <h6 class="mb-0 fw-bold">Important Information</h6>
-                                <small style="color:rgba(255,255,255,.92);">Optimize your website identity</small>
+                                <h6 class="mb-0">Informasi Penting</h6>
+                                <small>Optimalkan identitas website Anda</small>
                             </div>
                         </div>
-
-                        <div class="d-flex gap-2 p-2 mt-3" style="border-radius:.8rem; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.25);">
-                            <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0 bg-white text-primary" style="width:40px; height:40px; border-radius:.7rem;">
-                                <i class="bi bi-palette fs-5"></i>
-                            </span>
-                            <div>
-                                <div class="fw-bold">Logo &amp; Favicon</div>
-                                <small style="color:rgba(255,255,255,.92);">Shown in the header &amp; frontend. Use a transparent PNG 512x512, max 2MB.</small>
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-2 p-2 mt-2" style="border-radius:.8rem; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.25);">
-                            <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0 bg-white text-primary" style="width:40px; height:40px; border-radius:.7rem;">
-                                <i class="bi bi-share fs-5"></i>
-                            </span>
-                            <div>
-                                <div class="fw-bold">OG Image</div>
-                                <small style="color:rgba(255,255,255,.92);">Preview when sharing to WhatsApp / Facebook. Ideal 1200x630, max 3MB.</small>
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-2 p-2 mt-2" style="border-radius:.8rem; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.25);">
-                            <span class="d-inline-flex align-items-center justify-content-center flex-shrink-0 bg-white text-primary" style="width:40px; height:40px; border-radius:.7rem;">
-                                <i class="bi bi-graph-up fs-5"></i>
-                            </span>
-                            <div>
-                                <div class="fw-bold">GA4 ID</div>
-                                <small style="color:rgba(255,255,255,.92);">Format <span class="font-monospace">G-XXXXXXXXXX</span> — find it in Google Analytics &gt; Admin &gt; Data Streams.</small>
-                            </div>
-                        </div>
+                        <ul class="identity-tip__list">
+                            <li>
+                                <span class="tip-bullet"><i class="bi bi-palette"></i></span>
+                                <div>
+                                    <strong>Logo &amp; Favicon</strong>
+                                    <span>Ditampilkan di header &amp; frontend. Gunakan PNG transparan 512x512, maks. 2MB.</span>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="tip-bullet"><i class="bi bi-share"></i></span>
+                                <div>
+                                    <strong>Gambar OG</strong>
+                                    <span>Pratinjau saat dibagikan ke WhatsApp / Facebook. Ideal 1200x630, maks. 3MB.</span>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="tip-bullet"><i class="bi bi-graph-up"></i></span>
+                                <div>
+                                    <strong>ID GA4</strong>
+                                    <span>Format <code>G-XXXXXXXXXX</code> — dapat ditemukan di Google Analytics &gt; Admin &gt; Aliran Data.</span>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </form>
 </section>
+
+<script>
+    document.getElementById('website-identity-form').addEventListener('submit', function (event) {
+        const checked = Array.from(this.querySelectorAll('input[name^="remove_"]:checked'));
+        if (!checked.length) {
+            return;
+        }
+
+        event.preventDefault();
+        const form = this;
+        const names = checked.map(function (input) {
+            return input.dataset.label || input.name;
+        });
+
+        sagitaConfirm({
+            title: 'Konfirmasi Penghapusan',
+            message: names.join(', ') + ' akan dihapus permanen dan tidak dapat dikembalikan.',
+            name: names.join(', '),
+            confirmText: 'Ya, Hapus'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+</script>
 @endsection

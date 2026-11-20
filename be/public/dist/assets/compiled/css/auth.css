@@ -38,6 +38,12 @@ body {
     position: relative;
     overflow-x: hidden;
 }
+#leaf {
+    position: fixed;
+    inset: 0;
+    overflow: clip;
+    pointer-events: none;
+}
 .block {
     display: block !important;
 }
@@ -78,6 +84,56 @@ h3,
     display: flex;
     align-items: center;
     justify-content: center;
+}
+.error-page .logo-row {
+    padding: 28px 20px 0;
+}
+.error-page {
+    position: relative;
+    min-height: 100vh;
+    overflow-x: clip;
+}
+.error-brand-logo {
+    display: block;
+    width: 190px;
+    max-width: 60vw;
+    height: auto;
+    object-fit: contain;
+}
+.error-page .stage {
+    max-width: 680px;
+    padding: 24px 24px 52px;
+}
+.error-page .stage .eyebrow {
+    margin-bottom: 14px;
+}
+.error-page .stage h1 {
+    font-size: clamp(72px, 11vw, 100px);
+}
+.error-page .stage h2 {
+    font-size: clamp(20px, 3vw, 24px);
+}
+.error-page .stage p.lead {
+    margin-bottom: 28px;
+}
+.error-page .action-row {
+    margin-bottom: 0;
+}
+.error-page .btn-primary,
+.error-page .btn-secondary {
+    min-width: 180px;
+}
+@media (max-width: 480px) {
+    .error-page .stage {
+        padding: 20px 22px 40px;
+    }
+}
+.login-brand-logo {
+    display: block;
+    width: 190px;
+    max-width: 60vw;
+    height: auto;
+    object-fit: contain;
 }
 
 .layout {
@@ -261,6 +317,9 @@ h3,
     align-items: center;
     font-size: 13px;
     margin-bottom: 28px;
+}
+.login-card .card-top {
+    display: none;
 }
 .card-top button {
     background: none;

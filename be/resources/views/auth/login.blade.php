@@ -1,25 +1,22 @@
 @extends('layouts.auth')
-@section('title', 'Login')
+@section('title', 'Masuk')
 @section('content')
 
     <div class="logo-row">
-        <div class="logo-mark">
-            <img src="{{ asset('img/logo-yogaroots.png') }}" alt="logo yogaroots">
-        </div>
+        <img class="login-brand-logo" src="{{ asset('img/logo.WebP') }}" alt="Sagita Wedding Planner">
     </div>
 
     <div class="layout">
         <div class="intro">
-            <p class="eyebrow"><span class="dash"></span>Welcome Back</p>
-            <h1>Align your breath,<br><em>body</em>, and soul.</h1>
-            <p class="lead">Sign in to book your classes, stay on top of your practice, and continue your journey toward
-                greater balance and well-being.</p>
+            <p class="eyebrow"><span class="dash"></span>Selamat Datang Kembali</p>
+            <h1>Rencanakan hari istimewa,<br><em>tanpa</em> khawatir.</h1>
+            <p class="lead">Masuk untuk mengelola rencana pernikahan, memilih vendor, dan memantau persiapan bersama Sagita Wedding Planner.</p>
                 <div class="stat-row">
-                    <div class="stat"><strong>{{ $jumlahMembers }}+</strong><span>Active Members</span></div>
+                    <div class="stat"><strong>{{ $jumlahMembers }}</strong><span>Pasangan Terdaftar</span></div>
                     <div class="stat-divider"></div>
-                    <div class="stat"><strong>{{ $jumlahVendor }}</strong><span>Certified Vendors</span></div>
+                    <div class="stat"><strong>{{ $jumlahVendor }}</strong><span>Vendor Terdaftar</span></div>
                     <div class="stat-divider"></div>
-                    <div class="stat"><strong>4.9</strong><span>Member Rating</span></div>
+                    <div class="stat"><strong>4.9</strong><span>Rating Anggota</span></div>
                 </div>
 
             <div class="feature-grid">
@@ -42,8 +39,8 @@
                             <circle cx="20" cy="62" r="2" fill="#2b3d2f" opacity="0.3" />
                         </svg>
                     </div>
-                   <h3>Class Schedule & Booking</h3> 
-                   <p>Choose from Alignment, Vinyasa, FeetUp, and more—whenever it works for you.</p>
+                   <h3>Persiapan Lebih Terarah</h3>
+                   <p>Pantau kebutuhan dan jadwal pernikahan agar setiap persiapan tetap teratur.</p>
                 </div>
                 <div class="feature">
                     <div class="icon-wrap">
@@ -61,8 +58,8 @@
                                 fill="none" />
                         </svg>
                     </div>
-                    <h3>Experienced Vendors</h3> 
-                    <p>Practice with certified vendors who guide you with care, expertise, and intention.</p>
+                    <h3>Vendor Pilihan</h3>
+                    <p>Temukan vendor profesional untuk melengkapi hari istimewa Anda.</p>
                 </div>
                 <div class="feature">
                     <div class="icon-wrap">
@@ -79,8 +76,8 @@
                                 stroke-linejoin="round" fill="none" />
                         </svg>
                     </div>
-                    <h3>Track Your Progress</h3> 
-                    <p>Keep track of your attendance and celebrate your progress as your practice evolves.</p>
+                    <h3>Pantau Progres</h3>
+                    <p>Lihat perkembangan rencana dan kebutuhan acara dalam satu tempat.</p>
                 </div>
                 <div class="feature">
                     <div class="icon-wrap">
@@ -94,14 +91,14 @@
                             <circle cx="42" cy="18" r="2.5" fill="#2b3d2f" opacity="0.5" />
                         </svg>
                     </div>
-                    <h3>The YogaRoots Community</h3> 
-                    <p>Connect with fellow practitioners and grow together in a warm, welcoming community.</p>
+                    <h3>Dukungan Tim WO</h3>
+                    <p>Berkoordinasi dengan tim Sagita untuk mewujudkan pernikahan sesuai keinginan Anda.</p>
                 </div>
             </div>
 
             <div class="breath-wrap">
                 <div class="breath-circle"></div>
-                <span>Take a slow, mindful breath.<br>You’re exactly where you need to be.</span>
+                <span>Nikmati setiap prosesnya.<br>Kami siap membantu menuju hari bahagia Anda.</span>
             </div>
         </div>
 
@@ -122,27 +119,27 @@
             <form method="POST" id="loginForm" action="{{ route('login') }}">
                 @csrf
 
-                <h2>Welcome Back</h2>
-                <p class="subtitle">Continue your yoga journey, find your balance, and nurture your well-being.</p>
+                <h2>Selamat Datang Kembali</h2>
+                <p class="subtitle">Masuk untuk melanjutkan persiapan hari istimewa Anda bersama Sagita Wedding Planner.</p>
                 @if ($errors->has('session_expired'))
                     <p class="mb-2 text-sm text-danger">{{ $errors->first('session_expired') }}</p>
                 @endif
                 @if ($errors->has('email'))
-                    <p class="mb-2 text-sm text-danger">The email address or password is incorrect.</p>
+                    <p class="mb-2 text-sm text-danger">Email atau kata sandi yang Anda masukkan tidak sesuai.</p>
                 @endif
 
                 <div class="field">
-                    <label for="email">Email Address</label>
-                    <input name="email" id="email" type="email" placeholder="Your email" oninput="toggleBtn()"
+                    <label for="email">Alamat Email</label>
+                    <input name="email" id="email" type="email" placeholder="Masukkan alamat email" oninput="toggleBtn()"
                         required>
                 </div>
 
                 <div class="field">
-                    <label for="password">Password</label>
+                    <label for="password">Kata Sandi</label>
                     <div class="password-wrap">
-                        <input name="password" id="password" type="password" placeholder="Enter your password"
+                        <input name="password" id="password" type="password" placeholder="Masukkan kata sandi"
                             oninput="toggleBtn()" required>
-                        <button type="button" class="eye-btn" id="eyeBtn" aria-label="Show password">
+                        <button type="button" class="eye-btn" id="eyeBtn" aria-label="Tampilkan kata sandi">
                             <svg id="eyeIcon" width="19" height="19" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z" />
@@ -153,12 +150,12 @@
                 </div>
 
                 <div class="forgot-row">
-                    <a href="#">Forgot password?</a>
+                    <a href="{{ route('password.request') }}">Lupa kata sandi?</a>
                 </div>
 
-                <button type="submit" class="btn-primary block" id="lanjutBtn">Sign in</button>
+                <button type="submit" class="btn-primary block" id="lanjutBtn">Masuk</button>
 
-                <div class="divider">or sign in with</div>
+                <div class="divider">atau masuk dengan</div>
 
                 <a href="{{ url('auth/google') }}" class="btn-social">
                     <svg width="18" height="18" viewBox="0 0 48 48">
@@ -171,11 +168,11 @@
                         <path fill="#1976D2"
                             d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.3 5.3C39.9 36.5 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z" />
                     </svg>
-                    Sign in with Google
+                    Masuk dengan Google
                 </a>
 
                 <div class="card-footer">
-                    <span>Begin your wellness journey with <b>YogaRoots</b></span>
+                    <span>Hari bahagia Anda, direncanakan dengan hati oleh <b>Sagita Wedding Planner</b></span>
                 </div>
 
             </form>
@@ -187,7 +184,7 @@
     <div class="modal-overlay" id="helpModal">
         <div class="modal">
             <div class="modal-header">
-                <h2>Frequently Asked Questions</h2>
+                <h2>Pertanyaan yang Sering Diajukan</h2>
                 <button class="modal-close" id="closeModal">&times;</button>
             </div>
             <div class="modal-body" id="faqList">
@@ -211,7 +208,7 @@
                         </div>
                     </div>
                 @empty
-                    <p class="text-muted mb-0">No FAQ entries have been added yet.</p>
+                    <p class="text-muted mb-0">Belum ada pertanyaan yang tersedia.</p>
                 @endforelse
 
             </div>

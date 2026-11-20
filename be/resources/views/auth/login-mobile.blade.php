@@ -1,5 +1,5 @@
 @extends('layouts.mobile')
-@section('title', 'Login')
+@section('title', 'Masuk')
 @section('content')
 
 <section class="screen active" id="login">
@@ -7,24 +7,24 @@
 
         {{-- Logo --}}
         <div class="text-center mt-3 mb-1">
-            <img src="{{ asset('img/logo-yogaroots.png') }}"
-                alt="YogaRoots"
+            <img src="{{ asset('img/logo.WebP') }}"
+                alt="Sagita Wedding Planner"
                 style="height: 44px; width: auto; object-fit: contain;">
         </div>
 
         {{-- Header --}}
-        <p class="eyebrow mb-1 mt-4">Welcome Back</p>
+        <p class="eyebrow mb-1 mt-4">Selamat Datang Kembali</p>
         <h1 class="fw-semibold mb-1" style="font-size: 28px; line-height: 1.15;">
-            Align your breath,<br>body, and soul.
+            Rencanakan hari<br>istimewa dengan tenang.
         </h1>
         <p class="small text-muted2 mb-4">
-            Sign in to book your classes and continue your journey toward greater balance and well-being.
+            Masuk untuk melanjutkan persiapan pernikahan bersama Sagita Wedding Planner.
         </p>
 
         {{-- Error umum (email/password salah / sesi habis / Google gagal) --}}
         @if ($errors->has('email'))
             <div class="alert alert-danger py-2 px-3 small" role="alert">
-                The email address or password is incorrect.
+                Email atau kata sandi yang Anda masukkan tidak sesuai.
             </div>
         @endif
         @if ($errors->has('session_expired'))
@@ -49,22 +49,22 @@
                 @csrf
 
                 <div class="mb-3">
-                    <label for="email" class="form-label small fw-semibold mb-1">Email Address</label>
+                    <label for="email" class="form-label small fw-semibold mb-1">Alamat Email</label>
                     <input name="email" id="email" type="email"
                         class="form-control @error('email') is-invalid @enderror"
-                        placeholder="Your email" value="{{ old('email') }}"
+                        placeholder="Masukkan alamat email" value="{{ old('email') }}"
                         required autofocus autocomplete="username">
                 </div>
 
                 <div class="mb-2">
-                    <label for="password" class="form-label small fw-semibold mb-1">Password</label>
+                    <label for="password" class="form-label small fw-semibold mb-1">Kata Sandi</label>
                     <div class="input-group">
                         <input name="password" id="password" type="password"
                             class="form-control @error('email') is-invalid @enderror"
-                            placeholder="Enter your password"
+                            placeholder="Masukkan kata sandi"
                             required autocomplete="current-password">
                         <button type="button" class="btn btn-outline-secondary" id="eyeBtn"
-                            aria-label="Show password" style="border-radius: 0 14px 14px 0;">
+                            aria-label="Tampilkan kata sandi" style="border-radius: 0 14px 14px 0;">
                             <i class="bi bi-eye" id="eyeIcon"></i>
                         </button>
                     </div>
@@ -72,12 +72,12 @@
 
                 <div class="text-end mb-3">
                     <a href="{{ route('password.request') }}" class="text-small text-decoration-none" style="color: var(--sage);">
-                        Forgot password?
+                        Lupa kata sandi?
                     </a>
                 </div>
 
                 <button type="submit" class="btn btn-sage w-100 py-2">
-                    Sign in
+                    Masuk
                 </button>
             </form>
         </div>
@@ -85,7 +85,7 @@
         {{-- Divider --}}
         <div class="d-flex align-items-center gap-2 my-3 px-1">
             <span class="flex-fill" style="height: 1px; background: var(--line);"></span>
-            <span class="text-small text-muted2">or sign in with</span>
+            <span class="text-small text-muted2">atau masuk dengan</span>
             <span class="flex-fill" style="height: 1px; background: var(--line);"></span>
         </div>
 
@@ -103,11 +103,11 @@
                 <path fill="#1976D2"
                     d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.3 5.3C39.9 36.5 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z" />
             </svg>
-            Sign in with Google
+            Masuk dengan Google
         </a>
 
         <p class="text-center text-small text-muted2 mt-3 mb-1">
-            Begin your wellness journey with <strong>YogaRoots</strong>
+            Hari bahagia Anda, direncanakan dengan hati oleh <strong>Sagita Wedding Planner</strong>
         </p>
     </div>
 </section>
@@ -122,7 +122,7 @@
         eyeBtn.addEventListener('click', function () {
             var show = passwordInput.type === 'password';
             passwordInput.type = show ? 'text' : 'password';
-            eyeBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            eyeBtn.setAttribute('aria-label', show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
             eyeIcon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
         });
     })();

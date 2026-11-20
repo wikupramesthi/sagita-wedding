@@ -1261,6 +1261,31 @@ textarea:focus {
 	color: rgba(255, 255, 255, 0.78);
 }
 
+.vendor-detail-cta {
+	border-radius: 9999px;
+	background: #526b52;
+	padding: 0.625rem 1rem;
+	color: #fff;
+	text-decoration: none;
+	box-shadow: 0 4px 12px rgba(52, 77, 55, 0.16);
+	transition:
+		background-color 0.2s ease,
+		box-shadow 0.2s ease,
+		transform 0.2s ease;
+}
+
+.vendor-detail-cta:hover {
+	background: #344d37;
+	color: #fff;
+	box-shadow: 0 6px 16px rgba(52, 77, 55, 0.22);
+	transform: translateY(-1px);
+}
+
+.vendor-detail-cta:focus-visible {
+	outline: 2px solid #526b52;
+	outline-offset: 3px;
+}
+
 .vendor-consultation-cta {
 	background: #89745f;
 	box-shadow: 0 12px 28px rgba(64, 58, 52, 0.16);

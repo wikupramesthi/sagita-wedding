@@ -6,21 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title')</title>
 
-    <meta name="title" content="YogaRoots | Studio Wellness, Yoga & Mindfulness">
+    <meta name="title" content="Masuk | Sagita Wedding Planner">
     <meta name="description"
-        content="YogaRoots is a wellness studio in Jakarta offering space for yoga, meditation, mindfulness, and fitness practices to help balance body and mind.">
+        content="Masuk ke akun Sagita Wedding Planner untuk melanjutkan persiapan pernikahan dan berkoordinasi dengan tim WO.">
     <meta name="keywords"
-        content="YogaRoots Jakarta, Jakarta yoga studio, yoga Jakarta, Jakarta yoga classes, Jakarta mindfulness, Jakarta meditation, Jakarta wellness, Jakarta wellness studio">
-    <meta name="author" content="YogaRoots">
+        content="Sagita Wedding Planner, wedding organizer, persiapan pernikahan, vendor pernikahan">
+    <meta name="author" content="Sagita Wedding Planner">
     <meta name="robots" content="index, follow">
 
     <meta property="og:title"
-        content="YogaRoots | Studio Wellness, Yoga & Mindfulness">
+        content="Masuk | Sagita Wedding Planner">
     <meta property="og:description"
-        content="A wellness space in Jakarta for yoga, meditation, mindfulness, and fitness practices that support body-mind balance.">
+        content="Masuk ke akun Sagita Wedding Planner untuk melanjutkan persiapan hari istimewa Anda.">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="YogaRoots">
-    <meta property="og:image" content="{{ asset('img/seamless-pattern3.png') }}">
+    <meta property="og:site_name" content="Sagita Wedding Planner">
+    <meta property="og:image" content="{{ asset('img/logo.WebP') }}">
 
     <link rel="shortcut icon" href="{{ asset('img/fav.png') }}" type="image/x-icon">
     <link rel="stylesheet" href="{{ asset('dist/assets/compiled/css/auth.css') }}">
@@ -50,9 +50,12 @@
 
     <script>
         function toggleBtn() {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
             const btn = document.getElementById('lanjutBtn');
+            if (!emailInput || !passwordInput || !btn) return;
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
             const ok = email.length > 3 && email.includes('@') && email.includes('.') && password.length >= 6;
             btn.classList.toggle('active', ok);
         }
@@ -60,24 +63,28 @@
         const eyeBtn = document.getElementById('eyeBtn');
         const eyeIcon = document.getElementById('eyeIcon');
         const passwordInput = document.getElementById('password');
-        eyeBtn.addEventListener('click', () => {
+        if (eyeBtn && eyeIcon && passwordInput) eyeBtn.addEventListener('click', () => {
             const isHidden = passwordInput.type === 'password';
             passwordInput.type = isHidden ? 'text' : 'password';
-            eyeBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+            eyeBtn.setAttribute('aria-label', isHidden ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
             eyeIcon.innerHTML = isHidden ?
                 '<path d="M3 3l18 18" /><path d="M10.6 10.6a3 3 0 0 0 4.24 4.24"/><path d="M6.5 6.6C3.9 8.3 2 12 2 12s3.5 7 10 7c1.9 0 3.5-.5 4.9-1.3"/><path d="M17.9 17.9C20.4 16.1 22 12 22 12s-3.5-7-10-7c-.6 0-1.2.05-1.8.14"/>' :
                 '<path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/>';
         });
 
         const modal = document.getElementById('helpModal');
-        document.getElementById('helpBtn').addEventListener('click', () => modal.classList.add('open'));
-        document.getElementById('closeModal').addEventListener('click', () => modal.classList.remove('open'));
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.remove('open');
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') modal.classList.remove('open');
-        });
+        const helpBtn = document.getElementById('helpBtn');
+        const closeModal = document.getElementById('closeModal');
+        if (modal) {
+            helpBtn?.addEventListener('click', () => modal.classList.add('open'));
+            closeModal?.addEventListener('click', () => modal.classList.remove('open'));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('open');
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') modal.classList.remove('open');
+            });
+        }
 
         document.querySelectorAll('.faq-q').forEach(q => {
             q.addEventListener('click', () => {

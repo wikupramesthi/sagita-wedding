@@ -9,8 +9,8 @@ use App\Models\Event;
 use App\Models\Faq;
 use App\Models\Package\Package;
 use App\Models\Page;
-use App\Models\Venue;
 use App\Models\User;
+use App\Models\Venue;
 use Illuminate\Http\Request;
 
 class GlobalSearchController extends Controller
@@ -34,7 +34,7 @@ class GlobalSearchController extends Controller
             return response()->json(['results' => []]);
         }
 
-        $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q) . '%';
+        $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q).'%';
         $results = [];
 
         $push = function (string $type, string $title, ?string $subtitle, string $url) use (&$results) {
@@ -78,8 +78,8 @@ class GlobalSearchController extends Controller
             $push('Pengguna', $u->name, $u->email, route('pengguna.index'));
         }
 
-        if (mb_stripos('website identity', $q) !== false || mb_stripos('site identity', $q) !== false) {
-            $push('Settings', 'Website Identity', 'Name, logo, contact & socials', route('website-identity.index'));
+        if (mb_stripos('identitas website website identity site identity pengaturan', $q) !== false) {
+            $push('Pengaturan', 'Identitas Website', 'Nama, logo, kontak, dan media sosial', route('website-identity.index'));
         }
 
         return response()->json(['results' => $results]);

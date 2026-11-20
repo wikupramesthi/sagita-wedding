@@ -3,7 +3,7 @@
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Module Role" page="Roles & Access" active="Module Role"
+<x-breadcrumb title="Module Role" page="Role dan Akses" active="Module Role"
   route="{{ route('permission.index') }}" />
 @endsection
 <!-- Content -->

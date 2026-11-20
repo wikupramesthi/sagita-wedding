@@ -8,6 +8,7 @@ use App\Models\ManagementAccess\Route;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class WebsiteIdentitySeeder extends Seeder
 {
@@ -17,7 +18,7 @@ class WebsiteIdentitySeeder extends Seeder
      */
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
             'website-identity.index',
@@ -28,12 +29,12 @@ class WebsiteIdentitySeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Attach to "Settings" group if it exists, otherwise create it.
-        $menuGroup = MenuGroup::where('name', 'Settings')->first()
+        // Attach to "Pengaturan" group if it exists, otherwise create it.
+        $menuGroup = MenuGroup::where('name', 'Pengaturan')->first()
             ?? MenuGroup::firstOrCreate(
                 ['permission_name' => 'menu.pengaturan'],
                 [
-                    'name' => 'Settings',
+                    'name' => 'Pengaturan',
                     'icon' => 'bx-cog',
                     'status' => true,
                     'position' => 90,
@@ -46,7 +47,7 @@ class WebsiteIdentitySeeder extends Seeder
                 'menu_group_id' => $menuGroup->id,
             ],
             [
-                'name' => 'Website Identity',
+                'name' => 'Identitas Website',
                 'status' => true,
                 'permission_name' => 'website-identity.index',
                 'position' => 99,

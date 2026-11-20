@@ -11,7 +11,9 @@ class WebsiteIdentity extends Model
     use HasFactory;
 
     protected $primaryKey = 'uuid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -55,22 +57,26 @@ class WebsiteIdentity extends Model
     {
         return static::firstOrCreate(
             [],
-            ['site_name' => 'YogaRoots', 'site_title' => 'YogaRoots']
+            [
+                'site_name' => 'Sagita Wedding',
+                'site_title' => 'Sagita Wedding',
+                'tagline' => 'Wujudkan pernikahan impian Anda',
+            ]
         );
     }
 
     public function logoUrl(): ?string
     {
-        return $this->logo ? asset('storage/' . $this->logo) : null;
+        return $this->logo ? asset('storage/'.$this->logo) : null;
     }
 
     public function faviconUrl(): ?string
     {
-        return $this->favicon ? asset('storage/' . $this->favicon) : null;
+        return $this->favicon ? asset('storage/'.$this->favicon) : null;
     }
 
     public function ogImageUrl(): ?string
     {
-        return $this->og_image ? asset('storage/' . $this->og_image) : null;
+        return $this->og_image ? asset('storage/'.$this->og_image) : null;
     }
 }

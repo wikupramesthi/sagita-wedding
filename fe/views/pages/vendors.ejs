@@ -181,7 +181,7 @@
                                     <%= t.vendorsPage.vendorLabel %>
                                 </span>
 
-                                <a href="https://wa.me/<%= contactLinks.whatsappNumber %>?text=<%= encodeURIComponent(t.vendorsPage.vendorMessage.replace('{vendor}', v.name || '')) %>" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-10 shrink-0 items-center gap-2 text-xs font-semibold underline decoration-sand-300 underline-offset-4 transition hover:text-[#403a34] hover:decoration-[#6c5a4a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#89745f] focus-visible:ring-offset-2" style="color:#6c5a4a">
+                                <a href="https://wa.me/<%= contactLinks.whatsappNumber %>?text=<%= encodeURIComponent(t.vendorsPage.vendorMessage.replace('{vendor}', v.name || '')) %>" target="_blank" rel="noopener noreferrer" class="vendor-detail-cta inline-flex min-h-10 shrink-0 items-center gap-2 text-xs font-semibold" style="background-color:#526b52;color:#fff;border-radius:9999px;padding:0.625rem 1rem;text-decoration:none;box-shadow:0 4px 12px rgba(52,77,55,.16)">
                                     <%= t.vendorsPage.cardCta %>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="h-4 w-4">
                                         <path fill-rule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.69L10.22 5.03a.75.75 0 1 1 1.06-1.06l5.5 5.5a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 1 1-1.06-1.06l4.22-4.22H3.75A.75.75 0 0 1 3 10Z" clip-rule="evenodd" />
