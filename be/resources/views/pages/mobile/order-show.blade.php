@@ -23,7 +23,7 @@
             $bankAccount = config('manual_payment.bank_account');
             $bankHolder = config('manual_payment.bank_holder');
             $waNumber = preg_replace('/\D/', '', (string) config('manual_payment.admin_whatsapp'));
-            $waText = 'Halo Admin YogaRoots, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
+            $waText = 'Halo Admin Sagita Wedding Organizer, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
         @endphp
 
         {{-- STATUS --}}
@@ -82,7 +82,7 @@
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <span class="text-muted2 text-small">{{ __('mobile.package') }}</span>
                 <span class="small fw-semibold text-end" style="max-width:60%;">
-                    {{ $order->package?->name ?? 'Single Class' }}
+                    {{ $order->package?->name ?? 'Kelas Tunggal' }}
                     @if ($order->packageOption?->name)
                         <small class="d-block text-muted2 fw-normal">{{ $order->packageOption->name }}</small>
                     @endif
@@ -132,14 +132,14 @@
                 @if ($order->proof_image_path)
                     <div class="p-3 rounded-3 bg-sage-soft mb-3">
                         <a href="{{ $order->proofUrl() }}" target="_blank" rel="noopener" class="text-decoration-none d-block mb-2">
-                            <img src="{{ $order->proofUrl() }}" alt="Transfer proof"
+                            <img src="{{ $order->proofUrl() }}" alt="Bukti transfer"
                                 class="rounded-3 border w-100" style="max-height:200px;object-fit:cover;" loading="lazy" decoding="async">
                         </a>
                         <div class="m-meta text-success fw-semibold">
                             <i class="bi bi-check-circle me-1"></i>{{ __('mobile.proof_uploaded') }}
                         </div>
                         <div class="m-micro text-muted2">
-                            {{ $order->proof_uploaded_at?->format('d M Y H:i') ?? '' }} — waiting for admin verification.
+                            {{ $order->proof_uploaded_at?->translatedFormat('d F Y H:i') ?? '' }} — menunggu verifikasi admin.
                         </div>
                     </div>
                 @endif
@@ -194,7 +194,7 @@
             <form action="{{ route('orders.reorder', $order->uuid) }}" method="POST" class="mt-3">
                 @csrf
                 <button type="submit" class="btn btn-warm w-100">
-                    <i class="bi bi-arrow-repeat me-1"></i> Order Again
+                    <i class="bi bi-arrow-repeat me-1"></i> Pesan Lagi
                 </button>
             </form>
         @endif

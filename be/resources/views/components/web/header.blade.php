@@ -8,12 +8,12 @@
             {{-- Global search (DBMSDA-style): command palette trigger button --}}
             <button type="button" id="topbar-search-trigger" class="topbar-search-trigger d-none d-md-flex">
                 <i class="bi bi-search"></i>
-                <span>Search all...</span>
+                <span>Cari semua...</span>
                 <kbd>Ctrl K</kbd>
             </button>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Buka navigasi">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -137,13 +137,13 @@
                     <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu shadow-lg" aria-labelledby="userDropdown">
                         <li>
                             <a class="dropdown-item" href="{{ route('profile.edit') }}"><i
-                                    class="icon-mid bi bi-person me-2"></i> My Profile</a>
+                                    class="icon-mid bi bi-person me-2"></i> Profil Saya</a>
                         </li>
 
                         @role('super-admin|admin')
                             <li>
                                 <a class="dropdown-item" href="{{ route('account.index') }}">
-                                    <i class="icon-mid bi bi-gear me-2"></i> Settings
+                                    <i class="icon-mid bi bi-gear me-2"></i> Pengaturan
                                 </a>
                             </li>
                         @else
@@ -155,7 +155,7 @@
                             <form id="logout-form" action="{{ route('logout') }}" method="POST">
                                 @csrf
                                 <button type="submit" class="dropdown-item">
-                                    <i class="icon-mid bi bi-box-arrow-left me-2"></i>Logout
+                                    <i class="icon-mid bi bi-box-arrow-left me-2"></i>Keluar
                                 </button>
                             </form>
 

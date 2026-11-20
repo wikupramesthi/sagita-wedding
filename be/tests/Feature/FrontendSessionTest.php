@@ -36,4 +36,20 @@ class FrontendSessionTest extends TestCase
             ->assertOk()
             ->assertJsonPath('user.avatar', 'https://example.test/avatars/profile.jpg');
     }
+
+    public function test_keep_alive_refreshes_session_without_logging_out(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        session(['last_activity' => time() - 3600]);
+        $stale = session('last_activity');
+
+        $this->post(route('keep-alive'))
+            ->assertOk()
+            ->assertJson(['ok' => true]);
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertGreaterThan($stale, session('last_activity'));
+    }
 }

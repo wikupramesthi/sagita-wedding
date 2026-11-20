@@ -150,7 +150,7 @@
     <div class="header">
 
         <div class="title">
-            Yogaroots Class Schedule
+            Jadwal Kelas Sagita Wedding Organizer
         </div>
 
         <div class="legend">
@@ -277,7 +277,7 @@
     </table>
 
     <div class="footer">
-        Yogaroots — Weekly Class Schedule
+        Sagita Wedding Organizer — Jadwal Kelas Mingguan
     </div>
 
 </body>

@@ -166,7 +166,7 @@
                         @empty
                         <li>
                             <i class="bi bi-check-circle-fill"></i>
-                            <span>Access to Yogaroots classes</span>
+                            <span>Akses ke kelas Sagita Wedding Organizer</span>
                         </li>
                         @endforelse
                     </ul>

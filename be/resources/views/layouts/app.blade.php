@@ -5,7 +5,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>@yield('title')</title>
+    <meta name="description" content="Panel admin Sagita Wedding Organizer untuk mengelola pesanan, pelanggan, dan layanan pernikahan." />
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+    <meta name="googlebot" content="noindex, nofollow, noarchive" />
+    <title>@yield('title') | Admin Sagita Wedding Organizer</title>
 
     <link rel="shortcut icon" href="{{ asset('img/fav.png') }}" type="image/x-icon">
 
@@ -70,9 +73,9 @@
                     <div class="argon-footer d-flex flex-wrap justify-content-center align-items-center gap-2 text-center">
                         <span>&copy; <script>
                                 document.write(new Date().getFullYear())
-                            </script> Sagita Wedding Planner.</span>
+                            </script> Sagita Wedding Organizer.</span>
                         <span class="argon-footer-dot" aria-hidden="true"></span>
-                        <span>All rights reserved</span>
+                        <span>Seluruh hak dilindungi</span>
                     </div>
                 </div>
             </footer>
@@ -84,17 +87,17 @@
     {{-- Global command palette (Ctrl+K): at <body> level so it sits above all stacking contexts --}}
     <div class="modal fade" id="globalSearchModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog gs-modal-dialog">
-            <div class="modal-content gs-palette" role="dialog" aria-modal="true" aria-label="Global search">
+            <div class="modal-content gs-palette" role="dialog" aria-modal="true" aria-label="Pencarian global">
                 <div class="gs-input-row">
                     <i class="bi bi-search gs-input-icon"></i>
                     <input type="text" id="global-search-input" class="gs-input"
-                        placeholder="Search all modules (min. 2 characters)"
-                        aria-label="Search all modules"
+                        placeholder="Cari di semua menu (min. 2 karakter)"
+                        aria-label="Cari di semua menu"
                         autocomplete="off">
                     <button type="button" id="global-search-close" class="gs-esc" aria-label="Tutup">ESC</button>
                 </div>
                 <div id="global-search-results" class="gs-results">
-                    <p class="gs-hint">Type to search across all modules.</p>
+                    <p class="gs-hint">Ketik untuk mencari di semua menu.</p>
                 </div>
             </div>
         </div>
@@ -124,7 +127,7 @@
 
     <script>
         $(document).ready(function() {
-            // Legacy IDs (existing YogaRoots pages) — do not remove so the legacy editor keeps working
+            // ID lama (halaman sebelumnya) — jangan dihapus agar editor lama tetap berfungsi
             if ($('#deskripsi').length && !$('#deskripsi').hasClass('summernote-initialized')) {
                 $('#deskripsi').addClass('summernote-initialized').summernote();
             }
@@ -219,7 +222,7 @@
     <script>
         (function() {
             // Auto-logout after 30 minutes without activity (DBMSDA-style).
-            // 2 minutes before expiry show the choice: Stay signed in / Logout.
+            // 2 menit sebelum habis tampil pilihan: Tetap login / Keluar.
             const INACTIVE_TIMEOUT_MIN = {{ (int) config('session.inactive_timeout', 30) }};
             const WARNING_BEFORE_MIN = 2;
             const INACTIVE_MS = INACTIVE_TIMEOUT_MIN * 60 * 1000;
@@ -254,7 +257,7 @@
                 form.submit();
             }
 
-            function keepAlive() {
+            function keepAliveOnce() {
                 const token = getCsrf();
                 return fetch("{{ route('keep-alive') }}", {
                     method: 'POST',
@@ -266,9 +269,16 @@
                     credentials: 'same-origin',
                 }).then((res) => {
                     // 419 (CSRF) / 401 (session habis) dianggap gagal -> logout tegas.
-                    if (!res.ok) return false;
+                    if (res.status === 401 || res.status === 419 || res.status === 404) return false;
+                    if (!res.ok) throw new Error('keep-alive gagal');
                     return res.json().then((data) => data && data.ok === true).catch(() => false);
-                }).catch(() => false);
+                });
+            }
+
+            function keepAlive() {
+                return keepAliveOnce()
+                    .then((ok) => ok ? true : keepAliveOnce())
+                    .catch(() => false);
             }
 
             function showWarning() {
@@ -279,7 +289,7 @@
                 const updateText = () => {
                     const m = Math.floor(remaining / 60);
                     const s = String(remaining % 60).padStart(2, '0');
-                    const html = `Sesi Anda akan berakhir dalam <b>${m}:${s}</b> karena tidak ada aktivitas.<br>Klik <b>Tetap masuk</b> untuk melanjutkan.`;
+                    const html = `Sesi Anda akan berakhir dalam <b>${m}:${s}</b> karena tidak ada aktivitas.<br>Klik <b>Tetap login</b> untuk melanjutkan.`;
                     const container = document.querySelector('.swal2-html-container');
                     if (container) container.innerHTML = html;
                 };
@@ -287,10 +297,10 @@
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         title: 'Sesi segera berakhir',
-                        html: `Sesi Anda akan berakhir dalam <b>${WARNING_BEFORE_MIN}:00</b> karena tidak ada aktivitas.<br>Klik <b>Tetap masuk</b> untuk melanjutkan.`,
+                        html: `Sesi Anda akan berakhir dalam <b>${WARNING_BEFORE_MIN}:00</b> karena tidak ada aktivitas.<br>Klik <b>Tetap login</b> untuk melanjutkan.`,
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: 'Tetap masuk',
+                        confirmButtonText: 'Tetap login',
                         cancelButtonText: 'Keluar',
                         confirmButtonColor: '#2f7d4f',
                         cancelButtonColor: '#d33',
@@ -313,7 +323,7 @@
                             if (countdownInterval) clearInterval(countdownInterval);
                         }
                     }).then((result) => {
-                        // Klik "Stay signed in": refresh server dulu, reset timer
+                        // Klik "Tetap login": refresh server dulu, reset timer
                         // HANYA jika server jawab ok. Kalau gagal (401/419) -> logout.
                         if (result.isConfirmed) {
                             if (countdownInterval) {
@@ -336,7 +346,7 @@
                         }
                     });
                 } else {
-                    const ok = confirm(`Sesi Anda akan berakhir dalam ${WARNING_BEFORE_MIN} menit karena tidak ada aktivitas. Klik OK untuk tetap masuk.`);
+                    const ok = confirm(`Sesi Anda akan berakhir dalam ${WARNING_BEFORE_MIN} menit karena tidak ada aktivitas. Klik OK untuk tetap login.`);
                     if (ok) {
                         keepAlive().then((alive) => {
                             if (alive) {

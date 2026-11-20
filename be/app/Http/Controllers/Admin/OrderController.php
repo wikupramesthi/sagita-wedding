@@ -20,7 +20,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -164,106 +166,11 @@ class OrderController extends Controller
             'admin_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $orderUuid = $order;
-
         try {
-            [$order, $userPackage] = DB::transaction(function () use ($orderUuid, $validated) {
-                // Row lock + re-check inside the transaction so two
-                // concurrent approvals can never activate twice.
-                $order = Order::with(['packageOption', 'user'])
-                    ->where('uuid', $orderUuid)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-                if ($order->status !== 'pending') {
-                    throw ValidationException::withMessages([
-                        'order' => __('flash.order_only_pending_approve'),
-                    ]);
-                }
-
-                if (!$order->package_option_uuid || !$order->packageOption) {
-                    throw ValidationException::withMessages([
-                        'order' => __('flash.order_no_option'),
-                    ]);
-                }
-
-                $order->update([
-                    'status' => 'paid',
-                    'paid_at' => now(),
-                    'admin_note' => $validated['admin_note'] ?? null,
-                ]);
-
-                Payment::create([
-                    'order_uuid' => $order->uuid,
-                    'payment_gateway' => 'manual_transfer',
-                    'payment_type' => 'Bank Transfer',
-                    'gross_amount' => $order->amount,
-                    'status' => 'paid',
-                    'paid_at' => now(),
-                ]);
-
-                $option = $order->packageOption;
-                $started = now();
-
-                $existing = UserPackage::where('user_uuid', $order->user_uuid)
-                    ->where('package_uuid', $order->package_uuid)
-                    ->where('status', 'active')
-                    ->where(function ($q) {
-                        $q->whereNull('expired_at')->orWhere('expired_at', '>', now());
-                    })
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($existing) {
-                    // Same package bought again: extend time and add quota
-                    // to the active membership instead of creating a new one.
-                    $base = $existing->expired_at && $existing->expired_at->isFuture()
-                        ? $existing->expired_at->copy()
-                        : $started->copy();
-
-                    $expired = match ($option->duration_unit) {
-                        'day' => $base->addDays($option->duration),
-                        'week' => $base->addWeeks($option->duration),
-                        'year' => $base->addYears($option->duration),
-                        default => $base->addMonths($option->duration),
-                    };
-
-                    $quota = $existing->quota;
-                    if (!is_null($quota) && !is_null($option->quota)) {
-                        $quota += $option->quota;
-                    } elseif (is_null($existing->quota)) {
-                        $quota = null;
-                    } else {
-                        $quota = $option->quota;
-                    }
-
-                    $existing->update([
-                        'expired_at' => $expired,
-                        'quota' => $quota,
-                    ]);
-
-                    $userPackage = $existing->fresh();
-                } else {
-                    $expired = match ($option->duration_unit) {
-                        'day' => (clone $started)->addDays($option->duration),
-                        'week' => (clone $started)->addWeeks($option->duration),
-                        'year' => (clone $started)->addYears($option->duration),
-                        default => (clone $started)->addMonths($option->duration),
-                    };
-
-                    $userPackage = UserPackage::create([
-                        'user_uuid' => $order->user_uuid,
-                        'package_uuid' => $order->package_uuid,
-                        'order_uuid' => $order->uuid,
-                        'quota' => $option->quota,
-                        'started_at' => $started,
-                        'expired_at' => $expired,
-                        'status' => 'active',
-                    ]);
-                }
-
-                return [$order, $userPackage];
-            });
+            [$order, $userPackage] = $this->activatePendingOrder(
+                $order,
+                $validated['admin_note'] ?? null
+            );
         } catch (ValidationException $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -284,6 +191,109 @@ class OrderController extends Controller
     }
 
     /**
+     * Approve a pending order inside a single locked transaction.
+     * Shared by the single and bulk verification actions.
+     *
+     * @return array{0: Order, 1: UserPackage}
+     */
+    private function activatePendingOrder(string $orderUuid, ?string $note): array
+    {
+        return DB::transaction(function () use ($orderUuid, $note) {
+            $order = Order::with(['packageOption', 'user'])
+                ->where('uuid', $orderUuid)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($order->status !== 'pending') {
+                throw ValidationException::withMessages([
+                    'order' => __('flash.order_only_pending_approve'),
+                ]);
+            }
+
+            if (!$order->package_option_uuid || !$order->packageOption) {
+                throw ValidationException::withMessages([
+                    'order' => __('flash.order_no_option'),
+                ]);
+            }
+
+            $order->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+                'admin_note' => $note,
+            ]);
+
+            Payment::create([
+                'order_uuid' => $order->uuid,
+                'payment_gateway' => 'manual_transfer',
+                'payment_type' => 'Transfer Manual',
+                'gross_amount' => $order->amount,
+                'status' => 'paid',
+                'paid_at' => now(),
+            ]);
+
+            $option = $order->packageOption;
+            $started = now();
+
+            $existing = UserPackage::where('user_uuid', $order->user_uuid)
+                ->where('package_uuid', $order->package_uuid)
+                ->where('status', 'active')
+                ->where(function ($q) {
+                    $q->whereNull('expired_at')->orWhere('expired_at', '>', now());
+                })
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                $base = $existing->expired_at && $existing->expired_at->isFuture()
+                    ? $existing->expired_at->copy()
+                    : $started->copy();
+
+                $expired = match ($option->duration_unit) {
+                    'day' => $base->addDays($option->duration),
+                    'week' => $base->addWeeks($option->duration),
+                    'year' => $base->addYears($option->duration),
+                    default => $base->addMonths($option->duration),
+                };
+
+                $quota = $existing->quota;
+                if (!is_null($quota) && !is_null($option->quota)) {
+                    $quota += $option->quota;
+                } elseif (is_null($existing->quota)) {
+                    $quota = null;
+                } else {
+                    $quota = $option->quota;
+                }
+
+                $existing->update([
+                    'expired_at' => $expired,
+                    'quota' => $quota,
+                ]);
+
+                $userPackage = $existing->fresh();
+            } else {
+                $expired = match ($option->duration_unit) {
+                    'day' => (clone $started)->addDays($option->duration),
+                    'week' => (clone $started)->addWeeks($option->duration),
+                    'year' => (clone $started)->addYears($option->duration),
+                    default => (clone $started)->addMonths($option->duration),
+                };
+
+                $userPackage = UserPackage::create([
+                    'user_uuid' => $order->user_uuid,
+                    'package_uuid' => $order->package_uuid,
+                    'order_uuid' => $order->uuid,
+                    'quota' => $option->quota,
+                    'started_at' => $started,
+                    'expired_at' => $expired,
+                    'status' => 'active',
+                ]);
+            }
+
+            return [$order, $userPackage];
+        });
+    }
+
+    /**
      * Reject a pending order (manual transfer verification failed).
      * Admin only.
      */
@@ -294,26 +304,153 @@ class OrderController extends Controller
             403
         );
 
-        $order = Order::where('uuid', $order)->firstOrFail();
-
-        if ($order->status !== 'pending') {
-            return back()->with('error', __('flash.order_only_pending_reject'));
-        }
-
         $validated = $request->validate([
             'admin_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        DB::transaction(function () use ($order, $validated) {
+        try {
+            $this->rejectPendingOrder($order, $validated['admin_note'] ?? null);
+        } catch (ValidationException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', __('flash.order_rejected'));
+    }
+
+    /**
+     * Reject a pending order inside a single transaction.
+     */
+    private function rejectPendingOrder(string $orderUuid, ?string $note): void
+    {
+        DB::transaction(function () use ($orderUuid, $note) {
+            $order = Order::where('uuid', $orderUuid)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($order->status !== 'pending') {
+                throw ValidationException::withMessages([
+                    'order' => __('flash.order_only_pending_reject'),
+                ]);
+            }
+
             $order->update([
                 'status' => 'failed',
-                'admin_note' => $validated['admin_note'] ?? null,
+                'admin_note' => $note,
             ]);
 
             $order->payment?->update(['status' => 'failed']);
         });
+    }
 
-        return back()->with('success', __('flash.order_rejected'));
+    /**
+     * Bulk approve/reject pending orders (admin only).
+     */
+    public function bulkAction(Request $request)
+    {
+        abort_unless(
+            Auth::user()->hasAnyRole(['super-admin', 'admin']),
+            403
+        );
+
+        $validated = $request->validate([
+            'action' => ['required', Rule::in(['approve', 'reject'])],
+            'ids' => ['required', 'array', 'min:1', 'max:50'],
+            'ids.*' => ['required', 'string'],
+            'admin_note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $berhasil = 0;
+        $gagal = 0;
+
+        foreach (array_unique($validated['ids']) as $orderUuid) {
+            try {
+                if ($validated['action'] === 'approve') {
+                    [$order, $userPackage] = $this->activatePendingOrder(
+                        $orderUuid,
+                        $validated['admin_note'] ?? null
+                    );
+
+                    try {
+                        $order->user?->notify(new MemberActiveNotification(
+                            $order->uuid,
+                            $order->order_number,
+                            $userPackage->expired_at,
+                        ));
+                    } catch (\Throwable $e) {
+                        Log::error('Membership activation notification failed: ' . $e->getMessage());
+                    }
+                } else {
+                    $this->rejectPendingOrder($orderUuid, $validated['admin_note'] ?? null);
+                }
+
+                $berhasil++;
+            } catch (Throwable $e) {
+                $gagal++;
+                Log::warning('Bulk order action failed: ' . $e->getMessage(), ['order' => $orderUuid]);
+            }
+        }
+
+        $pesan = $berhasil . ' pesanan berhasil ' . ($validated['action'] === 'approve' ? 'disetujui' : 'ditolak') . '.';
+        if ($gagal > 0) {
+            $pesan .= ' ' . $gagal . ' pesanan gagal diproses.';
+        }
+
+        return back()->with($gagal > 0 ? 'error' : 'success', $pesan);
+    }
+
+    /**
+     * Export the currently filtered orders as a UTF-8 CSV file.
+     */
+    public function exportCsv(Request $request)
+    {
+        $user = Auth::user();
+
+        $orders = $this->filteredOrders($request, $user)
+            ->with(['user', 'package', 'packageOption', 'payment'])
+            ->latest()
+            ->limit(10000)
+            ->get();
+
+        $statusLabels = [
+            'paid' => 'Lunas',
+            'pending' => 'Menunggu',
+            'failed' => 'Gagal',
+            'expired' => 'Kedaluwarsa',
+            'cancelled' => 'Dibatalkan',
+        ];
+
+        return response()->stream(function () use ($orders, $statusLabels) {
+            $handle = fopen('php://output', 'w');
+
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, [
+                'No', 'Tanggal', 'No. Pesanan', 'Pelanggan', 'Email', 'Paket',
+                'Opsi Paket', 'Tipe', 'Jumlah (Rp)', 'Status', 'Bukti Transfer', 'Catatan Admin',
+            ]);
+
+            foreach ($orders as $i => $order) {
+                fputcsv($handle, [
+                    $i + 1,
+                    $order->created_at?->format('d/m/Y H:i') ?? '-',
+                    $order->order_number,
+                    $order->user?->name ?? '-',
+                    $order->user?->email ?? '-',
+                    $order->package?->name ?? 'Kelas Tunggal',
+                    $order->packageOption?->name ?? '-',
+                    $order->type === 'package' ? 'Paket' : 'Kelas',
+                    $order->amount,
+                    $statusLabels[$order->status] ?? ucfirst($order->status),
+                    $order->proof_image_path ? 'Sudah diunggah' : 'Belum diunggah',
+                    $order->admin_note ?? '',
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="laporan-pesanan-' . now()->format('Ymd-His') . '.csv"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+        ]);
     }
 
     /**
@@ -849,11 +986,11 @@ class OrderController extends Controller
             'failedCount' => $orders->whereIn('status', ['failed', 'expired', 'cancelled'])->count(),
             'revenue' => $paid->sum('amount'),
             'periode' => $this->reportPeriod($request),
-            'filterStatus' => $request->input('status', 'All'),
-            'filterType' => $request->input('type', 'All'),
+            'filterStatus' => $request->input('status') ?: 'Semua',
+            'filterType' => $request->input('type') ?: 'Semua',
             'search' => $request->input('search'),
             'isAdmin' => $user->hasAnyRole(['super-admin', 'admin']),
-            'dicetakOleh' => $user->name ?? 'System',
+            'dicetakOleh' => $user->name ?? 'Sistem',
             'waktuCetak' => now()->translatedFormat('d F Y H:i'),
         ];
     }
@@ -864,18 +1001,18 @@ class OrderController extends Controller
     private function reportPeriod(Request $request): string
     {
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            return $request->input('start_date') . ' to ' . $request->input('end_date');
+            return $request->input('start_date') . ' sampai ' . $request->input('end_date');
         }
 
         if ($request->filled('start_date')) {
-            return 'Since ' . $request->input('start_date');
+            return 'Sejak ' . $request->input('start_date');
         }
 
         if ($request->filled('end_date')) {
-            return 'Until ' . $request->input('end_date');
+            return 'Hingga ' . $request->input('end_date');
         }
 
-        return 'All Periods';
+        return 'Semua Periode';
     }
 
     /**

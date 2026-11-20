@@ -32,6 +32,11 @@ class RouteMiddleware
         // (pengguna, articles, events, dsb.) via URL langsung karena
         // controller modul tidak punya cek role sendiri.
         $user = $request->user();
+
+        if ($request->routeIs('keep-alive') || $request->routeIs('logout') || $request->routeIs('auth.me.logout')) {
+            return $next($request);
+        }
+
         if (
             $user && $user->hasRole('user')
             && $request->is('backend/*')

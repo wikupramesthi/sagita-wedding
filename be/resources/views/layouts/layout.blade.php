@@ -6,20 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@yield('title')</title>
 
-    <meta name="title" content="YogaRoots | Studio Wellness, Yoga & Mindfulness">
+    <meta name="title" content="Sagita Wedding Organizer | Wedding Planner & Organizer">
     <meta name="description"
-        content="YogaRoots is a wellness studio in Jakarta offering space for yoga, meditation, mindfulness, and fitness practices to help balance body and mind.">
+        content="Sagita Wedding Organizer menyelenggarakan pernikahan Anda dengan layanan perencanaan, dekorasi, dan koordinasi acara.">
     <meta name="keywords"
-        content="YogaRoots Jakarta, Jakarta yoga studio, yoga Jakarta, Jakarta yoga classes, Jakarta mindfulness, Jakarta meditation, Jakarta wellness, Jakarta wellness studio">
-    <meta name="author" content="YogaRoots">
+        content="Sagita Wedding Organizer, wedding organizer, wedding planner, dekorasi pernikahan, organizer pernikahan">
+    <meta name="author" content="Sagita Wedding Organizer">
     <meta name="robots" content="index, follow">
 
     <meta property="og:title"
-        content="YogaRoots | Studio Wellness, Yoga & Mindfulness">
+        content="Sagita Wedding Organizer | Wedding Planner & Organizer">
     <meta property="og:description"
-        content="A wellness space in Jakarta for yoga, meditation, mindfulness, and fitness practices that support body-mind balance.">
+        content="Ruang perencanaan pernikahan untuk mewujudkan hari istimewa Anda bersama Sagita Wedding Organizer.">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="YogaRoots">
+    <meta property="og:site_name" content="Sagita Wedding Organizer">
     <meta property="og:image" content="{{ asset('img/seamless-pattern3.png') }}">
 
     <link rel="shortcut icon" href="{{ asset('img/fav.png') }}" type="image/x-icon">

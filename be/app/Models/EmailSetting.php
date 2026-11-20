@@ -71,11 +71,25 @@ class EmailSetting extends Model
         $identity ??= WebsiteIdentity::singleton();
         $updates = [];
 
-        if (filled($identity->email) && (blank($setting->from_address) || ($previousEmail !== null && $setting->from_address === $previousEmail))) {
+        if (
+            filled($identity->email)
+            && (
+                $previousEmail === null
+                || blank($setting->from_address)
+                || $setting->from_address === $previousEmail
+            )
+        ) {
             $updates['from_address'] = $identity->email;
         }
 
-        if (filled($identity->site_name) && (blank($setting->from_name) || ($previousName !== null && $setting->from_name === $previousName))) {
+        if (
+            filled($identity->site_name)
+            && (
+                $previousName === null
+                || blank($setting->from_name)
+                || $setting->from_name === $previousName
+            )
+        ) {
             $updates['from_name'] = $identity->site_name;
         }
 

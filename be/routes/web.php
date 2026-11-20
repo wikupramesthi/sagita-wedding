@@ -222,6 +222,8 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::resource('class-schedules', ClassScheduleController::class);
     Route::get('orders/report', [OrderController::class, 'report'])->name('orders.report');
     Route::get('orders/export-pdf', [OrderController::class, 'exportPdf'])->name('orders.exportPdf');
+    Route::get('orders/export-csv', [OrderController::class, 'exportCsv'])->name('orders.exportCsv');
+    Route::post('orders/bulk', [OrderController::class, 'bulkAction'])->name('orders.bulk');
     Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
     Route::post('orders/{order}/reject', [OrderController::class, 'reject'])->name('orders.reject');
     Route::get('orders/{order}/proof', [OrderController::class, 'showProof'])->name('orders.proof.show');

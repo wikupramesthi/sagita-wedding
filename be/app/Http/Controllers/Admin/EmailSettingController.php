@@ -49,7 +49,7 @@ class EmailSettingController extends Controller
                 unset($data['mail_password']);
             }
 
-            $data['mail_encryption'] = $data['mail_encryption'] ?: null;
+            $data['mail_encryption'] = $request->input('mail_encryption') ?: null;
             $data['is_active'] = $request->boolean('is_active');
 
             $setting->update($data);

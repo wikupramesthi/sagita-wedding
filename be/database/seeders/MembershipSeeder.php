@@ -31,6 +31,8 @@ class MembershipSeeder extends Seeder
             'orders.approve',
             'orders.reject',
             'orders.proof',
+            'orders.bulk',
+            'orders.exportCsv',
         ];
 
         $memberPermissions = [
@@ -89,6 +91,8 @@ class MembershipSeeder extends Seeder
             'orders.reject' => 'orders.reject',
             'orders.proof' => 'orders.proof',
             'orders.proof.show' => 'orders.proof',
+            'orders.bulk' => 'orders.bulk',
+            'orders.exportCsv' => 'orders.exportCsv',
         ];
 
         foreach ($routes as $route => $permission) {

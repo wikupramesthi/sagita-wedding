@@ -89,14 +89,14 @@
                         <div class="icon icon-shape icon-sm">
                             <i class="bx bx-cog"></i>
                         </div>
-                        <span class="nav-link-text ms-1">Settings</span>
+                        <span class="nav-link-text ms-1">Pengaturan</span>
                     </a>
 
                     <ul class="submenu nav ms-4">
                         <li class="submenu-item">
                             <a href="{{ route('profile.edit') }}" class="submenu-link nav-link">
                                 <span class="sidenav-mini-icon">M</span>
-                                <span class="sidenav-normal">My Profile</span>
+                                <span class="sidenav-normal">Profil Saya</span>
                             </a>
                         </li>
                     </ul>
@@ -110,7 +110,7 @@
                             <div class="icon icon-shape icon-sm">
                                 <i class="bi bi-arrow-bar-left"></i>
                             </div>
-                            <span class="nav-link-text ms-1">Logout</span>
+                            <span class="nav-link-text ms-1">Keluar</span>
                         </button>
                     </form>
                 </li>

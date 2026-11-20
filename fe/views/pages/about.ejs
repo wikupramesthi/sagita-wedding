@@ -1,132 +1,277 @@
 <!DOCTYPE html>
-<html lang="<%= lang || 'en' %>">
+<html lang="<%= lang || 'id' %>">
 <head><%- include('../partials/head') %></head>
 <body class="min-h-screen bg-sand-50 antialiased">
 <%- include('../partials/navbar') %>
 
-<main>
+<%
+  const isID = lang === 'id';
+  const copy = isID ? {
+    badge: 'Tentang Sagita Wedding Planner',
+    titleA: 'Hari istimewa,',
+    titleB: 'dirancang untuk Anda',
+    subtitle: 'MERANGKAI MOMEN, MEWUJUDKAN IMPIAN',
+    hero: 'Kami mendampingi setiap langkah persiapan, menyatukan detail dan orang-orang di balik perayaan yang terasa personal.',
+    learn: 'Kenali pendekatan kami',
+    consult: 'Mulai konsultasi',
+    visualEyebrow: 'HARI YANG BERARTI',
+    visualTitle: 'Cerita Anda, dirangkai dengan penuh perhatian.',
+    visualNote: 'Dari percakapan pertama hingga hari perayaan',
+    stats: [{ value: '01', label: 'Pendekatan personal' }, { value: '02', label: 'Koordinasi menyeluruh' }, { value: '03', label: 'Dukungan hari-H' }],
+    aboutEyebrow: 'Cerita kami',
+    aboutTitle: 'Perencanaan yang memberi ruang untuk menikmati setiap momen',
+    aboutP1: 'Pernikahan adalah tentang dua cerita, keluarga, dan hal-hal kecil yang membuat sebuah perayaan terasa begitu berarti. Kami hadir untuk memahami apa yang penting bagi Anda, lalu membantu menyusunnya menjadi rencana yang jelas dan terarah.',
+    aboutP2: 'Bersama tim Sagita, Anda dapat mendiskusikan konsep, anggaran, vendor, dan alur acara dengan lebih tenang. Setiap rekomendasi disesuaikan dengan kebutuhan Anda—bukan sekadar mengikuti tren.',
+    aboutPill: 'Pendampingan yang berangkat dari cerita Anda',
+    valuesEyebrow: 'Cara kami bekerja',
+    valuesTitle: 'Detail yang menyatu,',
+    valuesTitleAccent: 'perayaan yang terasa utuh',
+    values: [
+      { title: 'Dimulai dengan mendengar', desc: 'Kami memahami cerita, prioritas, dan harapan Anda sebelum menyusun rencana.' },
+      { title: 'Konsep yang personal', desc: 'Setiap pilihan diarahkan agar mencerminkan karakter dan suasana yang Anda inginkan.' },
+      { title: 'Rencana yang jelas', desc: 'Anggaran, jadwal, dan tanggung jawab dibahas secara terbuka sejak awal.' },
+      { title: 'Vendor yang selaras', desc: 'Kami membantu menyatukan komunikasi dan kebutuhan seluruh vendor.' },
+      { title: 'Detail yang diperhatikan', desc: 'Dari persiapan hingga alur acara, setiap bagian mendapat perhatian.' },
+      { title: 'Anda tetap hadir', desc: 'Koordinasi yang tertata memberi Anda ruang untuk menikmati hari istimewa.' },
+    ],
+    journeyEyebrow: 'Perjalanan bersama',
+    journeyTitle: 'Dari rencana awal',
+    journeyAccent: 'hingga hari bahagia',
+    steps: [
+      { n: '01', title: 'Mengenal cerita Anda', desc: 'Kita mulai dengan percakapan tentang visi, kebutuhan, dan kisaran anggaran.' },
+      { n: '02', title: 'Menyusun rencana', desc: 'Konsep, layanan, prioritas, dan garis waktu dirangkai bersama.' },
+      { n: '03', title: 'Menyelaraskan detail', desc: 'Vendor, persiapan, dan alur acara dikoordinasikan dengan jelas.' },
+      { n: '04', title: 'Menikmati perayaan', desc: 'Tim mendampingi jalannya acara agar Anda dapat hadir di setiap momen.' },
+    ],
+    focusTitle: 'Perhatian pada hal yang penting',
+    focus: [
+      { title: 'Komunikasi yang hangat', desc: 'Anda selalu tahu apa yang sedang dipersiapkan dan langkah berikutnya.' },
+      { title: 'Kolaborasi yang terbuka', desc: 'Keputusan dibuat bersama, dengan pertimbangan yang sesuai kebutuhan.' },
+      { title: 'Koordinasi yang tenang', desc: 'Kami menjaga detail tetap tertata, terutama saat hari perayaan tiba.' },
+    ],
+    bannerEyebrow: 'PENDEKATAN SAGITA',
+    banner: 'Perayaan terbaik bukan tentang kesempurnaan—melainkan tentang momen yang terasa sungguh milik Anda.',
+    bannerLink: 'Lihat layanan kami',
+    quote: 'Biarkan kami menjaga detailnya, agar Anda dapat menyimpan momennya.',
+    quoteBy: 'Sagita Wedding Planner',
+    closingEyebrow: 'Langkah pertama dimulai di sini',
+    closingTitle: 'Mari rencanakan hari yang terasa seperti Anda.',
+    closingText: 'Ceritakan sedikit tentang perayaan yang Anda impikan. Kami siap membantu menyusun langkah berikutnya.',
+    closingCta: 'Mulai Konsultasi',
+  } : {
+    badge: 'About Sagita Wedding Planner',
+    titleA: 'A special day,',
+    titleB: 'thoughtfully yours',
+    subtitle: 'WEAVING MOMENTS, REALIZING DREAMS',
+    hero: 'We bring the details and the people behind your celebration together, with thoughtful support at every step.',
+    learn: 'Discover our approach',
+    consult: 'Start a consultation',
+    visualEyebrow: 'A DAY THAT MATTERS',
+    visualTitle: 'Your story, brought together with care.',
+    visualNote: 'From the first conversation to the celebration',
+    stats: [{ value: '01', label: 'Personal approach' }, { value: '02', label: 'End-to-end coordination' }, { value: '03', label: 'Wedding-day support' }],
+    aboutEyebrow: 'Our story',
+    aboutTitle: 'Planning that leaves room to enjoy every moment',
+    aboutP1: 'A wedding brings together two stories, families, and the little details that make a celebration truly meaningful. We take time to understand what matters to you, then help shape it into a clear, considered plan.',
+    aboutP2: 'With Sagita, you can talk through your concept, budget, vendors, and event flow with confidence. Every recommendation is tailored to your needs—not simply to follow a trend.',
+    aboutPill: 'Thoughtful support, shaped around your story',
+    valuesEyebrow: 'How we work',
+    valuesTitle: 'Details brought together,',
+    valuesTitleAccent: 'a celebration that feels whole',
+    values: [
+      { title: 'We begin by listening', desc: 'We learn your story, priorities, and hopes before shaping a plan.' },
+      { title: 'A personal concept', desc: 'Every choice reflects the character and atmosphere you have in mind.' },
+      { title: 'A clear plan', desc: 'Budget, timing, and responsibilities are discussed openly from the start.' },
+      { title: 'Aligned vendors', desc: 'We help bring vendor communication and requirements together.' },
+      { title: 'Considered details', desc: 'From preparations to event flow, every part receives attention.' },
+      { title: 'Present in the moment', desc: 'Thoughtful coordination gives you room to enjoy your special day.' },
+    ],
+    journeyEyebrow: 'Our journey together',
+    journeyTitle: 'From the first idea',
+    journeyAccent: 'to your wedding day',
+    steps: [
+      { n: '01', title: 'Get to know your story', desc: 'We start with a conversation about your vision, needs, and budget range.' },
+      { n: '02', title: 'Shape the plan', desc: 'We bring together your concept, services, priorities, and timeline.' },
+      { n: '03', title: 'Align the details', desc: 'Vendors, preparations, and event flow are coordinated with clarity.' },
+      { n: '04', title: 'Enjoy the celebration', desc: 'Our team supports the event so you can be present for every moment.' },
+    ],
+    focusTitle: 'Care for what matters',
+    focus: [
+      { title: 'Warm communication', desc: 'You know what is being prepared and what comes next.' },
+      { title: 'Open collaboration', desc: 'Decisions are made together, with your needs in mind.' },
+      { title: 'Calm coordination', desc: 'We keep the details organized, especially when your day arrives.' },
+    ],
+    bannerEyebrow: 'THE SAGITA APPROACH',
+    banner: 'The best celebrations are not about perfection—they are about moments that feel truly yours.',
+    bannerLink: 'Explore our services',
+    quote: 'Let us take care of the details, so you can hold on to the moments.',
+    quoteBy: 'Sagita Wedding Planner',
+    closingEyebrow: 'Your first step starts here',
+    closingTitle: 'Let us plan a day that feels like you.',
+    closingText: 'Tell us a little about the celebration you have in mind. We would love to help you shape the next steps.',
+    closingCta: 'Start Your Consultation',
+  };
+%>
 
-  <!-- ======================= HERO ======================= -->
-  <section class="relative overflow-hidden text-sand-50">
-    <img src="/img/yogaroots_about2.jpg" alt="" class="absolute inset-0 w-full h-full object-cover scale-105">
-    <div class="absolute inset-0 bg-gradient-to-br from-[#89745f]/95 via-[#6c5a4a]/92 to-[#403a34]/96"></div>
-    <div class="absolute inset-0" style="background:
-      radial-gradient(ellipse 70% 55% at 18% 12%, rgba(183,159,128,.16) 0%, transparent 62%),
-      radial-gradient(ellipse 60% 60% at 88% 95%, rgba(64,58,52,.56) 0%, transparent 65%)"></div>
-    <div class="absolute inset-0 opacity-[0.08] mix-blend-overlay pointer-events-none" style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;)"></div>
+<main>
+  <section class="relative overflow-hidden bg-sand-900 text-sand-50">
+    <div class="absolute inset-0" style="background:radial-gradient(ellipse 55% 60% at 8% 10%,rgba(183,159,128,.34) 0%,transparent 68%),radial-gradient(ellipse 45% 60% at 88% 90%,#403a34 0%,transparent 70%),linear-gradient(135deg,#89745f 0%,#6c5a4a 55%,#403a34 100%)"></div>
+    <div class="absolute inset-0 opacity-[0.07] mix-blend-overlay pointer-events-none" style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;)"></div>
     <div class="hero-shimmer"></div>
 
-    <div class="relative max-w-4xl mx-auto px-6 py-28 lg:py-40 text-center">
-      <span class="inline-flex items-center gap-2 rounded-full border border-sand-100/25 bg-white/5 backdrop-blur-sm px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-sand-100 anim-fade-in">
-        <span class="w-1.5 h-1.5 rounded-full bg-gold-light"></span>
-        <%= t.about.heroBadge %>
-      </span>
-      <h1 class="mt-6 font-display tracking-tight anim-slide-up" style="font-size:clamp(2.75rem, min(9vw, 12vh), 4.75rem); line-height:1.05">
-        <%= t.about.titleA %>
-        <span class="italic font-light text-gold-light"><%= t.about.titleB %></span>
-      </h1>
-      <p class="mt-6 font-sans text-base sm:text-lg text-sand-100/85 max-w-2xl mx-auto leading-relaxed anim-fade-in" style="animation-delay:.35s"><%= t.about.heroDesc %></p>
-    </div>
-  </section>
-
-  <!-- ======================= STORY ======================= -->
-  <section class="py-16 px-6">
-    <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-      <div class="reveal relative">
-        <div class="absolute -top-6 -left-6 w-32 h-32 rounded-full bg-gold/10 blur-2xl"></div>
-        <img src="/img/yogaroots_about1.jpg" alt="YogaRoots studio" loading="lazy" decoding="async" class="relative w-full aspect-[4/5] object-cover rounded-[2rem] shadow-xl ring-1 ring-sand-900/5">
-        <img src="/img/yogaroots_about2.jpg" alt="YogaRoots practice" loading="lazy" decoding="async" class="hidden sm:block absolute -bottom-10 -right-6 w-44 lg:w-52 aspect-square object-cover rounded-2xl border-4 border-sand-50 shadow-lg">
-        <div class="absolute -bottom-6 -left-4 rounded-2xl bg-sand-900 text-sand-50 px-5 py-3 shadow-lg">
-          <div class="font-display text-2xl text-gold-light leading-none"><%= t.about.heroBadge.replace(/[^0-9]/g, '') || '2023' %></div>
-          <div class="text-[10px] uppercase tracking-[0.2em] text-sand-400 mt-1">YogaRoots</div>
+    <div class="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pb-20 pt-36 lg:grid-cols-2 lg:gap-20 lg:pb-28 lg:pt-48">
+      <div class="text-center lg:text-left">
+        <span class="inline-flex items-center gap-2 rounded-full border border-sand-100/25 bg-white/5 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-sand-100 backdrop-blur-sm anim-fade-in">
+          <span class="h-1.5 w-1.5 rounded-full bg-gold-light"></span><%= copy.badge %>
+        </span>
+        <h1 class="mt-8 font-display tracking-tight anim-slide-up" style="font-size:clamp(2.5rem,min(8vw,10vh),4.25rem);line-height:1.06">
+          <%= copy.titleA %> <span class="italic font-light text-gold-light"><%= copy.titleB %></span>
+        </h1>
+        <p class="mt-5 text-xs uppercase tracking-[0.25em] text-gold-light/90 anim-fade-in"><%= copy.subtitle %></p>
+        <p class="mx-auto mt-6 max-w-xl text-base leading-relaxed text-sand-100/85 anim-fade-in sm:text-lg lg:mx-0"><%= copy.hero %></p>
+        <div class="mt-10 flex flex-wrap justify-center gap-4 anim-fade-in lg:justify-start">
+          <a href="#our-story" class="inline-flex items-center gap-3 rounded-full bg-sand-50 px-8 py-3.5 text-sm font-medium tracking-wide text-sand-900 transition hover:bg-white">
+            <%= copy.learn %>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg>
+          </a>
+          <a href="/formulir-konsultasi" class="inline-flex items-center gap-3 rounded-full border border-sand-50/40 px-8 py-3.5 text-sm text-sand-50 transition hover:border-sand-50 hover:bg-sand-50/10"><%= copy.consult %></a>
         </div>
       </div>
 
-      <div class="reveal" data-delay="120">
-        <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.about.storyEyebrow %></p>
-        <h2 class="font-display text-3xl sm:text-4xl text-sage-900 leading-tight mb-6"><%= t.about.storyTitle %></h2>
-        <p class="text-stone-warm leading-relaxed mb-4"><%= t.about.storyP1 %></p>
-        <p class="text-stone-warm leading-relaxed"><%= t.about.storyP2 %></p>
-        <a href="/classes" class="btn-primary group mt-8 py-3">
-          <%= t.viewAllClasses %>
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow ms-2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-        </a>
+      <div class="mx-auto w-full max-w-md anim-fade-in lg:max-w-none">
+        <div class="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[2rem] border border-white/20 shadow-2xl" style="background:radial-gradient(ellipse at 50% 42%,rgba(255,255,255,.18),transparent 44%),linear-gradient(145deg,#b79f80,#89745f 55%,#403a34)">
+          <div class="absolute h-[82%] w-[66%] rounded-[48%] border border-white/25"></div>
+          <div class="absolute h-[68%] w-[53%] rounded-[48%] border border-gold-light/45 rotate-[-18deg]"></div>
+          <svg class="absolute h-[78%] w-[70%] text-gold-light/65" viewBox="0 0 320 280" fill="none" aria-hidden="true">
+            <path d="M160 256C143 219 147 190 130 158C112 124 102 94 109 52M160 256C177 218 175 184 195 151C215 119 224 87 213 45" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M134 167C105 164 88 146 84 119C112 121 130 138 134 167ZM113 111C88 101 78 81 82 56C105 66 117 85 113 111ZM187 161C215 155 233 137 238 111C210 114 192 132 187 161ZM211 104C236 93 246 72 240 48C217 59 207 79 211 104Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+            <path d="M160 110C145 94 146 75 160 58C174 75 175 94 160 110ZM160 110C141 106 132 91 135 72C153 75 163 89 160 110ZM160 110C179 106 188 91 185 72C167 75 157 89 160 110Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+            <circle cx="160" cy="111" r="3" fill="currentColor"/>
+          </svg>
+          <div class="relative z-10 max-w-xs px-6 text-center">
+            <p class="text-[10px] font-medium uppercase tracking-[0.28em] text-sand-50/80"><%= copy.visualEyebrow %></p>
+            <p class="mt-5 font-display text-3xl italic leading-tight text-white sm:text-4xl"><%= copy.visualTitle %></p>
+            <span class="mx-auto mt-6 block h-px w-12 bg-gold-light/70"></span>
+            <p class="mt-4 text-xs tracking-wide text-sand-50/75"><%= copy.visualNote %></p>
+          </div>
+          <span class="absolute -bottom-16 -right-10 h-48 w-48 rounded-full border border-white/15"></span>
+          <span class="absolute -bottom-10 -right-4 h-32 w-32 rounded-full border border-white/15"></span>
+        </div>
+        <div class="mt-5 grid grid-cols-3 gap-3 sm:gap-4">
+          <% copy.stats.forEach((stat) => { %>
+            <div class="rounded-2xl border border-sand-100/15 bg-white/5 px-2 py-4 text-center backdrop-blur-sm sm:px-3 sm:py-5">
+              <div class="font-display text-xl leading-none text-gold-light sm:text-2xl"><%= stat.value %></div>
+              <div class="mt-2 text-[9px] leading-snug text-sand-100/70 sm:text-[10px]"><%= stat.label %></div>
+            </div>
+          <% }) %>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ======================= VALUES ======================= -->
-  <%
-    const valueVariants = [
-      { tile: 'bg-lotus-100 text-lotus-700', icon: 'M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z' },
-      { tile: 'bg-sage-100 text-sage-700', icon: 'M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z' },
-      { tile: 'bg-stone-100 text-stone-warm', icon: 'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z' },
-    ];
-  %>
-  <section class="py-16 px-6 bg-sand-100/60">
-    <div class="max-w-6xl mx-auto">
-      <div class="reveal text-center mb-14">
-        <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.about.valuesEyebrow %></p>
-        <h2 class="font-display text-3xl sm:text-4xl text-sage-900 leading-tight"><%= t.about.valuesTitle %> <span class="italic text-terracotta-600"><%= t.about.valuesTitleItalic %></span></h2>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <% (t.about.values || []).forEach((v, i) => { const variant = valueVariants[i % valueVariants.length]; %>
-          <div class="relative card-earthy p-8 reveal overflow-hidden group" data-delay="<%= i * 120 %>">
-            <span class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-gold/0 via-gold/60 to-gold/0 scale-x-0 group-hover:scale-x-100 origin-center transition-transform duration-500"></span>
-            <div class="icon-tile w-12 h-12 rounded-2xl <%= variant.tile %> flex items-center justify-center mb-5">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="<%= variant.icon %>"></path></svg>
-            </div>
-            <h3 class="font-display text-xl text-sage-900 mb-2"><%= v.title %></h3>
-            <p class="text-sm text-stone-warm leading-relaxed"><%= v.desc %></p>
+  <section id="our-story" class="scroll-mt-24 px-6 py-20 lg:py-28">
+    <div class="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-2 lg:gap-20">
+      <div class="order-2 reveal lg:order-1">
+        <div class="grid grid-cols-2 gap-4 sm:gap-5">
+          <div class="flex aspect-[3/2] flex-col justify-between rounded-2xl bg-sand-200/70 p-5 sm:p-7">
+            <span class="font-display text-3xl text-terracotta-600">01</span>
+            <p class="font-display text-lg leading-snug text-sage-900 sm:text-xl"><%= isID ? 'Dengarkan cerita' : 'Listen to your story' %></p>
           </div>
+          <div class="mt-8 flex aspect-[3/2] flex-col justify-between rounded-2xl bg-sand-100 p-5 sm:p-7">
+            <span class="font-display text-3xl text-terracotta-600">02</span>
+            <p class="font-display text-lg leading-snug text-sage-900 sm:text-xl"><%= isID ? 'Pahami prioritas' : 'Understand priorities' %></p>
+          </div>
+          <div class="flex aspect-[3/2] flex-col justify-between rounded-2xl bg-sand-100 p-5 sm:p-7">
+            <span class="font-display text-3xl text-terracotta-600">03</span>
+            <p class="font-display text-lg leading-snug text-sage-900 sm:text-xl"><%= isID ? 'Satukan detail' : 'Bring details together' %></p>
+          </div>
+          <div class="mt-8 flex aspect-[3/2] flex-col justify-between rounded-2xl bg-sand-900 p-5 text-sand-50 shadow-lg sm:p-7">
+            <span class="font-display text-3xl text-gold-light">04</span>
+            <p class="font-display text-lg italic leading-snug sm:text-xl"><%= isID ? 'Hadir sepenuhnya' : 'Be fully present' %></p>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-center">
+          <span class="inline-flex items-center gap-2.5 rounded-full bg-sand-900 py-2 pl-5 pr-6 text-xs tracking-wide text-sand-50 shadow-md">
+            <span class="h-2 w-2 rounded-full bg-gold-light"></span><%= copy.aboutPill %>
+          </span>
+        </div>
+      </div>
+      <div class="order-1 reveal lg:order-2">
+        <p class="mb-4 text-xs uppercase tracking-[0.2em] text-terracotta-600"><%= copy.aboutEyebrow %></p>
+        <h2 class="font-display text-3xl leading-tight text-sage-900 sm:text-4xl"><%= copy.aboutTitle %></h2>
+        <p class="mt-6 leading-relaxed text-stone-warm"><%= copy.aboutP1 %></p>
+        <p class="mt-4 leading-relaxed text-stone-warm"><%= copy.aboutP2 %></p>
+        <div class="mt-8 h-px w-20 bg-gold"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-sand-100/60 px-6 py-20 lg:py-28">
+    <div class="mx-auto max-w-6xl">
+      <div class="reveal mb-14 text-center lg:mb-16">
+        <p class="mb-4 text-xs uppercase tracking-[0.2em] text-terracotta-600"><%= copy.valuesEyebrow %></p>
+        <h2 class="font-display text-3xl leading-tight text-sage-900 sm:text-4xl"><%= copy.valuesTitle %> <span class="italic text-terracotta-600"><%= copy.valuesTitleAccent %></span></h2>
+      </div>
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <% copy.values.forEach((value, i) => { %>
+          <article class="card-earthy group relative overflow-hidden p-7 sm:p-8" data-delay="<%= (i % 3) * 100 %>">
+            <span class="absolute inset-x-0 top-0 h-1 origin-center scale-x-0 bg-gradient-to-r from-gold/0 via-gold/70 to-gold/0 transition-transform duration-500 group-hover:scale-x-100"></span>
+            <div class="mb-6 grid h-12 w-12 place-items-center rounded-2xl <%= i % 2 === 0 ? 'bg-gold/15 text-sage-700' : 'bg-sage-100 text-sage-700' %>">
+              <span class="font-display text-lg"><%= String(i + 1).padStart(2, '0') %></span>
+            </div>
+            <h3 class="mb-3 font-display text-xl leading-snug text-sage-900"><%= value.title %></h3>
+            <p class="text-sm leading-relaxed text-stone-warm"><%= value.desc %></p>
+          </article>
         <% }) %>
       </div>
     </div>
   </section>
 
-  <!-- ======================= STATS ======================= -->
-  <section class="bg-sand-900 text-sand-50 py-16 px-6">
-  <!-- Angka live dari backend (members, vendors, classes); index ke-3+ tetap statis -->
-  <% const statKeys = ["members", "vendors", "classes"]; %>
-    <div class="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-      <% (t.about.stats || []).forEach((s, i) => { %>
-        <div class="reveal" data-delay="<%= i * 90 %>">
-          <%
-            let statValue = s.value;
-            const liveKey = statKeys[i];
-            if (typeof liveStats !== "undefined" && liveStats && liveKey && liveStats[liveKey] !== null && liveStats[liveKey] !== undefined && typeof formatStat !== "undefined") {
-              const formatted = formatStat(liveStats[liveKey]);
-              if (formatted) statValue = formatted;
-            }
-          %>
-          <div class="font-display text-4xl sm:text-5xl text-gold-light mb-2"><%= statValue %></div>
-          <div class="font-sans text-xs uppercase tracking-[0.15em] text-sand-400"><%= s.label %></div>
+  <section class="px-6 pb-14 pt-20 lg:pb-16 lg:pt-28">
+    <div class="mx-auto max-w-6xl">
+      <div class="reveal mb-16 text-center">
+        <p class="mb-4 text-xs uppercase tracking-[0.2em] text-terracotta-600"><%= copy.journeyEyebrow %></p>
+        <h2 class="font-display text-3xl leading-tight text-sage-900 sm:text-4xl"><%= copy.journeyTitle %> <span class="italic text-terracotta-600"><%= copy.journeyAccent %></span></h2>
+      </div>
+      <div class="relative">
+        <div class="absolute left-[7px] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-sand-300 to-transparent md:left-0 md:right-0 md:top-[7px] md:bottom-auto md:h-px md:w-auto md:bg-gradient-to-r"></div>
+        <div class="grid grid-cols-1 gap-10 md:grid-cols-4 md:gap-8">
+          <% copy.steps.forEach((step, i) => { %>
+            <article class="relative reveal" data-delay="<%= i * 100 %>">
+              <div class="flex items-start gap-5 md:block">
+                <span class="relative z-10 mt-1 block h-3.5 w-3.5 shrink-0 rounded-full bg-gold ring-4 ring-sand-50 md:mb-6 md:mt-0"></span>
+                <div>
+                  <div class="mb-1 font-display text-2xl text-terracotta-600"><%= step.n %></div>
+                  <h3 class="mb-2 font-semibold text-sage-900"><%= step.title %></h3>
+                  <p class="text-sm leading-relaxed text-stone-warm"><%= step.desc %></p>
+                </div>
+              </div>
+            </article>
+          <% }) %>
         </div>
-      <% }) %>
-    </div>
-  </section>
-
-  <!-- ======================= JOURNEY ======================= -->
-  <section class="py-16 px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="reveal text-center mb-16">
-        <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.about.journeyEyebrow %></p>
-        <h2 class="font-display text-3xl sm:text-4xl text-sage-900 leading-tight"><%= t.about.journeyTitle %> <span class="italic text-terracotta-600"><%= t.about.journeyTitleItalic %></span></h2>
       </div>
 
-      <div class="relative">
-        <div class="hidden md:block absolute top-[7px] left-0 right-0 h-px bg-gradient-to-r from-transparent via-sand-300 to-transparent"></div>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8">
-          <% (t.about.milestones || []).forEach((m, i) => { %>
-            <div class="relative reveal" data-delay="<%= i * 110 %>">
-              <div class="flex md:block items-start gap-4">
-                <span class="relative z-10 block w-3.5 h-3.5 rounded-full bg-gold ring-4 ring-sand-50 shrink-0 md:mb-6"></span>
-                <div>
-                  <div class="font-display text-2xl text-terracotta-600 mb-1"><%= m.year %></div>
-                  <h3 class="font-semibold text-sage-900 mb-2"><%= m.title %></h3>
-                  <p class="text-sm text-stone-warm leading-relaxed"><%= m.desc %></p>
-                </div>
+      <div class="mt-16 grid items-center gap-12 lg:mt-20 lg:grid-cols-2 lg:gap-16">
+        <div class="reveal">
+          <div class="relative flex aspect-[3/2] items-center justify-center overflow-hidden rounded-[2rem] bg-sand-900 p-8 text-center shadow-xl">
+            <div class="absolute h-56 w-56 rounded-full border border-gold-light/25"></div>
+            <div class="absolute h-40 w-40 rounded-full border border-gold-light/20 rotate-45"></div>
+            <div class="relative max-w-sm">
+              <p class="text-[10px] uppercase tracking-[0.25em] text-gold-light"><%= isID ? 'DENGAN PENUH PERHATIAN' : 'THOUGHTFULLY, EVERY STEP' %></p>
+              <p class="mt-5 font-display text-3xl italic leading-tight text-sand-50 sm:text-4xl"><%= isID ? 'Setiap detail punya tempat dalam cerita Anda.' : 'Every detail has a place in your story.' %></p>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-8">
+          <h3 class="font-display text-2xl text-sage-900"><%= copy.focusTitle %></h3>
+          <% copy.focus.forEach((point, i) => { %>
+            <div class="flex gap-5 reveal" data-delay="<%= i * 100 %>">
+              <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl <%= i % 2 === 0 ? 'bg-sage-100 text-sage-700' : 'bg-lotus-100 text-lotus-700' %>">
+                <span class="font-display text-sm"><%= String(i + 1).padStart(2, '0') %></span>
+              </div>
+              <div>
+                <h4 class="mb-1 font-semibold text-sage-900"><%= point.title %></h4>
+                <p class="text-sm leading-relaxed text-stone-warm"><%= point.desc %></p>
               </div>
             </div>
           <% }) %>
@@ -135,157 +280,47 @@
     </div>
   </section>
 
-  <!-- ======================= WHY ======================= -->
-  <%
-    const whyVariants = [
-      'bg-lotus-100 text-lotus-700',
-      'bg-sage-100 text-sage-700',
-      'bg-stone-100 text-stone-warm',
-      'bg-sage-100 text-sage-700',
-    ];
-    const whyIcons = [
-      '<path d="M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"></path><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.12"></path>',
-      '<path d="M22 7 13.5 15.5 8.5 10.5 2 17"></path><path d="M16 7h6v6"></path>',
-      '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6"></path>',
-      '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
-    ];
-  %>
-  <section class="py-16 px-6 bg-sand-100/60">
-    <div class="max-w-6xl mx-auto grid lg:grid-cols-[0.85fr_1.15fr] gap-14 lg:gap-20 items-center">
-      <div class="reveal">
-        <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.about.whyEyebrow %></p>
-        <h2 class="font-display text-3xl sm:text-4xl text-sage-900 leading-tight mb-5"><%= t.about.whyTitle %> <span class="italic text-terracotta-600"><%= t.about.whyTitleItalic %></span></h2>
-        <p class="text-stone-warm leading-relaxed max-w-md"><%= t.about.whyDesc %></p>
-      </div>
-
-      <div class="grid sm:grid-cols-2 gap-6">
-        <% (t.about.whyFeatures || []).forEach((f, i) => { %>
-          <div class="flex gap-4 reveal" data-delay="<%= i * 100 %>">
-            <div class="icon-tile w-11 h-11 rounded-xl <%= whyVariants[i % whyVariants.length] %> flex items-center justify-center shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><%- whyIcons[i % whyIcons.length] %></svg>
-            </div>
-            <div>
-              <h3 class="font-semibold text-sage-900 mb-1"><%= f.title %></h3>
-              <p class="text-sm text-stone-warm leading-relaxed"><%= f.desc %></p>
-            </div>
-          </div>
-        <% }) %>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================= QUOTE ======================= -->
-  <section class="py-16 px-6 bg-sand-900 text-sand-50 relative overflow-hidden">
-    <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-gold/10 blur-3xl"></div>
-    <div class="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-lotus-600/10 blur-3xl"></div>
-    <div class="reveal relative max-w-3xl mx-auto text-center">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-9 h-9 text-gold-light mx-auto mb-7"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"></path></svg>
-      <blockquote class="font-display text-2xl sm:text-3xl italic text-sand-100 leading-relaxed">"<%= t.about.quote %>"</blockquote>
-      <p class="mt-7 font-sans text-xs uppercase tracking-[0.25em] text-sand-400"><%= t.about.quoteAuthor %></p>
-    </div>
-  </section>
-
-  <!-- ======================= ARTICLES ======================= -->
-  <% if (typeof posts !== "undefined" && posts && posts.length) { %>
-  <section class="py-16 px-6 bg-sand-100/60">
-    <div class="max-w-6xl mx-auto">
-      <div class="reveal flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
-        <div>
-          <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.about.articlesEyebrow %></p>
-          <h2 class="font-display text-3xl sm:text-4xl text-sage-900 leading-tight"><%= t.about.articlesTitle %> <span class="italic text-terracotta-600"><%= t.about.articlesTitleItalic %></span></h2>
-        </div>
-        <a href="/blog" class="btn-secondary group py-2.5 self-start sm:self-auto">
-          <%= t.about.articlesCta %>
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow ms-2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-        </a>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <% posts.forEach((p, i) => { %>
-          <a href="/blog/<%= p.slug %>" class="reveal group bg-white border border-sage-100 rounded-[24px] overflow-hidden hover:shadow-lg transition" data-delay="<%= i * 100 %>">
-            <% if (p.image) { %>
-              <img
-                src="<%= p.image %>"
-                alt="<%= p.title %>"
-                loading="lazy"
-                decoding="async"
-                data-img-error="remove"
-                class="h-[180px] w-full object-cover group-hover:scale-[1.02] transition"
-              >
-            <% } %>
-            <div class="p-5">
-              <div class="flex items-center gap-2 text-xs">
-                <% if (p.category) { %>
-                  <span class="bg-sage-700 text-white px-2.5 py-1 rounded-full font-semibold"><%= p.category %></span>
-                <% } %>
-                <span class="text-stone-warm"><%= p.date %></span>
-              </div>
-              <h3 class="font-semibold text-sage-900 mt-3 leading-tight"><%= p.title %></h3>
-              <p class="text-sm text-stone-warm mt-1 line-clamp-2"><%= p.excerpt %></p>
-            </div>
+  <section class="px-6 pb-20 pt-8 lg:pb-28">
+    <div class="reveal relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-sand-200/70 shadow-xl ring-1 ring-sand-900/10">
+      <div class="absolute inset-0" style="background:radial-gradient(ellipse at 85% 50%,rgba(183,159,128,.42),transparent 48%),linear-gradient(105deg,#f8f6f2 0%,#f2ece3 62%,#d8c6a9 100%)"></div>
+      <div class="absolute right-[-4rem] top-[-7rem] h-[26rem] w-[26rem] rounded-full border border-sand-900/10"></div>
+      <div class="absolute right-[-1rem] top-[-4rem] h-[20rem] w-[20rem] rounded-full border border-sand-900/10"></div>
+      <div class="relative z-10 flex min-h-[14rem] items-center sm:min-h-[17rem]">
+        <div class="max-w-2xl px-8 py-10 sm:px-12 md:px-14">
+          <p class="text-[10px] uppercase tracking-[0.28em] text-terracotta-600/90"><%= copy.bannerEyebrow %></p>
+          <p class="mt-3 font-display text-2xl leading-tight tracking-tight text-sage-900 sm:text-3xl"><%= copy.banner %></p>
+          <a href="/formulir-konsultasi" class="group mt-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-sage-700 transition-colors hover:text-sage-900">
+            <span class="border-b border-sage-700/30 pb-px group-hover:border-sage-900"><%= copy.bannerLink %></span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
           </a>
-        <% }) %>
-      </div>
-    </div>
-  </section>
-  <% } %>
-
-  <!-- ======================= GALLERY ======================= -->
-  <section class="py-16 px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="reveal flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
-        <div>
-          <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.about.galleryEyebrow %></p>
-          <h2 class="font-display text-3xl sm:text-4xl text-sage-900 leading-tight"><%= t.about.galleryTitle %> <span class="italic text-terracotta-600"><%= t.about.galleryTitleItalic %></span></h2>
         </div>
-        <a href="/gallery" class="btn-secondary group py-2.5 self-start sm:self-auto">
-          <%= t.about.galleryCta %>
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow ms-2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-        </a>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <a href="/gallery" class="reveal group relative overflow-hidden rounded-2xl aspect-[4/5] col-span-2 md:col-span-1 row-span-1 md:row-span-2">
-          <img src="/img/sita-manwani.jpg" alt="YogaRoots moment" loading="lazy" decoding="async" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-          <span class="absolute inset-0 bg-gradient-to-t from-sand-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
-        </a>
-        <a href="/gallery" class="reveal group relative overflow-hidden rounded-2xl aspect-square" data-delay="100">
-          <img src="/img/yogaroots_about1.jpg" alt="YogaRoots moment" loading="lazy" decoding="async" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-          <span class="absolute inset-0 bg-gradient-to-t from-sand-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
-        </a>
-        <a href="/gallery" class="reveal group relative overflow-hidden rounded-2xl aspect-square" data-delay="180">
-          <img src="/img/yogaroots_about2.jpg" alt="YogaRoots moment" loading="lazy" decoding="async" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-          <span class="absolute inset-0 bg-gradient-to-t from-sand-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
-        </a>
       </div>
     </div>
   </section>
 
-  <!-- ======================= FINAL CTA ======================= -->
-  <section class="py-16 px-6 bg-sand-200/40">
-    <div class="reveal max-w-3xl mx-auto text-center">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-terracotta-600 mx-auto mb-6">
-        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path>
-        <path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path>
-      </svg>
-      <h2 class="font-display text-3xl sm:text-4xl text-sage-900 mb-4"><%= t.readyTitle %> <span class="italic"><%= t.readyTitleItalic %></span>?</h2>
-      <p class="text-stone-warm mb-8 max-w-lg mx-auto"><%= t.ctaDesc %></p>
-      <div class="flex flex-wrap items-center justify-center gap-4">
-        <a href="<%= contactLinks.whatsappShortLink %>" target="_blank" rel="noopener noreferrer" class="btn-primary group text-base px-8 py-3.5">
-          <%= t.chatWhatsApp %>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow ms-2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-        </a>
-        <a href="/formulir-konsultasi" class="btn-secondary group text-base px-8 py-3.5">
-          <%= t.consultationCta %>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow ms-2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-        </a>
-      </div>
+  <section class="relative overflow-hidden bg-sand-900 px-6 py-20 text-sand-50 lg:py-24">
+    <div class="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-gold/10 blur-3xl"></div>
+    <div class="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-lotus-600/10 blur-3xl"></div>
+    <div class="reveal relative mx-auto max-w-3xl text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-8 h-9 w-9 text-gold-light"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"></path></svg>
+      <blockquote class="font-display text-2xl italic leading-relaxed text-sand-100 sm:text-3xl">“<%= copy.quote %>”</blockquote>
+      <p class="mt-8 text-xs uppercase tracking-[0.25em] text-sand-400"><%= copy.quoteBy %></p>
     </div>
   </section>
 
+  <section class="bg-sand-200/40 px-6 py-20 lg:py-24">
+    <div class="reveal mx-auto max-w-3xl text-center">
+      <p class="mb-4 text-xs uppercase tracking-[0.2em] text-terracotta-600"><%= copy.closingEyebrow %></p>
+      <h2 class="font-display text-3xl leading-tight text-sage-900 sm:text-4xl"><%= copy.closingTitle %></h2>
+      <p class="mx-auto mt-5 max-w-xl leading-relaxed text-stone-warm"><%= copy.closingText %></p>
+      <a href="/formulir-konsultasi" class="mt-8 inline-flex items-center gap-3 rounded-full bg-sage-700 px-8 py-3.5 text-sm font-medium text-white transition hover:bg-sage-800">
+        <%= copy.closingCta %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+      </a>
+    </div>
+  </section>
 </main>
 
 <%- include('../partials/footer') %>
-<!-- main.js dimuat sekali via partials/footer -->
 </body>
 </html>

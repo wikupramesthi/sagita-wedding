@@ -1,8 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Payment Receipt')
+@section('title', 'Bukti Pembayaran')
 
 @section('content')
+
+@php
+    $typeLabels = ['package' => 'Paket', 'class' => 'Kelas'];
+@endphp
 
 <div class="receipt-page">
     <div class="receipt-wrapper">
@@ -14,7 +18,7 @@
                 href="{{ route('orders.index') }}"
                 class="back-link">
                 <i class="bi bi-arrow-left"></i>
-                <span>Back to Billing</span>
+                <span>Kembali ke Pesanan</span>
             </a>
 
             <button
@@ -22,7 +26,7 @@
                 onclick="window.print()"
                 class="print-button">
                 <i class="bi bi-printer"></i>
-                <span>Print Receipt</span>
+                <span>Cetak Bukti</span>
             </button>
 
         </div>
@@ -32,34 +36,34 @@
         @if ($isAdmin && $order->status === 'pending')
             <div class="card border-warning mb-4">
                 <div class="card-header bg-warning bg-opacity-10 fw-bold">
-                    <i class="bi bi-shield-check me-1"></i> Admin Verification
+                    <i class="bi bi-shield-check me-1"></i> Verifikasi Admin
                 </div>
                 <div class="card-body">
                     <p class="text-muted small">
-                        Verify the manual bank transfer for <strong>{{ $order->order_number }}</strong>.
-                        Approving marks the order as paid and activates the membership automatically.
+                        Verifikasi transfer bank manual untuk <strong>{{ $order->order_number }}</strong>.
+                        Menyetujui akan menandai pesanan lunas dan mengaktifkan keanggotaan secara otomatis.
                     </p>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <form action="{{ route('orders.approve', $order->uuid) }}" method="POST">
                                 @csrf
-                                <label class="form-label small fw-semibold" for="approveNote">Note (optional)</label>
+                                <label class="form-label small fw-semibold" for="approveNote">Catatan (opsional)</label>
                                 <textarea name="admin_note" id="approveNote" rows="2" class="form-control mb-2"
-                                    placeholder="e.g. Transfer verified, BCA ...1234"></textarea>
+                                    placeholder="mis. Transfer terverifikasi, BCA ...1234"></textarea>
                                 <button type="submit" class="btn btn-success w-100">
-                                    <i class="bi bi-check-lg me-1"></i> Approve — Mark as Paid
+                                    <i class="bi bi-check-lg me-1"></i> Setujui — Tandai Lunas
                                 </button>
                             </form>
                         </div>
                         <div class="col-md-6">
                             <form action="{{ route('orders.reject', $order->uuid) }}" method="POST">
                                 @csrf
-                                <label class="form-label small fw-semibold" for="rejectNote">Rejection reason</label>
+                                <label class="form-label small fw-semibold" for="rejectNote">Alasan penolakan</label>
                                 <textarea name="admin_note" id="rejectNote" rows="2" class="form-control mb-2"
-                                    placeholder="e.g. No transfer received"></textarea>
+                                    placeholder="mis.Transfer tidak diterima"></textarea>
                                 <button type="submit" class="btn btn-outline-danger w-100"
                                     onclick="return confirm('Tolak pesanan ini?')">
-                                    <i class="bi bi-x-lg me-1"></i> Reject Order
+                                    <i class="bi bi-x-lg me-1"></i> Tolak Pesanan
                                 </button>
                             </form>
                         </div>
@@ -70,7 +74,7 @@
 
         @if ($isAdmin && $order->admin_note)
             <div class="alert alert-info">
-                <strong>Admin note:</strong> {{ $order->admin_note }}
+                <strong>Catatan admin:</strong> {{ $order->admin_note }}
             </div>
         @endif
 
@@ -78,13 +82,13 @@
             <div class="alert alert-success d-flex align-items-center gap-2">
                 <i class="bi bi-check-circle-fill"></i>
                 <div>
-                    Membership active
+                    Keanggotaan aktif
                     @if ($userPackage->quota === null)
-                        (Unlimited)
+                        (tanpa batas)
                     @else
-                        ({{ $userPackage->quota }} classes left)
+                        (sisa {{ $userPackage->quota }} kelas)
                     @endif
-                    until {{ $userPackage->expired_at?->format('d M Y') ?? '-' }}.
+                    sampai {{ $userPackage->expired_at?->translatedFormat('d F Y') ?? '-' }}.
                 </div>
             </div>
         @endif
@@ -97,17 +101,17 @@
                 $bankAccount = config('manual_payment.bank_account');
                 $bankHolder = config('manual_payment.bank_holder');
                 $waNumber = preg_replace('/\D/', '', (string) config('manual_payment.admin_whatsapp'));
-                $waText = 'Halo Admin YogaRoots, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
+                $waText = 'Halo Admin Sagita Wedding Organizer, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
             @endphp
             <div class="card border-primary mb-4">
                 <div class="card-header bg-primary bg-opacity-10 fw-bold">
-                    <i class="bi bi-bank me-1"></i> Complete Your Payment — Manual Transfer
+                    <i class="bi bi-bank me-1"></i> Selesaikan Pembayaran — Transfer Manual
                 </div>
                 <div class="card-body">
                     <ol class="small mb-3 ps-3">
-                        <li>Transfer the exact amount below to our bank account.</li>
-                        <li>Upload your transfer proof (or confirm via WhatsApp).</li>
-                        <li>Admin verifies it — your membership activates automatically.</li>
+                        <li>Transfer jumlah yang tertera ke rekening bank kami.</li>
+                        <li>Unggah bukti transfer (atau konfirmasi melalui WhatsApp).</li>
+                        <li>Admin akan memverifikasi — keanggotaan aktif otomatis setelah disetujui.</li>
                     </ol>
 
                     @if ($bankAccount)
@@ -118,11 +122,11 @@
                                 <span class="font-monospace fs-5 fw-bold" id="bankAccountNumber">{{ $bankAccount }}</span>
                             </div>
                             @if ($bankHolder)
-                                <div class="small text-muted">Account holder: {{ $bankHolder }}</div>
+                                <div class="small text-muted">Atas nama: {{ $bankHolder }}</div>
                             @endif
                             <div class="d-flex flex-wrap gap-3 mt-2">
-                                <span>Amount: <strong>Rp {{ number_format($order->amount, 0, ',', '.') }}</strong></span>
-                                <span>Order: <strong>{{ $order->order_number }}</strong></span>
+                                <span>Jumlah: <strong>Rp {{ number_format($order->amount, 0, ',', '.') }}</strong></span>
+                                <span>Pesanan: <strong>{{ $order->order_number }}</strong></span>
                             </div>
                         </div>
                     @endif
@@ -131,7 +135,7 @@
                         @if ($waNumber)
                             <a href="https://wa.me/{{ $waNumber }}?text={{ urlencode($waText) }}" target="_blank"
                                 rel="noopener" class="btn btn-success">
-                                <i class="bi bi-whatsapp me-1"></i> Confirm via WhatsApp
+                                <i class="bi bi-whatsapp me-1"></i> Konfirmasi via WhatsApp
                             </a>
                         @endif
                     </div>
@@ -139,18 +143,18 @@
                     @if ($order->proof_image_path)
                         <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light mb-3">
                             <a href="{{ $order->proofUrl() }}" target="_blank" rel="noopener">
-                                <img src="{{ $order->proofUrl() }}" alt="Transfer proof"
+                                <img src="{{ $order->proofUrl() }}" alt="Bukti transfer"
                                     class="rounded-3 border" style="height:110px;width:auto;object-fit:cover;">
                             </a>
                             <div class="small">
                                 <div class="fw-bold text-success">
-                                    <i class="bi bi-check-circle me-1"></i>Proof uploaded
+                                    <i class="bi bi-check-circle me-1"></i>Bukti diunggah
                                 </div>
                                 <div class="text-muted">
-                                    {{ $order->proof_uploaded_at?->format('d M Y H:i') ?? '' }} — waiting for admin verification.
+                                    {{ $order->proof_uploaded_at?->translatedFormat('d F Y H:i') ?? '' }} — menunggu verifikasi admin.
                                 </div>
                                 @if ($isOwner)
-                                    <div class="text-muted">Upload again below to replace it.</div>
+                                    <div class="text-muted">Unggah ulang di bawah untuk menggantinya.</div>
                                 @endif
                             </div>
                         </div>
@@ -162,14 +166,14 @@
                             @csrf
                             <div class="flex-fill" style="min-width: 220px;">
                                 <label class="form-label small fw-semibold" for="proofInput">
-                                    Upload transfer proof (JPG/PNG/WebP, max {{ number_format(config('manual_payment.proof_max_kb', 3072) / 1024, 1) }} MB)
+                                    Unggah bukti transfer (JPG/PNG/WebP, maks {{ number_format(config('manual_payment.proof_max_kb', 3072) / 1024, 1) }} MB)
                                 </label>
                                 <input type="file" name="proof" id="proofInput" class="form-control"
                                     accept="image/jpeg,image/png,image/webp" required>
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-upload me-1"></i>
-                                {{ $order->proof_image_path ? 'Replace Proof' : 'Upload Proof' }}
+                                {{ $order->proof_image_path ? 'Ganti Bukti' : 'Unggah Bukti' }}
                             </button>
                         </form>
                     @endif
@@ -185,11 +189,11 @@
             <div class="receipt-header">
 
                 <div class="receipt-brand">
-                    Yogaroots
+                    Sagita Wedding Organizer
                 </div>
 
                 <div class="receipt-heading">
-                    Payment Receipt
+                    Bukti Pembayaran
                 </div>
 
                 <div class="receipt-order-number">
@@ -197,7 +201,7 @@
                 </div>
 
                 <div class="receipt-date">
-                    {{ $order->created_at?->format('d F Y, H:i') ?? '-' }}
+                    {{ $order->created_at?->translatedFormat('d F Y, H:i') ?? '-' }}
                 </div>
 
             </div>
@@ -213,11 +217,11 @@
                 </div>
 
                 <h3>
-                    Payment Successful
+                    Pembayaran Berhasil
                 </h3>
 
                 <p>
-                    Your payment has been successfully processed.
+                    Pembayaran Anda telah berhasil diproses.
                 </p>
 
                 @elseif ($order->status === 'pending')
@@ -227,11 +231,11 @@
                 </div>
 
                 <h3>
-                    Payment Pending
+                    Pembayaran Menunggu
                 </h3>
 
                 <p>
-                    This payment has not been completed yet.
+                    Pembayaran ini belum diselesaikan.
                 </p>
 
                 @elseif ($order->status === 'failed')
@@ -241,11 +245,11 @@
                 </div>
 
                 <h3>
-                    Payment Failed
+                    Pembayaran Gagal
                 </h3>
 
                 <p>
-                    We could not complete this payment.
+                    Pembayaran ini tidak dapat diselesaikan.
                 </p>
 
                 @elseif ($order->status === 'expired')
@@ -255,11 +259,11 @@
                 </div>
 
                 <h3>
-                    Payment Expired
+                    Pembayaran Kedaluwarsa
                 </h3>
 
                 <p>
-                    This payment session has expired.
+                    Sesi pembayaran ini sudah kedaluarsa.
                 </p>
 
                 @elseif ($order->status === 'cancelled')
@@ -269,11 +273,11 @@
                 </div>
 
                 <h3>
-                    Order Cancelled
+                    Pesanan Dibatalkan
                 </h3>
 
                 <p>
-                    This order has been cancelled.
+                    Pesanan ini telah dibatalkan.
                 </p>
 
                 @endif
@@ -288,7 +292,7 @@
                 <div class="receipt-block">
 
                     <div class="receipt-label">
-                        MEMBERSHIP
+                        KEANGGOTAAN
                     </div>
 
                     <div class="membership-row">
@@ -318,9 +322,9 @@
 
                                 <span>
                                     @if ($order->packageOption->quota === null)
-                                    Unlimited Classes
+                                    Kelas Tanpa Batas
                                     @else
-                                    {{ $order->packageOption->quota }} Classes
+                                    {{ $order->packageOption->quota }} Kelas
                                     @endif
                                 </span>
 
@@ -348,7 +352,7 @@
                 <div class="receipt-block">
 
                     <div class="receipt-label">
-                        CUSTOMER
+                        PELANGGAN
                     </div>
 
                     <div class="customer-name">
@@ -368,30 +372,30 @@
                     <div>
 
                         <div class="receipt-label">
-                            PAYMENT STATUS
+                            STATUS PEMBAYARAN
                         </div>
 
                         <div class="payment-value">
 
                             @if ($order->status === 'paid')
                             <span class="mini-status paid">
-                                Paid
+                                Lunas
                             </span>
                             @elseif ($order->status === 'pending')
                             <span class="mini-status pending">
-                                Pending
+                                Menunggu
                             </span>
                             @elseif ($order->status === 'failed')
                             <span class="mini-status failed">
-                                Failed
+                                Gagal
                             </span>
                             @elseif ($order->status === 'expired')
                             <span class="mini-status expired">
-                                Expired
+                                Kedaluwarsa
                             </span>
                             @else
                             <span class="mini-status cancelled">
-                                Cancelled
+                                Dibatalkan
                             </span>
                             @endif
 
@@ -403,11 +407,11 @@
                     <div>
 
                         <div class="receipt-label">
-                            PAYMENT DATE
+                            TANGGAL PEMBAYARAN
                         </div>
 
                         <div class="payment-value">
-                            {{ $order->paid_at?->format('d M Y, H:i') ?? '-' }}
+                            {{ $order->paid_at?->translatedFormat('d F Y, H:i') ?? '-' }}
                         </div>
 
                     </div>
@@ -416,11 +420,11 @@
                     <div>
 
                         <div class="receipt-label">
-                            PAYMENT METHOD
+                            METODE PEMBAYARAN
                         </div>
 
                         <div class="payment-value">
-                            {{ $order->payment?->payment_type ?? 'Manual Transfer' }}
+                            {{ $order->payment?->payment_type ?? 'Transfer Manual' }}
                         </div>
 
                     </div>
@@ -433,11 +437,11 @@
 
                     <div>
                         <span>
-                            Total Paid
+                            Total Dibayar
                         </span>
 
                         <small>
-                            {{ strtoupper($order->type) }} ORDER
+                            PESANAN {{ strtoupper($typeLabels[$order->type] ?? $order->type) }}
                         </small>
                     </div>
 
@@ -456,8 +460,8 @@
                     <i class="bi bi-heart"></i>
 
                     <span>
-                        Thank you for choosing Yogaroots.
-                        Your membership is ready to enjoy.
+                        Terima kasih telah memilih Sagita Wedding Organizer.
+                        Keanggotaan Anda siap dinikmati.
                     </span>
 
                 </div>
@@ -469,7 +473,7 @@
                     <i class="bi bi-info-circle"></i>
 
                     <span>
-                        Payment is still pending. Please complete your payment to activate your membership.
+                        Pembayaran masih menunggu. Selesaikan pembayaran untuk mengaktifkan keanggotaan Anda.
                     </span>
 
                 </div>
@@ -483,11 +487,11 @@
             <div class="receipt-footer">
 
                 <div class="footer-brand">
-                    Yogaroots
+                    Sagita Wedding Organizer
                 </div>
 
                 <div>
-                    Yoga, movement, and mindful living.
+                    Wujudkan pernikahan impian Anda bersama kami.
                 </div>
 
             </div>
@@ -495,7 +499,6 @@
         </div>
 
     </div>
-    ```
 
 </div>
 

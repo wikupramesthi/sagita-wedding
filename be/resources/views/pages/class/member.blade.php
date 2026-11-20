@@ -463,7 +463,7 @@
         <div class="membership-header">
 
             <div class="eyebrow">
-                Yogaroots Membership
+                Keanggotaan Sagita Wedding Organizer
             </div>
 
             <h2>
@@ -476,7 +476,7 @@
 
             <div class="membership-note">
                 <i class="bi bi-stars"></i>
-                All packages can be used for Yogaroots classes
+                Semua paket dapat digunakan untuk kelas Sagita Wedding Organizer
             </div>
 
         </div>
@@ -706,7 +706,7 @@
                                 <i class="bi bi-check-circle-fill"></i>
 
                                 <span>
-                                    Access to Yogaroots classes
+                                    Akses ke kelas Sagita Wedding Organizer
                                 </span>
 
                             </li>
