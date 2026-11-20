@@ -32,4 +32,15 @@ class ConsultationExport implements FromView, ShouldAutoSize, WithTitle
     {
         return 'Rekap Konsultasi';
     }
+
+    public static function escape(?string $value): string
+    {
+        $value = (string) $value;
+
+        if ($value !== '' && preg_match('/^\s*[=+\-@]/', $value)) {
+            return "'".$value;
+        }
+
+        return $value;
+    }
 }

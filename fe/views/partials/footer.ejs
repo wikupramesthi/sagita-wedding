@@ -7,9 +7,9 @@
       <!-- Brand (dinamis dari Identitas Website) -->
       <div class="col-span-2 md:col-span-1">
         <div class="mb-4">
-          <img src="<%= site.logoWhiteUrl || "/img/logo.png" %>" alt="<%= site.name %>" width="160" height="40" class="footer-logo object-cover" loading="lazy" decoding="async">
+          <img src="<%= site.logoWhiteUrl || site.logoUrl || "/img/logo.WebP" %>" alt="<%= site.name %>" width="160" height="40" class="footer-logo object-contain" loading="lazy" decoding="async">
         </div>
-        <p class="text-sm text-sand-400 leading-relaxed"><%= site.tagline %><% if (site.description) { %> — <%= site.description %><% } %></p>
+        <p class="text-sm text-sand-400 leading-relaxed"><%= site.tagline %><% if (site.description) { %> ï¿½ <%= site.description %><% } %></p>
         <% if (site.facebookHref || site.youtubeHref || site.tiktokHref) { %>
         <div class="flex items-center gap-3 mt-4">
           <% if (site.facebookHref) { %>
@@ -35,8 +35,7 @@
       <nav aria-label="Explore">
         <h4 class="font-sans text-xs uppercase tracking-[0.15em] text-sand-500 mb-4"><%= t.footerExplore %></h4>
         <div class="flex flex-col gap-2.5">
-          <a href="/about" class="text-sm hover:text-sand-100 transition-colors"><%= t.footerAbout %></a>
-          <a href="/art-of-living" class="text-sm hover:text-sand-100 transition-colors"><%= (t.nav && t.nav.artofliving) || 'Art of Living' %></a>
+          <a href="/about" class="text-sm hover:text-sand-100 transition-colors"><%= (t.nav && t.nav.about) || 'About' %></a>
           <a href="/classes" class="text-sm hover:text-sand-100 transition-colors"><%= t.footerOurClasses %></a>
           <a href="/schedules" class="text-sm hover:text-sand-100 transition-colors"><%= (t.nav && t.nav.schedules) || 'Schedules' %></a>
           <a href="/vendors" class="text-sm hover:text-sand-100 transition-colors"><%= t.footerVendors %></a>
@@ -73,7 +72,7 @@
       <!-- Community -->
       <div class="col-span-2 md:col-span-1">
         <h4 class="font-sans text-xs uppercase tracking-[0.15em] text-sand-500 mb-4"><%= t.footerCommunity %></h4>
-        <a href="/art-of-living" aria-label="Art of Living" class="inline-block hover:opacity-90 transition-opacity">
+        <a href="/about" aria-label="About Sagita Wedding" class="inline-block hover:opacity-90 transition-opacity">
           <img src="/img/artofliving-white.png" alt="Art of Living" width="160" height="40" class="h-10 w-auto object-contain" loading="lazy" decoding="async">
         </a>
       </div>
@@ -81,7 +80,7 @@
     </div>
 
     <div class="mt-16 pt-8 border-t border-sand-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p class="text-xs text-sand-600">© <%= site.year %> <%= site.name %>.<br class="sm:hidden"> <%= t.copyright %></p>
+      <p class="text-xs text-sand-600">ï¿½ <%= site.year %> <%= site.name %>.<br class="sm:hidden"> <%= t.copyright %></p>
       <div class="flex flex-col sm:flex-row items-center gap-4 text-xs text-sand-600">
         <a href="/pages/privacy-policy" class="hover:text-sand-100 transition-colors"><%= t.privacyPolicy %></a>
         <a href="/pages/terms-conditions" class="hover:text-sand-100 transition-colors"><%= t.termsConditions %></a>

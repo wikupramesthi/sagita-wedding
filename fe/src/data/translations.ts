@@ -28,25 +28,34 @@ const contactPageEn = {
 };
 
 const faqPageEn = {
-	badge: "Here to help",
-	titleA: "Answers for your",
-	titleB: "big day",
+	badge: "Let’s Bring Your Special Day to Life",
+	titleA: "Your wedding,",
+	titleB: "thoughtfully planned",
 	heroDesc:
-		"From the first invitation to the final dance, find clear answers on planning, packages, payments, vendors, and everything in between.",
+		"Explore our planning process, service packages, payment arrangements, vendor coordination, and the support we provide on your wedding day.",
 	searchLabel: "Search FAQs",
-	searchPh: "Search questions, topics, or keywords...",
-	topicsLabel: "Browse by topic",
-	allTopics: "All topics",
+	searchPh: "Enter a question, keyword, or topic...",
+	topicsLabel: "Browse by category",
+	allTopics: "All categories",
 	questionsLabel: "questions",
-	topicsCountLabel: "topics",
+	topicsCountLabel: "categories",
 	answerLabel: "Answer",
 	emptyTitle: "No matching questions",
-	emptyDesc: "Try another keyword or choose a different topic.",
-	reset: "Reset filters",
-	stillTitle: "Still have a question?",
+	emptyDesc: "Try another search term or explore a different category.",
+	reset: "Clear filters",
+	stillTitle: "Let’s make your day unforgettable.",
 	stillDesc:
-		"Every wedding is different. Chat with our team and we'll help you find the right answer for your plans.",
-	stillBtn: "Chat on WhatsApp",
+		"Share a little about your vision, and our team will be happy to guide you through the next steps.",
+	stillBtn: "Chat with us on WhatsApp",
+};
+
+const vendorsPageEn = {
+	filterLabel: "Find a vendor",
+	allVendors: "All vendors",
+	vendorCount: "vendors",
+	noResultsTitle: "No vendors in this category",
+	noResultsDesc: "Choose another category to see more vendors.",
+	clearFilter: "Show all vendors",
 };
 
 const artOfLivingEn = {
@@ -160,6 +169,7 @@ const rawTranslations = {
 			schedules: "Schedules",
 			packages: "Packages",
 			vendors: "Vendors",
+			faq: "FAQs",
 			events: "Events",
 			articles: "Articles",
 			contact: "Contact",
@@ -173,11 +183,11 @@ const rawTranslations = {
 		viewSchedule: "View schedule",
 		bookingSignedInTitle: "Welcome back",
 		bookingSignedInDesc:
-			"You're signed in. Pick a class to continue with your booking.",
-		bookingSignedOutTitle: "Begin Your Practice",
+			"You're signed in. Talk with our team about your wedding plans.",
+		bookingSignedOutTitle: "Plan Your Special Day",
 		bookingSignedOutDesc:
-			"Sign in with Google and take the first step toward a healthier body and a more balanced mind.",
-		syncedNote: "Name and email are synced automatically.",
+			"Sign in with Google to discuss your wedding plans with our team.",
+		syncedNote: "Your name and email will be shared with our team.",
 		loginWithGoogle: "Sign in with Google",
 		closeModal: "Close",
 
@@ -490,6 +500,7 @@ const rawTranslations = {
 		termsConditions: "Terms & Conditions",
 		contactPage: contactPageEn,
 		faqPage: faqPageEn,
+		vendorsPage: vendorsPageEn,
 		artOfLiving: artOfLivingEn,
 	},
 
@@ -502,6 +513,7 @@ const rawTranslations = {
 			schedules: "Jadwal",
 			packages: "Paket",
 			vendors: "Vendor",
+			faq: "FAQ",
 			events: "Acara",
 			articles: "Artikel",
 			contact: "Kontak",
@@ -515,11 +527,11 @@ const rawTranslations = {
 		viewSchedule: "Lihat jadwal",
 		bookingSignedInTitle: "Selamat datang kembali",
 		bookingSignedInDesc:
-			"Kamu sudah masuk. Pilih kelas untuk melanjutkan booking.",
-		bookingSignedOutTitle: "Mulai Praktikmu",
+			"Anda sudah masuk. Diskusikan rencana pernikahan Anda bersama tim kami.",
+		bookingSignedOutTitle: "Rencanakan Hari Istimewa",
 		bookingSignedOutDesc:
-			"Masuk dengan Google dan ambil langkah pertama menuju tubuh yang lebih sehat dan pikiran yang lebih seimbang.",
-		syncedNote: "Nama dan email tersinkron otomatis.",
+			"Masuk dengan Google untuk berkonsultasi dengan tim kami.",
+		syncedNote: "Nama dan email Anda akan dibagikan kepada tim kami.",
 		loginWithGoogle: "Masuk dengan Google",
 		closeModal: "Tutup",
 
@@ -859,25 +871,33 @@ const rawTranslations = {
 			faqEmpty: "Belum ada pertanyaan yang ditambahkan.",
 		},
 		faqPage: {
-			badge: "Kami siap membantu",
-			titleA: "Jawaban untuk",
-			titleB: "hari istimewamu",
+			badge: "Mari Wujudkan Hari Istimewa Anda",
+			titleA: "Pernikahan Anda,",
+			titleB: "direncanakan sepenuh hati",
 			heroDesc:
-				"Dari undangan pertama sampai tarian terakhir, temukan jawaban soal perencanaan, paket, pembayaran, vendor, dan semua yang ada di antaranya.",
-			searchLabel: "Cari FAQ",
-			searchPh: "Cari pertanyaan, topik, atau kata kunci...",
-			topicsLabel: "Jelajahi berdasarkan topik",
-			allTopics: "Semua topik",
+				"Kenali tahapan perencanaan, pilihan paket, pengaturan pembayaran, koordinasi vendor, serta pendampingan kami pada hari pernikahan.",
+			searchLabel: "Cari pertanyaan umum",
+			searchPh: "Masukkan pertanyaan, kata kunci, atau topik...",
+			topicsLabel: "Jelajahi berdasarkan kategori",
+			allTopics: "Semua kategori",
 			questionsLabel: "pertanyaan",
-			topicsCountLabel: "topik",
+			topicsCountLabel: "kategori",
 			answerLabel: "Jawaban",
 			emptyTitle: "Tidak ada pertanyaan yang cocok",
-			emptyDesc: "Coba kata kunci lain atau pilih topik berbeda.",
-			reset: "Atur ulang filter",
-			stillTitle: "Masih punya pertanyaan?",
+			emptyDesc: "Coba kata kunci lain atau jelajahi kategori yang berbeda.",
+			reset: "Hapus filter",
+			stillTitle: "Mari wujudkan pernikahan impian Anda.",
 			stillDesc:
-				"Setiap pernikahan itu unik. Chat dengan tim kami dan kami bantu menemukan jawaban yang tepat untuk rencanamu.",
-			stillBtn: "Chat via WhatsApp",
+				"Ceritakan gambaran hari istimewa yang Anda impikan. Tim kami siap mendampingi Anda menentukan langkah berikutnya.",
+			stillBtn: "Hubungi kami via WhatsApp",
+		},
+		vendorsPage: {
+			filterLabel: "Temukan vendor",
+			allVendors: "Semua vendor",
+			vendorCount: "vendor",
+			noResultsTitle: "Belum ada vendor di kategori ini",
+			noResultsDesc: "Pilih kategori lain untuk melihat vendor lainnya.",
+			clearFilter: "Tampilkan semua vendor",
 		},
 		artOfLiving: {
 			badge: "Pendiri — Art of Living",

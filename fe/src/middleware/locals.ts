@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
-import { env, siteContact } from "../config/env.js";
+import {
+	env,
+	getAlternatingWhatsAppContact,
+	siteContact,
+} from "../config/env.js";
 import { LANGUAGE_OPTIONS } from "../config/locales.js";
 import { sagitaData } from "../data/sagitaData.js";
 import { getSessionUser, hasSessionCookie } from "../services/authService.js";
@@ -11,6 +15,8 @@ import type {
 	SessionUser,
 	SiteIdentity,
 } from "../types/index.js";
+
+let whatsappRenderIndex = 0;
 
 /**
  * Cache session per-cookie. Tanpa ini setiap render halaman menembak
@@ -63,7 +69,13 @@ export async function appLocals(
 		res.locals.site = site;
 		res.locals.nav = sagitaData.nav;
 		res.locals.languages = LANGUAGE_OPTIONS;
-		res.locals.contactLinks = siteContact;
+		const alternatingWhatsApp = getAlternatingWhatsAppContact(
+			whatsappRenderIndex++,
+		);
+		res.locals.contactLinks = {
+			...alternatingWhatsApp,
+			googleAuthUrl: siteContact.googleAuthUrl,
+		};
 		res.locals.currentPath = req.path;
 		res.locals.currentUrl = `${env.SITE_URL}${req.path}`;
 		res.locals.siteUrl = env.SITE_URL;

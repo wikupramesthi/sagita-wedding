@@ -123,7 +123,7 @@ describe("state anonim (belum login)", () => {
 	it("menampilkan tombol Google di modal", async () => {
 		const res = await request(app).get("/");
 		expect(res.text).toContain('id="googleLoginBtn"');
-		expect(res.text).toContain("Begin Your Practice");
+		expect(res.text).toContain("Plan Your Special Day");
 	});
 
 	it("tidak menampilkan dropdown user", async () => {
@@ -175,14 +175,28 @@ describe("state login", () => {
 	});
 
 	it("semua halaman konsisten menampilkan login", async () => {
-		for (const p of ["/", "/classes", "/packages", "/vendors", "/faq", "/contact", "/blog"]) {
+		for (const p of [
+			"/",
+			"/classes",
+			"/packages",
+			"/vendors",
+			"/faq",
+			"/blog",
+		]) {
 			const res = await request(app).get(p).set("Cookie", SESSION);
 			expect(res.text, p).toContain('id="userMenu"');
 		}
 	});
 
 	it("tanpa 'undefined' di halaman mana pun", async () => {
-		for (const p of ["/", "/classes", "/packages", "/vendors", "/faq", "/contact", "/blog"]) {
+		for (const p of [
+			"/",
+			"/classes",
+			"/packages",
+			"/vendors",
+			"/faq",
+			"/blog",
+		]) {
 			const res = await request(app).get(p).set("Cookie", SESSION);
 			expect(res.text, p).not.toContain(">undefined<");
 		}

@@ -9,20 +9,15 @@
 @push('after-style')
 <style>
     .konsultasi-kanban {
-        display: flex;
-        align-items: stretch;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+        align-items: start;
         gap: 1rem;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding: .25rem .25rem 1rem;
-        margin-inline: -.25rem;
-        scrollbar-width: thin;
-        -webkit-overflow-scrolling: touch;
+        padding: .25rem 0 1rem;
     }
 
     .konsultasi-kanban .kanban-column {
-        flex: 0 0 300px;
-        min-width: 280px;
+        min-width: 0;
         max-width: 100%;
         display: flex;
         flex-direction: column;
@@ -241,7 +236,13 @@
                 <header class="kanban-column-header">
                     <div class="d-flex align-items-center gap-2 min-w-0">
                         <h6 class="fw-semibold mb-0 text-body text-truncate">{{ $column['label'] }}</h6>
-                        <span class="badge bg-light text-dark">{{ $column['items']->count() }}</span>
+                        @php
+                            $wipLimit = $wipLimits[$key] ?? null;
+                            $wipFull = $wipLimit !== null && $column['items']->count() > $wipLimit;
+                        @endphp
+                        <span class="badge {{ $wipFull ? 'bg-danger' : 'bg-light text-dark' }}" title="{{ $wipLimit ? 'WIP maksimal '.$wipLimit : 'Tanpa batas WIP' }}">
+                            {{ $column['items']->count() }}{{ $wipLimit ? '/'.$wipLimit : '' }}
+                        </span>
                     </div>
                 </header>
                 <div class="kanban-column-body">
@@ -259,7 +260,7 @@
                                 <span class="badge {{ $item->follow_up_badge_class }}">{{ $item->follow_up_label }}</span>
                             </div>
                             <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <a href="{{ $item->whatsapp_link }}?text={{ rawurlencode($item->whatsapp_message) }}" target="_blank" rel="noopener" class="btn btn-sm btn-success">
+                                <a href="{{ route('konsultasi.whatsapp', $item) }}" target="_blank" rel="noopener" class="btn btn-sm btn-success">
                                     <i class="bx bxl-whatsapp me-1"></i> WA
                                 </a>
                                 <form action="{{ route('konsultasi.update-lead', $item->uuid) }}" method="POST" class="min-w-0 flex-grow-1">
@@ -273,6 +274,20 @@
                                 </form>
                                 <a href="{{ route('konsultasi.show', $item->uuid) }}" class="btn btn-sm btn-outline-info" title="Detail"><i class="bi bi-eye"></i></a>
                             </div>
+                            @can('konsultasi.index')
+                                <div class="d-flex gap-1 mt-2">
+                                    <form action="{{ route('konsultasi.reorder', $item) }}" method="POST" class="flex-fill">
+                                        @csrf
+                                        <input type="hidden" name="direction" value="up">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary w-100" title="Naik"><i class="bi bi-arrow-up"></i></button>
+                                    </form>
+                                    <form action="{{ route('konsultasi.reorder', $item) }}" method="POST" class="flex-fill">
+                                        @csrf
+                                        <input type="hidden" name="direction" value="down">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary w-100" title="Turun"><i class="bi bi-arrow-down"></i></button>
+                                    </form>
+                                </div>
+                            @endcan
                         </article>
                     @empty
                         <div class="kanban-empty text-center small text-muted"><i class="bi bi-inbox d-block fs-4 mb-1"></i>Belum ada lead di kolom ini.</div>

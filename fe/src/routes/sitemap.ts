@@ -18,7 +18,6 @@ const router = Router();
 const STATIC_URLS = [
 	{ path: "/", changefreq: "daily", priority: "1.0" },
 	{ path: "/about", changefreq: "monthly", priority: "0.8" },
-	{ path: "/art-of-living", changefreq: "monthly", priority: "0.8" },
 	{ path: "/classes", changefreq: "weekly", priority: "0.9" },
 	{ path: "/schedules", changefreq: "daily", priority: "0.9" },
 	{ path: "/vendors", changefreq: "weekly", priority: "0.7" },
@@ -27,7 +26,6 @@ const STATIC_URLS = [
 	{ path: "/event", changefreq: "weekly", priority: "0.7" },
 	{ path: "/gallery", changefreq: "monthly", priority: "0.5" },
 	{ path: "/faq", changefreq: "monthly", priority: "0.6" },
-	{ path: "/contact", changefreq: "yearly", priority: "0.5" },
 ];
 
 // FE base path + endpoint backend (per_page mentok 50 sesuai validasi BE).
@@ -106,7 +104,7 @@ async function buildSitemap() {
 
 	for (const s of STATIC_URLS) push(s.path, s.changefreq, s.priority);
 
-	// Slug dinamis — tiap sumber gagal independen (satu mati tidak menggugurkan lain).
+	// Slug dinamis ï¿½ tiap sumber gagal independen (satu mati tidak menggugurkan lain).
 	const results = await Promise.allSettled(
 		DYNAMIC_SOURCES.map((src) => apiRequest(src.endpoint)),
 	);

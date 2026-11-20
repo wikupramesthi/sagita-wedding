@@ -53,8 +53,8 @@ class MemberBookingTest extends TestCase
             'venue_uuid' => null,
             'day' => $day,
             'date' => $this->today,
-            'start_time' => now()->copy()->addHours(5)->format('H:i:s'),
-            'end_time' => now()->copy()->addHours(6)->format('H:i:s'),
+            'start_time' => '09:00:00',
+            'end_time' => '10:00:00',
             'capacity' => 10,
             'status' => 'active',
         ]);
@@ -145,8 +145,8 @@ class MemberBookingTest extends TestCase
             'venue_uuid' => null,
             'day' => strtolower(now()->format('l')),
             'date' => $this->today,
-            'start_time' => now()->copy()->addHours(5)->addMinutes(30)->format('H:i:s'),
-            'end_time' => now()->copy()->addHours(6)->addMinutes(30)->format('H:i:s'),
+            'start_time' => '09:30:00',
+            'end_time' => '10:30:00',
             'capacity' => 10,
             'status' => 'active',
         ]);

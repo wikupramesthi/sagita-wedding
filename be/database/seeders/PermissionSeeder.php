@@ -27,6 +27,11 @@ class PermissionSeeder extends Seeder
 
             // Konsultasi
             'konsultasi.index',
+            'konsultasi.bulk',
+            'konsultasi.delete',
+            'konsultasi.export',
+            'konsultasi.import',
+            'konsultasi.merge',
 
             // General Settings
             // 'setting.index',

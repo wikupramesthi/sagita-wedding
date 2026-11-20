@@ -61,10 +61,12 @@ function openEvent(i: number) {
 	const wa = $("eventWhatsApp") as HTMLAnchorElement | null;
 	// No hardcoded WA number — base wajib dari server via data-wa-base (contactLinks).
 	if (e.judul && wa?.dataset.waBase) {
-		wa.href =
-			wa.dataset.waBase +
-			"?text=" +
-			encodeURIComponent(`Hi, I want to book a spot for: ${e.judul}`);
+		const url = new URL(wa.dataset.waBase);
+		url.searchParams.set(
+			"text",
+			`Halo Sagita Wedding Planner 👋\n\nSaya tertarik untuk konsultasi mengenai acara: ${e.judul}.\n\nApakah saya bisa mendapatkan informasi paket dan estimasi biayanya?\n\nTerima kasih 😊`,
+		);
+		wa.href = url.toString();
 	}
 	eventModal.classList.remove("hidden");
 	lockScroll();

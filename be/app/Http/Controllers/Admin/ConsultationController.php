@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\ConsultationExport;
 use App\Http\Controllers\Controller;
+use App\Imports\ConsultationImport;
 use App\Models\AuditLog;
 use App\Models\Consultation;
+use App\Models\KonsultasiSavedFilter;
 use App\Models\Package\Package;
 use App\Models\User;
 use App\Models\WebsiteIdentity;
@@ -14,10 +16,15 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
 
@@ -42,18 +49,75 @@ class ConsultationController extends Controller
                 $value => Consultation::SOURCE_LABELS[$value] ?? $value,
             ]);
         $admins = $this->adminOptions();
+        $savedFilters = KonsultasiSavedFilter::query()
+            ->where('user_id', auth()->id())
+            ->orderBy('name')
+            ->get();
 
         return view('pages.konsultasi.index', compact(
             'consultations',
             'stats',
             'filters',
             'sources',
-            'admins'
+            'admins',
+            'savedFilters'
         ));
+    }
+
+    public function savedFilters()
+    {
+        return response()->json(
+            KonsultasiSavedFilter::query()
+                ->where('user_id', auth()->id())
+                ->orderBy('name')
+                ->get(['id', 'name', 'filters', 'is_default'])
+        );
+    }
+
+    public function storeSavedFilter(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'filters' => ['required', 'string'],
+        ], $this->validationMessages(), ['name' => 'nama filter']);
+
+        $filters = json_decode($data['filters'], true);
+
+        KonsultasiSavedFilter::query()->updateOrCreate([
+            'user_id' => auth()->id(),
+            'name' => $data['name'],
+        ], [
+            'filters' => Consultation::normalizeFilters(is_array($filters) ? $filters : []),
+        ]);
+
+        return back()->with('success', 'Filter "'.$data['name'].'" berhasil disimpan.');
+    }
+
+    public function applySavedFilter(KonsultasiSavedFilter $savedFilter)
+    {
+        abort_unless($savedFilter->user_id === auth()->id(), 404);
+
+        $filters = Consultation::normalizeFilters($savedFilter->filters ?? []);
+
+        return redirect()->route(
+            'konsultasi.index',
+            array_filter($filters, fn ($value) => $value !== '' && $value !== null)
+        );
+    }
+
+    public function deleteSavedFilter(KonsultasiSavedFilter $savedFilter)
+    {
+        abort_unless($savedFilter->user_id === auth()->id(), 404);
+
+        $savedFilter->delete();
+
+        return back()->with('success', 'Filter tersimpan berhasil dihapus.');
     }
 
     public function bulk(Request $request)
     {
+        $this->ensurePermission('konsultasi.bulk');
+
         $data = $request->validate([
             'ids' => ['required', 'array', 'min:1', 'max:100'],
             'ids.*' => ['string', 'exists:consultations,uuid'],
@@ -88,32 +152,62 @@ class ConsultationController extends Controller
             }
         }
 
-        DB::transaction(function () use ($records, $data) {
-            foreach ($records as $record) {
-                match ($data['action']) {
-                    'lead' => $this->applyBulkLead($record, (string) $data['lead_status']),
-                    'pic' => $record->update(['handled_by' => $data['handled_by'] ?: null]),
-                    'follow-up-done' => $record->update([
-                        'lead_status' => $record->lead_status === 'New' ? 'Contacted' : $record->lead_status,
-                        'follow_up_at' => null,
-                    ]),
-                    'delete' => $record->delete(),
-                };
+        $target = match ($data['action']) {
+            'lead' => (string) $data['lead_status'],
+            'follow-up-done' => 'Contacted',
+            default => null,
+        };
+        $incoming = match ($data['action']) {
+            'lead' => $records->where('lead_status', '!=', $target)->count(),
+            'follow-up-done' => $records->where('lead_status', 'New')->count(),
+            default => 0,
+        };
+
+        $apply = function () use ($records, $data, $target, $incoming) {
+            if ($target !== null && $incoming > 0) {
+                $this->assertWipCapacity($target, $records->pluck('uuid')->all(), $incoming);
             }
-        });
 
-        $messages = [
-            'lead' => 'status lead diperbarui',
-            'pic' => 'penanggung jawab diperbarui',
-            'follow-up-done' => 'tindak lanjut ditandai selesai',
-            'delete' => 'data dihapus',
-        ];
+            DB::transaction(function () use ($records, $data) {
+                foreach ($records as $record) {
+                    match ($data['action']) {
+                        'lead' => $this->applyBulkLead($record, (string) $data['lead_status']),
+                        'pic' => $record->update(['handled_by' => $data['handled_by'] ?: null]),
+                        'follow-up-done' => $record->update([
+                            'lead_status' => $record->lead_status === 'New' ? 'Contacted' : $record->lead_status,
+                            'follow_up_at' => null,
+                        ]),
+                        'delete' => $record->delete(),
+                    };
+                }
+            });
 
-        return back()->with('success', $records->count().' data konsultasi berhasil '.$messages[$data['action']].'.');
+            $messages = [
+                'lead' => 'status lead diperbarui',
+                'pic' => 'penanggung jawab diperbarui',
+                'follow-up-done' => 'tindak lanjut ditandai selesai',
+                'delete' => 'data dihapus',
+            ];
+
+            return back()->with('success', $records->count().' data konsultasi berhasil '.$messages[$data['action']].'.');
+        };
+
+        if ($target !== null && $incoming > 0) {
+            return $this->withWipLock($target, $apply);
+        }
+
+        return $apply();
     }
 
     public function export(Request $request)
     {
+        $this->ensurePermission('konsultasi.export');
+
+        Log::info('konsultasi.export.download', [
+            'user_id' => auth()->id(),
+            'filters' => Consultation::normalizeFilters($request->query()),
+        ]);
+
         return Excel::download(
             new ConsultationExport($request),
             'konsultasi-'.now()->format('Ymd-His').'.xlsx'
@@ -126,7 +220,7 @@ class ConsultationController extends Controller
 
         $query = Consultation::query()->with(['package:id,name', 'handler:id,name']);
         Consultation::applyFilters($query, $filters);
-        $items = $query->latest()->limit(300)->get();
+        $items = $query->orderBy('sort_order')->orderByDesc('created_at')->limit(300)->get();
 
         $columns = collect(Consultation::LEAD_STATUS_LABELS)
             ->mapWithKeys(fn ($label, $key) => [$key => [
@@ -141,6 +235,7 @@ class ConsultationController extends Controller
             'stats' => Consultation::stats($filters),
             'sources' => $this->sourceOptions(),
             'admins' => $this->adminOptions(),
+            'wipLimits' => Consultation::WIP_LIMITS,
         ]);
     }
 
@@ -209,13 +304,168 @@ class ConsultationController extends Controller
 
     public function duplicates()
     {
+        $this->ensurePermission('konsultasi.merge');
+
         return view('pages.konsultasi.duplicates', [
             'duplicates' => Consultation::duplicateGroups(),
         ]);
     }
 
+    public function importTemplate()
+    {
+        $this->ensurePermission('konsultasi.import');
+
+        $headers = [
+            'Nama Calon Pelanggan', 'WhatsApp', 'Email', 'Tanggal Pernikahan', 'Estimasi Tamu',
+            'Paket', 'Lokasi / Venue', 'Konsep Pernikahan', 'Tanggal Konsultasi', 'Jam Konsultasi',
+            'Metode Konsultasi', 'Status Konsultasi', 'Penanggung Jawab', 'Catatan Tim',
+            'Tanggal Tindak Lanjut', 'Status Calon Pelanggan', 'Informasi dari mana',
+        ];
+
+        $sample = [
+            'Rani Putri', '081234567890', 'rani@example.test', '2026-12-20', '200–500 tamu',
+            '', 'Grand Ballroom', 'Rustic', '2026-11-25', '10:00', 'Online', 'Menunggu',
+            '', 'Follow up setelah konsultasi', '2026-11-26 10:00', 'Baru', 'Google',
+        ];
+
+        $handle = fopen('php://temp', 'r+');
+        fputcsv($handle, $headers);
+        fputcsv($handle, $sample);
+        rewind($handle);
+        $content = stream_get_contents($handle);
+        fclose($handle);
+
+        return response($content, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="template-konsultasi.csv"',
+        ]);
+    }
+
+    public function import()
+    {
+        $this->ensurePermission('konsultasi.import');
+
+        return view('pages.konsultasi.import', [
+            'rows' => session('konsultasi_import_rows', []),
+        ]);
+    }
+
+    public function importPreview(Request $request)
+    {
+        $this->ensurePermission('konsultasi.import');
+
+        $data = $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,xlsx,xls', 'max:5120'],
+        ], $this->validationMessages(), ['file' => 'file CSV/XLSX']);
+
+        $importer = new ConsultationImport;
+
+        Excel::import($importer, $data['file']);
+
+        if ($importer->rows->count() > 500) {
+            return back()->with('error', 'Maksimal 500 baris per file import.');
+        }
+
+        if ($importer->rows->isEmpty()) {
+            return back()->with('error', 'File tidak memiliki baris data.');
+        }
+
+        $rows = $importer->rows
+            ->map(fn ($row, $index) => $this->normalizeImportRow($row, $index + 2))
+            ->values()
+            ->all();
+
+        session([
+            'konsultasi_import_rows' => $rows,
+            'konsultasi_import_token' => (string) Str::uuid(),
+        ]);
+
+        $valid = collect($rows)->where('valid', true)->count();
+
+        return redirect()->route('konsultasi.import')->with('success',
+            $valid.' baris siap diimpor dari '.$importer->rows->count().' baris ditemukan.'
+        );
+    }
+
+    public function importCommit(Request $request)
+    {
+        $this->ensurePermission('konsultasi.import');
+
+        $rows = session('konsultasi_import_rows');
+        $token = (string) $request->input('token', '');
+
+        if (! $rows || $token === '' || $token !== session('konsultasi_import_token')) {
+            return redirect()->route('konsultasi.import')->with('error', 'Preview import tidak ditemukan atau sudah kedaluwarsa. Unggah ulang file.');
+        }
+
+        $created = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($rows as $row) {
+            if (! $row['valid']) {
+                $skipped++;
+                $errors[] = 'Baris '.$row['row_number'].': '.$row['error'];
+
+                continue;
+            }
+
+            $payload = Arr::except($row, ['row_number', 'valid', 'error']);
+
+            $target = (string) ($payload['lead_status'] ?? 'New');
+
+            try {
+                $result = $this->withWipLock($target, function () use ($payload, $target) {
+                    $this->assertWipCapacity($target);
+
+                    return DB::transaction(function () use ($payload) {
+                        if (Consultation::findDuplicates(null, $payload, true)->first()) {
+                            return 'duplicate';
+                        }
+
+                        Consultation::create($payload);
+
+                        return 'created';
+                    });
+                });
+
+                if ($result === 'duplicate') {
+                    $skipped++;
+                    $errors[] = 'Baris '.$row['row_number'].': email atau WhatsApp sudah terdaftar.';
+                } else {
+                    $created++;
+                }
+            } catch (ValidationException $exception) {
+                $skipped++;
+                $errors[] = 'Baris '.$row['row_number'].': '.($exception->errors()['lead_status'][0] ?? 'kuota WIP penuh.');
+            } catch (QueryException $exception) {
+                $skipped++;
+                $errors[] = 'Baris '.$row['row_number'].': gagal disimpan.';
+                Log::warning('konsultasi.import.failed', [
+                    'row' => $row['row_number'],
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        session()->forget(['konsultasi_import_rows', 'konsultasi_import_token']);
+
+        $message = $created.' data konsultasi berhasil diimpor.';
+
+        if ($skipped > 0) {
+            $message .= ' '.$skipped.' baris dilewati.';
+        }
+
+        return redirect()->route('konsultasi.import')->with([
+            'success' => $message,
+            'import_errors' => $errors,
+        ]);
+    }
+
     public function merge(Request $request)
     {
+        $this->ensurePermission('konsultasi.merge');
+
         $data = $request->validate([
             'primary_uuid' => ['required', 'string', 'exists:consultations,uuid'],
             'duplicate_uuid' => ['required', 'string', 'different:primary_uuid', 'exists:consultations,uuid'],
@@ -234,10 +484,25 @@ class ConsultationController extends Controller
         }
 
         if ($primary->merged_into_uuid || $duplicate->merged_into_uuid) {
+            Log::warning('konsultasi.merge.rejected', [
+                'primary' => $primary->uuid,
+                'duplicate' => $duplicate->uuid,
+            ]);
+
             return back()->with('error', 'Salah satu data sudah pernah digabungkan. Pilih data aktif.');
         }
 
+        Log::info('konsultasi.merge.attempt', [
+            'primary' => $primary->uuid,
+            'duplicate' => $duplicate->uuid,
+        ]);
+
         $duplicate->mergeInto($primary);
+
+        Log::info('konsultasi.merge.success', [
+            'primary' => $primary->uuid,
+            'duplicate' => $duplicate->uuid,
+        ]);
 
         return redirect()->route('konsultasi.duplicates')->with('success', 'Data duplikat berhasil digabungkan.');
     }
@@ -252,22 +517,109 @@ class ConsultationController extends Controller
             return back()->with('error', 'Tidak ada penerima pengingat yang tersedia.');
         }
 
+        $sent = 0;
+
         foreach ($recipients as $recipient) {
-            Notification::send($recipient, new ConsultationFollowUpNotification($consultation));
+            try {
+                Notification::send($recipient, new ConsultationFollowUpNotification($consultation));
+                $sent++;
+                Log::info('konsultasi.reminder.manual_sent', [
+                    'uuid' => $consultation->uuid,
+                    'recipient_id' => $recipient->id,
+                ]);
+            } catch (\Throwable $exception) {
+                Log::warning('konsultasi.reminder.manual_failed', [
+                    'uuid' => $consultation->uuid,
+                    'recipient_id' => $recipient->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        if ($sent === 0) {
+            return back()->with('error', 'Pengingat gagal dikirim. Coba lagi nanti.');
         }
 
         $consultation->update(['reminder_sent_at' => now()]);
 
-        return back()->with('success', $recipients->count().' pengingat tindak lanjut berhasil dikirim.');
+        return back()->with('success', $sent.' pengingat tindak lanjut berhasil dikirim.');
+    }
+
+    public function whatsapp(Consultation $consultation)
+    {
+        $user = auth()->user();
+
+        AuditLog::create([
+            'user_uuid' => $user?->uuid,
+            'user_name' => $user?->name ?? 'Sistem',
+            'user_email' => $user?->email,
+            'event' => 'whatsapp_opened',
+            'auditable_type' => Consultation::class,
+            'auditable_id' => (string) $consultation->uuid,
+            'auditable_label' => $consultation->full_name,
+            'new_values' => ['whatsapp' => $consultation->whatsapp],
+            'url' => request()->fullUrl(),
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        Log::info('konsultasi.whatsapp.opened', [
+            'uuid' => $consultation->uuid,
+            'user_id' => $user?->id,
+        ]);
+
+        return redirect()->away(
+            $consultation->whatsapp_link.'?text='.rawurlencode($consultation->whatsapp_message)
+        );
+    }
+
+    public function calendarIcs(Consultation $consultation)
+    {
+        if (! $consultation->consultation_date) {
+            return back()->with('error', 'Konsultasi ini belum memiliki tanggal.');
+        }
+
+        $start = Carbon::parse(
+            $consultation->consultation_date->toDateString().' '.($consultation->consultation_time ?: '10:00'),
+            config('app.timezone')
+        );
+        $end = $start->copy()->addHour();
+
+        $lines = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Sagita Wedding//Konsultasi//ID',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'BEGIN:VEVENT',
+            'UID:'.$consultation->uuid.'@sagita-wedding',
+            'DTSTAMP:'.now()->utc()->format('Ymd\THis\Z'),
+            'DTSTART:'.$start->utc()->format('Ymd\THis\Z'),
+            'DTEND:'.$end->utc()->format('Ymd\THis\Z'),
+            'SUMMARY:'.$this->escapeIcs('Konsultasi Sagita Wedding - '.$consultation->full_name),
+            'DESCRIPTION:'.$this->escapeIcs($consultation->whatsapp_message),
+            'LOCATION:'.$this->escapeIcs((string) $consultation->venue),
+            'END:VEVENT',
+            'END:VCALENDAR',
+        ];
+
+        return response(implode("\r\n", $lines)."\r\n", 200, [
+            'Content-Type' => 'text/calendar; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="konsultasi-'.$consultation->uuid.'.ics"',
+        ]);
     }
 
     public function pdfPreview(Request $request)
     {
+        $this->ensurePermission('konsultasi.export');
+
         return view('pages.konsultasi.pdf-preview', $this->pdfData($request));
     }
 
     public function pdfStream(Request $request)
     {
+        $this->ensurePermission('konsultasi.export');
+
         $data = $this->pdfData($request);
 
         return Pdf::loadView('pages.konsultasi.pdf-document', $data)
@@ -277,6 +629,8 @@ class ConsultationController extends Controller
 
     public function pdfDownload(Request $request)
     {
+        $this->ensurePermission('konsultasi.export');
+
         $data = $this->pdfData($request);
 
         return Pdf::loadView('pages.konsultasi.pdf-document', $data)
@@ -293,31 +647,41 @@ class ConsultationController extends Controller
     {
         $data = $this->validateConsultation($request);
 
-        try {
-            $result = DB::transaction(function () use ($data) {
-                $duplicate = Consultation::findDuplicates(null, $data, true)->first();
+        if (empty($data['handled_by'])) {
+            $data['handled_by'] = $this->autoAssignPic();
+        }
 
-                if ($duplicate) {
-                    return ['duplicate' => $duplicate];
+        $target = (string) $data['lead_status'];
+
+        return $this->withWipLock($target, function () use ($data, $target) {
+            $this->assertWipCapacity($target);
+
+            try {
+                $result = DB::transaction(function () use ($data) {
+                    $duplicate = Consultation::findDuplicates(null, $data, true)->first();
+
+                    if ($duplicate) {
+                        return ['duplicate' => $duplicate];
+                    }
+
+                    return ['consultation' => Consultation::create($data)];
+                });
+            } catch (QueryException $exception) {
+                $duplicate = Consultation::findDuplicates(null, $data)->first();
+
+                if (! $duplicate) {
+                    throw $exception;
                 }
 
-                return ['consultation' => Consultation::create($data)];
-            });
-        } catch (QueryException $exception) {
-            $duplicate = Consultation::findDuplicates(null, $data)->first();
-
-            if (! $duplicate) {
-                throw $exception;
+                return $this->duplicateResponse($duplicate);
             }
 
-            return $this->duplicateResponse($duplicate);
-        }
+            if (isset($result['duplicate'])) {
+                return $this->duplicateResponse($result['duplicate']);
+            }
 
-        if (isset($result['duplicate'])) {
-            return $this->duplicateResponse($result['duplicate']);
-        }
-
-        return redirect()->route('konsultasi.index')->with('success', 'Data konsultasi berhasil ditambahkan.');
+            return redirect()->route('konsultasi.index')->with('success', 'Data konsultasi berhasil ditambahkan.');
+        });
     }
 
     public function show(Consultation $consultation)
@@ -348,33 +712,44 @@ class ConsultationController extends Controller
             $data['converted_to_booking_at'] = null;
         }
 
-        try {
-            $result = DB::transaction(function () use ($consultation, $data) {
-                $duplicate = Consultation::findDuplicates($consultation, $data, true)->first();
+        $target = (string) $data['lead_status'];
+        $changesLead = $target !== $consultation->lead_status;
 
-                if ($duplicate) {
-                    return ['duplicate' => $duplicate];
-                }
-
-                $consultation->update($data);
-
-                return ['consultation' => $consultation];
-            });
-        } catch (QueryException $exception) {
-            $duplicate = Consultation::findDuplicates($consultation, $data)->first();
-
-            if (! $duplicate) {
-                throw $exception;
+        $save = function () use ($consultation, $data, $target, $changesLead) {
+            if ($changesLead) {
+                $this->assertWipCapacity($target, [$consultation->uuid]);
             }
 
-            return $this->duplicateResponse($duplicate);
-        }
+            try {
+                $result = DB::transaction(function () use ($consultation, $data) {
+                    $duplicate = Consultation::findDuplicates($consultation, $data, true)->first();
 
-        if (isset($result['duplicate'])) {
-            return $this->duplicateResponse($result['duplicate']);
-        }
+                    if ($duplicate) {
+                        return ['duplicate' => $duplicate];
+                    }
 
-        return redirect()->route('konsultasi.index')->with('success', 'Data konsultasi berhasil diperbarui.');
+                    $consultation->update($data);
+
+                    return ['consultation' => $consultation];
+                });
+            } catch (QueryException $exception) {
+                $duplicate = Consultation::findDuplicates($consultation, $data)->first();
+
+                if (! $duplicate) {
+                    throw $exception;
+                }
+
+                return $this->duplicateResponse($duplicate);
+            }
+
+            if (isset($result['duplicate'])) {
+                return $this->duplicateResponse($result['duplicate']);
+            }
+
+            return redirect()->route('konsultasi.index')->with('success', 'Data konsultasi berhasil diperbarui.');
+        };
+
+        return $changesLead ? $this->withWipLock($target, $save) : $save();
     }
 
     public function updateLead(Request $request, Consultation $consultation)
@@ -402,13 +777,74 @@ class ConsultationController extends Controller
             $update['follow_up_at'] = $data['follow_up_at'] ?: null;
         }
 
-        DB::transaction(fn () => $consultation->update($update));
+        $target = isset($update['lead_status']) ? (string) $update['lead_status'] : null;
+        $changesLead = $target !== null && $target !== $consultation->lead_status;
 
-        return back()->with('success', 'Pipeline calon pelanggan berhasil diperbarui.');
+        $apply = function () use ($consultation, $update, $target, $changesLead) {
+            if ($changesLead) {
+                $this->assertWipCapacity($target, [$consultation->uuid]);
+            }
+
+            DB::transaction(fn () => $consultation->update($update));
+
+            return back()->with('success', 'Pipeline calon pelanggan berhasil diperbarui.');
+        };
+
+        return $changesLead ? $this->withWipLock($target, $apply) : $apply();
+    }
+
+    public function reorder(Request $request, Consultation $consultation)
+    {
+        $data = $request->validate([
+            'direction' => ['required', Rule::in(['up', 'down'])],
+        ], $this->validationMessages());
+
+        return $this->withNamedLock('konsultasi.reorder.'.$consultation->lead_status, function () use ($consultation, $data) {
+            $siblings = Consultation::query()
+                ->where('lead_status', $consultation->lead_status)
+                ->orderBy('sort_order')
+                ->orderByDesc('created_at')
+                ->get(['uuid', 'sort_order']);
+
+            $index = $siblings->search(fn ($item) => $item->uuid === $consultation->uuid);
+
+            if ($index === false) {
+                return back()->with('error', 'Data tidak ditemukan dalam kolom pipeline.');
+            }
+
+            $target = $data['direction'] === 'up' ? $index - 1 : $index + 1;
+
+            if ($target < 0 || $target >= $siblings->count()) {
+                return back();
+            }
+
+            $ordered = $siblings->all();
+            [$ordered[$index], $ordered[$target]] = [$ordered[$target], $ordered[$index]];
+
+            DB::transaction(function () use ($ordered) {
+                foreach ($ordered as $position => $item) {
+                    DB::table('consultations')
+                        ->where('uuid', $item->uuid)
+                        ->update(['sort_order' => $position, 'updated_at' => now()]);
+                }
+            });
+
+            return back()->with('success', 'Urutan pipeline berhasil diperbarui.');
+        });
     }
 
     public function destroy(Consultation $consultation)
     {
+        $this->ensurePermission('konsultasi.delete');
+
+        $isMergeTarget = Consultation::withoutGlobalScope('not_merged')
+            ->where('merged_into_uuid', $consultation->uuid)
+            ->exists();
+
+        if ($isMergeTarget) {
+            return back()->with('error', 'Data ini tidak bisa dihapus karena masih menjadi target penggabungan.');
+        }
+
         DB::transaction(fn () => $consultation->delete());
 
         return redirect()->route('konsultasi.index')->with('success', 'Data konsultasi berhasil dihapus.');
@@ -422,6 +858,53 @@ class ConsultationController extends Controller
                 ? ($consultation->converted_to_booking_at ?? now())
                 : null,
         ]);
+    }
+
+    private function withNamedLock(string $key, callable $callback): mixed
+    {
+        $lock = 'sagita:'.$key;
+        $acquired = DB::selectOne('SELECT GET_LOCK(?, 5) AS acquired', [$lock])?->acquired;
+
+        if ((int) $acquired !== 1) {
+            throw ValidationException::withMessages([
+                'lead_status' => 'Saat ini ada proses lain yang mengubah pipeline. Silakan coba beberapa saat lagi.',
+            ]);
+        }
+
+        try {
+            return $callback();
+        } finally {
+            DB::select('SELECT RELEASE_LOCK(?)', [$lock]);
+        }
+    }
+
+    private function withWipLock(string $target, callable $callback): mixed
+    {
+        if (! array_key_exists($target, Consultation::WIP_LIMITS)) {
+            return $callback();
+        }
+
+        return $this->withNamedLock('konsultasi.wip.'.$target, $callback);
+    }
+
+    private function assertWipCapacity(string $target, array $excludingUuids = [], int $incoming = 1): void
+    {
+        $limit = Consultation::WIP_LIMITS[$target] ?? null;
+
+        if ($limit === null || $incoming <= 0) {
+            return;
+        }
+
+        $occupied = Consultation::query()
+            ->where('lead_status', $target)
+            ->when($excludingUuids !== [], fn ($query) => $query->whereNotIn('uuid', $excludingUuids))
+            ->count();
+
+        if ($occupied + $incoming > $limit) {
+            throw ValidationException::withMessages([
+                'lead_status' => 'Kolom '.Consultation::LEAD_STATUS_LABELS[$target].' sudah mencapai batas WIP '.$limit.'. Pindahkan atau selesaikan lead lain terlebih dahulu.',
+            ]);
+        }
     }
 
     private function sourceOptions()
@@ -446,6 +929,198 @@ class ConsultationController extends Controller
                 ->get(['id', 'name']),
             'admins' => $this->adminOptions(),
         ];
+    }
+
+    private function escapeIcs(string $value): string
+    {
+        return str_replace(
+            ['\\', ';', ',', "\r\n", "\n"],
+            ['\\\\', '\\;', '\\,', '\\n', '\\n'],
+            $value
+        );
+    }
+
+    private function normalizeImportRow(mixed $row, int $rowNumber): array
+    {
+        $row = ($row instanceof Collection ? $row : collect($row))
+            ->mapWithKeys(fn ($value, $key) => [Str::slug((string) $key, '_') => $value]);
+
+        $pick = function (array $aliases) use ($row) {
+            foreach ($aliases as $alias) {
+                $key = Str::slug($alias, '_');
+
+                if ($row->has($key) && filled($row->get($key))) {
+                    return trim((string) $row->get($key));
+                }
+            }
+
+            return null;
+        };
+
+        $package = $pick(['package', 'nama_paket', 'paket']);
+        $packageId = $pick(['package_id', 'paket_id', 'id_paket']);
+
+        if (! $packageId && $package) {
+            $packageId = Package::query()
+                ->whereRaw('LOWER(name) = ?', [Str::lower($package)])
+                ->value('id');
+        }
+
+        $data = [
+            'full_name' => $pick(['full_name', 'nama', 'nama_calon_pelanggan', 'nama_lengkap']),
+            'whatsapp' => $pick(['whatsapp', 'no_whatsapp', 'nomor_whatsapp', 'telepon', 'phone', 'no_hp']),
+            'email' => $pick(['email', 'email_address', 'alamat_email']),
+            'wedding_date' => $this->normalizeImportDate($pick(['wedding_date', 'tanggal_pernikahan', 'tgl_pernikahan'])),
+            'guest_estimate' => $this->resolveImportOption(
+                $pick(['guest_estimate', 'estimasi_tamu', 'jumlah_tamu']),
+                collect(Consultation::GUEST_ESTIMATES)->mapWithKeys(fn ($value) => [$value => $value])->all()
+            ),
+            'venue' => $pick(['venue', 'lokasi', 'tempat', 'lokasi_acara']),
+            'package_id' => $packageId,
+            'wedding_concept' => $pick(['wedding_concept', 'konsep_pernikahan', 'konsep']),
+            'consultation_date' => $this->normalizeImportDate($pick(['consultation_date', 'tanggal_konsultasi', 'tgl_konsultasi'])),
+            'consultation_time' => $this->normalizeImportTime($pick(['consultation_time', 'jam_konsultasi', 'waktu_konsultasi'])),
+            'consultation_method' => $this->resolveImportOption(
+                $pick(['consultation_method', 'metode_konsultasi', 'metode']),
+                Consultation::METHOD_LABELS
+            ),
+            'consultation_status' => $this->resolveImportOption(
+                $pick(['consultation_status', 'status_konsultasi']),
+                Consultation::STATUS_LABELS
+            ) ?: 'Pending',
+            'admin_notes' => $pick(['admin_notes', 'catatan', 'catatan_tim']),
+            'handled_by' => null,
+            'follow_up_at' => $this->normalizeImportDateTime($pick(['follow_up_at', 'tindak_lanjut', 'jadwal_tindak_lanjut'])),
+            'lead_status' => $this->resolveImportOption(
+                $pick(['lead_status', 'status_lead', 'status_calon_pelanggan']),
+                Consultation::LEAD_STATUS_LABELS
+            ) ?: 'New',
+            'source' => $this->resolveImportOption(
+                $pick(['source', 'sumber', 'informasi_dari_mana', 'dari_mana']),
+                Consultation::SOURCE_LABELS
+            ) ?: 'unknown',
+            'converted_to_booking_at' => null,
+        ];
+
+        foreach (['full_name', 'venue', 'wedding_concept', 'admin_notes'] as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = strip_tags((string) $data[$field]);
+            }
+        }
+
+        $validator = Validator::make($data, [
+            'full_name' => ['required', 'string', 'max:150'],
+            'whatsapp' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{6,20}$/'],
+            'email' => ['nullable', 'email:rfc', 'max:255'],
+            'wedding_date' => ['nullable', 'date'],
+            'guest_estimate' => ['nullable', Rule::in(Consultation::GUEST_ESTIMATES)],
+            'venue' => ['nullable', 'string', 'max:255'],
+            'package_id' => ['nullable', 'integer', Rule::exists('packages', 'id')],
+            'wedding_concept' => ['nullable', 'string'],
+            'consultation_date' => ['nullable', 'date'],
+            'consultation_time' => ['nullable', 'date_format:H:i'],
+            'consultation_method' => ['nullable', Rule::in(array_keys(Consultation::METHOD_LABELS))],
+            'consultation_status' => ['required', Rule::in(array_keys(Consultation::STATUS_LABELS))],
+            'admin_notes' => ['nullable', 'string'],
+            'follow_up_at' => ['nullable', 'date'],
+            'lead_status' => ['required', Rule::in(array_keys(Consultation::LEAD_STATUS_LABELS))],
+            'source' => ['required', Rule::in(array_keys(Consultation::SOURCE_LABELS))],
+        ], $this->validationMessages(), $this->validationAttributes());
+
+        return [
+            'row_number' => $rowNumber,
+            'valid' => $validator->passes(),
+            'error' => $validator->errors()->first() ?: null,
+        ] + $data;
+    }
+
+    private function resolveImportOption(?string $value, array $labels): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $needle = Str::lower(trim($value));
+
+        foreach ($labels as $key => $label) {
+            if (Str::lower((string) $key) === $needle
+                || Str::lower((string) $label) === $needle
+                || Str::slug((string) $label, '_') === $needle) {
+                return (string) $key;
+            }
+        }
+
+        return $value;
+    }
+
+    private function normalizeImportDate(mixed $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        try {
+            return Carbon::parse((string) $value)->format('Y-m-d');
+        } catch (\Throwable) {
+            return (string) $value;
+        }
+    }
+
+    private function normalizeImportTime(mixed $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('H:i');
+        }
+
+        try {
+            return Carbon::parse((string) $value)->format('H:i');
+        } catch (\Throwable) {
+            return (string) $value;
+        }
+    }
+
+    private function normalizeImportDateTime(mixed $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return Carbon::instance($value)->format('Y-m-d H:i:s');
+        }
+
+        try {
+            return Carbon::parse((string) $value)->format('Y-m-d H:i:s');
+        } catch (\Throwable) {
+            return (string) $value;
+        }
+    }
+
+    private function autoAssignPic(): ?int
+    {
+        $admins = $this->adminOptions();
+
+        if ($admins->isEmpty()) {
+            return null;
+        }
+
+        $workloads = Consultation::query()
+            ->whereNotNull('handled_by')
+            ->selectRaw('handled_by, COUNT(*) as total')
+            ->groupBy('handled_by')
+            ->pluck('total', 'handled_by');
+
+        $chosen = $admins->sortBy(fn ($admin) => (int) ($workloads->get($admin->id) ?? 0))->first();
+
+        return $chosen ? (int) $chosen->id : null;
     }
 
     private function adminOptions()
@@ -517,6 +1192,7 @@ class ConsultationController extends Controller
                         'updated' => 'Diubah',
                         'deleted' => 'Dihapus',
                         'restored' => 'Dipulihkan',
+                        'whatsapp_opened' => 'WhatsApp Dibuka',
                         default => Str::headline($event),
                     },
                     'badge' => match ($event) {
@@ -652,6 +1328,11 @@ class ConsultationController extends Controller
         }
 
         return $data;
+    }
+
+    private function ensurePermission(string $permission): void
+    {
+        abort_unless(auth()->user()?->can($permission), 404);
     }
 
     private function duplicateResponse(Consultation $duplicate)

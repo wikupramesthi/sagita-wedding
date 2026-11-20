@@ -128,9 +128,9 @@ body {
 
 .card-earthy {
 	border-radius: 1rem;
-	border: 1px solid rgb(229 221 210 / 0.72);
-	background-color: rgb(255 254 252 / 0.92);
-	box-shadow: 0 2px 16px rgba(64, 58, 52, 0.05);
+	border: 1px solid rgb(229 221 210 / 0.58);
+	background-color: #fff;
+	box-shadow: 0 2px 16px rgba(64, 58, 52, 0.035);
 	transition:
 		box-shadow 0.3s ease,
 		transform 0.3s ease;

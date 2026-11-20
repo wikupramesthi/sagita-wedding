@@ -60,6 +60,19 @@ const getPageBatch = vi.fn(
 				return { captcha: CAPTCHA, faqs: [] };
 			case "faq":
 				return { faqs: [], categories: [] };
+			case "vendors":
+				return {
+					vendors: [
+						{
+							name: "Vendor Katering",
+							vendors_categories: [{ name: "Katering" }],
+						},
+						{
+							name: "Vendor Dekorasi",
+							vendors_categories: [{ name: "Dekorasi" }],
+						},
+					],
+				};
 			case "about":
 				return { stats: null, articles: [] };
 			case "home":
@@ -116,7 +129,7 @@ describe("security headers", () => {
 	});
 
 	it("halaman publik memakai CSP ketat dengan nonce", async () => {
-		const res = await request(app).get("/about");
+		const res = await request(app).get("/");
 		const csp = res.headers["content-security-policy"];
 		expect(csp).toBeDefined();
 		expect(csp).toContain("script-src");
@@ -128,7 +141,7 @@ describe("security headers", () => {
 	});
 
 	it("nonce di CSP sama dengan nonce di tag <script>", async () => {
-		const res = await request(app).get("/about");
+		const res = await request(app).get("/");
 		const cspNonce = /'nonce-([^']+)'/.exec(
 			res.headers["content-security-policy"],
 		)?.[1];
@@ -138,8 +151,8 @@ describe("security headers", () => {
 
 	it("nonce berbeda tiap request", async () => {
 		const grab = (csp: string) => /'nonce-([^']+)'/.exec(csp)?.[1];
-		const a = await request(app).get("/about");
-		const b = await request(app).get("/about");
+		const a = await request(app).get("/");
+		const b = await request(app).get("/");
 		expect(grab(a.headers["content-security-policy"])).toBeTruthy();
 		expect(grab(a.headers["content-security-policy"])).not.toBe(
 			grab(b.headers["content-security-policy"]),
@@ -272,7 +285,7 @@ describe("pageScript wiring", () => {
 		const cases: [string, string][] = [
 			["/classes", "classes"],
 			["/schedules", "schedules"],
-			["/contact", "contact"],
+			["/vendors", "vendors"],
 			["/faq", "faq"],
 			["/blog", "blog"],
 			["/", "home"],
@@ -286,10 +299,41 @@ describe("pageScript wiring", () => {
 		}
 	});
 
+	it("halaman vendor menggunakan satu batch dengan kategori untuk filter frontend", async () => {
+		const res = await request(app).get("/vendors");
+		expect(res.status).toBe(200);
+		expect(getPageBatch).toHaveBeenCalledTimes(1);
+		expect(getPageBatch).toHaveBeenCalledWith("vendors", undefined);
+		expect(res.text).toContain('data-category="Katering"');
+		expect(res.text).toContain('data-category="Dekorasi"');
+		expect(res.text).toContain('data-categories="[&#34;Katering&#34;]"');
+		expect(res.text).toContain("/js/pages/vendors.js");
+	});
+
 	it("halaman tanpa island tidak memuat loader halaman", async () => {
 		const res = await request(app).get("/about");
 		expect(res.status).toBe(200);
 		expect(res.text).not.toContain("/js/pages/");
+	});
+
+	it("indikator gulir beranda menaut ke bagian kelas", async () => {
+		const res = await request(app).get("/");
+		expect(res.text).toContain('href="#home-classes"');
+		expect(res.text).toContain('id="home-classes"');
+	});
+
+	it("halaman About menampilkan Art of Living dan tautan lama diarahkan", async () => {
+		const response = await request(app).get("/about");
+		expect(response.status).toBe(200);
+		expect(response.text).toContain("Art of Living");
+
+		const oldUrl = await request(app).get("/art-of-living");
+		expect(oldUrl.status).toBe(301);
+		expect(oldUrl.headers.location).toBe("/about");
+
+		const home = await request(app).get("/");
+		expect(home.text).toContain('href="/about"');
+		expect(home.text).not.toContain('href="/art-of-living"');
 	});
 });
 
@@ -297,14 +341,7 @@ describe("pageScript wiring", () => {
 
 describe("regresi CSP: tidak ada inline script tanpa nonce", () => {
 	it("halaman yang dulu punya inline script tetap aman", async () => {
-		for (const path of [
-			"/",
-			"/classes",
-			"/schedules",
-			"/blog",
-			"/contact",
-			"/faq",
-		]) {
+		for (const path of ["/", "/classes", "/schedules", "/blog", "/faq"]) {
 			const res = await request(app).get(path);
 			const scripts = [...res.text.matchAll(/<script\b([^>]*)>/gi)];
 			for (const [, attrs] of scripts) {

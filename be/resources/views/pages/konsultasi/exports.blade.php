@@ -30,18 +30,18 @@
             @forelse ($consultations as $index => $consultation)
                 <tr>
                     <td style="text-align: center;">{{ $index + 1 }}</td>
-                    <td>{{ $consultation->full_name }}</td>
-                    <td>{{ $consultation->whatsapp ?: '-' }}</td>
-                    <td>{{ $consultation->email ?: '-' }}</td>
-                    <td>{{ $consultation->source_label }}</td>
-                    <td>{{ $consultation->package?->name ?? '-' }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->full_name) }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->whatsapp ?: '-') }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->email ?: '-') }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->source_label) }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->package?->name ?? '-') }}</td>
                     <td>{{ $consultation->consultation_date?->translatedFormat('d M Y') ?? '-' }}</td>
-                    <td>{{ $consultation->status_label }}</td>
-                    <td>{{ $consultation->lead_status_label }}</td>
-                    <td>{{ $consultation->lead_priority }}</td>
-                    <td>{{ $consultation->handler?->name ?? '-' }}</td>
-                    <td>{{ $consultation->follow_up_date_label }}</td>
-                    <td style="white-space: normal;">{{ $consultation->admin_notes ?: '-' }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->status_label) }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->lead_status_label) }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->lead_priority) }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->handler?->name ?? '-') }}</td>
+                    <td>{{ \App\Exports\ConsultationExport::escape($consultation->follow_up_date_label) }}</td>
+                    <td style="white-space: normal;">{{ \App\Exports\ConsultationExport::escape($consultation->admin_notes ?: '-') }}</td>
                     <td>{{ $consultation->created_at?->translatedFormat('d M Y H:i') ?? '-' }}</td>
                 </tr>
             @empty

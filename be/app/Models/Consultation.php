@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Package\Package;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,8 +25,52 @@ class Consultation extends Model
         });
 
         static::saving(function (self $consultation) {
-            $consultation->email_normalized = self::normalizeEmail($consultation->email);
-            $consultation->whatsapp_e164 = self::normalizeWhatsapp($consultation->whatsapp);
+            $email = self::normalizeEmail($consultation->email);
+            $whatsapp = self::normalizeWhatsapp($consultation->whatsapp);
+
+            $consultation->email_normalized = $email;
+            $consultation->whatsapp_e164 = $whatsapp;
+
+            if (! $consultation->merged_into_uuid
+                && ! $consultation->isDirty('email_dedupe_key')
+                && (! $consultation->exists || $consultation->isDirty('email') || (! $consultation->email_dedupe_key && $email !== null))) {
+                $consultation->email_dedupe_key = $email;
+            }
+
+            if (! $consultation->merged_into_uuid
+                && ! $consultation->isDirty('whatsapp_dedupe_key')
+                && (! $consultation->exists || $consultation->isDirty('whatsapp') || (! $consultation->whatsapp_dedupe_key && $whatsapp !== null))) {
+                $consultation->whatsapp_dedupe_key = $whatsapp;
+            }
+
+            if ($consultation->isDirty('lead_status')) {
+                $consultation->sort_order = (int) (static::query()
+                    ->where('lead_status', $consultation->lead_status)
+                    ->when($consultation->exists, fn ($query) => $query->where('uuid', '!=', $consultation->uuid))
+                    ->max('sort_order') ?? -1) + 1;
+            }
+        });
+
+        static::deleting(function (self $consultation) {
+            if ($consultation->isForceDeleting()) {
+                return;
+            }
+
+            DB::table('consultations')
+                ->where('uuid', $consultation->uuid)
+                ->update([
+                    'email_dedupe_key' => null,
+                    'whatsapp_dedupe_key' => null,
+                ]);
+        });
+
+        static::restoring(function (self $consultation) {
+            if ($consultation->merged_into_uuid) {
+                return;
+            }
+
+            $consultation->email_dedupe_key = self::normalizeEmail($consultation->email);
+            $consultation->whatsapp_dedupe_key = self::normalizeWhatsapp($consultation->whatsapp);
         });
     }
 
@@ -92,6 +138,25 @@ class Consultation extends Model
         'old' => '> 60 hari',
     ];
 
+    public const SLA_WARNING_HOURS = 8;
+
+    public const SLA_BREACH_HOURS = 24;
+
+    public const SLA_LABELS = [
+        'done' => 'Selesai',
+        'met' => 'Terespon',
+        'safe' => 'Aman',
+        'warning' => 'Mendekati SLA',
+        'breach' => 'SLA Terlewat',
+    ];
+
+    public const WIP_LIMITS = [
+        'New' => 20,
+        'Contacted' => 20,
+        'Interested' => 15,
+        'Negotiation' => 10,
+    ];
+
     public static function normalizeEmail(?string $email): ?string
     {
         $email = strtolower(trim((string) $email));
@@ -124,6 +189,7 @@ class Consultation extends Model
         $method = (string) ($filters['method'] ?? '');
         $lead = (string) ($filters['lead'] ?? '');
         $followUp = (string) ($filters['follow_up'] ?? '');
+        $sla = (string) ($filters['sla'] ?? '');
         $source = (string) ($filters['source'] ?? '');
         $startDate = (string) ($filters['start_date'] ?? '');
         $endDate = (string) ($filters['end_date'] ?? '');
@@ -148,6 +214,10 @@ class Consultation extends Model
             $source = '';
         }
 
+        if (! array_key_exists($sla, self::SLA_LABELS)) {
+            $sla = '';
+        }
+
         $datePattern = '/^\d{4}-\d{2}-\d{2}$/';
 
         return [
@@ -157,6 +227,7 @@ class Consultation extends Model
             'lead' => $lead,
             'source' => $source,
             'follow_up' => $followUp,
+            'sla' => $sla,
             'start_date' => preg_match($datePattern, $startDate) ? $startDate : '',
             'end_date' => preg_match($datePattern, $endDate) ? $endDate : '',
         ];
@@ -195,7 +266,21 @@ class Consultation extends Model
                     $query->whereIn('lead_status', ['Converted', 'Lost'])
                         ->orWhereNotNull('converted_to_booking_at');
                 }))
-            ->when($filters['follow_up'] === 'none', fn ($query) => $query->whereNull('follow_up_at'));
+            ->when($filters['follow_up'] === 'none', fn ($query) => $query->whereNull('follow_up_at'))
+            ->when($filters['sla'] === 'breach', fn ($query) => $query
+                ->where('lead_status', 'New')
+                ->where('created_at', '<', now()->subHours(self::SLA_BREACH_HOURS)))
+            ->when($filters['sla'] === 'warning', fn ($query) => $query
+                ->where('lead_status', 'New')
+                ->where('created_at', '<', now()->subHours(self::SLA_WARNING_HOURS))
+                ->where('created_at', '>=', now()->subHours(self::SLA_BREACH_HOURS)))
+            ->when($filters['sla'] === 'safe', fn ($query) => $query
+                ->where('lead_status', 'New')
+                ->where('created_at', '>=', now()->subHours(self::SLA_WARNING_HOURS)))
+            ->when($filters['sla'] === 'met', fn ($query) => $query
+                ->whereNotIn('lead_status', ['New', 'Converted', 'Lost']))
+            ->when($filters['sla'] === 'done', fn ($query) => $query
+                ->whereIn('lead_status', ['Converted', 'Lost']));
     }
 
     public static function stats(array $filters = []): array
@@ -222,6 +307,13 @@ class Consultation extends Model
             ->whereNotNull('follow_up_at')
             ->where('follow_up_at', '<', now())
             ->whereNotIn('lead_status', ['Converted', 'Lost'])
+            ->count();
+
+        $slaBase = (clone $base)->where('lead_status', 'New');
+        $slaBreach = (clone $slaBase)->where('created_at', '<', now()->subHours(self::SLA_BREACH_HOURS))->count();
+        $slaWarning = (clone $slaBase)
+            ->where('created_at', '<', now()->subHours(self::SLA_WARNING_HOURS))
+            ->where('created_at', '>=', now()->subHours(self::SLA_BREACH_HOURS))
             ->count();
 
         $sourceRows = (clone $base)
@@ -259,6 +351,8 @@ class Consultation extends Model
             'new' => (int) ($leadCounts['new'] ?? 0),
             'hot' => (int) ($leadCounts['interested'] ?? 0) + (int) ($leadCounts['negotiation'] ?? 0),
             'overdue' => $overdue,
+            'sla_breach' => $slaBreach,
+            'sla_warning' => $slaWarning,
             'converted' => $converted,
             'conversion_rate' => $total > 0 ? (int) round($converted / $total * 100) : 0,
             'source_conversion' => $sourceConversion,
@@ -290,6 +384,8 @@ class Consultation extends Model
         'merged_at',
         'merged_by',
         'sort_order',
+        'email_dedupe_key',
+        'whatsapp_dedupe_key',
     ];
 
     protected $casts = [
@@ -380,6 +476,25 @@ class Consultation extends Model
         $score += in_array($this->consultation_status, ['Confirmed', 'Completed'], true) ? 1 : 0;
 
         return min($score, 10);
+    }
+
+    private function slaState(): string
+    {
+        if (in_array($this->lead_status, ['Converted', 'Lost'], true)) {
+            return 'done';
+        }
+
+        if ($this->lead_status !== 'New') {
+            return 'met';
+        }
+
+        $hours = (int) ($this->created_at?->diffInHours(now()) ?? 0);
+
+        return match (true) {
+            $hours >= self::SLA_BREACH_HOURS => 'breach',
+            $hours >= self::SLA_WARNING_HOURS => 'warning',
+            default => 'safe',
+        };
     }
 
     private function followUpState(): string
@@ -475,6 +590,64 @@ class Consultation extends Model
         $date = $this->wedding_date?->translatedFormat('d F Y') ?: 'tanggal yang akan ditentukan';
 
         return 'Halo '.$this->full_name.', kami dari Sagita Wedding ingin menindaklanjuti konsultasi Anda'.($this->wedding_date ? ' untuk rencana pernikahan '.$date : '').'. Apakah Bapak/Ibu masih tersedia untuk berdiskusi?';
+    }
+
+    public function getGoogleCalendarUrlAttribute(): string
+    {
+        if (! $this->consultation_date) {
+            return '#';
+        }
+
+        $start = Carbon::parse(
+            $this->consultation_date->toDateString().' '.($this->consultation_time ?: '10:00'),
+            config('app.timezone')
+        );
+        $end = $start->copy()->addHour();
+
+        return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+            .'&text='.rawurlencode('Konsultasi Sagita Wedding - '.$this->full_name)
+            .'&dates='.$start->utc()->format('Ymd\THis\Z').'/'.$end->utc()->format('Ymd\THis\Z')
+            .'&details='.rawurlencode($this->whatsapp_message)
+            .'&location='.rawurlencode((string) $this->venue);
+    }
+
+    public function getSlaStateAttribute(): string
+    {
+        return $this->slaState();
+    }
+
+    public function getSlaLabelAttribute(): string
+    {
+        return self::SLA_LABELS[$this->slaState()];
+    }
+
+    public function getSlaBadgeClassAttribute(): string
+    {
+        return match ($this->slaState()) {
+            'done' => 'bg-success',
+            'met' => 'bg-primary',
+            'warning' => 'bg-warning text-dark',
+            'breach' => 'bg-danger',
+            default => 'bg-info text-dark',
+        };
+    }
+
+    public function getSlaDeadlineAttribute(): ?CarbonInterface
+    {
+        return $this->created_at?->copy()->addHours(self::SLA_BREACH_HOURS);
+    }
+
+    public function getSlaDeadlineLabelAttribute(): string
+    {
+        if (in_array($this->lead_status, ['Converted', 'Lost'], true)) {
+            return '—';
+        }
+
+        if ($this->lead_status !== 'New') {
+            return 'Sudah ditindaklanjuti';
+        }
+
+        return $this->sla_deadline?->translatedFormat('d M Y H:i') ?? '—';
     }
 
     public function getAgingDaysAttribute(): int

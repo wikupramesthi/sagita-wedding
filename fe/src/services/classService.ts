@@ -4,12 +4,7 @@ import apiRequest, { buildQuery } from "./apiClient.js";
 export async function getClasses(
 	params: Record<string, unknown> = {},
 ): Promise<BackendPayload> {
-	const qs = buildQuery(params, [
-		"level",
-		"vendor_uuid",
-		"page",
-		"per_page",
-	]);
+	const qs = buildQuery(params, ["level", "vendor_uuid", "page", "per_page"]);
 	return await apiRequest(`/classes${qs}`);
 }
 

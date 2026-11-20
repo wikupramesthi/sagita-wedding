@@ -38,6 +38,7 @@ class AuditLog extends Model
             'updated' => 'Updated',
             'deleted' => 'Deleted',
             'restored' => 'Restored',
+            'whatsapp_opened' => 'WhatsApp Dibuka',
             default => ucfirst((string) $this->event),
         };
     }

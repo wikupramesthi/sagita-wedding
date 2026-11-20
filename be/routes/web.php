@@ -248,6 +248,17 @@ Route::group(['middleware' => ['web', 'auth', 'verified'], 'prefix' => 'backend'
     Route::post('konsultasi/bulk', [ConsultationController::class, 'bulk'])->name('konsultasi.bulk');
     Route::post('konsultasi/merge', [ConsultationController::class, 'merge'])->name('konsultasi.merge');
     Route::post('konsultasi/{consultation}/remind', [ConsultationController::class, 'remind'])->name('konsultasi.remind');
+    Route::get('konsultasi/{consultation}/whatsapp', [ConsultationController::class, 'whatsapp'])->name('konsultasi.whatsapp');
+    Route::get('konsultasi/{consultation}/calendar-ics', [ConsultationController::class, 'calendarIcs'])->name('konsultasi.calendar-ics');
+    Route::get('konsultasi/import', [ConsultationController::class, 'import'])->name('konsultasi.import');
+    Route::get('konsultasi/import/template', [ConsultationController::class, 'importTemplate'])->name('konsultasi.import.template');
+    Route::post('konsultasi/import/preview', [ConsultationController::class, 'importPreview'])->name('konsultasi.import.preview');
+    Route::post('konsultasi/import/commit', [ConsultationController::class, 'importCommit'])->name('konsultasi.import.commit');
+    Route::get('konsultasi/saved-filters', [ConsultationController::class, 'savedFilters'])->name('konsultasi.saved-filters');
+    Route::post('konsultasi/saved-filters', [ConsultationController::class, 'storeSavedFilter'])->name('konsultasi.saved-filters.store');
+    Route::get('konsultasi/saved-filters/{savedFilter}/apply', [ConsultationController::class, 'applySavedFilter'])->name('konsultasi.saved-filters.apply');
+    Route::delete('konsultasi/saved-filters/{savedFilter}', [ConsultationController::class, 'deleteSavedFilter'])->name('konsultasi.saved-filters.destroy');
+    Route::post('konsultasi/{consultation}/reorder', [ConsultationController::class, 'reorder'])->name('konsultasi.reorder');
     Route::put('konsultasi/{consultation}/lead', [ConsultationController::class, 'updateLead'])->name('konsultasi.update-lead');
     Route::resource('konsultasi', ConsultationController::class)->parameters([
         'konsultasi' => 'consultation',

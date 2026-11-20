@@ -7,9 +7,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    private array $dedupeColumns = [
+        'email_normalized' => 'email_dedupe_key',
+        'whatsapp_e164' => 'whatsapp_dedupe_key',
+    ];
+
     private array $uniqueIndexes = [
-        'cons_email_norm_uniq' => 'email_normalized',
-        'cons_wa_e164_uniq' => 'whatsapp_e164',
+        'cons_email_dedupe_uniq' => 'email_dedupe_key',
+        'cons_wa_dedupe_uniq' => 'whatsapp_dedupe_key',
     ];
 
     public function up(): void
@@ -25,17 +30,27 @@ return new class extends Migration
                 });
             }
 
-            foreach ($this->uniqueIndexes as $name => $column) {
-                if (! $this->hasDuplicates($column)) {
-                    $this->addUniqueIndex($column, $name);
+            foreach ($this->dedupeColumns as $key) {
+                if (! Schema::hasColumn('consultations', $key)) {
+                    Schema::table('consultations', function (Blueprint $table) use ($key) {
+                        $table->string($key, 255)->nullable()->after('whatsapp_e164');
+                    });
                 }
+            }
+
+            foreach ($this->dedupeColumns as $source => $key) {
+                $this->populateDedupeKeys($source, $key);
+            }
+
+            foreach ($this->uniqueIndexes as $name => $column) {
+                $this->addUniqueIndex($column, $name);
             }
         }
 
         if (! Schema::hasTable('konsultasi_saved_filters')) {
             Schema::create('konsultasi_saved_filters', function (Blueprint $table) {
                 $table->id();
-                $table->unsignedBigInteger('user_id');
+                $table->uuid('user_id');
                 $table->string('name', 100);
                 $table->json('filters');
                 $table->boolean('is_default')->default(false);
@@ -43,7 +58,7 @@ return new class extends Migration
 
                 $table->unique(['user_id', 'name'], 'konsultasi_saved_filters_user_name_unique');
                 $table->index(['user_id', 'is_default'], 'konsultasi_saved_filters_user_default_idx');
-                $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+                $table->foreign('user_id')->references('uuid')->on('users')->cascadeOnDelete();
             });
         }
     }
@@ -55,10 +70,10 @@ return new class extends Migration
                 $this->dropIndexIfExists($name);
             }
 
-            $columns = array_values(array_filter([
-                'deleted_at',
-                'sort_order',
-            ], fn ($column) => Schema::hasColumn('consultations', $column)));
+            $columns = array_values(array_filter(array_merge(
+                ['deleted_at', 'sort_order'],
+                array_values($this->dedupeColumns)
+            ), fn ($column) => Schema::hasColumn('consultations', $column)));
 
             if (! empty($columns)) {
                 Schema::table('consultations', fn (Blueprint $table) => $table->dropColumn($columns));
@@ -68,15 +83,30 @@ return new class extends Migration
         Schema::dropIfExists('konsultasi_saved_filters');
     }
 
-    private function hasDuplicates(string $column): bool
+    private function populateDedupeKeys(string $source, string $key): void
     {
-        return DB::table('consultations')
-            ->select($column)
-            ->whereNotNull($column)
-            ->where($column, '!=', '')
-            ->groupBy($column)
-            ->havingRaw('COUNT(*) > 1')
-            ->exists();
+        DB::table('consultations')
+            ->select('uuid', $source)
+            ->whereNotNull($source)
+            ->where($source, '!=', '')
+            ->orderBy('created_at')
+            ->chunk(500, function ($rows) use ($source, $key) {
+                $seen = [];
+
+                foreach ($rows as $row) {
+                    $value = (string) $row->{$source};
+
+                    if (isset($seen[$value])) {
+                        continue;
+                    }
+
+                    $seen[$value] = true;
+
+                    DB::table('consultations')
+                        ->where('uuid', $row->uuid)
+                        ->update([$key => $value]);
+                }
+            });
     }
 
     private function addUniqueIndex(string $column, string $name): void

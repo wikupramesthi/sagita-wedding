@@ -15,8 +15,7 @@ export async function getSiteStats(): Promise<SiteStats | null> {
 		const members = num(data.members);
 		const vendors = num(data.vendors);
 		const classes = num(data.classes);
-		if (members === null && vendors === null && classes === null)
-			return null;
+		if (members === null && vendors === null && classes === null) return null;
 		return { members, vendors, classes };
 	} catch {
 		return null;

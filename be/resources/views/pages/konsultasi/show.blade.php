@@ -17,6 +17,7 @@
                         <span class="badge {{ $consultation->lead_priority_badge_class }}"><i class="{{ $consultation->lead_priority_icon }} me-1"></i>Prioritas {{ $consultation->lead_priority }}</span>
                         <span class="badge {{ $consultation->lead_status_badge_class }}">{{ $consultation->lead_status_label }}</span>
                         <span class="badge {{ $consultation->status_badge_class }}">{{ $consultation->status_label }}</span>
+                        <span class="badge {{ $consultation->sla_badge_class }}" title="Target respons: {{ $consultation->sla_deadline_label }}">{{ $consultation->sla_label }}</span>
                     </div>
                     <div class="small text-muted mt-2">
                         <i class="bx bx-calendar me-1"></i> Masuk {{ $consultation->created_at->translatedFormat('d F Y H:i') }}
@@ -26,14 +27,22 @@
                 </div>
             </div>
             <div class="d-flex flex-wrap gap-2">
-                <a href="{{ route('konsultasi.pdf-preview', ['uuid' => $consultation->uuid]) }}" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i> Preview PDF</a>
-                <a href="{{ $consultation->whatsapp_link }}?text={{ rawurlencode($consultation->whatsapp_message) }}" target="_blank" rel="noopener" class="btn btn-success"><i class="bx bxl-whatsapp me-1"></i> Hubungi WhatsApp</a>
+                @can('konsultasi.export')
+                    <a href="{{ route('konsultasi.pdf-preview', ['uuid' => $consultation->uuid]) }}" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i> Preview PDF</a>
+                @endcan
+                <a href="{{ route('konsultasi.whatsapp', $consultation->uuid) }}" target="_blank" rel="noopener" class="btn btn-success"><i class="bx bxl-whatsapp me-1"></i> Hubungi WhatsApp</a>
+                @if ($consultation->consultation_date)
+                    <a href="{{ route('konsultasi.calendar-ics', $consultation) }}" class="btn btn-outline-primary"><i class="bi bi-download me-1"></i> Unduh ICS</a>
+                    <a href="{{ $consultation->google_calendar_url }}" target="_blank" rel="noopener" class="btn btn-outline-info"><i class="bx bxl-google me-1"></i> Google Calendar</a>
+                @endif
                 @can('konsultasi.index')
                     <form action="{{ route('konsultasi.remind', $consultation->uuid) }}" method="POST" class="d-inline">
                         @csrf
                         <button type="submit" class="btn btn-outline-warning"><i class="bi bi-bell me-1"></i> Kirim Pengingat</button>
                     </form>
-                    <a href="{{ route('konsultasi.duplicates') }}" class="btn btn-outline-secondary"><i class="bi bi-diagram-3 me-1"></i> Cek Duplikat</a>
+                    @can('konsultasi.merge')
+                        <a href="{{ route('konsultasi.duplicates') }}" class="btn btn-outline-secondary"><i class="bi bi-diagram-3 me-1"></i> Cek Duplikat</a>
+                    @endcan
                     <a href="{{ route('konsultasi.edit', $consultation->uuid) }}" class="btn btn-light"><i class="bi bi-pencil-square me-1"></i> Ubah Data</a>
                 @endcan
                 <a href="{{ route('konsultasi.index') }}" class="btn btn-light"><i class="bi bi-arrow-left me-1"></i> Kembali</a>

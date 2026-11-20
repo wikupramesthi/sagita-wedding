@@ -1,7 +1,6 @@
 import { Router } from "express";
-import { sagitaData } from "../data/sagitaData.js";
+import { localizeFaqCategories, localizeFaqs } from "../data/faqContent.js";
 import { getPageBatch } from "../services/batchService.js";
-import { formatStatCount } from "../services/siteStatsService.js";
 import type { NextFunction, Request, Response } from "../types/index.js";
 import { toApiError } from "../utils/errors.js";
 import { sanitizeRichHtml } from "../utils/sanitize.js";
@@ -34,27 +33,6 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 	}
 });
 
-// ---------- Static ----------
-router.get(
-	"/about",
-	async (_req: Request, res: Response, next: NextFunction) => {
-		try {
-			const data = await getPageBatch("about").catch(() => null);
-			const posts = Array.isArray(data?.articles)
-				? data.articles.slice(0, 3)
-				: [];
-			res.render("pages/about", {
-				title: "About YogaRoots � Our Story & Practice",
-				liveStats: data?.stats || null,
-				formatStat: (v: unknown) => formatStatCount(v, res.locals.lang),
-				posts,
-			});
-		} catch (err) {
-			next(err);
-		}
-	},
-);
-
 router.get(
 	"/classes",
 	async (_req: Request, res: Response, next: NextFunction) => {
@@ -82,8 +60,8 @@ router.get("/schedules", (_req: Request, res: Response) => {
 	});
 });
 
-// ---------- Art of Living (Gurudev) ----------
-router.get("/art-of-living", (_req: Request, res: Response) => {
+// ---------- About (Art of Living / Gurudev) ----------
+router.get("/about", (_req: Request, res: Response) => {
 	const isID = res.locals.lang === "id";
 	res.render("pages/art-of-living", {
 		title: isID
@@ -94,6 +72,10 @@ router.get("/art-of-living", (_req: Request, res: Response) => {
 			: "Meet Gurudev Sri Sri Ravi Shankar, founder of Art of Living � ambassador of peace, creator of Sudarshan Kriya, reaching 800M+ lives across 180 countries.",
 		heroNav: true,
 	});
+});
+
+router.get("/art-of-living", (_req: Request, res: Response) => {
+	res.redirect(301, "/about");
 });
 
 // ---------- Class detail ----------
@@ -163,6 +145,8 @@ router.get(
 			res.render("pages/vendors", {
 				title: "Our Vendors � YogaRoots",
 				vendors: data?.vendors || [],
+				pageScript: "vendors",
+				heroNav: true,
 			});
 		} catch (err) {
 			next(err);
@@ -334,25 +318,20 @@ router.get(
 // ---------- FAQ ----------
 router.get("/faq", async (_req: Request, res: Response) => {
 	const data = await getPageBatch("faq").catch(() => null);
+	const locale = res.locals.lang === "id" ? "id" : "en";
 	res.render("pages/faq", {
-		title: "Frequently Asked Questions � Sagita Wedding",
+		title:
+			locale === "id"
+				? "Pertanyaan Umum Seputar Pernikahan | Sagita Wedding Planner"
+				: "Wedding Planning FAQs | Sagita Wedding Planner",
 		metaDescription:
-			"Answers about wedding planning, packages, payments, vendors, and your big day.",
+			locale === "id"
+				? "Temukan jawaban seputar layanan Wedding Organizer, paket pernikahan, pembayaran, vendor, dan koordinasi hari pernikahan."
+				: "Find answers about wedding planning, packages, payments, vendors, and wedding-day coordination with Sagita Wedding Planner.",
+		heroNav: true,
 		pageScript: "faq",
-		faqs: Array.isArray(data?.faqs) ? data.faqs : [],
-		categories: Array.isArray(data?.categories) ? data.categories : [],
-	});
-});
-
-// ---------- Contact ----------
-router.get("/contact", async (_req: Request, res: Response) => {
-	const data = await getPageBatch("contact").catch(() => null);
-	res.render("pages/contact", {
-		title: "Contact Us",
-		pageScript: "contact",
-		contact: sagitaData.contact,
-		captcha: data?.captcha || null,
-		faqs: Array.isArray(data?.faqs) ? data.faqs : [],
+		faqs: localizeFaqs(data?.faqs, locale),
+		categories: localizeFaqCategories(data?.categories, locale),
 	});
 });
 
