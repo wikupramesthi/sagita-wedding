@@ -26,6 +26,7 @@ const STATIC_URLS = [
 	{ path: "/event", changefreq: "weekly", priority: "0.7" },
 	{ path: "/gallery", changefreq: "monthly", priority: "0.5" },
 	{ path: "/faq", changefreq: "monthly", priority: "0.6" },
+	{ path: "/formulir-konsultasi", changefreq: "monthly", priority: "0.7" },
 ];
 
 // FE base path + endpoint backend (per_page mentok 50 sesuai validasi BE).

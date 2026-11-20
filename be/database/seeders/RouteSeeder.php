@@ -21,6 +21,18 @@ class RouteSeeder extends Seeder
                 'route' => 'dashboard.index',
                 'permission_name' => 'dashboard.index',
             ],
+            [
+                'route' => 'dashboard.refresh',
+                'permission_name' => 'dashboard.index',
+            ],
+            [
+                'route' => 'dashboard.export',
+                'permission_name' => 'dashboard.index',
+            ],
+            [
+                'route' => 'dashboard.export-pdf',
+                'permission_name' => 'dashboard.index',
+            ],
         ]);
 
         // General Setting
@@ -53,6 +65,7 @@ class RouteSeeder extends Seeder
             ['route' => 'konsultasi.calendar', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.duplicates', 'permission_name' => 'konsultasi.merge'],
             ['route' => 'konsultasi.bulk', 'permission_name' => 'konsultasi.bulk'],
+            ['route' => 'konsultasi.bulk-undo', 'permission_name' => 'konsultasi.bulk'],
             ['route' => 'konsultasi.merge', 'permission_name' => 'konsultasi.merge'],
             ['route' => 'konsultasi.remind', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.reorder', 'permission_name' => 'konsultasi.index'],
@@ -63,6 +76,7 @@ class RouteSeeder extends Seeder
             ['route' => 'konsultasi.saved-filters', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.saved-filters.store', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.saved-filters.apply', 'permission_name' => 'konsultasi.index'],
+            ['route' => 'konsultasi.saved-filters.default', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.saved-filters.destroy', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.whatsapp', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.calendar-ics', 'permission_name' => 'konsultasi.index'],

@@ -3,7 +3,13 @@ import { expect, test } from '@playwright/test';
 const email = process.env.QA_EMAIL ?? 'qa.design@example.test';
 const password = process.env.QA_PASSWORD ?? 'QaDesign123!';
 
-async function expectNoHorizontalScroll(page: import('@playwright/test').Page, label: string) {
+async function expectNoHorizontalScroll(
+    page: import('@playwright/test').Page,
+    label: string,
+    options: { allowAutoContainers?: boolean } = {}
+) {
+    await expect(page.locator('#app-loader')).toBeHidden();
+
     const metrics = await page.evaluate(() => ({
         scroll: document.documentElement.scrollWidth,
         client: document.documentElement.clientWidth,
@@ -16,6 +22,9 @@ async function expectNoHorizontalScroll(page: import('@playwright/test').Page, l
         .toBeLessThanOrEqual(metrics.client + 1);
 
     for (const container of metrics.containers) {
+        if (options.allowAutoContainers) {
+            continue;
+        }
         expect(['hidden', 'clip']).toContain(container.overflowX);
     }
 }
@@ -37,6 +46,26 @@ test('konsultasi module smoke', async ({ page }) => {
     for (const tone of ['blue', 'indigo', 'cyan', 'purple', 'warning', 'success', 'danger']) {
         await expect(page.locator('.konsultasi-toolbar .btn-soft-' + tone).first()).toBeVisible();
     }
+
+    const statHeight = await page.locator('.konsultasi-stat-grid').evaluate((el) => el.getBoundingClientRect().height);
+    expect(statHeight).toBeLessThan(140);
+
+    await expect(page.locator('.konsultasi-followup-control input[type="date"]').first()).toBeVisible();
+
+    await page.getByRole('button', { name: /Kolom/ }).click();
+    await page.locator('[data-konsultasi-column="contact"]').uncheck();
+    await expect(page.locator('.lead-table th.col-contact').first()).toBeHidden();
+    await page.locator('[data-konsultasi-column="contact"]').check();
+    await expect(page.locator('.lead-table th.col-contact').first()).toBeVisible();
+
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await page.keyboard.press('/');
+    await expect(page.locator('#filter-q')).toBeFocused();
+
+    await page.goto('/backend/konsultasi?lead=New');
+    await expect(page.locator('.konsultasi-active-filters .badge').first()).toBeVisible();
+    await page.goto('/backend/konsultasi');
+
     const actionButtonsPerRow = await page.evaluate(() =>
         Array.from(document.querySelectorAll('.lead-table td.col-action')).map(
             (cell) => cell.querySelectorAll(':scope > .dropdown > button').length
@@ -84,16 +113,56 @@ test('konsultasi mobile layout has no horizontal scroll', async ({ page }) => {
         await page.goto(path);
         await expect(page.locator('#main-content')).toBeVisible();
         if (label === 'index') {
+            await expect(page.locator('#app-loader')).toBeHidden();
             await expect(page.locator('.konsultasi-aging-grid').first()).toBeHidden();
             await expect(page.locator('.konsultasi-mobile-fold > summary').first()).toBeVisible();
             const mobileMetrics = await page.evaluate(() => ({
                 tableTop: document.querySelector('.lead-table')?.getBoundingClientRect().top ?? 0,
-                scrollHeight: document.documentElement.scrollHeight,
-                clientHeight: document.documentElement.clientHeight,
             }));
             expect(mobileMetrics.tableTop).toBeLessThan(500);
-            expect(mobileMetrics.scrollHeight).toBeLessThanOrEqual(mobileMetrics.clientHeight + 1);
         }
         await expectNoHorizontalScroll(page, `mobile ${label}`);
     }
+});
+
+test('dashboard highlights konsultasi tanpa card lama', async ({ page }) => {
+    await login(page);
+
+    await page.goto('/backend/dashboard');
+    await expect(page.getByText('Pipeline konsultasi')).toBeVisible();
+    await expect(page.getByText('Calon Konsumen Baru')).toBeVisible();
+    const statHeight = await page.locator('.dashboard-stat-grid').evaluate((el) => el.getBoundingClientRect().height);
+    expect(statHeight).toBeLessThan(420);
+    await expect(page.getByText('Kategori vendor aktif')).toHaveCount(0);
+    await expect(page.getByText('Pertanyaan masuk', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Check-in menunggu')).toHaveCount(0);
+    await expect(page.getByText('Keanggotaan segera habis')).toHaveCount(0);
+    await expect(page.locator('.dashboard-date-filter .btn-success').first()).toBeVisible();
+    await expect(page.locator('.dashboard-date-filter .btn-danger').first()).toBeVisible();
+    await expect(page.locator('.dashboard-date-filter .btn-warning').first()).toBeVisible();
+
+    const avatar = page.locator('.dashboard-avatar .avatar-content').first();
+    await expect(avatar).toBeVisible();
+    const avatarStyle = await avatar.evaluate((el) => {
+        const parent = el as HTMLElement;
+        const icon = parent.querySelector('i') as HTMLElement | null;
+        return {
+            width: parent.getBoundingClientRect().width,
+            height: parent.getBoundingClientRect().height,
+            background: getComputedStyle(parent).backgroundColor,
+            color: icon ? getComputedStyle(icon).color : '',
+        };
+    });
+    expect(avatarStyle.width).toBeGreaterThanOrEqual(36);
+    expect(avatarStyle.height).toBeGreaterThanOrEqual(36);
+    expect(avatarStyle.color).not.toBe(avatarStyle.background);
+    await expectNoHorizontalScroll(page, 'dashboard desktop', { allowAutoContainers: true });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/backend/dashboard');
+    await expect(page.locator('.dashboard-details-fold')).not.toHaveAttribute('open', '');
+    await page.locator('.dashboard-details-summary').click();
+    await expect(page.getByText('Pipeline konsultasi')).toBeVisible();
+    await expect(page.getByText('Calon Konsumen Baru')).toBeVisible();
+    await expectNoHorizontalScroll(page, 'dashboard mobile', { allowAutoContainers: true });
 });

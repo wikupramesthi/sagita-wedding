@@ -3,7 +3,7 @@
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Preview PDF" page="Data Prospek" active="Preview PDF" route="{{ route('konsultasi.index') }}" />
+<x-breadcrumb title="Preview PDF" page="Konsultasi" active="Preview PDF" route="{{ route('konsultasi.index') }}" />
 @endsection
 
 @php

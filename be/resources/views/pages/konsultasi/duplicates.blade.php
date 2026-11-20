@@ -3,7 +3,7 @@
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Deteksi Duplikat Konsultasi" page="Data Prospek" active="Konsultasi" route="{{ route('konsultasi.index') }}" />
+<x-breadcrumb title="Deteksi Duplikat Konsultasi" page="Konsultasi" active="Konsultasi" route="{{ route('konsultasi.index') }}" />
 @endsection
 
 @push('after-style')

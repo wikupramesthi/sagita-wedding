@@ -41,6 +41,7 @@ use App\Http\Controllers\ManagementAccess\RoleController;
 use App\Http\Controllers\ManagementAccess\RouteController;
 use App\Http\Controllers\ManagementAccess\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Middleware\InvalidateDashboardCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -146,6 +147,9 @@ Route::group(['middleware' => ['web', 'auth', 'verified'], 'prefix' => 'backend'
     $superAdmin = 'role:super-admin';
     // $user = 'role:user';
     Route::post('/dashboard/sumber-informasi', [DashboardController::class, 'submitSumber'])->name('dashboard.submitSumber');
+    Route::get('/dashboard/refresh', [DashboardController::class, 'refresh'])->name('dashboard.refresh');
+    Route::get('/dashboard/export', [DashboardController::class, 'export'])->name('dashboard.export');
+    Route::get('/dashboard/export-pdf', [DashboardController::class, 'exportPdf'])->name('dashboard.export-pdf');
     // Cross-module global search for the command palette (Ctrl+K)
     Route::get('/search', [GlobalSearchController::class, 'index'])->name('search');
     Route::resource('dashboard', DashboardController::class)->only('index');
@@ -238,31 +242,35 @@ Route::group(['middleware' => ['web', 'auth', 'verified'], 'prefix' => 'backend'
     Route::post('class-bookings/direct-check-in', [ClassBookingController::class, 'directCheckin'])->name('class-bookings.directCheckin')->middleware('throttle:120,1');
     // end payment
 
-    Route::get('konsultasi/pdf/preview', [ConsultationController::class, 'pdfPreview'])->name('konsultasi.pdf-preview');
-    Route::get('konsultasi/pdf/stream', [ConsultationController::class, 'pdfStream'])->name('konsultasi.pdf-stream');
-    Route::get('konsultasi/pdf/download', [ConsultationController::class, 'pdfDownload'])->name('konsultasi.pdf-download');
-    Route::get('konsultasi/export', [ConsultationController::class, 'export'])->name('konsultasi.export');
-    Route::get('konsultasi/kanban', [ConsultationController::class, 'kanban'])->name('konsultasi.kanban');
-    Route::get('konsultasi/calendar', [ConsultationController::class, 'calendar'])->name('konsultasi.calendar');
-    Route::get('konsultasi/duplicates', [ConsultationController::class, 'duplicates'])->name('konsultasi.duplicates');
-    Route::post('konsultasi/bulk', [ConsultationController::class, 'bulk'])->name('konsultasi.bulk');
-    Route::post('konsultasi/merge', [ConsultationController::class, 'merge'])->name('konsultasi.merge');
-    Route::post('konsultasi/{consultation}/remind', [ConsultationController::class, 'remind'])->name('konsultasi.remind');
-    Route::get('konsultasi/{consultation}/whatsapp', [ConsultationController::class, 'whatsapp'])->name('konsultasi.whatsapp');
-    Route::get('konsultasi/{consultation}/calendar-ics', [ConsultationController::class, 'calendarIcs'])->name('konsultasi.calendar-ics');
-    Route::get('konsultasi/import', [ConsultationController::class, 'import'])->name('konsultasi.import');
-    Route::get('konsultasi/import/template', [ConsultationController::class, 'importTemplate'])->name('konsultasi.import.template');
-    Route::post('konsultasi/import/preview', [ConsultationController::class, 'importPreview'])->name('konsultasi.import.preview');
-    Route::post('konsultasi/import/commit', [ConsultationController::class, 'importCommit'])->name('konsultasi.import.commit');
-    Route::get('konsultasi/saved-filters', [ConsultationController::class, 'savedFilters'])->name('konsultasi.saved-filters');
-    Route::post('konsultasi/saved-filters', [ConsultationController::class, 'storeSavedFilter'])->name('konsultasi.saved-filters.store');
-    Route::get('konsultasi/saved-filters/{savedFilter}/apply', [ConsultationController::class, 'applySavedFilter'])->name('konsultasi.saved-filters.apply');
-    Route::delete('konsultasi/saved-filters/{savedFilter}', [ConsultationController::class, 'deleteSavedFilter'])->name('konsultasi.saved-filters.destroy');
-    Route::post('konsultasi/{consultation}/reorder', [ConsultationController::class, 'reorder'])->name('konsultasi.reorder');
-    Route::put('konsultasi/{consultation}/lead', [ConsultationController::class, 'updateLead'])->name('konsultasi.update-lead');
-    Route::resource('konsultasi', ConsultationController::class)->parameters([
-        'konsultasi' => 'consultation',
-    ]);
+    Route::middleware(InvalidateDashboardCache::class)->group(function () {
+        Route::get('konsultasi/pdf/preview', [ConsultationController::class, 'pdfPreview'])->name('konsultasi.pdf-preview');
+        Route::get('konsultasi/pdf/stream', [ConsultationController::class, 'pdfStream'])->name('konsultasi.pdf-stream');
+        Route::get('konsultasi/pdf/download', [ConsultationController::class, 'pdfDownload'])->name('konsultasi.pdf-download');
+        Route::get('konsultasi/export', [ConsultationController::class, 'export'])->name('konsultasi.export');
+        Route::get('konsultasi/kanban', [ConsultationController::class, 'kanban'])->name('konsultasi.kanban');
+        Route::get('konsultasi/calendar', [ConsultationController::class, 'calendar'])->name('konsultasi.calendar');
+        Route::get('konsultasi/duplicates', [ConsultationController::class, 'duplicates'])->name('konsultasi.duplicates');
+        Route::post('konsultasi/bulk', [ConsultationController::class, 'bulk'])->name('konsultasi.bulk');
+        Route::post('konsultasi/bulk/undo', [ConsultationController::class, 'bulkUndo'])->name('konsultasi.bulk-undo');
+        Route::post('konsultasi/merge', [ConsultationController::class, 'merge'])->name('konsultasi.merge');
+        Route::post('konsultasi/{consultation}/remind', [ConsultationController::class, 'remind'])->name('konsultasi.remind');
+        Route::get('konsultasi/{consultation}/whatsapp', [ConsultationController::class, 'whatsapp'])->name('konsultasi.whatsapp');
+        Route::get('konsultasi/{consultation}/calendar-ics', [ConsultationController::class, 'calendarIcs'])->name('konsultasi.calendar-ics');
+        Route::get('konsultasi/import', [ConsultationController::class, 'import'])->name('konsultasi.import');
+        Route::get('konsultasi/import/template', [ConsultationController::class, 'importTemplate'])->name('konsultasi.import.template');
+        Route::post('konsultasi/import/preview', [ConsultationController::class, 'importPreview'])->name('konsultasi.import.preview');
+        Route::post('konsultasi/import/commit', [ConsultationController::class, 'importCommit'])->name('konsultasi.import.commit');
+        Route::get('konsultasi/saved-filters', [ConsultationController::class, 'savedFilters'])->name('konsultasi.saved-filters');
+        Route::post('konsultasi/saved-filters', [ConsultationController::class, 'storeSavedFilter'])->name('konsultasi.saved-filters.store');
+        Route::get('konsultasi/saved-filters/{savedFilter}/apply', [ConsultationController::class, 'applySavedFilter'])->name('konsultasi.saved-filters.apply');
+        Route::post('konsultasi/saved-filters/{savedFilter}/default', [ConsultationController::class, 'setDefaultSavedFilter'])->name('konsultasi.saved-filters.default');
+        Route::delete('konsultasi/saved-filters/{savedFilter}', [ConsultationController::class, 'deleteSavedFilter'])->name('konsultasi.saved-filters.destroy');
+        Route::post('konsultasi/{consultation}/reorder', [ConsultationController::class, 'reorder'])->name('konsultasi.reorder');
+        Route::put('konsultasi/{consultation}/lead', [ConsultationController::class, 'updateLead'])->name('konsultasi.update-lead');
+        Route::resource('konsultasi', ConsultationController::class)->parameters([
+            'konsultasi' => 'consultation',
+        ]);
+    });
     Route::get('vendor/arsip', [VendorController::class, 'archive'])->name('vendor.archive');
     Route::post('vendor/restore', [VendorController::class, 'restore'])->name('vendor.restore');
     Route::resource('vendor', VendorController::class);

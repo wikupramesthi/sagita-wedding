@@ -18,6 +18,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
@@ -32,6 +33,26 @@ class ConsultationController extends Controller
 {
     public function index(Request $request)
     {
+        $savedFilters = KonsultasiSavedFilter::query()
+            ->where('user_id', auth()->id())
+            ->orderBy('name')
+            ->get();
+
+        if (! $request->query() && ! $request->has('all')) {
+            $defaultFilter = $savedFilters->firstWhere('is_default', true);
+
+            if ($defaultFilter) {
+                $query = array_filter(
+                    Consultation::normalizeFilters($defaultFilter->filters ?? []),
+                    fn ($value) => $value !== '' && $value !== null
+                );
+
+                if ($query) {
+                    return redirect()->route('konsultasi.index', $query);
+                }
+            }
+        }
+
         $filters = Consultation::normalizeFilters($request->query());
 
         $query = Consultation::query()->with(['package:id,name', 'handler:id,name']);
@@ -49,10 +70,36 @@ class ConsultationController extends Controller
                 $value => Consultation::SOURCE_LABELS[$value] ?? $value,
             ]);
         $admins = $this->adminOptions();
-        $savedFilters = KonsultasiSavedFilter::query()
-            ->where('user_id', auth()->id())
-            ->orderBy('name')
-            ->get();
+
+        $activeFilters = collect($filters)
+            ->filter(fn ($value) => is_string($value) && $value !== '')
+            ->map(function ($value, $key) use ($admins, $sources) {
+                $labels = [
+                    'q' => 'Pencarian',
+                    'status' => 'Status',
+                    'lead' => 'Lead',
+                    'follow_up' => 'Tindak lanjut',
+                    'sla' => 'SLA',
+                    'source' => 'Sumber',
+                    'start_date' => 'Dari',
+                    'end_date' => 'Sampai',
+                ];
+                $values = [
+                    'status' => Consultation::STATUS_LABELS,
+                    'lead' => Consultation::LEAD_STATUS_LABELS,
+                    'follow_up' => Consultation::FOLLOW_UP_LABELS,
+                    'sla' => Consultation::SLA_LABELS,
+                    'source' => $sources,
+                    'handled_by' => $admins->pluck('name', 'id'),
+                ];
+
+                return [
+                    'key' => $key,
+                    'label' => $labels[$key] ?? Str::headline($key),
+                    'value' => $values[$key][$value] ?? $value,
+                ];
+            })
+            ->values();
 
         return view('pages.konsultasi.index', compact(
             'consultations',
@@ -60,7 +107,8 @@ class ConsultationController extends Controller
             'filters',
             'sources',
             'admins',
-            'savedFilters'
+            'savedFilters',
+            'activeFilters'
         ));
     }
 
@@ -79,18 +127,52 @@ class ConsultationController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'filters' => ['required', 'string'],
+            'is_default' => ['nullable', 'boolean'],
         ], $this->validationMessages(), ['name' => 'nama filter']);
 
         $filters = json_decode($data['filters'], true);
+        $isDefault = (bool) ($data['is_default'] ?? false);
 
-        KonsultasiSavedFilter::query()->updateOrCreate([
-            'user_id' => auth()->id(),
-            'name' => $data['name'],
-        ], [
-            'filters' => Consultation::normalizeFilters(is_array($filters) ? $filters : []),
-        ]);
+        DB::transaction(function () use ($data, $filters, $isDefault) {
+            if ($isDefault) {
+                KonsultasiSavedFilter::query()
+                    ->where('user_id', auth()->id())
+                    ->update(['is_default' => false]);
+            }
+
+            KonsultasiSavedFilter::query()->updateOrCreate([
+                'user_id' => auth()->id(),
+                'name' => $data['name'],
+            ], [
+                'filters' => Consultation::normalizeFilters(is_array($filters) ? $filters : []),
+                'is_default' => $isDefault,
+            ]);
+        });
 
         return back()->with('success', 'Filter "'.$data['name'].'" berhasil disimpan.');
+    }
+
+    public function setDefaultSavedFilter(Request $request, KonsultasiSavedFilter $savedFilter)
+    {
+        abort_unless($savedFilter->user_id === auth()->id(), 404);
+
+        $data = $request->validate([
+            'is_default' => ['required', 'boolean'],
+        ]);
+
+        DB::transaction(function () use ($savedFilter, $data) {
+            if ($data['is_default']) {
+                KonsultasiSavedFilter::query()
+                    ->where('user_id', auth()->id())
+                    ->update(['is_default' => false]);
+            }
+
+            $savedFilter->update(['is_default' => (bool) $data['is_default']]);
+        });
+
+        return back()->with('success', $data['is_default']
+            ? 'Filter "'.$savedFilter->name.'" dijadikan default.'
+            : 'Filter default dinonaktifkan.');
     }
 
     public function applySavedFilter(KonsultasiSavedFilter $savedFilter)
@@ -152,6 +234,17 @@ class ConsultationController extends Controller
             }
         }
 
+        $snapshot = [
+            'action' => $data['action'],
+            'records' => $records
+                ->map(fn ($record) => [
+                    'uuid' => $record->uuid,
+                    'attributes' => $record->getAttributes(),
+                ])
+                ->all(),
+        ];
+        $undoToken = Str::random(24);
+
         $target = match ($data['action']) {
             'lead' => (string) $data['lead_status'],
             'follow-up-done' => 'Contacted',
@@ -163,7 +256,7 @@ class ConsultationController extends Controller
             default => 0,
         };
 
-        $apply = function () use ($records, $data, $target, $incoming) {
+        $apply = function () use ($records, $data, $target, $incoming, $snapshot, $undoToken) {
             if ($target !== null && $incoming > 0) {
                 $this->assertWipCapacity($target, $records->pluck('uuid')->all(), $incoming);
             }
@@ -189,7 +282,17 @@ class ConsultationController extends Controller
                 'delete' => 'data dihapus',
             ];
 
-            return back()->with('success', $records->count().' data konsultasi berhasil '.$messages[$data['action']].'.');
+            Cache::put(
+                'konsultasi.bulk_undo.'.auth()->id().'.'.$undoToken,
+                $snapshot,
+                now()->addMinutes(10)
+            );
+
+            return back()->with([
+                'success' => $records->count().' data konsultasi berhasil '.$messages[$data['action']].'.',
+                'undo_token' => $undoToken,
+                'undo_message' => $records->count().' data konsultasi berhasil '.$messages[$data['action']].'.',
+            ]);
         };
 
         if ($target !== null && $incoming > 0) {
@@ -197,6 +300,34 @@ class ConsultationController extends Controller
         }
 
         return $apply();
+    }
+
+    public function bulkUndo(Request $request)
+    {
+        $this->ensurePermission('konsultasi.bulk');
+
+        $data = $request->validate([
+            'undo_token' => ['required', 'string', 'max:100'],
+        ]);
+
+        $cacheKey = 'konsultasi.bulk_undo.'.auth()->id().'.'.$data['undo_token'];
+        $snapshot = Cache::pull($cacheKey);
+
+        if (! is_array($snapshot) || ! isset($snapshot['records'])) {
+            return back()->with('error', 'Waktu pembatalan aksi massal sudah berakhir.');
+        }
+
+        $count = count($snapshot['records']);
+
+        DB::transaction(function () use ($snapshot) {
+            foreach ($snapshot['records'] as $record) {
+                DB::table('consultations')
+                    ->where('uuid', $record['uuid'])
+                    ->update($record['attributes']);
+            }
+        });
+
+        return back()->with('success', $count.' data konsultasi berhasil dikembalikan.');
     }
 
     public function export(Request $request)

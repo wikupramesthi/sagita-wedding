@@ -29,29 +29,29 @@
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('articles.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-file-earmark-plus me-1"></i> Tambah artikel</a>
-                <a href="{{ route('banner.create') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-image me-1"></i> Upload banner</a>
-                <a href="{{ route('events.create') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-calendar-plus me-1"></i> Buat event</a>
-                <a href="{{ route('class-bookings.scan') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-qr-code-scan me-1"></i> Scan QR</a>
-                <a href="{{ route('konsultasi.index') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-envelope me-1"></i> Pesan masuk</a>
-                <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-outline-secondary">
+                <a href="{{ route('banner.create') }}" class="btn btn-sm btn-info"><i class="bi bi-image me-1"></i> Upload banner</a>
+                <a href="{{ route('events.create') }}" class="btn btn-sm btn-success"><i class="bi bi-calendar-plus me-1"></i> Buat event</a>
+                <a href="{{ route('class-bookings.scan') }}" class="btn btn-sm btn-warning"><i class="bi bi-qr-code-scan me-1"></i> Scan QR</a>
+                @if ($canViewConsultations)
+                    <a href="{{ route('konsultasi.index') }}" class="btn btn-sm btn-primary"><i class="bi bi-diagram-3 me-1"></i> Konsultasi</a>
+                @endif
+                <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-dark">
                     <i class="bi bi-bell me-1"></i> Notifikasi
-                    @if ($unreadCount > 0)
-                        <span class="badge bg-primary rounded-pill ms-1">{{ $unreadCount }}</span>
-                    @endif
+                    <span class="badge bg-light text-dark rounded-pill ms-1" data-notification-badge {{ $unreadCount > 0 ? '' : 'hidden' }}>{{ $unreadCount }}</span>
                 </a>
             </div>
         </div>
     </section>
 
     @php
-        $actionTotal = $actionQueue['orderCount'] + $actionQueue['bookingCount'] + $actionQueue['messageCount'] + $actionQueue['expiringCount'];
+        $actionTotal = $actionQueue['orderCount'] + $actionQueue['messageCount'];
     @endphp
 
     @if ($actionTotal > 0)
         <section aria-labelledby="actionQueueTitle">
             <div class="dashboard-analytics-heading">
                 <h2 id="actionQueueTitle">Perlu tindakan</h2>
-                <p>Ada {{ $actionTotal }} item yang menunggu tindak lanjut Anda.</p>
+                <p>Ada <span data-action-total>{{ $actionTotal }}</span> item yang menunggu tindak lanjut Anda.</p>
             </div>
             <div class="row g-4 mt-1">
                 <div class="col-12 col-xl-6">
@@ -67,7 +67,7 @@
                                         <div class="fw-semibold small text-truncate">{{ $order->order_number }}</div>
                                         <div class="small text-muted text-truncate">{{ $order->user->name ?? '-' }} · Rp {{ number_format($order->amount, 0, ',', '.') }}</div>
                                     </div>
-                                    <a href="{{ $order->proof_image_path ? route('orders.proof.show', $order->uuid) : route('orders.show', $order->uuid) }}" class="btn btn-sm btn-outline-secondary" title="Lihat bukti pembayaran">
+                                    <a href="{{ $order->proof_image_path ? route('orders.proof.show', $order->uuid) : route('orders.show', $order->uuid) }}" class="btn btn-sm btn-info" title="Lihat bukti pembayaran">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <form action="{{ route('orders.approve', $order->uuid) }}" method="POST">
@@ -85,96 +85,53 @@
                     </div>
                 </div>
 
+                @if ($canViewConsultations)
                 <div class="col-12 col-xl-6">
                     <div class="card h-100">
                         <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                            <h3 class="card-title h6 mb-0"><i class="bi bi-person-check me-2"></i> Check-in menunggu</h3>
-                            <a href="{{ route('class-bookings.index', ['status' => 'confirmed', 'date' => now()->toDateString()]) }}" class="small text-decoration-none fw-semibold">{{ $actionQueue['bookingCount'] }} booking</a>
-                        </div>
-                        <div class="card-body">
-                            @forelse ($actionQueue['bookings'] as $booking)
-                                <div class="d-flex align-items-center gap-2 {{ $loop->last ? '' : 'border-bottom pb-2 mb-2' }}">
-                                    <div class="flex-grow-1 min-w-0">
-                                        <div class="fw-semibold small text-truncate">{{ $booking->user->name ?? '-' }}</div>
-                                        <div class="small text-muted text-truncate">{{ $booking->schedule->class->name ?? '-' }} · {{ optional($booking->booking_date)->format('d M') }}</div>
-                                    </div>
-                                    <form action="{{ route('class-bookings.checkin', $booking->uuid) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-primary">Check-in</button>
-                                    </form>
-                                </div>
-                            @empty
-                                <div class="text-center text-muted py-3">
-                                    <i class="bi bi-check2-circle fs-3 d-block mb-2"></i>
-                                    <p class="mb-0 small">Tidak ada booking yang menunggu check-in hari ini.</p>
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 col-xl-6">
-                    <div class="card h-100">
-                        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                            <h3 class="card-title h6 mb-0"><i class="bi bi-envelope me-2"></i> Pesan belum ditangani</h3>
-                            <a href="{{ route('konsultasi.index') }}" class="small text-decoration-none fw-semibold">{{ $actionQueue['messageCount'] }} pesan</a>
+                            <h3 class="card-title h6 mb-0"><i class="bi bi-clock-history me-2"></i> Follow-up konsultasi terlewat</h3>
+                            <a href="{{ route('konsultasi.index', ['follow_up' => 'overdue']) }}" class="small text-decoration-none fw-semibold">{{ $actionQueue['messageCount'] }} lead</a>
                         </div>
                         <div class="card-body">
                             @forelse ($actionQueue['messages'] as $message)
                                 <div class="d-flex align-items-center gap-2 {{ $loop->last ? '' : 'border-bottom pb-2 mb-2' }}">
                                     <div class="flex-grow-1 min-w-0">
                                         <div class="fw-semibold small text-truncate">{{ $message->full_name }} <span class="text-muted fw-normal">· {{ $message->email ?: $message->whatsapp }}</span></div>
-                                        <div class="small text-muted text-truncate">{{ \Illuminate\Support\Str::limit($message->wedding_concept, 80) }}</div>
+                                        <div class="d-flex align-items-center gap-2 small text-muted">
+                                            <span class="badge {{ $message->lead_status_badge_class }}">{{ $message->lead_status_label }}</span>
+                                            <span class="text-truncate">Jatuh tempo {{ optional($message->follow_up_at)->translatedFormat('d M Y') }}</span>
+                                        </div>
                                     </div>
-                                    <a href="{{ route('konsultasi.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right"></i></a>
+                                    <a href="{{ route('konsultasi.show', $message->uuid) }}" class="btn btn-sm btn-info"><i class="bi bi-arrow-right"></i></a>
                                 </div>
                             @empty
                                 <div class="text-center text-muted py-3">
                                     <i class="bi bi-check2-circle fs-3 d-block mb-2"></i>
-                                    <p class="mb-0 small">Semua pesan sudah ditangani.</p>
+                                    <p class="mb-0 small">Semua tindak lanjut sudah terkini.</p>
                                 </div>
                             @endforelse
                         </div>
                     </div>
                 </div>
+                @endif
 
-                <div class="col-12 col-xl-6">
-                    <div class="card h-100">
-                        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                            <h3 class="card-title h6 mb-0"><i class="bi bi-clock-history me-2"></i> Keanggotaan segera habis</h3>
-                            <a href="{{ route('memberships.index') }}" class="small text-decoration-none fw-semibold">{{ $actionQueue['expiringCount'] }} member</a>
-                        </div>
-                        <div class="card-body">
-                            @forelse ($actionQueue['expiring'] as $membership)
-                                <div class="d-flex align-items-center gap-2 {{ $loop->last ? '' : 'border-bottom pb-2 mb-2' }}">
-                                    <div class="flex-grow-1 min-w-0">
-                                        <div class="fw-semibold small text-truncate">{{ $membership->user->name ?? '-' }}</div>
-                                        <div class="small text-muted text-truncate">{{ $membership->package->name ?? '-' }} · habis {{ optional($membership->expired_at)->translatedFormat('d M Y') }}</div>
-                                    </div>
-                                    <a href="{{ route('memberships.show', $membership->uuid) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right"></i></a>
-                                </div>
-                            @empty
-                                <div class="text-center text-muted py-3">
-                                    <i class="bi bi-check2-circle fs-3 d-block mb-2"></i>
-                                    <p class="mb-0 small">Tidak ada keanggotaan yang habis dalam 7 hari ke depan.</p>
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
     @endif
 
-    <div class="dashboard-details d-grid gap-4">
-        <section class="dashboard-analytics-heading">
-            <h2>Ringkasan aktivitas</h2>
-            <p>Statistik, grafik, dan funnel mengikuti rentang tanggal di bawah ({{ $periodLabel }}). Antrean tindakan dan daftar terbaru selalu menampilkan data terkini.</p>
-        </section>
+    <details class="dashboard-details-fold" open>
+        <summary class="dashboard-details-summary">
+            <span class="min-w-0">
+                <strong>Ringkasan aktivitas</strong>
+                <small class="text-muted d-block text-truncate">Statistik, grafik, dan funnel mengikuti rentang {{ $periodLabel }}.</small>
+            </span>
+            <span class="dashboard-details-toggle"><i class="bi bi-chevron-up"></i> Lipat</span>
+        </summary>
 
+        <div class="dashboard-details d-grid gap-4">
         <div class="card dashboard-date-filter">
             <div class="card-body">
-                <form action="{{ route('dashboard.index') }}" method="GET" class="row g-2 align-items-end">
+                <form action="{{ route('dashboard.index') }}" method="GET" class="row g-2 align-items-end" id="dashboardDateForm">
                     <div class="col-md-auto col-12">
                         <label class="form-label small fw-semibold mb-1" for="dashboardStartDate">Dari tanggal</label>
                         <input id="dashboardStartDate" type="date" name="start_date" value="{{ $startDate }}" class="form-control form-control-sm">
@@ -183,15 +140,35 @@
                         <label class="form-label small fw-semibold mb-1" for="dashboardEndDate">Sampai tanggal</label>
                         <input id="dashboardEndDate" type="date" name="end_date" value="{{ $endDate }}" class="form-control form-control-sm">
                     </div>
-                    <div class="col-md-auto col-12 d-flex gap-2">
+                    <div class="col-md-auto col-12">
+                        <span class="form-label small fw-semibold mb-1 d-block">Preset cepat</span>
+                        <div class="d-flex flex-wrap gap-1" role="group" aria-label="Preset periode">
+                            @foreach ([7, 30, 90] as $days)
+                                @php
+                                    $presetStart = now()->subDays($days - 1)->toDateString();
+                                    $presetEnd = now()->toDateString();
+                                    $presetActive = request('start_date') === $presetStart && request('end_date') === $presetEnd;
+                                @endphp
+                                <a href="{{ route('dashboard.index', ['start_date' => $presetStart, 'end_date' => $presetEnd]) }}" class="btn btn-sm {{ $presetActive ? 'btn-success' : 'btn-outline-success' }} dashboard-period-preset">{{ $days }} hari</a>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="col-md-auto col-12 d-flex flex-wrap gap-2 align-items-end">
                         <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Terapkan</button>
-                        <a href="{{ route('dashboard.index') }}" class="btn btn-sm btn-secondary">Reset</a>
+                        <a href="{{ route('dashboard.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                        <a href="{{ route('dashboard.export', request()->query()) }}" class="btn btn-sm btn-success"><i class="bi bi-file-earmark-excel me-1"></i> Excel</a>
+                        <a href="{{ route('dashboard.export-pdf', request()->query()) }}" class="btn btn-sm btn-danger"><i class="bi bi-file-earmark-pdf me-1"></i> PDF</a>
+                        <button type="button" id="dashboardRefreshBtn" class="btn btn-sm btn-warning"><i class="bi bi-arrow-clockwise me-1"></i> Segarkan</button>
+                    </div>
+                    <div class="col-12 d-flex align-items-center gap-2">
+                        <span class="dashboard-updated" id="dashboardUpdatedAt"><i class="bi bi-clock-history me-1"></i> Data diperbarui {{ now()->format('H.i') }}</span>
+                        <span class="small text-muted">Auto-refresh tiap 2 menit saat halaman aktif.</span>
                     </div>
                 </form>
             </div>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-4 dashboard-stat-grid">
             @foreach ($stats as $stat)
                 @php
                     $spark = $stat['spark'];
@@ -201,23 +178,23 @@
                         ->implode(' ');
                 @endphp
                 <div class="col-6 col-md-4 col-xl-3">
-                    <div class="card h-100">
+                    <div class="card h-100 dashboard-stat-card" data-tone="{{ $stat['class'] }}" data-stat-label="{{ $stat['label'] }}">
                         <div class="card-body d-flex align-items-center gap-3">
                             <div class="stats-icon {{ $stat['class'] }}"><i class="{{ $stat['icon'] }}"></i></div>
                             <div class="min-w-0 flex-grow-1">
                                 <h6 class="text-muted font-semibold mb-0 text-truncate">{{ $stat['label'] }}</h6>
                                 <a href="{{ $stat['route'] }}" class="text-decoration-none">
-                                    <h4 class="font-extrabold mb-0">{{ $stat['value'] }}</h4>
+                                    <h4 class="font-extrabold mb-0" data-stat-value>{{ $stat['value'] }}</h4>
                                 </a>
                                 @if ($stat['change'] !== null)
-                                    <small class="{{ $stat['change'] >= 0 ? 'text-success' : 'text-danger' }}">
+                                    <small class="dashboard-stat-trend d-inline-flex align-items-center gap-1 {{ $stat['change'] >= 0 ? 'text-success' : 'text-danger' }}" data-stat-change>
                                         <i class="bi {{ $stat['change'] >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right' }}"></i>
-                                        {{ abs($stat['change']) }}% vs periode sebelumnya
+                                        {{ abs($stat['change']) }}%
                                     </small>
                                 @endif
                             </div>
                             @if (!empty($spark))
-                                <svg viewBox="0 0 60 20" width="60" height="20" aria-hidden="true" class="flex-shrink-0">
+                                <svg viewBox="0 0 60 20" width="52" height="18" aria-hidden="true" class="flex-shrink-0 dashboard-stat-spark">
                                     <polyline points="{{ $sparkPoints }}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary opacity-75" />
                                 </svg>
                             @endif
@@ -226,6 +203,55 @@
                 </div>
             @endforeach
         </div>
+
+        @if ($canViewConsultations)
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card dashboard-consultation-card">
+                    <div class="card-header bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <h5 class="card-title h6 mb-0"><i class="bi bi-diagram-3 me-2"></i> Pipeline konsultasi</h5>
+                            <small class="text-muted">Distribusi lead pada rentang {{ $periodLabel }}</small>
+                        </div>
+                        <a href="{{ route('konsultasi.kanban') }}" class="small text-decoration-none fw-semibold">Buka Kanban <i class="bi bi-arrow-right ms-1"></i></a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            @foreach ($consultationPipeline as $stage)
+                                <div class="col-6 col-md-4 col-xl-2">
+                                    <a href="{{ $stage['route'] }}" class="text-decoration-none">
+                                        @php
+                                            $wipPercent = $stage['limit'] > 0
+                                                ? min(100, (int) round(($stage['count'] / $stage['limit']) * 100))
+                                                : 0;
+                                            $wipTone = $wipPercent >= 100 ? 'bg-danger' : ($wipPercent >= 80 ? 'bg-warning' : 'bg-success');
+                                        @endphp
+                                        <div class="dashboard-pipeline-tile h-100" data-stage="{{ $stage['key'] }}">
+                                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                                <span class="small fw-semibold text-muted">{{ $stage['label'] }}</span>
+                                                <span class="badge {{ $stage['badge'] }}" data-stage-count>{{ $stage['count'] }}</span>
+                                            </div>
+                                            <div class="fw-extrabold h4 mb-0 mt-2" data-stage-value>{{ $stage['count'] }}</div>
+                                            <div class="progress dashboard-wip-progress mt-2" style="height:5px" role="progressbar" aria-label="Kapasitas {{ $stage['label'] }}" aria-valuenow="{{ $wipPercent }}" aria-valuemin="0" aria-valuemax="100" data-wip-progress>
+                                                <div class="progress-bar {{ $wipTone }}" style="width: {{ $wipPercent }}%" data-wip-bar></div>
+                                            </div>
+                                            <small class="text-muted" data-wip-label>{{ $stage['count'] }}/{{ $stage['limit'] }} WIP</small>
+                                        </div>
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                            <span class="badge bg-light-success text-success"><i class="bi bi-graph-up-arrow me-1"></i> Konversi {{ $consultationHighlights['conversion_rate'] }}%</span>
+                            <a href="{{ route('konsultasi.index', ['sla' => 'breach']) }}" class="badge bg-light-danger text-danger text-decoration-none"><i class="bi bi-alarm me-1"></i> SLA terlewat {{ $consultationHighlights['sla_breach'] }}</a>
+                            <a href="{{ route('konsultasi.index', ['sla' => 'warning']) }}" class="badge bg-light-warning text-warning text-decoration-none"><i class="bi bi-stopwatch me-1"></i> SLA mendekat {{ $consultationHighlights['sla_warning'] }}</a>
+                            <a href="{{ route('konsultasi.index', ['follow_up' => 'done']) }}" class="badge bg-light-primary text-primary text-decoration-none"><i class="bi bi-check2-circle me-1"></i> Terkonversi {{ $consultationHighlights['converted'] }}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <div class="row g-4">
             <div class="col-md-4">
@@ -374,7 +400,7 @@
         </div>
 
         <div class="row g-4">
-            <div class="col-lg-7">
+            <div class="col-lg-{{ $canViewConsultations ? '7' : '12' }}">
                 <div class="card h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                         <h5 class="card-title h6 mb-0">Pesanan terbaru</h5>
@@ -417,34 +443,36 @@
                 </div>
             </div>
 
+            @if ($canViewConsultations)
             <div class="col-lg-5">
                 <div class="card h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                        <h5 class="card-title h6 mb-0">Keanggotaan terbaru</h5>
-                        <a href="{{ route('memberships.index') }}" class="small text-decoration-none text-primary fw-semibold">Lihat semua</a>
+                        <h5 class="card-title h6 mb-0">Calon Konsumen Baru</h5>
+                        <a href="{{ route('konsultasi.index') }}" class="small text-decoration-none text-primary fw-semibold">Lihat semua</a>
                     </div>
                     <div class="card-body">
-                        @forelse ($recentMemberships as $membership)
+                        @forelse ($recentConsultations as $consultation)
                             <div class="d-flex align-items-center gap-3 {{ $loop->last ? '' : 'border-bottom pb-3 mb-3' }}">
-                                <div class="avatar avatar-md2">
-                                    <div class="avatar-content bg-light-success"><i class="bi bi-person-badge"></i></div>
+                                <div class="avatar avatar-md2 dashboard-avatar">
+                                    <div class="avatar-content"><i class="bi bi-person-check"></i></div>
                                 </div>
                                 <div class="flex-grow-1 min-w-0">
-                                    <div class="fw-semibold small text-truncate">{{ $membership->user->name ?? '-' }}</div>
-                                    <div class="small text-muted text-truncate">{{ $membership->package->name ?? '-' }} · {{ optional($membership->started_at)->format('d M Y') }}</div>
+                                    <a href="{{ route('konsultasi.show', $consultation->uuid) }}" class="fw-semibold small text-truncate text-decoration-none d-block">{{ $consultation->full_name }}</a>
+                                    <div class="small text-muted text-truncate">{{ trim(($consultation->email ?: '') . ' · ' . ($consultation->whatsapp ?: ''), ' · ') }} · {{ optional($consultation->created_at)->translatedFormat('d M Y') }}</div>
                                 </div>
-                                <span class="badge {{ $membership->status === 'active' ? 'bg-light-success' : 'bg-light-secondary' }}">{{ ucfirst($membership->status) }}</span>
+                                <span class="badge {{ $consultation->lead_status_badge_class }}">{{ $consultation->lead_status_label }}</span>
                             </div>
                         @empty
                             <div class="text-center text-muted py-4">
                                 <i class="bi bi-people fs-2 d-block mb-2 opacity-50"></i>
-                                <p class="mb-0 fw-semibold">Belum ada keanggotaan</p>
-                                <p class="small mb-0">Keanggotaan baru akan muncul di sini.</p>
+                                <p class="mb-0 fw-semibold">Belum ada calon konsumen</p>
+                                <p class="small mb-0">Lead konsultasi baru akan muncul di sini.</p>
                             </div>
                         @endforelse
                     </div>
                 </div>
             </div>
+            @endif
         </div>
 
         <div class="row g-4">
@@ -528,8 +556,8 @@
                     <div class="card-body">
                         @forelse ($upcomingClasses as $kelas)
                             <div class="d-flex align-items-center gap-3 {{ $loop->last ? '' : 'border-bottom pb-3 mb-3' }}">
-                                <div class="avatar avatar-md2">
-                                    <div class="avatar-content bg-light-primary"><i class="bi bi-activity"></i></div>
+                                <div class="avatar avatar-md2 dashboard-avatar dashboard-avatar--primary">
+                                    <div class="avatar-content"><i class="bi bi-activity"></i></div>
                                 </div>
                                 <div class="flex-grow-1 min-w-0">
                                     <div class="fw-semibold small text-truncate">{{ $kelas->class->name ?? '-' }}</div>
@@ -548,14 +576,305 @@
                 </div>
             </div>
         </div>
-    </div>
+    </details>
 </div>
+
+@push('after-style')
+<style>
+    #main-content .dashboard-pipeline-tile {
+        border: 1px solid var(--bs-border-color, #e9ecef);
+        border-radius: 12px;
+        padding: .75rem;
+        background: var(--bs-tertiary-bg, rgba(0, 0, 0, .02));
+        transition: border-color .15s ease, transform .15s ease;
+    }
+
+    #main-content .dashboard-pipeline-tile:hover {
+        border-color: #6c5a4a;
+        transform: translateY(-1px);
+    }
+
+    #main-content .dashboard-consultation-card .badge {
+        font-size: .75rem;
+        font-weight: 600;
+    }
+
+    #main-content .dashboard-wip-progress {
+        background: var(--bs-tertiary-bg, rgba(0, 0, 0, .06));
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    #main-content .dashboard-wip-progress .progress-bar {
+        border-radius: 999px;
+    }
+
+    #main-content .dashboard-avatar .avatar-content {
+        background: #2f7d4f;
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, .16);
+    }
+
+    #main-content .dashboard-avatar .avatar-content i {
+        color: #fff;
+        font-size: 1rem;
+        height: auto;
+    }
+
+    #main-content .dashboard-avatar--primary .avatar-content {
+        background: #5e72e4;
+    }
+
+    #main-content .dashboard-stat-card {
+        border-top: 3px solid transparent;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    #main-content .dashboard-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .65rem 1.5rem rgba(15, 23, 42, .08);
+    }
+
+    #main-content .dashboard-stat-card[data-tone="purple"] { border-top-color: #7357d8; }
+    #main-content .dashboard-stat-card[data-tone="blue"] { border-top-color: #3b82f6; }
+    #main-content .dashboard-stat-card[data-tone="green"] { border-top-color: #2f7d4f; }
+    #main-content .dashboard-stat-card[data-tone="cyan"] { border-top-color: #06b6d4; }
+    #main-content .dashboard-stat-card[data-tone="red"] { border-top-color: #ef4444; }
+    #main-content .dashboard-stat-card[data-tone="yellow"] { border-top-color: #f59e0b; }
+    #main-content .dashboard-stat-card[data-tone="pink"] { border-top-color: #ec4899; }
+
+    #main-content .dashboard-stat-card .stats-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: .85rem;
+    }
+
+    #main-content .dashboard-stat-card h6 {
+        font-size: .72rem;
+    }
+
+    #main-content .dashboard-stat-card h4 {
+        font-size: 1.3rem;
+        line-height: 1.15;
+    }
+
+    #main-content .dashboard-stat-trend {
+        margin-top: .2rem;
+        border-radius: 999px;
+        padding: .05rem .4rem;
+        font-size: .68rem;
+        font-weight: 600;
+        background: var(--bs-tertiary-bg, rgba(0, 0, 0, .04));
+    }
+
+    @media (min-width: 1200px) {
+        #main-content .dashboard-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: .75rem;
+            margin: 0;
+        }
+
+        #main-content .dashboard-stat-grid > div {
+            width: auto;
+            padding: 0;
+        }
+
+        #main-content .dashboard-stat-grid .card-body {
+            padding: .75rem .85rem;
+        }
+
+        #main-content .dashboard-stat-grid .stats-icon {
+            width: 36px;
+            height: 36px;
+        }
+    }
+
+    #main-content .dashboard-details-fold {
+        border: 1px solid var(--bs-border-color, #e9ecef);
+        border-radius: 14px;
+        background: var(--bs-body-bg, #fff);
+        padding: 0;
+    }
+
+    #main-content .dashboard-details-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .85rem 1rem;
+        cursor: pointer;
+        list-style: none;
+        border-radius: 14px;
+    }
+
+    #main-content .dashboard-details-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    #main-content .dashboard-details-toggle {
+        flex-shrink: 0;
+        font-size: .78rem;
+        font-weight: 600;
+        color: #6c5a4a;
+    }
+
+    #main-content .dashboard-details-fold:not([open]) .dashboard-details-toggle i {
+        transform: rotate(180deg);
+        display: inline-block;
+    }
+
+    #main-content .dashboard-details {
+        padding: 0 1rem 1rem;
+    }
+
+    @media (min-width: 992px) {
+        #main-content .dashboard-date-filter {
+            position: sticky;
+            top: 4.75rem;
+            z-index: 20;
+            box-shadow: 0 .5rem 1.25rem rgba(15, 23, 42, .06);
+        }
+    }
+
+    #main-content .dashboard-updated {
+        display: inline-flex;
+        align-items: center;
+        font-size: .75rem;
+        font-weight: 600;
+        color: #2f7d4f;
+    }
+
+    [data-bs-theme="dark"] #main-content .dashboard-pipeline-tile {
+        background: rgba(255, 255, 255, .03);
+        border-color: rgba(255, 255, 255, .12);
+    }
+
+    [data-bs-theme="dark"] #main-content .dashboard-details-fold {
+        border-color: rgba(255, 255, 255, .12);
+    }
+
+    [data-bs-theme="dark"] #main-content .dashboard-details-toggle {
+        color: #d8c3ae;
+    }
+
+    [data-bs-theme="dark"] #main-content .dashboard-updated {
+        color: #6ee7a8;
+    }
+
+    [data-bs-theme="dark"] #main-content .dashboard-stat-trend {
+        background: rgba(255, 255, 255, .06);
+    }
+
+    #main-content .dashboard-date-filter .btn {
+        white-space: nowrap;
+    }
+
+    @media (max-width: 575.98px) {
+        #main-content .dashboard-home {
+            gap: 1rem;
+        }
+
+        #main-content .dashboard-welcome {
+            padding: 1rem;
+        }
+
+        #main-content .dashboard-welcome__decoration {
+            display: none;
+        }
+
+        #main-content .dashboard-welcome h1 {
+            font-size: 1.15rem;
+        }
+
+        #main-content .dashboard-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: .5rem;
+            margin: 0;
+        }
+
+        #main-content .dashboard-stat-grid > div {
+            width: auto;
+            padding: 0;
+        }
+
+        #main-content .dashboard-stat-card .card-body {
+            padding: .65rem .7rem;
+            gap: .55rem;
+        }
+
+        #main-content .dashboard-stat-card .stats-icon {
+            width: 30px;
+            height: 30px;
+            font-size: .75rem;
+            border-radius: 8px;
+        }
+
+        #main-content .dashboard-stat-card h6 {
+            font-size: .65rem;
+        }
+
+        #main-content .dashboard-stat-card h4 {
+            font-size: 1.05rem;
+        }
+
+        #main-content .dashboard-stat-spark {
+            display: none;
+        }
+
+        #main-content .dashboard-date-filter .card-body {
+            padding: .75rem;
+        }
+
+        #main-content .dashboard-date-filter .btn {
+            flex: 1 1 auto;
+        }
+
+        #main-content .dashboard-details {
+            padding: 0 .75rem .75rem;
+        }
+
+        #main-content .dashboard-details-summary {
+            padding: .7rem .75rem;
+        }
+
+        #main-content .dashboard-analytics-heading h2 {
+            font-size: 1.05rem;
+        }
+
+        #main-content .dashboard-consultation-card .card-body {
+            padding: .75rem;
+        }
+
+        #main-content .dashboard-pipeline-tile {
+            padding: .6rem;
+        }
+
+        #main-content .dashboard-pipeline-tile .h4 {
+            font-size: 1.15rem;
+        }
+
+        #main-content .dashboard-pipeline-tile small {
+            font-size: .65rem;
+        }
+    }
+</style>
+@endpush
 
 @push('after-script')
 <script src="{{ asset('dist/assets/extensions/chart.js/chart.umd.js') }}"></script>
 <script>
 (function () {
-    const revenue = {
+    const detailsFold = document.querySelector('.dashboard-details-fold');
+    if (detailsFold && window.matchMedia('(max-width: 575.98px)').matches) {
+        detailsFold.open = false;
+    }
+
+    let revenue = {
         daily: { labels: @json($revenueChart['daily']['labels']), data: @json($revenueChart['daily']['data']) },
         monthly: { labels: @json($revenueChart['monthly']['labels']), data: @json($revenueChart['monthly']['data']) },
         yearly: { labels: @json($revenueChart['yearly']['labels']), data: @json($revenueChart['yearly']['data']) },
@@ -565,7 +884,17 @@
     const revenueCanvas = document.getElementById('revenueChart');
     let revenueChart;
 
-    if (revenueCanvas && typeof Chart !== 'undefined') {
+    function updateRevenueSeries() {
+        if (!revenueChart) return;
+        const series = revenue[rangeSelect && rangeSelect.value] || revenue.daily;
+        revenueChart.data.labels = series.labels;
+        revenueChart.data.datasets[0].data = series.data;
+        revenueChart.update();
+    }
+
+    function initRevenueChart() {
+        if (!revenueCanvas || typeof Chart === 'undefined' || revenueChart) return;
+
         revenueChart = new Chart(revenueCanvas, {
             type: 'line',
             data: {
@@ -583,18 +912,21 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
+                onClick: (event, elements) => {
+                    if (!elements.length) return;
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('status', 'paid');
+                    window.location.href = '{{ route('orders.index') }}?' + params.toString();
+                },
                 scales: {
                     y: { ticks: { callback: (value) => 'Rp ' + Number(value).toLocaleString('id-ID') } },
                 },
             },
         });
 
-        rangeSelect.addEventListener('change', () => {
-            const series = revenue[rangeSelect.value] || revenue.daily;
-            revenueChart.data.labels = series.labels;
-            revenueChart.data.datasets[0].data = series.data;
-            revenueChart.update();
-        });
+        if (rangeSelect) {
+            rangeSelect.addEventListener('change', updateRevenueSeries);
+        }
     }
 
     const analyticsCanvas = document.getElementById('siteAnalyticsChart');
@@ -606,30 +938,31 @@
     const activeVisitorsSummary = document.getElementById('activeVisitorsSummary');
     const analyticsEmptyState = document.getElementById('siteAnalyticsEmpty');
     const periodLabel = @json($periodLabel);
-    const dailyVisitorData = {
+    let dailyVisitorData = {
         labels: @json($site['visitorDailyLabels']),
         total: @json($site['visitorDailyTotal']),
         unique: @json($site['visitorDailyUnique']),
     };
-    const monthlyVisitorData = {
+    let monthlyVisitorData = {
         labels: @json($site['visitorMonthLabels']),
         total: @json($site['visitorMonthTotal']),
         unique: @json($site['visitorMonthUnique']),
     };
-    const contentData = {
+    let contentData = {
         labels: @json($site['analyticsContentLabels']),
         values: @json($site['analyticsContentCounts']),
     };
-    const deviceData = {
+    let deviceData = {
         labels: @json($site['analyticsDeviceLabels']),
         values: @json($site['analyticsDeviceCounts']),
     };
     let activeAnalyticsTab = 'visitors';
     let activeVisitorRange = 'daily';
     let analyticsChart;
+    let chartsReady = false;
 
     function renderAnalyticsChart() {
-        if (!analyticsCanvas || typeof Chart === 'undefined') return;
+        if (!chartsReady || !analyticsCanvas || typeof Chart === 'undefined') return;
         if (analyticsChart) analyticsChart.destroy();
 
         let config;
@@ -759,7 +1092,149 @@
         });
     });
 
-    renderAnalyticsChart();
+    function ensureCharts() {
+        if (chartsReady) return;
+        chartsReady = true;
+        initRevenueChart();
+        renderAnalyticsChart();
+    }
+
+    if (detailsFold && !detailsFold.open) {
+        detailsFold.addEventListener('toggle', () => {
+            if (detailsFold.open) ensureCharts();
+        });
+    } else {
+        ensureCharts();
+    }
+
+    const refreshButton = document.getElementById('dashboardRefreshBtn');
+    const updatedAt = document.getElementById('dashboardUpdatedAt');
+    let refreshing = false;
+
+    function formatCount(value) {
+        return Number(value || 0).toLocaleString('id-ID');
+    }
+
+    function applySummary(payload) {
+        document.querySelectorAll('[data-stat-label]').forEach((card) => {
+            const stat = (payload.stats || []).find((item) => item.label === card.dataset.statLabel);
+            if (!stat) return;
+
+            const value = card.querySelector('[data-stat-value]');
+            if (value) value.textContent = formatCount(stat.value);
+
+            const change = card.querySelector('[data-stat-change]');
+            if (change && stat.change !== null) {
+                change.textContent = (stat.change >= 0 ? '+' : '') + Math.abs(stat.change) + '%';
+                change.classList.toggle('text-success', stat.change >= 0);
+                change.classList.toggle('text-danger', stat.change < 0);
+                const icon = change.querySelector('i');
+                if (icon) icon.className = 'bi ' + (stat.change >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right');
+            }
+        });
+
+        document.querySelectorAll('[data-stage]').forEach((tile) => {
+            const stage = (payload.consultationPipeline || []).find((item) => item.key === tile.dataset.stage);
+            if (!stage) return;
+
+            tile.querySelectorAll('[data-stage-count], [data-stage-value]').forEach((node) => {
+                node.textContent = formatCount(stage.count);
+            });
+
+            const percent = stage.limit > 0 ? Math.min(100, Math.round((stage.count / stage.limit) * 100)) : 0;
+            const tone = percent >= 100 ? 'bg-danger' : (percent >= 80 ? 'bg-warning' : 'bg-success');
+            const bar = tile.querySelector('[data-wip-bar]');
+            if (bar) {
+                bar.className = 'progress-bar ' + tone;
+                bar.style.width = percent + '%';
+            }
+            const progress = tile.querySelector('[data-wip-progress]');
+            if (progress) progress.setAttribute('aria-valuenow', String(percent));
+            const label = tile.querySelector('[data-wip-label]');
+            if (label) label.textContent = formatCount(stage.count) + '/' + formatCount(stage.limit) + ' WIP';
+        });
+
+        const actionTotal = document.querySelector('[data-action-total]');
+        if (actionTotal) actionTotal.textContent = formatCount(payload.actionTotal);
+
+        const badge = document.querySelector('[data-notification-badge]');
+        if (badge) {
+            badge.textContent = formatCount(payload.unreadCount);
+            badge.hidden = Number(payload.unreadCount || 0) === 0;
+        }
+
+        if (payload.revenueChart) {
+            revenue = payload.revenueChart;
+            if (revenueChart) updateRevenueSeries();
+        }
+
+        if (payload.site) {
+            dailyVisitorData = {
+                labels: payload.site.visitorDailyLabels,
+                total: payload.site.visitorDailyTotal,
+                unique: payload.site.visitorDailyUnique,
+            };
+            monthlyVisitorData = {
+                labels: payload.site.visitorMonthLabels,
+                total: payload.site.visitorMonthTotal,
+                unique: payload.site.visitorMonthUnique,
+            };
+            contentData = {
+                labels: payload.site.analyticsContentLabels,
+                values: payload.site.analyticsContentCounts,
+            };
+            deviceData = {
+                labels: payload.site.analyticsDeviceLabels,
+                values: payload.site.analyticsDeviceCounts,
+            };
+            if (chartsReady) renderAnalyticsChart();
+        }
+
+        if (updatedAt) {
+            const time = new Date(payload.updatedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
+            updatedAt.innerHTML = '<i class="bi bi-clock-history me-1"></i> Data diperbarui ' + time;
+        }
+    }
+
+    async function refreshDashboard(silent = false) {
+        if (refreshing) return;
+        refreshing = true;
+
+        const originalHtml = refreshButton ? refreshButton.innerHTML : null;
+        if (refreshButton && !silent) {
+            refreshButton.disabled = true;
+            refreshButton.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Memuat...';
+        }
+
+        try {
+            const response = await fetch('{{ route('dashboard.refresh') }}' + window.location.search, {
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            if (!response.ok) throw new Error('Gagal memuat data dashboard');
+            const payload = await response.json();
+            if (!payload.ok) throw new Error('Respons dashboard tidak valid');
+            applySummary(payload);
+        } catch (error) {
+            console.warn(error);
+        } finally {
+            refreshing = false;
+            if (refreshButton && !silent) {
+                refreshButton.disabled = false;
+                refreshButton.innerHTML = originalHtml;
+            }
+        }
+    }
+
+    if (refreshButton) {
+        refreshButton.addEventListener('click', () => refreshDashboard(false));
+    }
+
+    window.setInterval(() => {
+        if (!document.hidden) refreshDashboard(true);
+    }, 120000);
 })();
 </script>
 @endpush

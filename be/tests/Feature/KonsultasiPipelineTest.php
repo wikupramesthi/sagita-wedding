@@ -392,6 +392,81 @@ class KonsultasiPipelineTest extends TestCase
         $this->assertDatabaseMissing('konsultasi_saved_filters', ['id' => $saved->id]);
     }
 
+    public function test_default_saved_filter_is_applied_and_can_be_disabled(): void
+    {
+        $this->actingAs($this->user)
+            ->post(route('konsultasi.saved-filters.store'), [
+                'name' => 'Lead Baru Default',
+                'filters' => json_encode(['lead' => 'New']),
+                'is_default' => 1,
+            ])
+            ->assertRedirect();
+
+        $saved = KonsultasiSavedFilter::firstOrFail();
+
+        $this->assertTrue($saved->is_default);
+
+        $this->actingAs($this->user)
+            ->get(route('konsultasi.index'))
+            ->assertRedirect(route('konsultasi.index', ['lead' => 'New']));
+
+        $this->actingAs($this->user)
+            ->get(route('konsultasi.index', ['lead' => 'New']))
+            ->assertOk()
+            ->assertSee('Filter aktif')
+            ->assertSee('Lead:');
+
+        $this->actingAs($this->user)
+            ->post(route('konsultasi.saved-filters.default', $saved), ['is_default' => 0])
+            ->assertRedirect();
+
+        $this->assertFalse($saved->fresh()->is_default);
+
+        $this->actingAs($this->user)
+            ->get(route('konsultasi.index'))
+            ->assertOk();
+    }
+
+    public function test_bulk_actions_can_be_undone(): void
+    {
+        $lead = $this->makeConsultation('Undo Lead', 'undo@example.test', '081666666666', 'New');
+        $deleted = $this->makeConsultation('Undo Delete', 'undo-delete@example.test', '081777777777', 'New');
+
+        $response = $this->actingAs($this->user)->post(route('konsultasi.bulk'), [
+            'ids' => [$lead->uuid],
+            'action' => 'lead',
+            'lead_status' => 'Interested',
+        ]);
+
+        $response->assertRedirect()->assertSessionHas('undo_token');
+        $token = $response->getSession()->get('undo_token');
+        $this->assertSame('Interested', $lead->fresh()->lead_status);
+
+        $this->actingAs($this->user)
+            ->post(route('konsultasi.bulk-undo'), ['undo_token' => $token])
+            ->assertRedirect();
+
+        $this->assertSame('New', $lead->fresh()->lead_status);
+
+        $response = $this->actingAs($this->user)->post(route('konsultasi.bulk'), [
+            'ids' => [$deleted->uuid],
+            'action' => 'delete',
+        ]);
+
+        $response->assertRedirect()->assertSessionHas('undo_token');
+        $token = $response->getSession()->get('undo_token');
+        $this->assertSoftDeleted('consultations', ['uuid' => $deleted->uuid]);
+
+        $this->actingAs($this->user)
+            ->post(route('konsultasi.bulk-undo'), ['undo_token' => $token])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('consultations', [
+            'uuid' => $deleted->uuid,
+            'deleted_at' => null,
+        ]);
+    }
+
     public function test_granular_permissions_guard_export_and_delete(): void
     {
         $consultation = $this->makeConsultation('Limited', 'limited@example.test', '081555555555', 'New');

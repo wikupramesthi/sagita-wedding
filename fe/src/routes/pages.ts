@@ -60,6 +60,19 @@ router.get("/schedules", (_req: Request, res: Response) => {
 	});
 });
 
+router.get("/formulir-konsultasi", (_req: Request, res: Response) => {
+	const isID = res.locals.lang === "id";
+	res.render("pages/consultation-form", {
+		title: isID
+			? "Konsultasi Wedding Organizer & Wedding Planner | Sagita"
+			: "Wedding Planning Consultation | Sagita Wedding Planner",
+		metaDescription: isID
+			? "Konsultasikan rencana pernikahan dengan Sagita Wedding Planner. Bahas layanan Wedding Organizer, paket, koordinasi hari pernikahan, vendor, dan anggaran."
+			: "Plan your wedding with Sagita Wedding Planner. Discuss wedding planning, day-of coordination, vendor recommendations, packages, and budget.",
+		pageScript: "consultation-form",
+	});
+});
+
 // ---------- About (Art of Living / Gurudev) ----------
 router.get("/about", (_req: Request, res: Response) => {
 	const isID = res.locals.lang === "id";

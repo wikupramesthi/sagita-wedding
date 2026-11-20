@@ -311,12 +311,12 @@ const rawTranslations = {
 		eventsTitleItalic: "Announcements",
 
 		// Final CTA
-		readyTitle: "Ready to begin your",
-		readyTitleItalic: "journey",
+		readyTitle: "Ready to Start Planning",
+		readyTitleItalic: "Your Dream Wedding",
 		ctaDesc:
-			"Contact us via WhatsApp to learn about our packages, or book a class if you're ready to practice.",
-		chatWhatsApp: "Chat on WhatsApp",
-		bookClassCta: "Book a Class",
+			"Start planning your wedding with Sagita Wedding Planner. Chat with us on WhatsApp to discuss your plans, explore our wedding planning packages, and find the services that are right for your celebration.",
+		chatWhatsApp: "Chat with Us on WhatsApp",
+		consultationCta: "Start Your Consultation",
 
 		// Pages header
 		classesEyebrow: "CLASS SCHEDULE",
@@ -490,9 +490,9 @@ const rawTranslations = {
 		footerCommunity: "Our Partners",
 		siteDesc:
 			"Through our guidance, you will not only gain a deeper understanding of the postures but also learn to cultivate mental clarity and inner peace.",
-		ctaHelpTitle: "Need help finding your flow?",
+		ctaHelpTitle: "Not sure where to start planning your wedding?",
 		ctaHelpDesc:
-			"Not sure which class is right for you? Chat with our team on WhatsApp and we'll help you find the perfect practice.",
+			"Talk with the Sagita Wedding Planner team about your wedding plans. We're here to help bring your special day to life.",
 		ctaHelpBtn: "Chat on WhatsApp →",
 		whatsappAdmin: "WhatsApp Admin",
 		copyright: "All rights reserved.",
@@ -656,12 +656,12 @@ const rawTranslations = {
 		eventsTitleItalic: "Pengumuman",
 
 		// Final CTA
-		readyTitle: "Siap memulai",
-		readyTitleItalic: "perjalanan Anda",
+		readyTitle: "Siap Mewujudkan",
+		readyTitleItalic: "Pernikahan Impian Anda",
 		ctaDesc:
-			"Hubungi kami via WhatsApp untuk mengetahui paket kami, atau daftar kelas jika Anda siap berlatih.",
+			"Mulailah perjalanan menuju hari bahagia bersama Sagita Wedding Planner. Hubungi kami melalui WhatsApp untuk berkonsultasi, mengenal pilihan paket Wedding Organizer, dan menemukan layanan yang sesuai dengan kebutuhan pernikahan Anda.",
 		chatWhatsApp: "Chat via WhatsApp",
-		bookClassCta: "Daftar Kelas",
+		consultationCta: "Mulai Konsultasi",
 
 		// Pages header
 		classesEyebrow: "JADWAL KELAS",
@@ -836,9 +836,9 @@ const rawTranslations = {
 		footerCommunity: "Mitra Kami",
 		siteDesc:
 			"Melalui bimbingan kami, Anda tidak hanya memahami postur secara lebih dalam, tetapi juga belajar menumbuhkan kejernihan pikiran dan kedamaian batin.",
-		ctaHelpTitle: "Butuh bantuan menemukan aliranmu?",
+		ctaHelpTitle: "Bingung Memulai Persiapan Pernikahan?",
 		ctaHelpDesc:
-			"Tidak yakin kelas mana yang cocok untukmu? Chat dengan tim kami di WhatsApp dan kami bantu menemukan praktik yang tepat.",
+			"Konsultasikan kebutuhan pernikahan Anda bersama tim Sagita Wedding Planner. Kami siap membantu mewujudkan hari bahagia Anda.",
 		ctaHelpBtn: "Chat via WhatsApp →",
 		whatsappAdmin: "Admin WhatsApp",
 		copyright: "Hak cipta dilindungi.",

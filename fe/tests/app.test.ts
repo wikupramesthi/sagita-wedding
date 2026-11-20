@@ -285,6 +285,7 @@ describe("pageScript wiring", () => {
 		const cases: [string, string][] = [
 			["/classes", "classes"],
 			["/schedules", "schedules"],
+			["/formulir-konsultasi", "consultation-form"],
 			["/vendors", "vendors"],
 			["/faq", "faq"],
 			["/blog", "blog"],
@@ -308,6 +309,50 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('data-category="Dekorasi"');
 		expect(res.text).toContain('data-categories="[&#34;Katering&#34;]"');
 		expect(res.text).toContain("/js/pages/vendors.js");
+	});
+
+	it("form konsultasi mandiri tidak merender header atau footer global", async () => {
+		const res = await request(app).get("/formulir-konsultasi");
+		expect(res.status).toBe(200);
+		expect(res.text).toContain(
+			"<title>Wedding Planning Consultation | Sagita Wedding Planner</title>",
+		);
+		expect(res.text).toContain('<meta name="robots" content="index, follow"/>');
+		expect(res.text).toContain(
+			'<meta name="description" content="Plan your wedding with Sagita Wedding Planner.',
+		);
+		expect(res.text).toContain('id="consultationForm"');
+		expect(res.text).toContain('<dialog id="consultationSuccess"');
+		expect(res.text).toContain('id="consultationWhatsappConfirm"');
+		expect(res.text).toContain(
+			'data-whatsapp-message="Halo, admin aku sudah mengisi formulir konsultasi ya, mohon responnya. Terimakasih"',
+		);
+		expect(res.text).toContain(
+			"Wedding planning shaped around your celebration",
+		);
+		expect(res.text).toContain('name="wedding_date"');
+		expect(res.text).toContain('name="services"');
+		expect(res.text).toContain("/js/pages/consultation-form.js");
+		expect(res.text).not.toContain('id="navbar"');
+		expect(res.text).not.toContain("<footer");
+		expect(getPageBatch).not.toHaveBeenCalledWith("contact");
+	});
+
+	it("form konsultasi memiliki metadata berbahasa Indonesia saat locale id aktif", async () => {
+		const res = await request(app)
+			.get("/formulir-konsultasi")
+			.set("Cookie", "locale=id");
+		expect(res.status).toBe(200);
+		expect(res.text).toContain(
+			"<title>Konsultasi Wedding Organizer &amp; Wedding Planner | Sagita</title>",
+		);
+		expect(res.text).toContain(
+			"Konsultasi Wedding Organizer sesuai rencana Anda",
+		);
+		expect(res.text).toContain(
+			"Terima kasih telah mempercayakan langkah awal perencanaan pernikahan Anda kepada",
+		);
+		expect(res.text).toContain("Formulir Anda telah berhasil kami terima.");
 	});
 
 	it("halaman tanpa island tidak memuat loader halaman", async () => {

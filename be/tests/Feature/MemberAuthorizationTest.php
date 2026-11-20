@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Consultation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -81,6 +83,56 @@ class MemberAuthorizationTest extends TestCase
         $this->actingAs($this->admin())
             ->get('/backend/search?q=test')
             ->assertOk();
+    }
+
+    public function test_dashboard_hides_consultation_data_without_permission(): void
+    {
+        Consultation::create([
+            'full_name' => 'Private Dashboard Lead',
+            'email' => 'private-dashboard-lead@example.test',
+            'whatsapp' => '081234567890',
+            'lead_status' => 'New',
+            'follow_up_at' => now()->subDay(),
+        ]);
+
+        $response = $this->actingAs($this->admin())
+            ->get('/backend/dashboard')
+            ->assertOk()
+            ->assertViewHas('canViewConsultations', false)
+            ->assertViewHas('consultationPipeline', [])
+            ->assertViewHas('consultationHighlights', null)
+            ->assertViewHas('stats', fn (array $stats) => collect($stats)->every(fn (array $stat) => ! in_array($stat['label'], ['Lead baru', 'Follow-up terlewat'], true)))
+            ->assertViewHas('funnel', fn (array $funnel) => collect($funnel)->every(fn (array $step) => ! in_array($step['label'], ['Lead konsultasi', 'Lead panas', 'Terkonversi'], true)))
+            ->assertViewHas('actionQueue', fn (array $queue) => $queue['messageCount'] === 0 && $queue['messages']->isEmpty())
+            ->assertDontSee('Private Dashboard Lead')
+            ->assertDontSee('private-dashboard-lead@example.test')
+            ->assertDontSee('081234567890')
+            ->assertDontSee('Lead konsultasi')
+            ->assertDontSee('Lead baru');
+
+        $response->assertViewMissing('recentConsultations');
+    }
+
+    public function test_dashboard_shows_consultation_data_with_permission(): void
+    {
+        $role = Role::findByName('admin');
+        $role->givePermissionTo(Permission::findOrCreate('konsultasi.index', 'web'));
+
+        Consultation::create([
+            'full_name' => 'Authorized Dashboard Lead',
+            'email' => 'authorized-dashboard-lead@example.test',
+            'whatsapp' => '081234567891',
+            'lead_status' => 'New',
+            'follow_up_at' => now()->subDay(),
+        ]);
+
+        $this->actingAs($this->admin())
+            ->get('/backend/dashboard')
+            ->assertOk()
+            ->assertViewHas('canViewConsultations', true)
+            ->assertSee('Authorized Dashboard Lead')
+            ->assertSee('authorized-dashboard-lead@example.test')
+            ->assertSee('081234567891');
     }
 
     public function test_member_dashboard_is_mobile_on_phone(): void

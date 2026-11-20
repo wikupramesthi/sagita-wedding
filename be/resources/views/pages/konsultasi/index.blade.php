@@ -3,7 +3,7 @@
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Monitoring Konsultasi" page="Data Prospek" active="Konsultasi" route="{{ route('konsultasi.index') }}" />
+<x-breadcrumb title="Monitoring Konsultasi" page="Konsultasi" active="Konsultasi" route="{{ route('konsultasi.index') }}" />
 @endsection
 
 <section class="section">
@@ -129,6 +129,15 @@
                             <a href="{{ route('konsultasi.export', request()->query()) }}" class="btn btn-sm btn-soft-success btn-konsultasi"><i class="bi bi-file-earmark-excel"></i> Excel</a>
                             <a href="{{ route('konsultasi.pdf-preview', request()->query()) }}" class="btn btn-sm btn-soft-danger btn-konsultasi"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
                         @endcan
+                        <div class="dropdown d-none d-sm-block">
+                            <button type="button" class="btn btn-sm btn-light btn-konsultasi" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Pilih kolom tabel"><i class="bi bi-layout-three-columns me-1"></i> Kolom</button>
+                            <ul class="dropdown-menu dropdown-menu-end p-2">
+                                <li class="dropdown-header p-0 px-2 small">Tampilkan kolom</li>
+                                <li><label class="dropdown-item-text small d-flex align-items-center gap-2"><input type="checkbox" data-konsultasi-column="contact" checked> Kontak</label></li>
+                                <li><label class="dropdown-item-text small d-flex align-items-center gap-2"><input type="checkbox" data-konsultasi-column="plan" checked> Rencana</label></li>
+                                <li><label class="dropdown-item-text small d-flex align-items-center gap-2"><input type="checkbox" data-konsultasi-column="consult" checked> Konsultasi</label></li>
+                            </ul>
+                        </div>
                         <a href="{{ route('konsultasi.create') }}" class="btn btn-sm btn-primary btn-konsultasi"><i class="bi bi-plus-circle"></i> Tambah</a>
                     </div>
                 </details>
@@ -198,18 +207,39 @@
                 </div>
                 <div class="col-12 col-md-4 d-flex flex-wrap gap-2 align-items-center">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i> Filter</button>
-                    <a href="{{ route('konsultasi.index') }}" class="btn btn-light"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
-                    @if (collect($filters)->filter()->isNotEmpty())
-                        <span class="badge bg-soft-primary text-primary">Filter aktif</span>
-                    @endif
+                    <a href="{{ route('konsultasi.index', ['all' => 1]) }}" class="btn btn-light"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
                 </div>
             </form>
+
+            @if ($activeFilters->isNotEmpty())
+                <div class="d-flex flex-wrap align-items-center gap-1 mb-3 konsultasi-active-filters">
+                    <span class="small text-muted me-1"><i class="bi bi-funnel me-1"></i> Filter aktif:</span>
+                    @foreach ($activeFilters as $chip)
+                        @php
+                            $chipQuery = array_diff_key(request()->query(), [$chip['key'] => null]);
+                        @endphp
+                        <a href="{{ route('konsultasi.index', $chipQuery) }}" class="badge rounded-pill bg-soft-primary text-primary d-inline-flex align-items-center gap-1" title="Hapus filter {{ $chip['label'] }}">
+                            <span class="text-truncate" style="max-width:150px">{{ $chip['label'] }}: {{ $chip['value'] }}</span>
+                            <i class="bi bi-x"></i>
+                        </a>
+                    @endforeach
+                    <a href="{{ route('konsultasi.index', ['all' => 1]) }}" class="small text-decoration-none ms-1">Hapus semua</a>
+                </div>
+            @endif
 
             <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                 <span class="small text-muted"><i class="bi bi-bookmark me-1"></i> Filter tersimpan:</span>
                 @forelse ($savedFilters as $saved)
                     <span class="badge bg-light text-dark border d-inline-flex align-items-center gap-1">
                         <a href="{{ route('konsultasi.saved-filters.apply', $saved) }}" class="text-decoration-none text-dark">{{ $saved->name }}</a>
+                        @if ($saved->is_default)
+                            <i class="bi bi-star-fill text-warning" title="Filter default"></i>
+                        @endif
+                        <form method="POST" action="{{ route('konsultasi.saved-filters.default', $saved) }}" class="d-inline">
+                            @csrf
+                            <input type="hidden" name="is_default" value="{{ $saved->is_default ? 0 : 1 }}">
+                            <button type="submit" class="btn btn-link btn-sm p-0 text-warning" aria-label="{{ $saved->is_default ? 'Nonaktifkan default' : 'Jadikan default' }} {{ $saved->name }}"><i class="bi {{ $saved->is_default ? 'bi-star-fill' : 'bi-star' }}"></i></button>
+                        </form>
                         <form method="POST" action="{{ route('konsultasi.saved-filters.destroy', $saved) }}" class="d-inline">
                             @csrf
                             @method('DELETE')
@@ -219,10 +249,13 @@
                 @empty
                     <span class="small text-muted">Belum ada</span>
                 @endforelse
-                <form method="POST" action="{{ route('konsultasi.saved-filters.store') }}" class="d-flex gap-1 ms-auto">
+                <form method="POST" action="{{ route('konsultasi.saved-filters.store') }}" class="d-flex flex-wrap gap-1 ms-auto align-items-center">
                     @csrf
                     <input type="hidden" name="filters" value="{{ json_encode($filters) }}">
                     <input type="text" name="name" class="form-control form-control-sm" style="width:150px" placeholder="Nama filter" maxlength="100" required>
+                    <label class="small text-muted d-flex align-items-center gap-1 mb-0">
+                        <input type="checkbox" name="is_default" value="1"> Default
+                    </label>
                     <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-bookmark-plus me-1"></i> Simpan</button>
                 </form>
             </div>
@@ -254,7 +287,7 @@
             @endcan
             </details>
 
-            <div class="table-responsive">
+            <div class="table-responsive konsultasi-table-shell" id="konsultasiTableShell">
                 <table class="table table-hover align-middle mb-0 lead-table">
                     <colgroup>
                         @can('konsultasi.index')
@@ -339,6 +372,10 @@
                                                 <option value="{{ $value }}" @selected($item->lead_status === $value)>{{ $label }}</option>
                                             @endforeach
                                         </select>
+                                        <div class="d-flex align-items-center gap-1 mt-1 konsultasi-followup-control">
+                                            <input type="date" name="follow_up_at" value="{{ $item->follow_up_at?->format('Y-m-d') }}" class="form-control form-control-sm" aria-label="Tanggal tindak lanjut {{ $item->full_name }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Simpan tanggal tindak lanjut"><i class="bi bi-check2"></i></button>
+                                        </div>
                                         <span class="badge {{ $item->follow_up_badge_class }} mt-2">{{ $item->follow_up_label }}</span>
                                         <div class="small text-muted">{{ $item->follow_up_date_label }}</div>
                                         <div class="mt-2"><span class="badge {{ $item->sla_badge_class }}" title="Target respons: {{ $item->sla_deadline_label }}">{{ $item->sla_label }}</span></div>
@@ -413,20 +450,28 @@
     @endforeach
 @endcan
 
+@if (session('undo_token'))
+    <div class="konsultasi-undo-toast" id="konsultasiUndoToast" role="status" aria-live="polite">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-arrow-counterclockwise fs-5 text-warning"></i>
+            <div class="min-w-0 flex-grow-1">
+                <div class="small fw-semibold">{{ session('undo_message') }}</div>
+                <div class="small text-muted">Klik urungkan dalam <span id="konsultasiUndoCountdown">5</span> detik.</div>
+            </div>
+            <form method="POST" action="{{ route('konsultasi.bulk-undo') }}">
+                @csrf
+                <input type="hidden" name="undo_token" value="{{ session('undo_token') }}">
+                <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-arrow-counterclockwise me-1"></i> Urungkan</button>
+            </form>
+            <button type="button" class="btn-close" data-konsultasi-undo-close aria-label="Tutup"></button>
+        </div>
+    </div>
+@endif
+
 @push('after-style')
 <style>
     #main-content .konsultasi-mobile-fold > summary {
         display: none;
-    }
-
-    @media (min-width: 576px) {
-        #main-content .konsultasi-mobile-fold > :not(summary) {
-            display: block !important;
-        }
-
-        #main-content .konsultasi-toolbar-fold > .konsultasi-toolbar {
-            display: flex !important;
-        }
     }
 
     #main-content .konsultasi-toolbar {
@@ -588,6 +633,35 @@
         color: #eab0b6;
     }
 
+    @media (min-width: 1200px) {
+        #main-content .konsultasi-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: .5rem;
+        }
+
+        #main-content .konsultasi-stat-grid > div {
+            width: auto;
+        }
+
+        #main-content .konsultasi-stat-grid .card-body {
+            display: block !important;
+            padding: .55rem .65rem;
+        }
+
+        #main-content .konsultasi-stat-grid .stats-icon {
+            display: none;
+        }
+
+        #main-content .konsultasi-stat-grid h6 {
+            font-size: .7rem;
+        }
+
+        #main-content .konsultasi-stat-grid h4 {
+            font-size: 1.05rem;
+        }
+    }
+
     @media (max-width: 575.98px) {
         #main-content .konsultasi-toolbar .btn-konsultasi {
             flex: 1 1 auto;
@@ -653,6 +727,48 @@
         border-radius: 10px;
         padding: 8px 10px;
         background: var(--bs-tertiary-bg, rgba(0, 0, 0, .02));
+    }
+
+    #main-content .konsultasi-active-filters .badge {
+        font-size: .75rem;
+        font-weight: 500;
+        padding: .35em .6em;
+    }
+
+    #main-content .konsultasi-followup-control input[type="date"] {
+        min-width: 0;
+        width: 100%;
+        padding: .2rem .35rem;
+        font-size: .75rem;
+    }
+
+    #main-content .konsultasi-followup-control > .btn {
+        padding: .2rem .4rem;
+        line-height: 1;
+    }
+
+    #main-content .konsultasi-table-shell.hide-contact .col-contact,
+    #main-content .konsultasi-table-shell.hide-plan .col-plan,
+    #main-content .konsultasi-table-shell.hide-consult .col-consult {
+        display: none;
+        width: 0 !important;
+    }
+
+    #main-content .konsultasi-table-shell.hide-contact .col-customer { width: 28%; }
+    #main-content .konsultasi-table-shell.hide-contact .col-pipeline { width: 24%; }
+    #main-content .konsultasi-table-shell.hide-contact .col-action { width: 8%; }
+
+    .konsultasi-undo-toast {
+        position: fixed;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 1080;
+        max-width: min(420px, calc(100vw - 2rem));
+        padding: .75rem 1rem;
+        border: 1px solid var(--bs-border-color, #e9ecef);
+        border-radius: 12px;
+        background: var(--bs-body-bg, #fff);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, .16);
     }
 
     #main-content .table-responsive {
@@ -769,6 +885,13 @@
             width: 100% !important;
         }
 
+        .konsultasi-undo-toast {
+            left: .75rem;
+            right: .75rem;
+            bottom: .75rem;
+            max-width: none;
+        }
+
         #main-content .lead-table .col-contact,
         #main-content .lead-table .col-plan,
         #main-content .lead-table .col-consult {
@@ -813,6 +936,81 @@
     (function () {
         if (window.matchMedia('(max-width: 575.98px)').matches) {
             document.querySelectorAll('.konsultasi-mobile-fold').forEach(function (fold) { fold.open = false; });
+        }
+
+        var tableShell = document.getElementById('konsultasiTableShell');
+        var columnBoxes = Array.prototype.slice.call(document.querySelectorAll('[data-konsultasi-column]'));
+        var storedColumns = {};
+
+        if (tableShell && columnBoxes.length) {
+            try {
+                storedColumns = JSON.parse(localStorage.getItem('konsultasi.columns') || '{}') || {};
+            } catch (error) {
+                storedColumns = {};
+            }
+
+            columnBoxes.forEach(function (box) {
+                var key = box.getAttribute('data-konsultasi-column');
+
+                if (storedColumns[key] !== undefined) {
+                    box.checked = storedColumns[key] !== false;
+                }
+
+                var apply = function () {
+                    tableShell.classList.toggle('hide-' + key, !box.checked);
+                };
+
+                apply();
+
+                box.addEventListener('change', function () {
+                    apply();
+                    storedColumns[key] = box.checked;
+                    localStorage.setItem('konsultasi.columns', JSON.stringify(storedColumns));
+                });
+            });
+        }
+
+        var search = document.getElementById('filter-q');
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey || !search) return;
+
+            var target = event.target;
+
+            if (target instanceof Element && (target.matches('input, textarea, select') || target.isContentEditable)) return;
+
+            event.preventDefault();
+
+            var fold = search.closest('.konsultasi-mobile-fold');
+
+            if (fold && !fold.open) fold.open = true;
+
+            search.focus();
+        });
+
+        var toast = document.getElementById('konsultasiUndoToast');
+
+        if (toast) {
+            var seconds = 5;
+            var countdown = document.getElementById('konsultasiUndoCountdown');
+            var timer = window.setInterval(function () {
+                seconds -= 1;
+
+                if (countdown) countdown.textContent = String(Math.max(seconds, 0));
+
+                if (seconds <= 0) {
+                    window.clearInterval(timer);
+                    toast.remove();
+                }
+            }, 1000);
+            var closeToast = toast.querySelector('[data-konsultasi-undo-close]');
+
+            if (closeToast) {
+                closeToast.addEventListener('click', function () {
+                    window.clearInterval(timer);
+                    toast.remove();
+                });
+            }
         }
 
         var form = document.getElementById('konsultasi-bulk-form');
