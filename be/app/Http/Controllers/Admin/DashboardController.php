@@ -42,12 +42,6 @@ class DashboardController extends Controller
             'end_date' => ['nullable', 'date'],
         ]);
 
-        if (! empty($validated['start_date']) && ! empty($validated['end_date'])) {
-            $request->validate([
-                'end_date' => ['after_or_equal:start_date'],
-            ]);
-        }
-
         $user = Auth::user();
         $isMember = $user->hasRole('user');
         $canViewConsultations = $user->can('konsultasi.index');
@@ -185,22 +179,6 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-        $today = strtolower(now()->format('l'));
-        $nextDay = $days[((array_search($today, $days) + 1) % count($days))];
-
-        $upcomingClasses = ClassSchedule::with('class.vendor')
-            ->withCount([
-                'bookings as bookings_count' => function ($q) {
-                    $q->whereIn('status', ['confirmed', 'attended']);
-                },
-            ])
-            ->where('status', 'active')
-            ->where('day', $nextDay)
-            ->orderBy('start_time')
-            ->take(3)
-            ->get();
-
         $data += [
             'events' => Event::where('status', 'published')
                 ->whereDate('tanggal', '>=', now())
@@ -209,10 +187,26 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get(),
             'todaySchedules' => $todaySchedules,
-            'upcomingClasses' => $upcomingClasses,
         ];
 
         if ($isMember) {
+            $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            $today = strtolower(now()->format('l'));
+            $nextDay = $days[((array_search($today, $days) + 1) % count($days))];
+
+            $data['upcomingClasses'] = ClassSchedule::with('class.vendor')
+                ->withCount([
+                    'bookings as bookings_count' => function ($q) {
+                        $q->whereIn('status', ['confirmed', 'attended']);
+                    },
+                ])
+                ->where('status', 'active')
+                ->where('day', $nextDay)
+                ->orderBy('start_time')
+                ->take(3)
+                ->get();
+
+            $upcomingClasses = $data['upcomingClasses'];
             $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
             $data['courses'] = $this->artOfLivingCourses();
 
@@ -239,7 +233,7 @@ class DashboardController extends Controller
 
     public function refresh(Request $request): JsonResponse
     {
-        $summary = $this->dashboardSummary($request);
+        $summary = $this->dashboardSummary($request, $request->boolean('fresh'));
         $action = $this->actionQueue((bool) $summary['canViewConsultations']);
 
         return response()->json([
@@ -250,8 +244,19 @@ class DashboardController extends Controller
             'consultationPipeline' => $summary['consultationPipeline'],
             'consultationHighlights' => $summary['consultationHighlights'],
             'funnel' => $summary['funnel'],
+            'metrics' => [
+                'newOrdersCount' => $summary['newOrdersCount'],
+                'newMembershipCount' => $summary['newMembershipCount'],
+                'revenueMonth' => $summary['revenueMonth'],
+                'revenueTotal' => $summary['revenueTotal'],
+            ],
+            'security' => $summary['security'],
             'revenueChart' => $summary['revenueChart'],
             'site' => $summary['site'],
+            'actionCounts' => [
+                'orders' => (int) $action['orderCount'],
+                'messages' => (int) $action['messageCount'],
+            ],
             'actionTotal' => (int) $action['orderCount'] + (int) $action['messageCount'],
             'unreadCount' => Auth::user()->unreadNotifications()->count(),
         ]);
@@ -271,25 +276,25 @@ class DashboardController extends Controller
     {
         $summary = $this->dashboardSummary($request);
 
-        return Pdf::loadView('pages.dashboard.laporan', $summary)
+        return Pdf::loadView('pages.dashboard.laporan', $summary + [
+            'actionQueue' => $this->actionQueue((bool) $summary['canViewConsultations']),
+        ])
             ->setPaper('a4', 'landscape')
             ->download('dashboard-'.$summary['startDate'].'-'.$summary['endDate'].'.pdf');
     }
 
-    private function dashboardSummary(Request $request): array
+    private function dashboardSummary(Request $request, bool $fresh = false): array
     {
+        $user = Auth::user();
+        abort_unless($user && ! $user->hasRole('user'), 404);
+
         $validated = $request->validate([
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
         ]);
 
-        if (! empty($validated['start_date']) && ! empty($validated['end_date'])) {
-            $request->validate([
-                'end_date' => ['after_or_equal:start_date'],
-            ]);
-        }
-
         [$startDate, $endDate] = $this->resolveRange($validated);
+        $bounds = $this->periodBounds($startDate, $endDate);
         $canViewConsultations = Auth::user()->can('konsultasi.index');
 
         $countBetween = function ($query, string $column, string $from, string $to): int {
@@ -308,8 +313,7 @@ class DashboardController extends Controller
             string $class,
             string $route,
             array $params = []
-        ) use ($countBetween, $sparkline, $startDate, $endDate): array {
-            $bounds = $this->periodBounds($startDate, $endDate);
+        ) use ($countBetween, $sparkline, $startDate, $endDate, $bounds): array {
             $current = $countBetween($query, $column, $startDate, $endDate);
             $previous = $countBetween($query, $column, $bounds['previousStart'], $bounds['previousEnd']);
 
@@ -345,8 +349,18 @@ class DashboardController extends Controller
             ];
         };
 
+        $summaryKey = DashboardCache::key($startDate, $endDate, $canViewConsultations);
+        $freshKey = DashboardCache::version().'.'.(int) $canViewConsultations;
+
+        if ($fresh) {
+            Cache::forget($summaryKey);
+            Cache::forget('dashboard.admin.action.'.$freshKey);
+            Cache::forget('dashboard.admin.recent-orders.'.$freshKey);
+            Cache::forget('dashboard.admin.recent-consultations.'.$freshKey);
+        }
+
         $summary = Cache::remember(
-            DashboardCache::key($startDate, $endDate, $canViewConsultations),
+            $summaryKey,
             300,
             fn () => $this->buildAdminSummary($startDate, $endDate, $canViewConsultations, $countBetween, $makeStat, $makeSnapshot)
         );
@@ -389,7 +403,6 @@ class DashboardController extends Controller
                 'end_date' => $endDate,
             ]);
             $leadCounts = Consultation::query()
-                ->whereBetween('created_at', [$startDate.' 00:00:00', $endDate.' 23:59:59'])
                 ->selectRaw('lead_status, COUNT(*) as total')
                 ->groupBy('lead_status')
                 ->pluck('total', 'lead_status');
@@ -478,6 +491,17 @@ class DashboardController extends Controller
             $rows[] = ['Funnel', $step['label'], $step['value'], ''];
         }
 
+        $rows[] = ['Metrik cepat', 'Pesanan baru', $summary['newOrdersCount'], $summary['periodLabel']];
+        $rows[] = ['Metrik cepat', 'Keanggotaan baru', $summary['newMembershipCount'], $summary['periodLabel']];
+        $rows[] = ['Metrik cepat', 'Pendapatan periode', number_format($summary['revenueMonth'], 0, ',', '.'), 'Rp'];
+        $rows[] = ['Metrik cepat', 'Pendapatan total', number_format($summary['revenueTotal'], 0, ',', '.'), 'Rp'];
+        $rows[] = ['Keamanan 24 jam', 'Login gagal', $summary['security']['failedLogins'], ''];
+        $rows[] = ['Keamanan 24 jam', 'Akun terkunci', $summary['security']['lockouts'], ''];
+
+        $action = $this->actionQueue((bool) $summary['canViewConsultations']);
+        $rows[] = ['Perlu tindakan', 'Pembayaran perlu verifikasi', $action['orderCount'], ''];
+        $rows[] = ['Perlu tindakan', 'Follow-up terlewat', $action['messageCount'], ''];
+
         return $rows;
     }
 
@@ -485,6 +509,10 @@ class DashboardController extends Controller
     {
         $end = $validated['end_date'] ?? now()->toDateString();
         $start = $validated['start_date'] ?? Carbon::parse($end)->subDays(29)->toDateString();
+
+        if (Carbon::parse($start)->gt(Carbon::parse($end))) {
+            $start = Carbon::parse($end)->subDays(29)->toDateString();
+        }
 
         return [$start, $end];
     }

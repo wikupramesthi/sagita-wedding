@@ -309,6 +309,15 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('data-category="Dekorasi"');
 		expect(res.text).toContain('data-categories="[&#34;Katering&#34;]"');
 		expect(res.text).toContain("/js/pages/vendors.js");
+		expect(res.text).toContain("The right people");
+		expect(res.text).toContain("Wedding Vendors | Sagita Wedding Planner");
+		expect(res.text).toContain("Ask for details");
+		expect(res.text).toContain("https://wa.me/");
+		expect(res.text).toContain("Vendor%20Katering");
+		expect(res.text).toContain('href="/formulir-konsultasi"');
+		expect(res.text).not.toContain("Book a Session");
+		expect(res.text).not.toContain("certified RIMY");
+		expect(res.text).not.toContain("mindful movement and intention");
 	});
 
 	it("form konsultasi mandiri tidak merender header atau footer global", async () => {

@@ -65,7 +65,7 @@
                         <div class="flex-fill min-w-0">
                             <div class="d-flex align-items-start justify-content-between gap-2">
                                 <p class="mb-1 small fw-semibold {{ $isUnread ? '' : 'text-muted' }}">
-                                    {{ $payload['judul_kegiatan'] ?? 'Notification' }}
+                                    {{ $payload['judul_kegiatan'] ?? 'Notifikasi' }}
                                 </p>
                                 @if ($isUnread)
                                     <span class="rounded-circle flex-shrink-0 mt-1"
@@ -73,7 +73,7 @@
                                 @endif
                             </div>
                             <p class="mb-1 text-muted2 text-small" style="line-height:1.5;">
-                                {{ $payload['message'] ?? '-' }}
+                                {{ $payload['message'] ?? 'Detail belum tersedia.' }}
                             </p>
                             <p class="mb-0 text-muted2 m-meta">
                                 {{ $notif->created_at?->diffForHumans() }}

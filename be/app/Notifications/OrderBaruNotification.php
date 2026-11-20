@@ -38,10 +38,10 @@ class OrderBaruNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'judul_kegiatan' => 'New order received',
-            'message' => $this->orderNumber . ' — ' . $this->customerName
-                . ' ordered ' . $this->packageName
-                . ' (Rp ' . number_format($this->amount, 0, ',', '.') . ')',
+            'judul_kegiatan' => 'Pesanan baru diterima',
+            'message' => $this->orderNumber.' — '.$this->customerName
+                .' memesan '.$this->packageName
+                .' (Rp '.number_format($this->amount, 0, ',', '.').')',
             'path' => route('orders.show', $this->orderUuid, false),
             'icon' => 'bi-receipt',
         ];

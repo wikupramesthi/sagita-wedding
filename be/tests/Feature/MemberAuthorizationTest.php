@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Consultation;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Permission;
@@ -71,10 +72,20 @@ class MemberAuthorizationTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_member_cannot_open_contact_messages(): void
+    public function test_member_cannot_use_dashboard_insight_endpoints(): void
     {
-        $this->actingAs($this->member())
-            ->get('/backend/kontak')
+        $member = $this->member();
+
+        $this->actingAs($member)
+            ->getJson('/backend/dashboard/refresh')
+            ->assertNotFound();
+
+        $this->actingAs($member)
+            ->get('/backend/dashboard/export')
+            ->assertNotFound();
+
+        $this->actingAs($member)
+            ->get('/backend/dashboard/export-pdf')
             ->assertNotFound();
     }
 
@@ -83,6 +94,15 @@ class MemberAuthorizationTest extends TestCase
         $this->actingAs($this->admin())
             ->get('/backend/search?q=test')
             ->assertOk();
+    }
+
+    public function test_admin_dashboard_clamps_inverted_date_range(): void
+    {
+        $this->actingAs($this->admin())
+            ->get('/backend/dashboard?start_date=2026-11-20&end_date=2026-11-01')
+            ->assertOk()
+            ->assertViewHas('endDate', '2026-11-01')
+            ->assertViewHas('startDate', Carbon::parse('2026-11-01')->subDays(29)->toDateString());
     }
 
     public function test_dashboard_hides_consultation_data_without_permission(): void

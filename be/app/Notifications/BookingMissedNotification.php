@@ -36,8 +36,8 @@ class BookingMissedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'judul_kegiatan' => 'You missed a class',
-            'message' => $this->className . ' (' . $this->scheduleLabel . ', ' . $this->dateLabel . ') was marked as no-show because there was no check-in. Book again anytime!',
+            'judul_kegiatan' => 'Kelas terlewat',
+            'message' => $this->className.' ('.$this->scheduleLabel.', '.$this->dateLabel.') ditandai tidak hadir karena tidak ada check-in. Kamu bisa memesan lagi kapan saja.',
             'path' => route('schedules.index', [], false),
             'icon' => 'bi-calendar-x',
         ];

@@ -34,9 +34,9 @@ class OrderExpiredNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'judul_kegiatan' => 'Order expired',
+            'judul_kegiatan' => 'Pesanan kedaluwarsa',
             'message' => $this->orderNumber
-                . ' was automatically cancelled after 24 hours without payment. Please place a new order if you still want the membership.',
+                .' otomatis dibatalkan setelah 24 jam tanpa pembayaran. Silakan buat pesanan baru jika tetap ingin membership.',
             'path' => route('packages.member', [], false),
             'icon' => 'bi-hourglass-bottom',
         ];

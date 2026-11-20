@@ -36,13 +36,13 @@ class MemberActiveNotification extends Notification
     public function toArray(object $notifiable): array
     {
         $expiry = $this->expiredAt
-            ? ' Active until ' . $this->expiredAt->format('d M Y') . '.'
+            ? ' Aktif hingga '.$this->expiredAt->format('d M Y').'.'
             : '';
 
         return [
-            'judul_kegiatan' => 'Membership activated',
-            'message' => 'Payment for ' . $this->orderNumber
-                . ' was verified. Your membership is now active.' . $expiry,
+            'judul_kegiatan' => 'Membership diaktifkan',
+            'message' => 'Pembayaran untuk '.$this->orderNumber
+                .' telah diverifikasi. Membership kamu sekarang aktif.'.$expiry,
             'path' => route('orders.show', $this->orderUuid, false),
             'icon' => 'bi-check-circle',
         ];

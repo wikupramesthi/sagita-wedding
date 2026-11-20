@@ -47,9 +47,9 @@
                             aria-labelledby="notifDropdown">
 
                             <li class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-                                <h6 class="mb-0 fw-bold">Notifications</h6>
+                                <h6 class="mb-0 fw-bold">Notifikasi</h6>
                                 @if ($unreadCount > 0)
-                                    <span class="badge bg-danger rounded-pill">{{ $unreadCount }} new</span>
+                                    <span class="badge bg-danger rounded-pill">{{ $unreadCount }} baru</span>
                                 @endif
                             </li>
 
@@ -71,11 +71,11 @@
                                         <div class="notification-text flex-grow-1 min-w-0">
 
                                             <p class="notification-title fw-bold mb-0 text-dark">
-                                                {{ $notification->data['judul_kegiatan'] ?? 'Program' }}
+                                                {{ $notification->data['judul_kegiatan'] ?? 'Notifikasi' }}
                                             </p>
 
                                             <p class="notification-subtitle text-muted small mb-1">
-                                                {{ $notification->data['message'] ?? '-' }}
+                                                {{ $notification->data['message'] ?? 'Detail belum tersedia.' }}
                                             </p>
 
                                             <small class="text-muted d-flex align-items-center gap-1">
@@ -90,16 +90,16 @@
                             @empty
                                 <li class="empty-notif">
                                     <div class="empty-notif-icon"><i class="bi bi-bell-slash"></i></div>
-                                    <p class="mb-1 fw-semibold small text-muted">No notifications</p>
-                                    <small class="text-muted" style="font-size:11px;">No recent activity yet</small>
+                                    <p class="mb-1 fw-semibold small text-muted">Belum ada notifikasi</p>
+                                    <small class="text-muted" style="font-size:11px;">Aktivitas terbaru akan muncul di sini.</small>
                                 </li>
                             @endforelse
                             </div>
 
                             <li class="border-top">
                                 <a href="{{ route('notifications.index') }}"
-                                    class="d-block text-center text-decoration-none small fw-bold py-2">
-                                    View all notifications
+                                    class="d-flex align-items-center justify-content-center gap-1 text-center text-decoration-none small fw-bold py-2">
+                                    Lihat semua notifikasi <i class="bi bi-arrow-right"></i>
                                 </a>
                             </li>
 

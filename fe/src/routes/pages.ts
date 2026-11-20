@@ -155,11 +155,19 @@ router.get(
 	async (_req: Request, res: Response, next: NextFunction) => {
 		try {
 			const data = await getPageBatch("vendors");
+			const isID = res.locals.lang === "id";
 			res.render("pages/vendors", {
-				title: "Our Vendors � YogaRoots",
+				title: isID
+					? "Vendor Pernikahan Pilihan | Sagita Wedding Planner"
+					: "Wedding Vendors | Sagita Wedding Planner",
+				metaDescription: isID
+					? "Jelajahi vendor pernikahan berdasarkan kategori dan konsultasikan kebutuhan Anda bersama tim Sagita Wedding Planner."
+					: "Explore wedding vendors by category and discuss your plans with the Sagita Wedding Planner team.",
 				vendors: data?.vendors || [],
+				assetV: `${res.locals.assetV}-vendors-warm3`,
 				pageScript: "vendors",
 				heroNav: true,
+				heroNavLight: true,
 			});
 		} catch (err) {
 			next(err);

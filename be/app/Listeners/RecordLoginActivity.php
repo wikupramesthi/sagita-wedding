@@ -50,15 +50,15 @@ class RecordLoginActivity
             $alasan = [];
 
             if ($detector->isOffHours(now())) {
-                $alasan[] = 'unusual hour';
+                $alasan[] = 'jam tidak biasa';
             }
 
             if (in_array($ip, $detector->suspiciousIps(), true)) {
-                $alasan[] = 'risky IP';
+                $alasan[] = 'IP berisiko';
             }
 
             if (in_array($user->getAuthIdentifier(), $detector->suspiciousUserUuids(), true)) {
-                $alasan[] = 'login from multiple IPs';
+                $alasan[] = 'login dari beberapa alamat IP';
             }
 
             if (empty($alasan)) {

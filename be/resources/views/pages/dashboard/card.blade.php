@@ -47,8 +47,7 @@
         $actionTotal = $actionQueue['orderCount'] + $actionQueue['messageCount'];
     @endphp
 
-    @if ($actionTotal > 0)
-        <section aria-labelledby="actionQueueTitle">
+        <section id="dashboardActionQueue" aria-labelledby="actionQueueTitle" {{ $actionTotal > 0 ? '' : 'hidden' }}>
             <div class="dashboard-analytics-heading">
                 <h2 id="actionQueueTitle">Perlu tindakan</h2>
                 <p>Ada <span data-action-total>{{ $actionTotal }}</span> item yang menunggu tindak lanjut Anda.</p>
@@ -58,7 +57,7 @@
                     <div class="card h-100">
                         <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                             <h3 class="card-title h6 mb-0"><i class="bi bi-hourglass-split me-2"></i> Pembayaran perlu verifikasi</h3>
-                            <a href="{{ route('orders.index', ['status' => 'pending']) }}" class="small text-decoration-none fw-semibold">{{ $actionQueue['orderCount'] }} pesanan</a>
+                            <a href="{{ route('orders.index', ['status' => 'pending']) }}" class="small text-decoration-none fw-semibold"><span data-action-orders>{{ $actionQueue['orderCount'] }}</span> pesanan</a>
                         </div>
                         <div class="card-body">
                             @forelse ($actionQueue['orders'] as $order)
@@ -90,7 +89,7 @@
                     <div class="card h-100">
                         <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                             <h3 class="card-title h6 mb-0"><i class="bi bi-clock-history me-2"></i> Follow-up konsultasi terlewat</h3>
-                            <a href="{{ route('konsultasi.index', ['follow_up' => 'overdue']) }}" class="small text-decoration-none fw-semibold">{{ $actionQueue['messageCount'] }} lead</a>
+                            <a href="{{ route('konsultasi.index', ['follow_up' => 'overdue']) }}" class="small text-decoration-none fw-semibold"><span data-action-messages>{{ $actionQueue['messageCount'] }}</span> lead</a>
                         </div>
                         <div class="card-body">
                             @forelse ($actionQueue['messages'] as $message)
@@ -117,13 +116,12 @@
 
             </div>
         </section>
-    @endif
 
     <details class="dashboard-details-fold" open>
         <summary class="dashboard-details-summary">
             <span class="min-w-0">
                 <strong>Ringkasan aktivitas</strong>
-                <small class="text-muted d-block text-truncate">Statistik, grafik, dan funnel mengikuti rentang {{ $periodLabel }}.</small>
+                <small class="text-muted d-block text-truncate" data-period-label>Statistik, grafik, dan funnel mengikuti rentang {{ $periodLabel }}.</small>
             </span>
             <span class="dashboard-details-toggle"><i class="bi bi-chevron-up"></i> Lipat</span>
         </summary>
@@ -184,7 +182,7 @@
                             <div class="min-w-0 flex-grow-1">
                                 <h6 class="text-muted font-semibold mb-0 text-truncate">{{ $stat['label'] }}</h6>
                                 <a href="{{ $stat['route'] }}" class="text-decoration-none">
-                                    <h4 class="font-extrabold mb-0" data-stat-value>{{ $stat['value'] }}</h4>
+                                    <h4 class="font-extrabold mb-0" data-stat-value>{{ number_format($stat['value'], 0, ',', '.') }}</h4>
                                 </a>
                                 @if ($stat['change'] !== null)
                                     <small class="dashboard-stat-trend d-inline-flex align-items-center gap-1 {{ $stat['change'] >= 0 ? 'text-success' : 'text-danger' }}" data-stat-change>
@@ -211,7 +209,7 @@
                     <div class="card-header bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2">
                         <div>
                             <h5 class="card-title h6 mb-0"><i class="bi bi-diagram-3 me-2"></i> Pipeline konsultasi</h5>
-                            <small class="text-muted">Distribusi lead pada rentang {{ $periodLabel }}</small>
+                            <small class="text-muted">Distribusi lead saat ini dan kapasitas WIP</small>
                         </div>
                         <a href="{{ route('konsultasi.kanban') }}" class="small text-decoration-none fw-semibold">Buka Kanban <i class="bi bi-arrow-right ms-1"></i></a>
                     </div>
@@ -242,10 +240,10 @@
                             @endforeach
                         </div>
                         <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
-                            <span class="badge bg-light-success text-success"><i class="bi bi-graph-up-arrow me-1"></i> Konversi {{ $consultationHighlights['conversion_rate'] }}%</span>
-                            <a href="{{ route('konsultasi.index', ['sla' => 'breach']) }}" class="badge bg-light-danger text-danger text-decoration-none"><i class="bi bi-alarm me-1"></i> SLA terlewat {{ $consultationHighlights['sla_breach'] }}</a>
-                            <a href="{{ route('konsultasi.index', ['sla' => 'warning']) }}" class="badge bg-light-warning text-warning text-decoration-none"><i class="bi bi-stopwatch me-1"></i> SLA mendekat {{ $consultationHighlights['sla_warning'] }}</a>
-                            <a href="{{ route('konsultasi.index', ['follow_up' => 'done']) }}" class="badge bg-light-primary text-primary text-decoration-none"><i class="bi bi-check2-circle me-1"></i> Terkonversi {{ $consultationHighlights['converted'] }}</a>
+                            <span class="badge bg-light-success text-success"><i class="bi bi-graph-up-arrow me-1"></i> Konversi <span data-highlight="conversion_rate">{{ $consultationHighlights['conversion_rate'] }}</span>%</span>
+                            <a href="{{ route('konsultasi.index', ['sla' => 'breach']) }}" class="badge bg-light-danger text-danger text-decoration-none"><i class="bi bi-alarm me-1"></i> SLA terlewat <span data-highlight="sla_breach">{{ $consultationHighlights['sla_breach'] }}</span></a>
+                            <a href="{{ route('konsultasi.index', ['sla' => 'warning']) }}" class="badge bg-light-warning text-warning text-decoration-none"><i class="bi bi-stopwatch me-1"></i> SLA mendekat <span data-highlight="sla_warning">{{ $consultationHighlights['sla_warning'] }}</span></a>
+                            <a href="{{ route('konsultasi.index', ['follow_up' => 'done']) }}" class="badge bg-light-primary text-primary text-decoration-none"><i class="bi bi-check2-circle me-1"></i> Terkonversi <span data-highlight="converted">{{ $consultationHighlights['converted'] }}</span></a>
                         </div>
                     </div>
                 </div>
@@ -260,7 +258,7 @@
                         <div class="stats-icon yellow"><i class="bi bi-bag-plus"></i></div>
                         <div class="min-w-0">
                             <h6 class="text-muted font-semibold mb-0">Pesanan baru</h6>
-                            <a href="{{ route('orders.index') }}" class="text-decoration-none"><h4 class="font-extrabold mb-0">{{ $newOrdersCount }}</h4></a>
+                            <a href="{{ route('orders.index') }}" class="text-decoration-none"><h4 class="font-extrabold mb-0" data-metric="newOrdersCount">{{ number_format($newOrdersCount, 0, ',', '.') }}</h4></a>
                         </div>
                     </div>
                 </div>
@@ -271,7 +269,7 @@
                         <div class="stats-icon green"><i class="bi bi-person-plus"></i></div>
                         <div class="min-w-0">
                             <h6 class="text-muted font-semibold mb-0">Keanggotaan baru</h6>
-                            <a href="{{ route('memberships.index') }}" class="text-decoration-none"><h4 class="font-extrabold mb-0">{{ $newMembershipCount }}</h4></a>
+                            <a href="{{ route('memberships.index') }}" class="text-decoration-none"><h4 class="font-extrabold mb-0" data-metric="newMembershipCount">{{ number_format($newMembershipCount, 0, ',', '.') }}</h4></a>
                         </div>
                     </div>
                 </div>
@@ -282,8 +280,8 @@
                         <div class="stats-icon blue"><i class="bi bi-cash-stack"></i></div>
                         <div class="min-w-0">
                             <h6 class="text-muted font-semibold mb-0">Pendapatan</h6>
-                            <h4 class="font-extrabold mb-0 text-success">Rp {{ number_format($revenueMonth, 0, ',', '.') }}</h4>
-                            <small class="text-muted">Total keseluruhan: Rp {{ number_format($revenueTotal, 0, ',', '.') }}</small>
+                            <h4 class="font-extrabold mb-0 text-success">Rp <span data-metric="revenueMonth">{{ number_format($revenueMonth, 0, ',', '.') }}</span></h4>
+                            <small class="text-muted">Total keseluruhan: Rp <span data-metric="revenueTotal">{{ number_format($revenueTotal, 0, ',', '.') }}</span></small>
                         </div>
                     </div>
                 </div>
@@ -296,7 +294,7 @@
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div>
                             <h5 class="card-title mb-0">Grafik pendapatan</h5>
-                            <small class="text-muted">{{ $periodLabel }}</small>
+                            <small class="text-muted" data-period-label>{{ $periodLabel }}</small>
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <label class="small text-muted mb-0" for="revenueRange">Tampilkan</label>
@@ -323,13 +321,13 @@
                     <div class="card-body">
                         @php $funnelMax = max(1, ...array_column($funnel, 'value')); @endphp
                         @foreach ($funnel as $step)
-                            <div class="mb-3">
+                            <div class="mb-3" data-funnel="{{ $step['label'] }}">
                                 <div class="d-flex justify-content-between small mb-1">
                                     <span class="fw-semibold">{{ $step['label'] }}</span>
-                                    <span>{{ $step['value'] }}</span>
+                                    <span data-funnel-value>{{ number_format($step['value'], 0, ',', '.') }}</span>
                                 </div>
-                                <div class="progress" style="height:8px" role="progressbar" aria-label="{{ $step['label'] }}" aria-valuenow="{{ $step['value'] }}" aria-valuemin="0" aria-valuemax="{{ $funnelMax }}">
-                                    <div class="progress-bar" style="width: {{ ($step['value'] / $funnelMax) * 100 }}%"></div>
+                                <div class="progress" style="height:8px" role="progressbar" aria-label="{{ $step['label'] }}" aria-valuenow="{{ $step['value'] }}" aria-valuemin="0" aria-valuemax="{{ $funnelMax }}" data-funnel-progress>
+                                    <div class="progress-bar" style="width: {{ ($step['value'] / $funnelMax) * 100 }}%" data-funnel-bar></div>
                                 </div>
                             </div>
                         @endforeach
@@ -342,11 +340,11 @@
                     <div class="card-body">
                         <a href="{{ route('security.failed-login.index') }}" class="d-flex align-items-center justify-content-between text-decoration-none mb-3">
                             <span class="small"><i class="bi bi-shield-exclamation me-2"></i> Login gagal</span>
-                            <span class="badge {{ $security['failedLogins'] > 0 ? 'bg-light-warning' : 'bg-light-success' }}">{{ $security['failedLogins'] }}</span>
+                            <span class="badge {{ $security['failedLogins'] > 0 ? 'bg-light-warning' : 'bg-light-success' }}" data-security="failedLogins">{{ $security['failedLogins'] }}</span>
                         </a>
                         <a href="{{ route('security.login-lockout.index') }}" class="d-flex align-items-center justify-content-between text-decoration-none">
                             <span class="small"><i class="bi bi-lock me-2"></i> Akun terkunci</span>
-                            <span class="badge {{ $security['lockouts'] > 0 ? 'bg-light-danger' : 'bg-light-success' }}">{{ $security['lockouts'] }}</span>
+                            <span class="badge {{ $security['lockouts'] > 0 ? 'bg-light-danger' : 'bg-light-success' }}" data-security="lockouts">{{ $security['lockouts'] }}</span>
                         </a>
                     </div>
                 </div>
@@ -370,7 +368,7 @@
                         <div class="site-analytics-heading">
                             <div>
                                 <h5 id="siteAnalyticsHeading">Statistik pengunjung</h5>
-                                <p id="siteAnalyticsPeriod">{{ $periodLabel }}</p>
+                                <p id="siteAnalyticsPeriod" data-period-label>{{ $periodLabel }}</p>
                             </div>
                             <div class="site-analytics-range" id="visitorRangeControls" aria-label="Rentang statistik pengunjung">
                                 <button type="button" class="btn btn-sm active" data-visitor-range="daily" aria-pressed="true"><i class="bi bi-calendar-date" aria-hidden="true"></i> Harian</button>
@@ -549,33 +547,6 @@
             </div>
         </div>
 
-        <div class="row g-4">
-            <div class="col-12">
-                <div class="card h-100">
-                    <div class="card-header bg-transparent"><h5 class="card-title h6 mb-0">Kelas mendatang</h5></div>
-                    <div class="card-body">
-                        @forelse ($upcomingClasses as $kelas)
-                            <div class="d-flex align-items-center gap-3 {{ $loop->last ? '' : 'border-bottom pb-3 mb-3' }}">
-                                <div class="avatar avatar-md2 dashboard-avatar dashboard-avatar--primary">
-                                    <div class="avatar-content"><i class="bi bi-activity"></i></div>
-                                </div>
-                                <div class="flex-grow-1 min-w-0">
-                                    <div class="fw-semibold small text-truncate">{{ $kelas->class->name ?? '-' }}</div>
-                                    <div class="small text-muted">{{ ucfirst($kelas->day) }} · {{ \Carbon\Carbon::parse($kelas->start_time)->format('H:i') }}</div>
-                                </div>
-                                <span class="badge bg-light-primary">{{ $kelas->class->level ?? '-' }}</span>
-                            </div>
-                        @empty
-                            <div class="text-center text-muted py-4">
-                                <i class="bi bi-calendar-x fs-2 d-block mb-2 opacity-50"></i>
-                                <p class="mb-0 fw-semibold">Belum ada kelas mendatang</p>
-                                <p class="small mb-0"><a href="{{ route('class-schedules.create') }}">Buat jadwal baru</a></p>
-                            </div>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-        </div>
     </details>
 </div>
 
@@ -621,10 +592,6 @@
         height: auto;
     }
 
-    #main-content .dashboard-avatar--primary .avatar-content {
-        background: #5e72e4;
-    }
-
     #main-content .dashboard-stat-card {
         border-top: 3px solid transparent;
         border-radius: 12px;
@@ -648,6 +615,8 @@
     #main-content .dashboard-stat-card .stats-icon {
         width: 34px;
         height: 34px;
+        min-width: 34px;
+        min-height: 34px;
         border-radius: 10px;
         font-size: .85rem;
     }
@@ -690,6 +659,8 @@
         #main-content .dashboard-stat-grid .stats-icon {
             width: 36px;
             height: 36px;
+            min-width: 36px;
+            min-height: 36px;
         }
     }
 
@@ -810,6 +781,8 @@
         #main-content .dashboard-stat-card .stats-icon {
             width: 30px;
             height: 30px;
+            min-width: 30px;
+            min-height: 30px;
             font-size: .75rem;
             border-radius: 8px;
         }
@@ -1154,13 +1127,73 @@
             if (label) label.textContent = formatCount(stage.count) + '/' + formatCount(stage.limit) + ' WIP';
         });
 
+        document.querySelectorAll('[data-period-label]').forEach((node) => {
+            if (payload.periodLabel) node.textContent = payload.periodLabel;
+        });
+
+        document.querySelectorAll('[data-metric]').forEach((node) => {
+            const value = (payload.metrics || {})[node.dataset.metric];
+            if (value !== undefined) node.textContent = formatCount(value);
+        });
+
+        const actionCounts = payload.actionCounts || {};
+        const orderCount = document.querySelector('[data-action-orders]');
+        if (orderCount && actionCounts.orders !== undefined) orderCount.textContent = formatCount(actionCounts.orders);
+        const messageCount = document.querySelector('[data-action-messages]');
+        if (messageCount && actionCounts.messages !== undefined) messageCount.textContent = formatCount(actionCounts.messages);
+
         const actionTotal = document.querySelector('[data-action-total]');
         if (actionTotal) actionTotal.textContent = formatCount(payload.actionTotal);
+        const actionSection = document.getElementById('dashboardActionQueue');
+        if (actionSection) actionSection.hidden = Number(payload.actionTotal || 0) === 0;
 
+        document.querySelectorAll('[data-highlight]').forEach((node) => {
+            const value = (payload.consultationHighlights || {})[node.dataset.highlight];
+            if (value !== undefined) node.textContent = value;
+        });
+
+        const funnel = payload.funnel || [];
+        const funnelMax = Math.max(1, ...funnel.map((item) => Number(item.value || 0)));
+        document.querySelectorAll('[data-funnel]').forEach((row) => {
+            const step = funnel.find((item) => item.label === row.dataset.funnel);
+            if (!step) return;
+
+            const value = row.querySelector('[data-funnel-value]');
+            if (value) value.textContent = formatCount(step.value);
+            const progress = row.querySelector('[data-funnel-progress]');
+            if (progress) progress.setAttribute('aria-valuemax', String(funnelMax));
+            const bar = row.querySelector('[data-funnel-bar]');
+            if (bar) bar.style.width = ((Number(step.value || 0) / funnelMax) * 100) + '%';
+        });
+
+        Object.entries(payload.security || {}).forEach(([key, value]) => {
+            const node = document.querySelector('[data-security="' + key + '"]');
+            if (!node) return;
+            node.textContent = formatCount(value);
+            node.classList.remove('bg-light-warning', 'bg-light-danger', 'bg-light-success');
+            const positiveClass = key === 'lockouts' ? 'bg-light-danger' : 'bg-light-warning';
+            node.classList.add(Number(value || 0) > 0 ? positiveClass : 'bg-light-success');
+        });
+
+        const unread = Number(payload.unreadCount || 0);
         const badge = document.querySelector('[data-notification-badge]');
         if (badge) {
-            badge.textContent = formatCount(payload.unreadCount);
-            badge.hidden = Number(payload.unreadCount || 0) === 0;
+            badge.textContent = formatCount(unread);
+            badge.hidden = unread === 0;
+        }
+        const globalBadge = document.getElementById('notif-count');
+        if (globalBadge) {
+            if (unread > 0) globalBadge.textContent = formatCount(unread);
+            else globalBadge.remove();
+        } else if (unread > 0) {
+            const bell = document.getElementById('notifDropdown');
+            if (bell) {
+                const globalBadgeNode = document.createElement('span');
+                globalBadgeNode.className = 'badge badge-notification bg-danger';
+                globalBadgeNode.id = 'notif-count';
+                globalBadgeNode.textContent = formatCount(unread);
+                bell.appendChild(globalBadgeNode);
+            }
         }
 
         if (payload.revenueChart) {
@@ -1207,7 +1240,9 @@
         }
 
         try {
-            const response = await fetch('{{ route('dashboard.refresh') }}' + window.location.search, {
+            const url = new URL('{{ route('dashboard.refresh') }}' + window.location.search, window.location.origin);
+            if (!silent) url.searchParams.set('fresh', '1');
+            const response = await fetch(url, {
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',

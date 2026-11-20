@@ -37,9 +37,9 @@ class ProofUploadedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'judul_kegiatan' => 'Transfer proof uploaded',
-            'message' => $this->orderNumber . ' — ' . $this->customerName
-                . ' uploaded transfer proof (Rp ' . number_format($this->amount, 0, ',', '.') . '). Please verify.',
+            'judul_kegiatan' => 'Bukti transfer diunggah',
+            'message' => $this->orderNumber.' — '.$this->customerName
+                .' mengunggah bukti transfer (Rp '.number_format($this->amount, 0, ',', '.').'). Silakan verifikasi.',
             'path' => route('orders.show', $this->orderUuid, false),
             'icon' => 'bi-file-earmark-check',
         ];

@@ -36,9 +36,9 @@ class WaitingPromotedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'judul_kegiatan' => 'Seat available — you are booked in',
-            'message' => 'A seat opened up: you moved from the waiting list to confirmed for '
-                . $this->className . ' (' . $this->scheduleLabel . ', ' . $this->dateLabel . ').',
+            'judul_kegiatan' => 'Kursi tersedia — pesanan dikonfirmasi',
+            'message' => 'Ada kursi kosong: statusmu berubah dari daftar tunggu menjadi terkonfirmasi untuk '
+                .$this->className.' ('.$this->scheduleLabel.', '.$this->dateLabel.').',
             'path' => route('bookings.my', [], false),
             'icon' => 'bi-calendar-check',
         ];

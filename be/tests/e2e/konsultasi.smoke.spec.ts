@@ -137,6 +137,7 @@ test('dashboard highlights konsultasi tanpa card lama', async ({ page }) => {
     await expect(page.getByText('Pertanyaan masuk', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Check-in menunggu')).toHaveCount(0);
     await expect(page.getByText('Keanggotaan segera habis')).toHaveCount(0);
+    await expect(page.getByText('Kelas mendatang')).toHaveCount(0);
     await expect(page.locator('.dashboard-date-filter .btn-success').first()).toBeVisible();
     await expect(page.locator('.dashboard-date-filter .btn-danger').first()).toBeVisible();
     await expect(page.locator('.dashboard-date-filter .btn-warning').first()).toBeVisible();

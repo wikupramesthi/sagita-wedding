@@ -37,9 +37,9 @@ class LoginAnehNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'judul_kegiatan' => 'Unusual login detected',
-            'message' => $this->namaUser . ' (' . $this->emailUser . ') signed in from ' . $this->ipAddress
-                . ' — ' . implode(', ', $this->alasan),
+            'judul_kegiatan' => 'Login tidak biasa terdeteksi',
+            'message' => $this->namaUser.' ('.$this->emailUser.') masuk dari '.$this->ipAddress
+                .' — '.implode(', ', $this->alasan),
             'path' => route('security.login-activity.index', [], false),
             'icon' => 'bi-shield-exclamation',
         ];

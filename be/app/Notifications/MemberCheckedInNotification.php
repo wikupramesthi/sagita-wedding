@@ -36,15 +36,15 @@ class MemberCheckedInNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $message = ($this->byAdmin ? 'Admin checked you in to ' : 'You checked in to ')
-            . $this->className . ' (' . $this->scheduleLabel . ').';
+        $message = ($this->byAdmin ? 'Admin telah melakukan check-in untukmu di ' : 'Kamu telah check-in di ')
+            .$this->className.' ('.$this->scheduleLabel.').';
 
-        if (!is_null($this->remainingQuota)) {
-            $message .= ' Remaining quota: ' . $this->remainingQuota . '.';
+        if (! is_null($this->remainingQuota)) {
+            $message .= ' Sisa kuota: '.$this->remainingQuota.'.';
         }
 
         return [
-            'judul_kegiatan' => 'Checked in successfully',
+            'judul_kegiatan' => 'Check-in berhasil',
             'message' => $message,
             'path' => route('class-bookings.index', [], false),
             'icon' => 'bi-check2-circle',

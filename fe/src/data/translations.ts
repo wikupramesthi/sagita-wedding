@@ -50,12 +50,38 @@ const faqPageEn = {
 };
 
 const vendorsPageEn = {
-	filterLabel: "Find a vendor",
-	allVendors: "All vendors",
+	eyebrow: "WEDDING VENDOR DIRECTORY",
+	titleA: "The right people",
+	titleB: "for your day",
+	description:
+		"Explore wedding vendors and services to help bring your celebration together. Tell us what you have in mind, and our team can help you take the next step.",
+	consultationCta: "Plan Your Wedding",
+	directoryEyebrow: "OUR VENDOR DIRECTORY",
+	directoryTitle: "Meet the vendors",
+	directoryDescription:
+		"Browse vendor profiles by category and find services to discuss with our planning team.",
+	visualTitle: "A thoughtful team for your celebration",
+	visualDescription:
+		"Every wedding is personal. Find services that fit the day you have in mind.",
+	filterLabel: "Browse by category",
+	allVendors: "All categories",
 	vendorCount: "vendors",
+	vendorLabel: "Vendor",
+	cardDescription:
+		"Discuss this vendor's services with our team and see how they could fit your wedding plans.",
+	cardCta: "Ask for details",
+	vendorMessage:
+		"Hello Sagita Wedding Planner, I'd like to know more about {vendor} and whether their services could be a good fit for my wedding.",
 	noResultsTitle: "No vendors in this category",
-	noResultsDesc: "Choose another category to see more vendors.",
-	clearFilter: "Show all vendors",
+	noResultsDesc: "Try another category or browse all available vendors.",
+	clearFilter: "View all vendors",
+	emptyTitle: "Vendor profiles are coming soon",
+	emptyDescription:
+		"Our team can still help you explore options for your wedding. Start a consultation to tell us what you need.",
+	closingTitle: "Looking for the right vendors?",
+	closingDescription:
+		"Share your plans with Sagita Wedding Planner. We'll help you explore your options and coordinate the next steps.",
+	closingCta: "Start Your Consultation",
 };
 
 const artOfLivingEn = {
@@ -339,10 +365,10 @@ const rawTranslations = {
 		classWhatsappUs: "WhatsApp Us",
 		tableOfContents: "On this page",
 		ctaQuestions: "Questions about these terms?",
-		vendorsTitleA: "Meet Our",
-		vendorsTitleB: "Vendors",
+		vendorsTitleA: "The right people",
+		vendorsTitleB: "for your day",
 		vendorsDesc:
-			"Meet the vendors who bring experience, intention, and warmth into every YogaRoots practice.",
+			"Explore wedding vendors and services to help bring your celebration together.",
 		eventsTitleA: "Something New",
 		eventsTitleB: "Awaits You",
 		eventsDesc:
@@ -684,10 +710,10 @@ const rawTranslations = {
 		classWhatsappUs: "WhatsApp Kami",
 		tableOfContents: "Di halaman ini",
 		ctaQuestions: "Ada pertanyaan tentang ketentuan ini?",
-		vendorsTitleA: "Kenali",
-		vendorsTitleB: "Vendor Kami",
+		vendorsTitleA: "Temukan Vendor",
+		vendorsTitleB: "untuk Hari Istimewa",
 		vendorsDesc:
-			"Kenali para vendor yang membawa pengalaman, niat, dan kehangatan dalam setiap latihan YogaRoots.",
+			"Jelajahi vendor dan layanan pernikahan untuk membantu mewujudkan perayaan Anda.",
 		eventsTitleA: "Sesuatu yang Baru",
 		eventsTitleB: "Menantimu",
 		eventsDesc:
@@ -892,12 +918,39 @@ const rawTranslations = {
 			stillBtn: "Hubungi kami via WhatsApp",
 		},
 		vendorsPage: {
-			filterLabel: "Temukan vendor",
-			allVendors: "Semua vendor",
+			eyebrow: "DIREKTORI VENDOR PERNIKAHAN",
+			titleA: "Temukan Vendor",
+			titleB: "untuk Hari Istimewa",
+			description:
+				"Jelajahi vendor dan layanan pernikahan untuk membantu mewujudkan perayaan Anda. Ceritakan kebutuhan Anda, dan tim kami siap membantu menentukan langkah berikutnya.",
+			consultationCta: "Rencanakan Pernikahan Anda",
+			directoryEyebrow: "DIREKTORI VENDOR KAMI",
+			directoryTitle: "Kenali Para Vendor",
+			directoryDescription:
+				"Jelajahi profil vendor berdasarkan kategori dan temukan layanan yang ingin Anda konsultasikan bersama tim perencana kami.",
+			visualTitle: "Tim pilihan untuk perayaan Anda",
+			visualDescription:
+				"Setiap pernikahan punya cerita tersendiri. Temukan layanan yang sesuai dengan hari istimewa yang Anda bayangkan.",
+			filterLabel: "Jelajahi berdasarkan kategori",
+			allVendors: "Semua kategori",
 			vendorCount: "vendor",
+			vendorLabel: "Vendor",
+			cardDescription:
+				"Konsultasikan layanan vendor ini bersama tim kami dan temukan kesesuaiannya dengan rencana pernikahan Anda.",
+			cardCta: "Tanya detail",
+			vendorMessage:
+				"Halo Sagita Wedding Planner, saya ingin mengetahui lebih lanjut tentang {vendor} dan kesesuaiannya dengan kebutuhan pernikahan saya.",
 			noResultsTitle: "Belum ada vendor di kategori ini",
-			noResultsDesc: "Pilih kategori lain untuk melihat vendor lainnya.",
-			clearFilter: "Tampilkan semua vendor",
+			noResultsDesc:
+				"Pilih kategori lain atau lihat semua vendor yang tersedia.",
+			clearFilter: "Lihat semua vendor",
+			emptyTitle: "Profil vendor akan segera hadir",
+			emptyDescription:
+				"Tim kami tetap siap membantu Anda menjajaki pilihan untuk pernikahan. Mulai konsultasi dan ceritakan kebutuhan Anda.",
+			closingTitle: "Sedang mencari vendor yang tepat?",
+			closingDescription:
+				"Bagikan rencana pernikahan Anda bersama Sagita Wedding Planner. Kami siap membantu menjajaki pilihan vendor dan mengatur langkah berikutnya.",
+			closingCta: "Mulai Konsultasi",
 		},
 		artOfLiving: {
 			badge: "Pendiri — Art of Living",

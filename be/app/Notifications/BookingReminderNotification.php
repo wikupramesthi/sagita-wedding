@@ -37,12 +37,12 @@ class BookingReminderNotification extends Notification
     public function toArray(object $notifiable): array
     {
         $when = $this->window === '2h'
-            ? 'starts in about 2 hours'
-            : 'is tomorrow';
+            ? 'akan dimulai sekitar 2 jam lagi'
+            : 'akan berlangsung besok';
 
         return [
-            'judul_kegiatan' => 'Class reminder',
-            'message' => $this->className . ' (' . $this->scheduleLabel . ', ' . $this->dateLabel . ') ' . $when . '. See you on the mat!',
+            'judul_kegiatan' => 'Pengingat kelas',
+            'message' => $this->className.' ('.$this->scheduleLabel.', '.$this->dateLabel.') '.$when.'. Sampai jumpa di kelas!',
             'path' => route('bookings.my', [], false),
             'icon' => 'bi-alarm',
         ];

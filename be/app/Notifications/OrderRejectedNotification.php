@@ -35,16 +35,16 @@ class OrderRejectedNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $message = 'Payment for ' . $this->orderNumber . ' was rejected by admin.';
+        $message = 'Pembayaran untuk '.$this->orderNumber.' ditolak oleh admin.';
 
         if ($this->reason) {
-            $message .= ' Reason: ' . $this->reason;
+            $message .= ' Alasan: '.$this->reason;
         }
 
-        $message .= ' Please contact admin or place a new order.';
+        $message .= ' Silakan hubungi admin atau buat pesanan baru.';
 
         return [
-            'judul_kegiatan' => 'Order rejected',
+            'judul_kegiatan' => 'Pesanan ditolak',
             'message' => $message,
             'path' => route('orders.show', $this->orderUuid, false),
             'icon' => 'bi-x-circle',

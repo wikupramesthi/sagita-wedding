@@ -77,5 +77,93 @@
             @endforeach
         </tbody>
     </table>
+
+    @if (! empty($consultationHighlights))
+        <h2>Konsultasi</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Label</th>
+                    <th class="num">Nilai</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($consultationHighlights as $label => $value)
+                    <tr>
+                        <td>{{ e(['conversion_rate' => 'Tingkat konversi', 'sla_breach' => 'SLA terlewat', 'sla_warning' => 'SLA mendekat', 'converted' => 'Terkonversi'][$label] ?? $label) }}</td>
+                        <td class="num">{{ e($value) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
+    <h2>Metrik cepat</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th class="num">Nilai</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Pesanan baru</td>
+                <td class="num">{{ number_format($newOrdersCount) }}</td>
+            </tr>
+            <tr>
+                <td>Keanggotaan baru</td>
+                <td class="num">{{ number_format($newMembershipCount) }}</td>
+            </tr>
+            <tr>
+                <td>Pendapatan periode</td>
+                <td class="num">Rp {{ number_format($revenueMonth, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td>Pendapatan total</td>
+                <td class="num">Rp {{ number_format($revenueTotal, 0, ',', '.') }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Keamanan (24 jam terakhir)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th class="num">Jumlah</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Login gagal</td>
+                <td class="num">{{ number_format($security['failedLogins']) }}</td>
+            </tr>
+            <tr>
+                <td>Akun terkunci</td>
+                <td class="num">{{ number_format($security['lockouts']) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Perlu tindakan</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th class="num">Jumlah</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Pembayaran perlu verifikasi</td>
+                <td class="num">{{ number_format($actionQueue['orderCount']) }}</td>
+            </tr>
+            <tr>
+                <td>Follow-up terlewat</td>
+                <td class="num">{{ number_format($actionQueue['messageCount']) }}</td>
+            </tr>
+        </tbody>
+    </table>
 </body>
 </html>

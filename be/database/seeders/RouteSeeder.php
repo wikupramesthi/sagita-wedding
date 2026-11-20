@@ -16,27 +16,15 @@ class RouteSeeder extends Seeder
         Model::unguard();
 
         // Dashboard
-        Route::insert([
-            [
-                'route' => 'dashboard.index',
-                'permission_name' => 'dashboard.index',
-            ],
-            [
-                'route' => 'dashboard.refresh',
-                'permission_name' => 'dashboard.index',
-            ],
-            [
-                'route' => 'dashboard.export',
-                'permission_name' => 'dashboard.index',
-            ],
-            [
-                'route' => 'dashboard.export-pdf',
-                'permission_name' => 'dashboard.index',
-            ],
+        $this->upsertRoutes([
+            ['route' => 'dashboard.index', 'permission_name' => 'dashboard.index'],
+            ['route' => 'dashboard.refresh', 'permission_name' => 'dashboard.index'],
+            ['route' => 'dashboard.export', 'permission_name' => 'dashboard.index'],
+            ['route' => 'dashboard.export-pdf', 'permission_name' => 'dashboard.index'],
         ]);
 
         // General Setting
-        // Route::insert([
+        // $this->upsertRoutes([
         //     [
         //         'route' => 'setting.index',
         //         'permission_name' => 'setting_index',
@@ -48,7 +36,7 @@ class RouteSeeder extends Seeder
         // ]);
 
         // Konsultasi
-        Route::insert([
+        $this->upsertRoutes([
             ['route' => 'konsultasi.index', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.create', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.store', 'permission_name' => 'konsultasi.index'],
@@ -83,7 +71,7 @@ class RouteSeeder extends Seeder
         ]);
 
         // User Management
-        Route::insert([
+        $this->upsertRoutes([
             [
                 'route' => 'user.index',
                 'permission_name' => 'user.index',
@@ -103,7 +91,7 @@ class RouteSeeder extends Seeder
         ]);
 
         // User Profile
-        // Route::insert([
+        // $this->upsertRoutes([
         //     [
         //         'route' => 'profile.edit',
         //         'permission_name' => 'profile.edit',
@@ -111,7 +99,7 @@ class RouteSeeder extends Seeder
         // ]);
 
         // Menu Group Management
-        Route::insert([
+        $this->upsertRoutes([
             [
                 'route' => 'menu.index',
                 'permission_name' => 'menu-group.index',
@@ -131,7 +119,7 @@ class RouteSeeder extends Seeder
         ]);
 
         // Menu Item Management
-        Route::insert([
+        $this->upsertRoutes([
             [
                 'route' => 'menu.item.index',
                 'permission_name' => 'menu-item.index',
@@ -151,7 +139,7 @@ class RouteSeeder extends Seeder
         ]);
 
         // Route Management
-        Route::insert([
+        $this->upsertRoutes([
             [
                 'route' => 'route.index',
                 'permission_name' => 'route.index',
@@ -171,7 +159,7 @@ class RouteSeeder extends Seeder
         ]);
 
         // Role Management
-        Route::insert([
+        $this->upsertRoutes([
             [
                 'route' => 'role.index',
                 'permission_name' => 'role.index',
@@ -191,7 +179,7 @@ class RouteSeeder extends Seeder
         ]);
 
         // Permission Management
-        Route::insert([
+        $this->upsertRoutes([
             [
                 'route' => 'permission.index',
                 'permission_name' => 'permission.index',
@@ -209,6 +197,20 @@ class RouteSeeder extends Seeder
                 'permission_name' => 'permission.destroy',
             ],
         ]);
+    }
 
+    private function upsertRoutes(array $routes): void
+    {
+        foreach ($routes as $route) {
+            Route::updateOrInsert(
+                ['route' => $route['route']],
+                [
+                    'permission_name' => $route['permission_name'],
+                    'status' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 }

@@ -5,56 +5,91 @@
     <%- include('../partials/head') %>
 </head>
 
-<body class="antialiased bg-cream">
-    <% const vendorCategories = [...new Set((vendors || []).flatMap((vendor) => (vendor.vendors_categories || []).map((category) => category.name).filter(Boolean)))]; %>
-    <% const categoryCount = (category) => vendors.filter((vendor) => (vendor.vendors_categories || []).some((item) => item.name === category)).length; %>
+<body class="min-h-screen bg-sand-50 antialiased">
+    <% const vendorList = Array.isArray(vendors) ? vendors : []; %>
+    <% const vendorCategories = [...new Set(vendorList.flatMap((vendor) => (vendor.vendors_categories || []).map((category) => category.name).filter(Boolean)))]; %>
+    <% const categoryCount = (category) => vendorList.filter((vendor) => (vendor.vendors_categories || []).some((item) => item.name === category)).length; %>
 
     <%- include('../partials/navbar') %>
 
+    <main>
+        <section class="relative isolate overflow-hidden" style="background: radial-gradient(ellipse 42% 85% at 82% 45%, rgba(183,159,128,.20) 0%, transparent 76%), radial-gradient(ellipse 40% 70% at 4% 92%, rgba(207,187,160,.18) 0%, transparent 74%), linear-gradient(125deg, #fbf9f6 0%, #f6f1ea 54%, #eee7de 100%)">
+            <div aria-hidden="true" class="absolute -right-32 -top-36 h-[34rem] w-[34rem] rounded-full border border-[#b79f80]/20"></div>
+            <div aria-hidden="true" class="absolute -right-16 -top-20 h-[25rem] w-[25rem] rounded-full border border-[#b79f80]/20"></div>
+            <div aria-hidden="true" class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/35 to-transparent"></div>
+            <div class="relative mx-auto grid max-w-7xl items-center gap-10 px-6 pb-14 pt-24 sm:px-8 sm:pb-20 sm:pt-28 lg:grid-cols-2 lg:gap-16 lg:px-10 lg:pb-16 lg:pt-32" style="position:relative;z-index:1;padding-top:clamp(7rem,14vh,8rem)">
+                <div class="max-w-3xl">
+                    <p class="mb-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#89745f]"><%= t.vendorsPage.eyebrow %></p>
+                    <h1 class="font-display text-4xl leading-[1.08] tracking-tight text-[#403a34] sm:text-5xl lg:text-[3.25rem] xl:text-6xl">
+                        <%= t.vendorsPage.titleA %>
+                        <span class="block italic font-light text-[#89745f]"><%= t.vendorsPage.titleB %></span>
+                    </h1>
+                    <p class="mt-6 max-w-2xl text-base leading-relaxed text-stone-warm sm:text-lg"><%= t.vendorsPage.description %></p>
+                    <a href="/formulir-konsultasi" class="vendor-consultation-cta mt-8 inline-flex min-h-12 items-center gap-3 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
+                        <%= t.vendorsPage.consultationCta %>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="h-4 w-4"><path fill-rule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.69L10.22 5.03a.75.75 0 1 1 1.06-1.06l5.5 5.5a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 1 1-1.06-1.06l4.22-4.22H3.75A.75.75 0 0 1 3 10Z" clip-rule="evenodd" /></svg>
+                    </a>
+                </div>
 
-    <!-- HEADER -->
-    <section class="vendors-hero relative isolate overflow-hidden">
-        <div aria-hidden="true" class="pointer-events-none absolute -right-20 -top-32 h-80 w-80 rounded-full border border-white/10"></div>
-        <div aria-hidden="true" class="pointer-events-none absolute -right-8 -top-20 h-56 w-56 rounded-full border border-white/10"></div>
-        <div class="relative mx-auto grid max-w-7xl items-center gap-8 px-4 pb-10 pt-28 sm:px-6 sm:pb-14 sm:pt-36 lg:grid-cols-[minmax(0,1fr)_auto] lg:px-8 lg:pb-16">
-            <div class="max-w-3xl">
-                <p class="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-sand-200"><%= t.nav.vendors %></p>
-                <h1 class="font-display text-4xl font-semibold leading-[1.08] text-white sm:text-5xl lg:text-6xl">
-                    <%= t.vendorsTitleA %>
-                    <span class="text-sand-200"><%= t.vendorsTitleB %></span>
-                </h1>
-                <p class="vendors-hero-description mt-4 max-w-2xl text-sm leading-relaxed sm:text-base">
-                    <%= t.vendorsDesc %>
-                </p>
+                <div class="relative mx-auto flex min-h-72 w-full items-center justify-center overflow-hidden rounded-[2rem] border border-white/75 px-7 py-10 shadow-[0_24px_70px_rgba(64,58,52,0.12)] lg:min-h-[25rem]" style="background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(250,247,242,.78) 55%, rgba(239,231,220,.82))">
+                    <div aria-hidden="true" class="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#b79f80]/15 blur-2xl"></div>
+                    <div aria-hidden="true" class="absolute -bottom-20 -left-16 h-52 w-52 rounded-full bg-[#cfbba0]/20 blur-2xl"></div>
+                    <div aria-hidden="true" class="absolute inset-4 rounded-[1.5rem] border border-[#b79f80]/15"></div>
+                    <svg aria-hidden="true" viewBox="0 0 420 440" fill="none" style="position:absolute;z-index:0;pointer-events:none;width:100%;height:100%;right:-15%;top:0;color:#89745f;opacity:.24">
+                        <path d="M383 432C341 367 336 309 291 260C247 211 215 174 207 115C202 79 207 47 222 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        <path d="M328 361C285 360 254 339 236 303C270 296 302 314 328 361ZM292 264C250 264 221 242 205 208C242 201 273 220 292 264ZM240 183C202 172 183 144 178 107C213 111 235 138 240 183ZM207 116C174 101 160 72 163 38C195 48 211 76 207 116Z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+                        <path d="M322 352C341 311 372 294 410 296C399 331 369 351 322 352ZM282 249C303 210 335 195 372 200C358 234 327 252 282 249ZM231 169C261 140 295 135 328 149C309 179 276 188 231 169ZM204 104C237 83 270 85 299 104C275 130 241 132 204 104Z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+                        <g transform="translate(154 294)" stroke="currentColor" stroke-width="1.2">
+                            <ellipse cy="-15" rx="5" ry="12"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(60)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(120)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(180)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(240)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(300)"/><circle r="4" fill="currentColor" stroke="none"/>
+                        </g>
+                        <g transform="translate(137 174) scale(.72)" stroke="currentColor" stroke-width="1.4">
+                            <ellipse cy="-15" rx="5" ry="12"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(60)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(120)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(180)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(240)"/><ellipse cy="-15" rx="5" ry="12" transform="rotate(300)"/><circle r="4" fill="currentColor" stroke="none"/>
+                        </g>
+                        <path d="M350 400C324 380 309 361 300 337M280 270C255 252 237 232 224 207M228 183C208 164 195 143 187 119" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-dasharray="1 7"/>
+                    </svg>
+                    <div class="relative max-w-xs text-center" style="z-index:1">
+                        <div class="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl border border-[#b79f80]/30 bg-white/80 text-[#89745f] shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" aria-hidden="true" class="h-8 w-8">
+                            <path d="M24 39C20 33 10 29 10 18a8 8 0 0 1 14-5 8 8 0 0 1 14 5c0 11-10 15-14 21Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M24 13v25M18 22c2 1 4 3 6 6m6-6c-2 1-4 3-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                        </svg>
+                        </div>
+                        <p class="font-display text-2xl italic leading-tight text-[#403a34] sm:text-3xl"><%= t.vendorsPage.visualTitle %></p>
+                        <p class="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-stone-warm"><%= t.vendorsPage.visualDescription %></p>
+                        <div class="mx-auto mt-6 flex w-fit items-center gap-2 border-t border-[#b79f80]/35 px-2 pt-4 text-xs font-semibold uppercase tracking-[0.14em] text-[#89745f]" style="border-color:rgba(183,159,128,.35)">
+                            <span class="h-1.5 w-1.5 rounded-full bg-[#b79f80]"></span>
+                            <%= vendorList.length %> <%= t.vendorsPage.vendorCount %>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="flex w-fit items-center gap-4 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 shadow-sm backdrop-blur-sm sm:px-6 sm:py-4">
-                <span class="font-display text-4xl font-semibold leading-none text-white sm:text-5xl"><%= vendors.length %></span>
-                <span class="max-w-24 text-xs font-medium leading-snug text-white/75 sm:text-sm"><%= t.vendorsPage.vendorCount %></span>
-            </div>
-        </div>
-    </section>
+        </section>
 
 
     <!-- VENDORS -->
-    <section class="mx-auto max-w-7xl px-4 pb-14 pt-8 sm:px-6 sm:pb-20 sm:pt-10 lg:px-8">
+    <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-14">
+        <div class="mb-10 max-w-2xl">
+            <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#89745f]"><%= t.vendorsPage.directoryEyebrow %></p>
+            <h2 class="font-display text-3xl leading-tight text-[#403a34] sm:text-4xl"><%= t.vendorsPage.directoryTitle %></h2>
+            <p class="mt-3 text-sm leading-relaxed text-stone-warm sm:text-base"><%= t.vendorsPage.directoryDescription %></p>
+        </div>
 
-        <% if (vendors && vendors.length > 0) { %>
+        <% if (vendorList.length > 0) { %>
 
             <div class="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
                 <div class="min-w-0">
-                    <h2 class="font-display text-lg font-semibold text-sage-900"><%= t.vendorsPage.filterLabel %></h2>
-                    <p class="mt-1 text-xs text-stone-warm"><span id="vendorResultCount"><%= vendors.length %></span> <%= t.vendorsPage.vendorCount %></p>
+                    <h2 class="font-display text-lg font-semibold text-[#403a34]"><%= t.vendorsPage.filterLabel %></h2>
+                    <p class="mt-1 text-xs text-stone-warm"><span id="vendorResultCount"><%= vendorList.length %></span> <%= t.vendorsPage.vendorCount %></p>
                 </div>
-                <div class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0" role="group" aria-label="<%= t.vendorsPage.filterLabel %>">
-                    <button type="button" class="vendor-filter inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-sage-900 px-4 py-2 text-xs font-semibold text-white shadow-sm ring-1 ring-sage-900 transition-colors" data-category="" aria-pressed="true">
+                <div class="flex flex-wrap gap-2" role="group" aria-label="<%= t.vendorsPage.filterLabel %>">
+                    <button type="button" class="vendor-filter inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-[#6c5a4a] px-4 py-2 text-xs font-semibold text-white shadow-sm ring-1 ring-[#6c5a4a] transition-colors" style="background-color:#6c5a4a;color:#fff;border-color:#6c5a4a" data-category="" aria-pressed="true">
                         <%= t.vendorsPage.allVendors %>
-                        <span class="grid h-5 min-w-5 place-items-center rounded-full bg-white/15 px-1 text-[10px]"><%= vendors.length %></span>
+                        <span class="grid h-5 min-w-5 place-items-center rounded-full bg-white/20 px-1 text-[10px]" style="background-color:rgba(255,255,255,.2)"><%= vendorList.length %></span>
                     </button>
                     <% vendorCategories.forEach((category) => { %>
-                        <button type="button" class="vendor-filter inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold text-sage-700 shadow-sm ring-1 ring-sand-200 transition-colors hover:bg-sand-100" data-category="<%= category %>" aria-pressed="false">
+                        <button type="button" class="vendor-filter inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#6c5a4a] shadow-sm ring-1 ring-sand-200 transition-colors hover:bg-sand-100" data-category="<%= category %>" aria-pressed="false">
                             <%= category %>
-                            <span class="grid h-5 min-w-5 place-items-center rounded-full bg-sand-100 px-1 text-[10px] text-sage-700"><%= categoryCount(category) %></span>
+                            <span class="grid h-5 min-w-5 place-items-center rounded-full bg-sand-100 px-1 text-[10px] text-[#6c5a4a]"><%= categoryCount(category) %></span>
                         </button>
                     <% }) %>
                 </div>
@@ -62,7 +97,7 @@
 
             <div id="vendorGrid" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
 
-                <% vendors.forEach(v => { %>
+                <% vendorList.forEach(v => { %>
 
                     <article
                         class="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-sand-200/80 bg-white shadow-[0_8px_30px_rgba(64,58,52,0.06)] transition duration-300 hover:-translate-y-1 hover:border-sand-300 hover:shadow-[0_18px_48px_rgba(64,58,52,0.12)]"
@@ -71,14 +106,11 @@
                     >
 
                         <!-- IMAGE -->
-                        <div class="relative h-48 overflow-hidden bg-gradient-to-br from-[#eee8dc] via-[#f8f5ef] to-[#ddd7cb] sm:h-56">
-                            <div aria-hidden="true" class="absolute -right-10 -top-14 h-52 w-52 rounded-full border border-white/60"></div>
-                            <div aria-hidden="true" class="absolute -right-2 -top-6 h-36 w-36 rounded-full border border-white/60"></div>
-                            <div class="absolute inset-0 flex items-end justify-between px-6 pb-5">
-                                <span class="font-display text-8xl font-medium leading-[0.8] text-sage-800/20 sm:text-9xl">
-                                    <%= (v.name || '?').charAt(0).toUpperCase() %>
-                                </span>
-                                <span class="mb-1 font-display text-sm italic tracking-wide text-sage-800/45"><%= v.name %></span>
+                        <div class="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#f1e9dd] via-[#faf7f1] to-[#e4d8c8]">
+                            <div aria-hidden="true" class="absolute -right-10 -top-14 h-52 w-52 rounded-full border border-white/70"></div>
+                            <div aria-hidden="true" class="absolute -right-2 -top-6 h-36 w-36 rounded-full border border-white/70"></div>
+                            <div class="absolute inset-0 grid place-items-center">
+                                <span class="grid h-24 w-24 place-items-center rounded-full border border-white/80 bg-white/70 font-display text-5xl font-light italic leading-none text-[#6c5a4a]/70 shadow-sm backdrop-blur-sm"><%= (v.name || '?').charAt(0).toUpperCase() %></span>
                             </div>
 
                             <% if (v.avatar) { %>
@@ -102,7 +134,7 @@
                                     <% v.vendors_categories.slice(0, 2).forEach(spec => { %>
 
                                         <span
-                                            class="rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-[10px] font-semibold text-sage-800 shadow-sm backdrop-blur-sm"
+                                            class="rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-[10px] font-semibold text-[#6c5a4a] shadow-sm backdrop-blur-sm"
                                         >
                                             <%= spec.name %>
                                         </span>
@@ -113,7 +145,7 @@
                                     <% if (v.vendors_categories.length > 2) { %>
 
                                         <span
-                                            class="rounded-full bg-sage-800/90 px-3 py-1.5 text-[10px] font-semibold text-white"
+                                            class="rounded-full bg-[#6c5a4a]/90 px-3 py-1.5 text-[10px] font-semibold text-white"
                                         >
                                             +<%= v.vendors_categories.length - 2 %>
                                         </span>
@@ -131,62 +163,30 @@
                         <div class="flex flex-1 flex-col p-5 sm:p-6">
 
                             <!-- NAME -->
-                            <h2 class="font-display text-2xl font-semibold leading-snug text-sage-900 sm:text-[1.7rem]">
+                            <h2 class="font-display text-2xl font-semibold leading-snug text-[#403a34] sm:text-[1.7rem]">
                                 <%= v.name %>
                             </h2>
 
 
-                            <!-- EXPERIENCE -->
-                            <% if (v.pengalaman) { %>
-
-                                <p class="mt-2 text-xs font-medium text-terracotta-700">
-                                    <%= v.pengalaman %>
-                                </p>
-
-                            <% } %>
-
-
-                            <!-- BIO -->
-                            <% if (v.biografi) { %>
-
-                                <p class="mt-4 line-clamp-3 min-h-[4.5rem] text-sm leading-relaxed text-stone-warm">
-                                    <%= v.biografi %>
-                                </p>
-
-                            <% } else { %>
-
-                                <p class="mt-4 line-clamp-3 min-h-[4.5rem] text-sm leading-relaxed text-stone-400">
-                                    Yoga vendor at YogaRoots, guiding every practice with
-                                    mindful movement and intention.
-                                </p>
-
-                            <% } %>
+                            <p class="mt-3 min-h-[4.5rem] text-sm leading-relaxed text-stone-warm">
+                                <%= t.vendorsPage.cardDescription %>
+                            </p>
 
 
                             <!-- FOOTER -->
                             <div class="mt-auto flex items-center justify-between gap-3 border-t border-sand-200 pt-4">
 
-                                <div class="flex items-center gap-2">
+                                <span class="inline-flex shrink-0 items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#89745f]">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-[#b79f80]"></span>
+                                    <%= t.vendorsPage.vendorLabel %>
+                                </span>
 
-                                    <span class="w-1.5 h-1.5 rounded-full bg-sage-500"></span>
-
-                                    <span class="text-xs text-stone-400">
-                                        Vendor
-                                    </span>
-
-                                </div>
-
-                                <button
-                                    type="button"
-                                    data-action="open-booking"
-                                    data-class-name="Private with <%= v.name %>"
-                                    class="inline-flex min-h-10 items-center gap-2 rounded-full bg-sage-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-sage-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2"
-                                >
-                                    Book a Session
+                                <a href="https://wa.me/<%= contactLinks.whatsappNumber %>?text=<%= encodeURIComponent(t.vendorsPage.vendorMessage.replace('{vendor}', v.name || '')) %>" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-10 shrink-0 items-center gap-2 text-xs font-semibold underline decoration-sand-300 underline-offset-4 transition hover:text-[#403a34] hover:decoration-[#6c5a4a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#89745f] focus-visible:ring-offset-2" style="color:#6c5a4a">
+                                    <%= t.vendorsPage.cardCta %>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="h-4 w-4">
                                         <path fill-rule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.69L10.22 5.03a.75.75 0 1 1 1.06-1.06l5.5 5.5a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 1 1-1.06-1.06l4.22-4.22H3.75A.75.75 0 0 1 3 10Z" clip-rule="evenodd" />
                                     </svg>
-                                </button>
+                                </a>
 
                             </div>
 
@@ -199,9 +199,9 @@
             </div>
 
             <div id="vendorEmpty" class="mt-6 hidden rounded-3xl border border-sand-200 bg-white px-6 py-12 text-center">
-                <h3 class="font-display text-xl font-semibold text-sage-900"><%= t.vendorsPage.noResultsTitle %></h3>
+                <h3 class="font-display text-xl font-semibold text-[#403a34]"><%= t.vendorsPage.noResultsTitle %></h3>
                 <p class="mt-2 text-sm text-stone-warm"><%= t.vendorsPage.noResultsDesc %></p>
-                <button type="button" data-vendor-reset class="mt-5 inline-flex min-h-10 items-center rounded-full bg-sage-800 px-5 py-2 text-sm font-semibold text-white transition hover:bg-sage-900">
+                <button type="button" data-vendor-reset class="mt-5 inline-flex min-h-10 items-center rounded-full bg-[#6c5a4a] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#403a34]">
                     <%= t.vendorsPage.clearFilter %>
                 </button>
             </div>
@@ -211,10 +211,10 @@
 
 
             <!-- EMPTY STATE -->
-            <div class="bg-white rounded-[24px] border border-sage-100 py-16 px-6 text-center">
+            <div class="rounded-[2rem] border border-sand-200 bg-white px-6 py-16 text-center shadow-[0_16px_50px_rgba(64,58,52,0.06)]">
 
                 <div
-                    class="w-14 h-14 mx-auto rounded-full bg-sage-50 flex items-center justify-center"
+                    class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sand-100"
                 >
 
                     <svg
@@ -223,7 +223,7 @@
                         fill="none"
                         stroke="currentColor"
                         stroke-width="1.5"
-                        class="w-7 h-7 text-sage-600"
+                        class="w-7 h-7 text-[#89745f]"
                     >
                         <path
                             stroke-linecap="round"
@@ -241,29 +241,42 @@
                 </div>
 
 
-                <h3 class="font-display text-2xl font-semibold text-sage-900 mt-5">
-                    No vendors available
+                <h3 class="mt-5 font-display text-2xl font-semibold text-[#403a34]">
+                    <%= t.vendorsPage.emptyTitle %>
                 </h3>
 
-
-                <p class="text-sm text-stone-warm mt-2">
-                    Vendor profiles will appear here soon.
-                </p>
+                <p class="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-warm"><%= t.vendorsPage.emptyDescription %></p>
+                <a href="/formulir-konsultasi" class="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#403a34] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#6c5a4a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#89745f] focus-visible:ring-offset-2">
+                    <%= t.vendorsPage.consultationCta %>
+                </a>
 
             </div>
 
 
         <% } %>
 
-         <%- include('../partials/cta-help') %>
-
     </section>
 
+    <section class="px-6 pb-16 sm:pb-24">
+        <div class="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-6 py-10 text-center text-white sm:px-12 sm:py-14" style="background-color:#403a34">
+            <div aria-hidden="true" class="absolute -right-12 -top-24 h-64 w-64 rounded-full border border-white/10"></div>
+            <div aria-hidden="true" class="absolute -right-4 -top-16 h-48 w-48 rounded-full border border-white/10"></div>
+            <div class="relative mx-auto max-w-2xl">
+                <p class="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#dfcbb5]"><%= t.vendorsPage.eyebrow %></p>
+                <h2 class="font-display text-3xl leading-tight sm:text-4xl"><%= t.vendorsPage.closingTitle %></h2>
+                <p class="mt-4 text-sm leading-relaxed text-white/75 sm:text-base"><%= t.vendorsPage.closingDescription %></p>
+                <a href="/formulir-konsultasi" class="mt-7 inline-flex min-h-11 items-center gap-3 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#403a34] transition hover:-translate-y-0.5 hover:bg-[#f8f6f2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#403a34]">
+                    <%= t.vendorsPage.closingCta %>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="h-4 w-4"><path fill-rule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.69L10.22 5.03a.75.75 0 1 1 1.06-1.06l5.5 5.5a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 1 1-1.06-1.06l4.22-4.22H3.75A.75.75 0 0 1 3 10Z" clip-rule="evenodd" /></svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    </main>
 
     <%- include('../partials/footer') %>
 
-
-    <!-- main.js dimuat sekali via partials/footer -->
 
 </body>
 

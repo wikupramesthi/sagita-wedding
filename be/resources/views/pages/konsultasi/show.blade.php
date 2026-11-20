@@ -6,100 +6,150 @@
 <x-breadcrumb title="Detail Calon Pelanggan" page="Konsultasi" active="Konsultasi" route="{{ route('konsultasi.show', $consultation->uuid) }}" />
 @endsection
 
-<section class="section">
+<section class="section konsultasi-detail">
     <div class="card lead-hero-card mb-3">
-        <div class="card-body d-flex flex-column flex-lg-row gap-3 justify-content-between align-items-lg-center">
-            <div class="d-flex align-items-center gap-3">
+        <div class="card-body lead-hero-body">
+            <div class="lead-hero-main">
                 <span class="lead-hero-avatar">{{ $consultation->initials }}</span>
-                <div>
-                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                        <h4 class="fw-semibold mb-0 text-body">{{ $consultation->full_name }}</h4>
+                <div class="lead-hero-identity">
+                    <span class="lead-hero-kicker">Calon pelanggan</span>
+                    <h4 class="lead-hero-name">{{ $consultation->full_name }}</h4>
+                    <div class="lead-hero-meta">
+                        <span><i class="bx bx-calendar me-1"></i>Masuk {{ $consultation->created_at->translatedFormat('d F Y H:i') }}</span>
+                        <span><i class="{{ $consultation->source_icon }} me-1"></i>{{ $consultation->source_label }}</span>
+                        <span><i class="bi bi-clock-history me-1"></i>Diperbarui {{ $consultation->updated_at->translatedFormat('d M Y H:i') }}</span>
+                    </div>
+                    <div class="lead-hero-badges">
                         <span class="badge {{ $consultation->lead_priority_badge_class }}"><i class="{{ $consultation->lead_priority_icon }} me-1"></i>Prioritas {{ $consultation->lead_priority }}</span>
                         <span class="badge {{ $consultation->lead_status_badge_class }}">{{ $consultation->lead_status_label }}</span>
-                        <span class="badge {{ $consultation->status_badge_class }}">{{ $consultation->status_label }}</span>
                         <span class="badge {{ $consultation->sla_badge_class }}" title="Target respons: {{ $consultation->sla_deadline_label }}">{{ $consultation->sla_label }}</span>
-                    </div>
-                    <div class="small text-muted mt-2">
-                        <i class="bx bx-calendar me-1"></i> Masuk {{ $consultation->created_at->translatedFormat('d F Y H:i') }}
-                        <span class="mx-2">•</span>
-                        <i class="{{ $consultation->source_icon }} me-1"></i> Informasi dari mana: {{ $consultation->source_label }}
                     </div>
                 </div>
             </div>
-            <div class="d-flex flex-wrap gap-2">
-                @can('konsultasi.export')
-                    <a href="{{ route('konsultasi.pdf-preview', ['uuid' => $consultation->uuid]) }}" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i> Preview PDF</a>
-                @endcan
-                <a href="{{ route('konsultasi.whatsapp', $consultation->uuid) }}" target="_blank" rel="noopener" class="btn btn-success"><i class="bx bxl-whatsapp me-1"></i> Hubungi WhatsApp</a>
-                @if ($consultation->consultation_date)
-                    <a href="{{ route('konsultasi.calendar-ics', $consultation) }}" class="btn btn-outline-primary"><i class="bi bi-download me-1"></i> Unduh ICS</a>
-                    <a href="{{ $consultation->google_calendar_url }}" target="_blank" rel="noopener" class="btn btn-outline-info"><i class="bx bxl-google me-1"></i> Google Calendar</a>
-                @endif
+            <div class="lead-hero-actions">
+                <a href="{{ route('konsultasi.whatsapp', $consultation->uuid) }}" target="_blank" rel="noopener" class="btn btn-success">
+                    <i class="bx bxl-whatsapp me-1"></i> Hubungi WhatsApp
+                </a>
                 @can('konsultasi.index')
-                    <form action="{{ route('konsultasi.remind', $consultation->uuid) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-warning"><i class="bi bi-bell me-1"></i> Kirim Pengingat</button>
-                    </form>
-                    @can('konsultasi.merge')
-                        <a href="{{ route('konsultasi.duplicates') }}" class="btn btn-outline-secondary"><i class="bi bi-diagram-3 me-1"></i> Cek Duplikat</a>
-                    @endcan
-                    <a href="{{ route('konsultasi.edit', $consultation->uuid) }}" class="btn btn-light"><i class="bi bi-pencil-square me-1"></i> Ubah Data</a>
+                    <a href="{{ route('konsultasi.edit', $consultation->uuid) }}" class="btn btn-light">
+                        <i class="bi bi-pencil-square me-1"></i> Ubah Data
+                    </a>
                 @endcan
-                <a href="{{ route('konsultasi.index') }}" class="btn btn-light"><i class="bi bi-arrow-left me-1"></i> Kembali</a>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-three-dots me-1"></i> Lainnya
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end lead-action-menu">
+                        @can('konsultasi.export')
+                            <li>
+                                <a class="dropdown-item" href="{{ route('konsultasi.pdf-preview', ['uuid' => $consultation->uuid]) }}">
+                                    <i class="bi bi-file-earmark-pdf me-2"></i> Preview PDF
+                                </a>
+                            </li>
+                        @endcan
+                        @if ($consultation->consultation_date)
+                            <li>
+                                <a class="dropdown-item" href="{{ route('konsultasi.calendar-ics', $consultation) }}">
+                                    <i class="bi bi-download me-2"></i> Unduh ICS
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ $consultation->google_calendar_url }}" target="_blank" rel="noopener">
+                                    <i class="bx bxl-google me-2"></i> Google Calendar
+                                </a>
+                            </li>
+                        @endif
+                        @can('konsultasi.index')
+                            <li>
+                                <form action="{{ route('konsultasi.remind', $consultation->uuid) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-bell me-2"></i> Kirim Pengingat
+                                    </button>
+                                </form>
+                            </li>
+                            @can('konsultasi.merge')
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('konsultasi.duplicates') }}">
+                                        <i class="bi bi-diagram-3 me-2"></i> Cek Duplikat
+                                    </a>
+                                </li>
+                            @endcan
+                        @endcan
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('konsultasi.index') }}">
+                                <i class="bi bi-arrow-left me-2"></i> Kembali ke daftar
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-3">
-        <div class="col-12 col-lg-8">
-            <div class="card h-100 mb-3">
-                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Profil Calon Pelanggan</h5></div>
+    <div class="row g-3 align-items-start">
+        <div class="col-12 col-xl-8">
+            <div class="card lead-section-card mb-3">
+                <div class="card-header lead-section-header">
+                    <span class="lead-section-icon"><i class="bi bi-person-lines-fill"></i></span>
+                    <div>
+                        <h5>Profil Calon Pelanggan</h5>
+                        <small>Identitas dan informasi kontak</small>
+                    </div>
+                </div>
                 <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
+                    <div class="lead-detail-grid">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Nama Lengkap</div>
                             <div class="lead-detail-value">{{ $consultation->full_name }}</div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Nomor WhatsApp</div>
                             <div class="lead-detail-value">{{ $consultation->whatsapp }}</div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Email</div>
                             <div class="lead-detail-value">{{ $consultation->email ?: '—' }}</div>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <div class="lead-detail-label">Informasi dari mana</div>
+                        <div class="lead-detail-item">
+                            <div class="lead-detail-label">Sumber Informasi</div>
                             <div class="lead-detail-value"><i class="{{ $consultation->source_icon }} me-1"></i>{{ $consultation->source_label }}</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card h-100 mb-3">
-                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Rencana Pernikahan</h5></div>
+            <div class="card lead-section-card mb-3">
+                <div class="card-header lead-section-header">
+                    <span class="lead-section-icon"><i class="bi bi-heart"></i></span>
+                    <div>
+                        <h5>Rencana Pernikahan</h5>
+                        <small>Detail acara dan preferensi paket</small>
+                    </div>
+                </div>
                 <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
+                    <div class="lead-detail-grid">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Tanggal Pernikahan</div>
                             <div class="lead-detail-value">{{ $consultation->wedding_date?->translatedFormat('d F Y') ?? '—' }}</div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Estimasi Tamu</div>
                             <div class="lead-detail-value">{{ $consultation->guest_estimate ?: '—' }}</div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Lokasi / Venue</div>
                             <div class="lead-detail-value">{{ $consultation->venue ?: '—' }}</div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Paket yang Diminati</div>
                             <div class="lead-detail-value">{{ $consultation->package?->name ?? 'Belum memilih paket' }}</div>
                         </div>
-                        <div class="col-12">
+                        <div class="lead-detail-item is-wide">
                             <div class="lead-detail-label">Konsep Pernikahan</div>
                             @if ($consultation->wedding_concept)
-                                <div class="lead-detail-value" style="white-space: pre-line;">{{ $consultation->wedding_concept }}</div>
+                                <div class="lead-detail-value is-preline">{{ $consultation->wedding_concept }}</div>
                             @else
                                 <div class="lead-detail-value text-muted">—</div>
                             @endif
@@ -108,34 +158,40 @@
                 </div>
             </div>
 
-            <div class="card h-100">
-                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Jadwal & Catatan Konsultasi</h5></div>
+            <div class="card lead-section-card">
+                <div class="card-header lead-section-header">
+                    <span class="lead-section-icon"><i class="bi bi-calendar-check"></i></span>
+                    <div>
+                        <h5>Jadwal & Catatan Konsultasi</h5>
+                        <small>Penjadwalan, penanggung jawab, dan catatan internal</small>
+                    </div>
+                </div>
                 <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12 col-md-4">
+                    <div class="lead-detail-grid">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Tanggal Konsultasi</div>
                             <div class="lead-detail-value">{{ $consultation->consultation_date?->translatedFormat('d F Y') ?? '—' }}</div>
                         </div>
-                        <div class="col-12 col-md-4">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Jam Konsultasi</div>
                             <div class="lead-detail-value">{{ $consultation->consultation_time ?: '—' }}</div>
                         </div>
-                        <div class="col-12 col-md-4">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Metode</div>
                             <div class="lead-detail-value">{{ $consultation->method_label }}</div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="lead-detail-item">
                             <div class="lead-detail-label">Penanggung Jawab</div>
                             <div class="lead-detail-value">{{ $consultation->handler?->name ?? 'Belum ditugaskan' }}</div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="lead-detail-item is-wide">
                             <div class="lead-detail-label">Status Konsultasi</div>
                             <div class="mt-1"><span class="badge {{ $consultation->status_badge_class }}">{{ $consultation->status_label }}</span></div>
                         </div>
-                        <div class="col-12">
+                        <div class="lead-detail-item is-wide">
                             <div class="lead-detail-label">Catatan Tim</div>
                             @if ($consultation->admin_notes)
-                                <div class="lead-detail-value" style="white-space: pre-line;">{{ $consultation->admin_notes }}</div>
+                                <div class="lead-detail-value is-preline">{{ $consultation->admin_notes }}</div>
                             @else
                                 <div class="lead-detail-value text-muted">Belum ada catatan.</div>
                             @endif
@@ -145,10 +201,16 @@
             </div>
         </div>
 
-        <div class="col-12 col-lg-4">
+        <div class="col-12 col-xl-4">
             @can('konsultasi.index')
-                <div class="card mb-3">
-                    <div class="card-header"><h5 class="fw-normal mb-0 text-body">Perbarui Pipeline</h5></div>
+                <div class="card lead-section-card mb-3">
+                    <div class="card-header lead-section-header">
+                        <span class="lead-section-icon"><i class="bi bi-diagram-3"></i></span>
+                        <div>
+                            <h5>Perbarui Pipeline</h5>
+                            <small>Status lead dan tindak lanjut</small>
+                        </div>
+                    </div>
                     <div class="card-body">
                         <form action="{{ route('konsultasi.update-lead', $consultation->uuid) }}" method="POST">
                             @csrf
@@ -180,8 +242,14 @@
                 </div>
             @endcan
 
-            <div class="card mb-3">
-                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Skor Ketertarikan</h5></div>
+            <div class="card lead-section-card mb-3">
+                <div class="card-header lead-section-header">
+                    <span class="lead-section-icon"><i class="bi bi-graph-up-arrow"></i></span>
+                    <div>
+                        <h5>Skor Ketertarikan</h5>
+                        <small>Indikator kualitas lead</small>
+                    </div>
+                </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-baseline mb-2">
                         <span class="lead-score-value">{{ $consultation->lead_score }}/10</span>
@@ -200,9 +268,15 @@
                 </div>
             </div>
 
-            <div class="card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center gap-2">
-                    <h5 class="fw-normal mb-0 text-body">Riwayat Perubahan</h5>
+            <div class="card lead-section-card mb-3">
+                <div class="card-header lead-section-header d-flex justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="lead-section-icon"><i class="bi bi-clock-history"></i></span>
+                        <div>
+                            <h5>Riwayat Perubahan</h5>
+                            <small>Aktivitas dan perubahan data</small>
+                        </div>
+                    </div>
                     <span class="badge bg-light text-body">{{ count($history) }}</span>
                 </div>
                 <div class="card-body p-0">
@@ -234,8 +308,14 @@
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header"><h5 class="fw-normal mb-0 text-body">Riwayat Lead</h5></div>
+            <div class="card lead-section-card">
+                <div class="card-header lead-section-header">
+                    <span class="lead-section-icon"><i class="bi bi-diagram-2"></i></span>
+                    <div>
+                        <h5>Riwayat Lead</h5>
+                        <small>Perjalanan calon pelanggan</small>
+                    </div>
+                </div>
                 <div class="card-body">
                     <ul class="lead-timeline">
                         <li>
@@ -269,8 +349,169 @@
 
 @push('after-style')
 <style>
+    .lead-hero-body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem 1.5rem;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.35rem;
+    }
+
+    .lead-hero-main {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-width: 0;
+        flex: 1 1 420px;
+    }
+
+    .lead-hero-identity {
+        min-width: 0;
+    }
+
+    .lead-hero-kicker {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-bottom: 0.15rem;
+    }
+
+    .lead-hero-name {
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.25;
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .lead-hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 1rem;
+        margin-top: 0.45rem;
+        font-size: 0.8rem;
+        color: var(--bs-secondary-color, #6c757d);
+    }
+
+    .lead-hero-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.65rem;
+    }
+
+    .lead-hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        flex: 0 1 auto;
+    }
+
+    .lead-action-menu {
+        min-width: 220px;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .lead-action-menu form {
+        margin: 0;
+    }
+
+    .lead-action-menu .dropdown-item {
+        white-space: normal;
+        padding: 0.5rem 1rem;
+    }
+
+    .lead-section-card {
+        border: 1px solid var(--bs-border-color, #e9ecef);
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+
+    .lead-section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.85rem 1.15rem;
+        background: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.02));
+        border-bottom: 1px solid var(--bs-border-color, #e9ecef);
+    }
+
+    .lead-section-icon {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 auto;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: rgba(94, 114, 228, 0.12);
+        color: #5e72e4;
+        font-size: 1rem;
+    }
+
+    .lead-section-header h5 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .lead-section-header small {
+        display: block;
+        margin-top: 0.1rem;
+        font-size: 0.75rem;
+        color: var(--bs-secondary-color, #6c757d);
+    }
+
+    .lead-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem 1.25rem;
+    }
+
+    .lead-detail-item {
+        min-width: 0;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px dashed var(--bs-border-color, #e9ecef);
+    }
+
+    .lead-detail-item.is-wide {
+        grid-column: 1 / -1;
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .lead-detail-item:nth-last-child(1) {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .lead-detail-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-bottom: 0.3rem;
+    }
+
+    .lead-detail-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    .lead-detail-value.is-preline {
+        white-space: pre-line;
+    }
+
     .konsultasi-history {
-        max-height: 420px;
+        max-height: 360px;
         overflow-y: auto;
     }
 
@@ -302,7 +543,7 @@
     }
 
     .konsultasi-history-value.old {
-        background: var(--bs-tertiary-bg, rgba(0, 0, 0, .04));
+        background: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.04));
         color: var(--bs-secondary-color, #6c757d);
         text-decoration: line-through;
     }
@@ -311,6 +552,65 @@
         background: var(--modern-primary-soft, #f5f0ea);
         color: var(--modern-primary, #6e5b42);
         font-weight: 600;
+    }
+
+    @media (max-width: 575.98px) {
+        .lead-hero-body {
+            align-items: flex-start;
+            padding: 1rem;
+        }
+
+        .lead-hero-main {
+            align-items: flex-start;
+            flex-basis: 100%;
+            gap: 0.75rem;
+        }
+
+        .lead-hero-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            font-size: 1.05rem;
+        }
+
+        .lead-hero-name {
+            font-size: 1.15rem;
+        }
+
+        .lead-hero-meta {
+            font-size: 0.75rem;
+        }
+
+        .lead-hero-actions {
+            flex-basis: 100%;
+        }
+
+        .lead-hero-actions .btn {
+            flex: 1 1 auto;
+        }
+
+        .lead-section-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .lead-detail-grid {
+            grid-template-columns: 1fr;
+            gap: 0.85rem;
+        }
+
+        .lead-detail-item {
+            border-bottom: 1px dashed var(--bs-border-color, #e9ecef);
+            padding-bottom: 0.85rem;
+        }
+
+        .lead-detail-item.is-wide {
+            grid-column: auto;
+        }
+
+        .lead-detail-item:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
     }
 </style>
 @endpush

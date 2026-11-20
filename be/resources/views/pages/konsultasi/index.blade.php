@@ -29,9 +29,9 @@
     @endphp
     <details class="konsultasi-mobile-fold" open>
         <summary><i class="bi bi-grid me-1"></i> Ringkasan lead</summary>
-        <div class="row g-2 g-md-3 mb-3 konsultasi-stat-grid">
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-8 g-2 g-md-3 mb-3 konsultasi-stat-grid">
             @foreach ($leadStats as $stat)
-                <div class="col-6 col-sm-4 col-md-3">
+                <div>
                     <div class="card h-100">
                         <div class="card-body d-flex align-items-center gap-3">
                             <div class="stats-icon {{ $stat['class'] }}"><i class="{{ $stat['icon'] }}"></i></div>
@@ -635,30 +635,33 @@
 
     @media (min-width: 1200px) {
         #main-content .konsultasi-stat-grid {
-            display: grid;
-            grid-template-columns: repeat(8, minmax(0, 1fr));
-            gap: .5rem;
-        }
-
-        #main-content .konsultasi-stat-grid > div {
-            width: auto;
+            --bs-gutter-x: .5rem;
         }
 
         #main-content .konsultasi-stat-grid .card-body {
-            display: block !important;
+            gap: .5rem;
             padding: .55rem .65rem;
         }
 
         #main-content .konsultasi-stat-grid .stats-icon {
-            display: none;
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            min-height: 30px;
+            border-radius: 8px;
+            font-size: .75rem;
+        }
+
+        #main-content .konsultasi-stat-grid .stats-icon i {
+            font-size: .75rem;
         }
 
         #main-content .konsultasi-stat-grid h6 {
-            font-size: .7rem;
+            font-size: .68rem;
         }
 
         #main-content .konsultasi-stat-grid h4 {
-            font-size: 1.05rem;
+            font-size: 1rem;
         }
     }
 
@@ -668,7 +671,7 @@
         }
 
         #main-content .konsultasi-mobile-fold {
-            margin-bottom: .5rem;
+            margin-bottom: .35rem;
             border: 1px solid var(--bs-border-color, #e9ecef);
             border-radius: 8px;
             background: rgba(var(--bs-secondary-bg-rgb, 248 249 250), .45);
@@ -678,7 +681,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: .5rem .75rem;
+            padding: .35rem .6rem;
             font-size: .8rem;
             font-weight: 600;
             cursor: pointer;
@@ -792,14 +795,16 @@
         white-space: nowrap !important;
     }
 
-    #main-content .lead-table .col-check { width: 3%; }
-    #main-content .lead-table .col-no { width: 3%; }
-    #main-content .lead-table .col-customer { width: 23%; }
-    #main-content .lead-table .col-contact { width: 15%; }
-    #main-content .lead-table .col-plan { width: 15%; }
-    #main-content .lead-table .col-consult { width: 14%; }
-    #main-content .lead-table .col-pipeline { width: 20%; }
-    #main-content .lead-table .col-action { width: 7%; }
+    @media (min-width: 576px) {
+        #main-content .lead-table .col-check { width: 3%; }
+        #main-content .lead-table .col-no { width: 3%; }
+        #main-content .lead-table .col-customer { width: 23%; }
+        #main-content .lead-table .col-contact { width: 15%; }
+        #main-content .lead-table .col-plan { width: 15%; }
+        #main-content .lead-table .col-consult { width: 14%; }
+        #main-content .lead-table .col-pipeline { width: 20%; }
+        #main-content .lead-table .col-action { width: 7%; }
+    }
 
     #main-content .lead-table th,
     #main-content .lead-table td {
@@ -850,14 +855,6 @@
             padding: .6rem .75rem;
         }
 
-        #main-content .konsultasi-mobile-fold {
-            margin-bottom: .35rem;
-        }
-
-        #main-content .konsultasi-mobile-fold > summary {
-            padding: .35rem .6rem;
-        }
-
         #main-content .konsultasi-stat-grid .card-body {
             gap: .5rem;
             padding: .6rem;
@@ -866,6 +863,12 @@
         #main-content .konsultasi-stat-grid .stats-icon {
             width: 34px;
             height: 34px;
+            min-width: 34px;
+            min-height: 34px;
+        }
+
+        #main-content .konsultasi-stat-grid .stats-icon i {
+            font-size: .8rem;
         }
 
         #main-content .konsultasi-stat-grid h6 {
