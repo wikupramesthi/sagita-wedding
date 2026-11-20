@@ -32,7 +32,7 @@ return [
 
     // Beranda
     'greeting_hi' => 'Hai, :name',
-    'instructors' => 'Instruktur',
+    'vendors' => 'Vendor',
     'classes' => 'Kelas',
     'events' => 'Event',
     'book_your_class' => 'Pesan Kelasmu',
@@ -55,7 +55,7 @@ return [
     'my_bookings' => 'Booking Saya',
     'my_orders' => 'Order Saya',
     'no_classes_day' => 'Tidak ada kelas hari itu.',
-    'search_class_instructor' => 'Cari kelas atau instruktur',
+    'search_class_vendor' => 'Cari kelas atau vendor',
     'all_venues' => 'Semua venue',
     'all_levels' => 'Semua level',
 
@@ -216,13 +216,15 @@ return [
     'desktop_view' => 'Tampilan desktop',
     'language' => 'Bahasa',
 
-    // Teacher
+    // Vendor
     'our_team' => 'Tim Kami',
-    'meet_instructors' => 'Kenali Instruktur Kami',
-    'find_instructor' => 'Cari Instrukturmu',
-    'teacher' => 'Teacher',
-    'meet_teachers' => 'Kenali teachermu',
-    'meet_teachers_desc' => 'Instruktur & kategori vendor',
+    'vendor' => 'Vendor',
+    'vendor_list' => 'Daftar Vendor',
+    'about' => 'Tentang',
+    'meet_vendors' => 'Kenali Vendor Kami',
+    'find_vendor' => 'Cari Vendor-mu',
+    'meet_your_vendors' => 'Kenali Vendor-mu',
+    'meet_vendors_desc' => 'Vendor & kategori vendor',
 
     // Event
     'events_workshops' => 'Event & Workshop',
@@ -268,12 +270,11 @@ return [
     'rated_of' => 'Nilai :n dari 5',
     'tap_upload_suffix' => '· bisa upload bukti',
     'expiring_count' => ':count segera berakhir',
-    'instructor' => 'Instruktur',
-    'default_bio' => 'Instruktur yoga di Yogaroots.',
-    'default_experience' => 'Instruktur Yoga Berpengalaman',
-    'no_instructors' => 'Belum Ada Instruktur',
-    'no_instructors_desc' => 'Belum ada instruktur tersedia saat ini.',
-    'no_instructors_found' => 'Instruktur Tidak Ditemukan',
+    'default_bio' => 'Vendor di Yogaroots.',
+    'default_experience' => 'Vendor Berpengalaman',
+    'no_vendors' => 'Belum Ada Vendor',
+    'no_vendors_desc' => 'Belum ada vendor tersedia saat ini.',
+    'no_vendors_found' => 'Vendor Tidak Ditemukan',
     'try_another' => 'Coba nama atau kategori vendor lain.',
     'view_profile' => 'Lihat Profil',
     'minutes_short' => 'mnt',

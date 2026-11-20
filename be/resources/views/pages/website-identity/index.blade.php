@@ -10,7 +10,7 @@
     @if (session('success'))
     <div class="alert alert-success alert-dismissible mb-3 mt-3 fade show" role="alert">
         <span class="alert-text text-white">{{ session('success') }}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -18,7 +18,7 @@
     @if (session('error'))
     <div class="alert alert-danger alert-dismissible mb-3 mt-3 fade show" role="alert">
         <span class="alert-text text-white">{{ session('error') }}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>

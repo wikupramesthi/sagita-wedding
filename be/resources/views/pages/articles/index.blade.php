@@ -1,44 +1,43 @@
 @extends('layouts.app')
-@section('title', 'Articles')
+@section('title', 'Artikel')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Articles" page="Content" active="Articles" route="{{ route('articles.index') }}" />
+<x-breadcrumb title="Artikel" page="Konten" active="Artikel" route="{{ route('articles.index') }}" />
 @endsection
 
 <section class="section">
     @if (session('success'))
         <div class="alert alert-success alert-dismissible mb-3 mt-3 fade show" role="alert">
             <span class="alert-text text-white"> {{ session('success') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible mb-3 mt-3 fade show" role="alert">
             <span class="alert-text text-white"> {{ session('error') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
-    {{-- Statistic cards: numbers follow the active filter --}}
     <div class="row mb-4 g-3 ml-stats">
-        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-primary"><i class="bx bx-news"></i></div><div><div class="ml-stat-value">{{ number_format($stats['total']) }}</div><div class="ml-stat-label">Total Articles</div></div></div></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-success"><i class="bx bx-check-circle"></i></div><div><div class="ml-stat-value">{{ number_format($stats['published']) }}</div><div class="ml-stat-label">Published</div></div></div></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-warning"><i class="bx bx-edit"></i></div><div><div class="ml-stat-value">{{ number_format($stats['draft']) }}</div><div class="ml-stat-label">Draft</div></div></div></div></div></div>
-        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-violet"><i class="bx bx-time"></i></div><div><div class="ml-stat-value">{{ number_format($stats['scheduled']) }}</div><div class="ml-stat-label">Scheduled</div></div></div></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-primary"><i class="bx bx-news"></i></div><div><div class="ml-stat-value">{{ number_format($stats['total']) }}</div><div class="ml-stat-label">Total Artikel</div></div></div></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-success"><i class="bx bx-check-circle"></i></div><div><div class="ml-stat-value">{{ number_format($stats['published']) }}</div><div class="ml-stat-label">Diterbitkan</div></div></div></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-warning"><i class="bx bx-edit"></i></div><div><div class="ml-stat-value">{{ number_format($stats['draft']) }}</div><div class="ml-stat-label">Draf</div></div></div></div></div></div>
+        <div class="col-6 col-md-4 col-xl"><div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat"><div class="ml-stat-icon ic-violet"><i class="bx bx-time"></i></div><div><div class="ml-stat-value">{{ number_format($stats['scheduled']) }}</div><div class="ml-stat-label">Terjadwal</div></div></div></div></div></div>
     </div>
 
     <div class="card shadow-sm mb-3">
         <div class="card-body py-2 px-3">
             <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
                 <form method="GET" action="{{ route('articles.index') }}" class="d-flex flex-wrap align-items-end gap-2">
-                    <div><label class="form-label small mb-0">Search</label><input type="text" name="search" value="{{ $search }}" class="form-control form-control-sm" placeholder="Title..." style="min-width:180px;"></div>
-                    <div><label class="form-label small mb-0">Status</label><select name="status" class="form-select form-select-sm" style="min-width:150px;"><option value="">All</option><option value="published" @selected($status==='published')>Published</option><option value="draft" @selected($status==='draft')>Draft</option><option value="scheduled" @selected($status==='scheduled')>Scheduled</option></select></div>
-                    <div><label class="form-label small mb-0">From</label><input type="date" name="start_date" class="form-control form-control-sm" value="{{ $start_date }}"></div>
-                    <div><label class="form-label small mb-0">Until</label><input type="date" name="end_date" class="form-control form-control-sm" value="{{ $end_date }}"></div>
-                    <div class="d-flex gap-1"><button type="submit" class="btn btn-sm btn-success"><i class="bi bi-funnel"></i> Filter</button><a href="{{ route('articles.index') }}" class="btn btn-sm btn-light">Reset</a></div>
+                    <div><label class="form-label small mb-0">Cari</label><input type="text" name="search" value="{{ $search }}" class="form-control form-control-sm" placeholder="Judul..." style="min-width:180px;"></div>
+                    <div><label class="form-label small mb-0">Status</label><select name="status" class="form-select form-select-sm" style="min-width:150px;"><option value="">Semua</option><option value="published" @selected($status==='published')>Diterbitkan</option><option value="draft" @selected($status==='draft')>Draf</option><option value="scheduled" @selected($status==='scheduled')>Terjadwal</option></select></div>
+                    <div><label class="form-label small mb-0">Dari</label><input type="date" name="start_date" class="form-control form-control-sm" value="{{ $start_date }}"></div>
+                    <div><label class="form-label small mb-0">Sampai</label><input type="date" name="end_date" class="form-control form-control-sm" value="{{ $end_date }}"></div>
+                    <div class="d-flex gap-1"><button type="submit" class="btn btn-sm btn-success"><i class="bi bi-funnel"></i> Filter</button><a href="{{ route('articles.index') }}" class="btn btn-sm btn-light">Atur Ulang</a></div>
                 </form>
-                @can('articles.store')<a href="{{ route('articles.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add Article</a>@endcan
+                @can('articles.create')<a href="{{ route('articles.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah Artikel</a>@endcan
             </div>
         </div>
     </div>
@@ -46,18 +45,18 @@
     <div class="card shadow-sm">
         <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
-                <h6 class="mb-0">Articles</h6>
-                <span class="badge bg-primary-subtle text-primary">{{ number_format($stats['total']) }} articles</span>
+                <h6 class="mb-0">Artikel</h6>
+                <span class="badge bg-primary-subtle text-primary">{{ number_format($stats['total']) }} artikel</span>
             </div>
-            <small class="text-muted d-none d-md-block">{{ $articles->firstItem() }}-{{ $articles->lastItem() }} of {{ $articles->total() }}</small>
+            <small class="text-muted d-none d-md-block">{{ $articles->firstItem() }}-{{ $articles->lastItem() }} dari {{ $articles->total() }}</small>
         </div>
 
         @can('articles.destroy')
         <div id="bulkBarArticle" class="d-none align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 bg-danger-subtle">
-            <span class="small fw-semibold text-danger"><i class="bi bi-check-square me-1"></i><span id="bulkCountArticle">0</span> articles selected</span>
+            <span class="small fw-semibold text-danger"><i class="bi bi-check-square me-1"></i><span id="bulkCountArticle">0</span> artikel dipilih</span>
             <div class="d-flex gap-1">
-                <button type="button" class="btn btn-sm btn-light" onclick="clearArticleSelection()">Cancel</button>
-                <button type="button" class="btn btn-sm btn-danger" onclick="bulkDeleteArticle()"><i class="bi bi-trash"></i> Delete selected</button>
+                <button type="button" class="btn btn-sm btn-light" onclick="clearArticleSelection()">Batal</button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="bulkDeleteArticle()"><i class="bi bi-trash"></i> Hapus yang dipilih</button>
             </div>
         </div>
         <form id="bulkDeleteArticleForm" action="{{ route('articles.bulkDestroy') }}" method="POST" class="d-none">
@@ -71,8 +70,8 @@
                 <table class="table table-hover mb-0" style="font-size:0.9rem;">
                     <thead class="table-light">
                         <tr>
-                            @can('articles.destroy')<th class="text-center" style="width:38px;"><input type="checkbox" id="checkAllArticle" class="form-check-input" title="Select all"></th>@endcan
-                            <th>No</th><th>Image</th><th>Title</th><th class="hide-xs">Category</th><th class="hide-sm">Author</th><th>Status</th><th class="hide-sm">Views</th><th class="hide-xs">Date</th><th>Actions</th>
+                            @can('articles.destroy')<th class="text-center" style="width:38px;"><input type="checkbox" id="checkAllArticle" class="form-check-input" title="Pilih semua"></th>@endcan
+                            <th>No.</th><th>Gambar</th><th>Judul</th><th class="hide-xs">Kategori</th><th class="hide-sm">Penulis</th><th>Status</th><th class="hide-sm">Dilihat</th><th class="hide-xs">Tanggal</th><th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -84,19 +83,19 @@
                                 <td class="article-title-cell"><span class="fw-semibold d-block" style="font-size:0.9rem;">{{ Str::limit($item->title, 50) }}</span>@if($item->excerpt)<small class="text-muted d-block">{{ Str::limit($item->excerpt, 60) }}</small>@endif</td>
                                 <td class="hide-xs"><small>{{ $item->category->name ?? '-' }}</small></td>
                                 <td class="hide-sm"><small>{{ $item->user->name ?? '-' }}</small></td>
-                                <td>@if($item->status==='published')<span class="badge bg-success">Pub</span>@elseif($item->status==='draft')<span class="badge bg-secondary">Draft</span>@else<span class="badge bg-warning text-dark">Sch</span>@endif</td>
+                                 <td>@if($item->status==='published')<span class="badge bg-success">Diterbitkan</span>@elseif($item->status==='draft')<span class="badge bg-secondary">Draf</span>@else<span class="badge bg-warning text-dark">Terjadwal</span>@endif</td>
                                 <td class="hide-sm"><small><i class="bi bi-eye"></i> {{ number_format($item->views ?? 0) }}</small></td>
                                 <td class="hide-xs"><small>{{ optional($item->scheduled_at ?? $item->created_at)->format('d/m/y') }}</small></td>
-                                <td><div class="d-flex gap-1">@can('articles.update')<a href="{{ route('articles.edit', $item->uuid) }}" class="btn btn-sm btn-success" title="Edit"><i class="bi bi-pencil"></i></a>@endcan @can('articles.destroy')<a onclick="showSweetAlert('{{ $item->uuid }}')" class="btn btn-sm btn-danger" title="Delete"><i class="bi bi-trash"></i></a><form id="deleteForm_{{ $item->uuid }}" action="{{ route('articles.destroy', $item->uuid) }}" method="POST" class="d-none">@method('DELETE')@csrf</form>@endcan</div></td>
+                                <td><div class="d-flex gap-1">@can('articles.update')<a href="{{ route('articles.edit', $item->uuid) }}" class="btn btn-sm btn-success" title="Ubah"><i class="bi bi-pencil"></i></a>@endcan @can('articles.destroy')<a onclick="showSweetAlert('{{ $item->uuid }}')" class="btn btn-sm btn-danger" title="Hapus"><i class="bi bi-trash"></i></a><form id="deleteForm_{{ $item->uuid }}" action="{{ route('articles.destroy', $item->uuid) }}" method="POST" class="d-none">@method('DELETE')@csrf</form>@endcan</div></td>
                             </tr>
                         @empty
-                            <tr><td colspan="10" class="text-center py-4 text-muted">No articles found.</td></tr>
+                            <tr><td colspan="10" class="text-center py-4 text-muted">Tidak ada artikel ditemukan.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
             <div class="p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <small class="text-muted">Showing {{ $articles->firstItem() }}-{{ $articles->lastItem() }} of {{ $articles->total() }}</small>
+                <small class="text-muted">Menampilkan {{ $articles->firstItem() }}-{{ $articles->lastItem() }} dari {{ $articles->total() }}</small>
                 <div>{{ $articles->links('pagination::minimal') }}</div>
             </div>
         </div>
@@ -105,7 +104,7 @@
 
 <script>
     function showSweetAlert(getId) {
-        Swal.fire({title:'Delete this article?', text:'It will be permanently deleted.', icon:'warning', showCancelButton:true, confirmButtonText:'Yes, Delete!'}).then(r=>{ if(r.isConfirmed) document.getElementById('deleteForm_'+getId).submit(); });
+        Swal.fire({title:'Hapus artikel ini?', text:'Artikel ini akan dihapus permanen.', icon:'warning', showCancelButton:true, confirmButtonText:'Ya, Hapus!'}).then(r=>{ if(r.isConfirmed) document.getElementById('deleteForm_'+getId).submit(); });
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -143,7 +142,7 @@
         window.bulkDeleteArticle = function () {
             const ids = Array.from(document.querySelectorAll('.article-check:checked')).map(c => c.value);
             if (!ids.length) return;
-            Swal.fire({title:'Delete ' + ids.length + ' articles?', text:'Selected data will be permanently deleted.', icon:'warning', showCancelButton:true, confirmButtonText:'Yes, Delete!', confirmButtonColor:'#f43f5e'}).then(r => {
+            Swal.fire({title:'Hapus ' + ids.length + ' artikel?', text:'Data yang dipilih akan dihapus permanen.', icon:'warning', showCancelButton:true, confirmButtonText:'Ya, Hapus!', confirmButtonColor:'#f43f5e'}).then(r => {
                 if (r.isConfirmed) {
                     const form = document.getElementById('bulkDeleteArticleForm');
                     const box = document.getElementById('bulkIdsArticle');

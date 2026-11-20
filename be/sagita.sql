@@ -281,15 +281,6 @@ CREATE TABLE `cache` (
 -- Dumping data for table `cache`
 --
 
-INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('5c785c036466adea360111aa28563bfd556b5fba', 'i:2;', 1795067292),
-('5c785c036466adea360111aa28563bfd556b5fba:timer', 'i:1795067292;', 1795067292),
-('a75f3f172bfb296f2e10cbfc6dfc1883', 'i:4;', 1795068097),
-('a75f3f172bfb296f2e10cbfc6dfc1883:timer', 'i:1795068097;', 1795068097),
-('contact_captcha_1e5e2293-11a1-4a93-87ad-f36bc09512dc', 'a:2:{s:6:\"answer\";i:33;s:8:\"attempts\";i:0;}', 1795055387),
-('dashboard.artofliving.courses', 'a:1:{i:0;a:108:{s:11:\"bundle_type\";s:17:\"course_event_info\";s:14:\"formatted_date\";s:0:\"\";s:15:\"weekday_timings\";s:19:\"10:30 AM - 12:00 PM\";s:15:\"weekend_timings\";s:18:\"9:30 AM - 11:30 AM\";s:3:\"wkt\";s:29:\"POINT (106.879852 -6.1504392)\";s:4:\"type\";s:5:\"point\";s:8:\"end_date\";s:19:\"2026-11-24 05:00:00\";s:10:\"start_date\";s:19:\"2026-11-24 03:30:00\";s:17:\"last_updated_date\";s:19:\"2026-11-17 05:08:26\";s:12:\"created_date\";s:19:\"2026-05-19 08:22:05\";s:12:\"contact_name\";s:21:\"Artofliving Indonesia\";s:13:\"contact_names\";N;s:13:\"center_emails\";N;s:11:\"coordinates\";a:2:{i:0;d:106.879852;i:1;d:-6.1504392;}s:5:\"ctype\";s:6:\"344663\";s:12:\"common_ctype\";s:0:\"\";s:6:\"mctype\";s:4:\"1006\";s:7:\"address\";s:111:\"The Art of Living Center - Jakarta,  Jl. Danau Indah Raya Blok A1 No. 2 Sunter, North Jakarta, Indonesia, 14350\";s:13:\"address_short\";s:100:\"The Art of Living Center - Jakarta,  Jl. Danau Indah Raya Blok A1 No. 2 Sunter, North Jakarta, 14350\";s:16:\"street_address_1\";s:0:\"\";s:16:\"street_address_2\";s:41:\"Jl. Danau Indah Raya Blok A1 No. 2 Sunter\";s:4:\"city\";s:13:\"North Jakarta\";s:5:\"state\";s:0:\"\";s:15:\"zip_postal_code\";s:5:\"14350\";s:7:\"country\";s:2:\"ID\";s:5:\"email\";s:19:\"info@artofliving.id\";s:2:\"id\";i:1675701;s:6:\"sao_id\";i:740;s:8:\"sao_type\";i:1;s:9:\"course_id\";s:6:\"AK0589\";s:4:\"link\";s:37:\"www.artofliving.org/id-id/program/740\";s:16:\"local_center_url\";s:37:\"www.artofliving.org/id-id/node/196046\";s:14:\"many_day_event\";b:0;s:6:\"phones\";a:1:{i:0;s:10:\"0216513123\";}s:19:\"recur_event_display\";s:68:\"RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=TU;UNTIL=20270519T235959Z;WKST=SU\";s:12:\"is_recurring\";b:1;s:12:\"register_url\";s:90:\"https://register.artofliving.org/id/civicrm/event/register?id=791&lcMessages=en_GB&reset=1\";s:8:\"teachers\";N;s:13:\"teachers_info\";N;s:23:\"assistant_teachers_info\";N;s:14:\"organizer_info\";N;s:12:\"max_capacity\";s:0:\"\";s:5:\"title\";s:39:\"Sudarshan Kriya (SKY) Follow-up Session\";s:14:\"course_expense\";i:0;s:10:\"course_fee\";i:0;s:16:\"course_extra_fee\";i:0;s:16:\"early_course_fee\";i:0;s:19:\"early_repeaters_fee\";i:0;s:17:\"early_seniors_fee\";i:0;s:18:\"early_students_fee\";i:0;s:15:\"late_course_fee\";i:0;s:18:\"late_repeaters_fee\";i:0;s:15:\"late_senior_fee\";i:0;s:16:\"late_student_fee\";i:0;s:12:\"repeater_fee\";i:0;s:10:\"senior_fee\";i:0;s:11:\"student_fee\";i:0;s:8:\"currency\";s:3:\"IDR\";s:5:\"notes\";s:37:\"<p>Wekly : Long Kriya&nbsp;</p><br/> \";s:11:\"description\";s:0:\"\";s:9:\"image_url\";s:0:\"\";s:8:\"timezone\";s:12:\"Asia/Jakarta\";s:14:\"accommodations\";N;s:15:\"complex_timings\";s:0:\"\";s:21:\"course_complex_timing\";s:0:\"\";s:17:\"is_complex_timing\";b:0;s:21:\"registration_required\";b:1;s:18:\"residential_course\";b:0;s:11:\"max_tickets\";s:1:\"1\";s:23:\"info_for_group_required\";s:1:\"1\";s:16:\"center_image_url\";s:0:\"\";s:11:\"center_type\";s:0:\"\";s:16:\"field_is_country\";i:0;s:14:\"field_is_state\";i:0;s:11:\"center_name\";s:21:\"Art of Living Jakarta\";s:37:\"is_accommodation_fee_pay_mode_offline\";b:0;s:31:\"is_expense_fee_pay_mode_offline\";b:0;s:7:\"is_paid\";b:1;s:9:\"is_parent\";i:1;s:22:\"is_event_capacity_full\";s:1:\"0\";s:14:\"has_early_bird\";s:0:\"\";s:19:\"early_birt_end_date\";s:0:\"\";s:15:\"is_online_event\";i:0;s:15:\"course_language\";a:0:{}s:19:\"translate_languages\";a:0:{}s:14:\"event_locality\";s:0:\"\";s:10:\"is_private\";i:0;s:15:\"shankara_course\";b:0;s:11:\"week_number\";i:0;s:8:\"campaign\";s:0:\"\";s:26:\"field_eligibility_criteria\";i:0;s:11:\"event_dates\";a:4:{i:0;a:3:{s:10:\"start_date\";s:19:\"2026-11-24T12:00:00\";s:8:\"end_date\";s:19:\"2026-11-24T12:00:00\";s:6:\"r_rule\";s:68:\"RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=TU;UNTIL=20270519T235959Z;WKST=SU\";}i:1;a:3:{s:10:\"start_date\";s:19:\"2026-12-01T12:00:00\";s:8:\"end_date\";s:19:\"2026-12-01T12:00:00\";s:6:\"r_rule\";s:68:\"RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=TU;UNTIL=20270519T235959Z;WKST=SU\";}i:2;a:3:{s:10:\"start_date\";s:19:\"2026-12-08T12:00:00\";s:8:\"end_date\";s:19:\"2026-12-08T12:00:00\";s:6:\"r_rule\";s:68:\"RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=TU;UNTIL=20270519T235959Z;WKST=SU\";}i:3;a:3:{s:10:\"start_date\";s:19:\"2026-12-15T12:00:00\";s:8:\"end_date\";s:19:\"2026-12-15T12:00:00\";s:6:\"r_rule\";s:68:\"RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=TU;UNTIL=20270519T235959Z;WKST=SU\";}}s:16:\"facilitator_name\";s:0:\"\";s:17:\"bx_course_country\";s:0:\"\";s:23:\"sponsoring_organization\";s:0:\"\";s:17:\"bx_course_timings\";N;s:15:\"course_subtitle\";N;s:22:\"field_bx_accommodation\";a:3:{s:12:\"accomadation\";a:1:{s:7:\"options\";N;}s:14:\"early_end_date\";s:0:\"\";s:8:\"is_early\";b:0;}s:28:\"field_bx_event_accommodation\";a:3:{s:12:\"accomadation\";N;s:14:\"early_end_date\";s:0:\"\";s:8:\"is_early\";i:0;}s:13:\"course_source\";s:2:\"HX\";s:15:\"field_time_zone\";s:0:\"\";s:32:\"bx_registration_closed_date_time\";s:0:\"\";s:22:\"is_registration_closed\";b:0;s:10:\"price_sets\";N;s:14:\"register_count\";i:0;s:13:\"shopamine_url\";s:38:\"https://www.artofliving.org/id-en/i_23\";s:24:\"is_registration_required\";b:0;s:26:\"course_group_shopmine_urls\";N;}}', 1795081789),
-('spatie.permission.cache', 'a:3:{s:5:\"alias\";a:4:{s:1:\"a\";s:2:\"id\";s:1:\"b\";s:4:\"name\";s:1:\"c\";s:10:\"guard_name\";s:1:\"r\";s:5:\"roles\";}s:11:\"permissions\";a:132:{i:0;a:4:{s:1:\"a\";i:1;s:1:\"b\";s:14:\"menu.main-menu\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:1;a:4:{s:1:\"a\";i:2;s:1:\"b\";s:20:\"menu.role-permission\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:2;a:4:{s:1:\"a\";i:3;s:1:\"b\";s:22:\"menu.access-management\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:3;a:4:{s:1:\"a\";i:4;s:1:\"b\";s:15:\"dashboard.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:4:{i:0;i:1;i:1;i:2;i:2;i:3;i:3;i:5;}}i:4;a:4:{s:1:\"a\";i:5;s:1:\"b\";s:10:\"user.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:5;a:4:{s:1:\"a\";i:6;s:1:\"b\";s:10:\"user.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:6;a:4:{s:1:\"a\";i:7;s:1:\"b\";s:11:\"user.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:7;a:4:{s:1:\"a\";i:8;s:1:\"b\";s:12:\"user.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:8;a:4:{s:1:\"a\";i:9;s:1:\"b\";s:16:\"menu-group.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:9;a:4:{s:1:\"a\";i:10;s:1:\"b\";s:16:\"menu-group.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:10;a:4:{s:1:\"a\";i:11;s:1:\"b\";s:17:\"menu-group.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:11;a:4:{s:1:\"a\";i:12;s:1:\"b\";s:18:\"menu-group.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:12;a:4:{s:1:\"a\";i:13;s:1:\"b\";s:15:\"menu-item.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:13;a:4:{s:1:\"a\";i:14;s:1:\"b\";s:15:\"menu-item.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:14;a:4:{s:1:\"a\";i:15;s:1:\"b\";s:16:\"menu-item.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:15;a:4:{s:1:\"a\";i:16;s:1:\"b\";s:17:\"menu-item.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:16;a:4:{s:1:\"a\";i:17;s:1:\"b\";s:11:\"route.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:17;a:4:{s:1:\"a\";i:18;s:1:\"b\";s:11:\"route.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:18;a:4:{s:1:\"a\";i:19;s:1:\"b\";s:12:\"route.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:19;a:4:{s:1:\"a\";i:20;s:1:\"b\";s:13:\"route.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:20;a:4:{s:1:\"a\";i:21;s:1:\"b\";s:10:\"role.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:21;a:4:{s:1:\"a\";i:22;s:1:\"b\";s:10:\"role.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:22;a:4:{s:1:\"a\";i:23;s:1:\"b\";s:11:\"role.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:23;a:4:{s:1:\"a\";i:24;s:1:\"b\";s:12:\"role.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:24;a:4:{s:1:\"a\";i:25;s:1:\"b\";s:16:\"permission.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:25;a:4:{s:1:\"a\";i:26;s:1:\"b\";s:16:\"permission.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:26;a:4:{s:1:\"a\";i:27;s:1:\"b\";s:17:\"permission.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:27;a:4:{s:1:\"a\";i:28;s:1:\"b\";s:18:\"permission.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:28;a:4:{s:1:\"a\";i:29;s:1:\"b\";s:11:\"faq.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:29;a:4:{s:1:\"a\";i:30;s:1:\"b\";s:9:\"faq.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:30;a:4:{s:1:\"a\";i:31;s:1:\"b\";s:9:\"faq.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:31;a:4:{s:1:\"a\";i:32;s:1:\"b\";s:10:\"faq.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:32;a:4:{s:1:\"a\";i:33;s:1:\"b\";s:20:\"menu.main-portofolio\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:33;a:4:{s:1:\"a\";i:35;s:1:\"b\";s:13:\"company.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:34;a:4:{s:1:\"a\";i:36;s:1:\"b\";s:13:\"company.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:35;a:4:{s:1:\"a\";i:37;s:1:\"b\";s:14:\"company.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:36;a:4:{s:1:\"a\";i:38;s:1:\"b\";s:18:\"categories.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:37;a:4:{s:1:\"a\";i:39;s:1:\"b\";s:16:\"categories.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:38;a:4:{s:1:\"a\";i:40;s:1:\"b\";s:16:\"categories.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:39;a:4:{s:1:\"a\";i:41;s:1:\"b\";s:17:\"categories.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:40;a:4:{s:1:\"a\";i:46;s:1:\"b\";s:14:\"banner.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:41;a:4:{s:1:\"a\";i:47;s:1:\"b\";s:12:\"banner.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:42;a:4:{s:1:\"a\";i:48;s:1:\"b\";s:12:\"banner.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:43;a:4:{s:1:\"a\";i:49;s:1:\"b\";s:13:\"banner.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:44;a:4:{s:1:\"a\";i:50;s:1:\"b\";s:16:\"articles.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:45;a:4:{s:1:\"a\";i:51;s:1:\"b\";s:15:\"articles.create\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:46;a:4:{s:1:\"a\";i:52;s:1:\"b\";s:14:\"articles.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:47;a:4:{s:1:\"a\";i:53;s:1:\"b\";s:14:\"articles.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:48;a:4:{s:1:\"a\";i:54;s:1:\"b\";s:15:\"articles.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:49;a:4:{s:1:\"a\";i:55;s:1:\"b\";s:14:\"dashboard.form\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:4:{i:0;i:1;i:1;i:2;i:2;i:3;i:3;i:5;}}i:50;a:4:{s:1:\"a\";i:60;s:1:\"b\";s:12:\"poll.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:51;a:4:{s:1:\"a\";i:65;s:1:\"b\";s:10:\"poll.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:52;a:4:{s:1:\"a\";i:70;s:1:\"b\";s:10:\"poll.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:53;a:4:{s:1:\"a\";i:75;s:1:\"b\";s:11:\"poll.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:54;a:4:{s:1:\"a\";i:85;s:1:\"b\";s:13:\"account.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:4:{i:0;i:1;i:1;i:2;i:2;i:3;i:3;i:5;}}i:55;a:4:{s:1:\"a\";i:90;s:1:\"b\";s:14:\"account.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:4:{i:0;i:1;i:1;i:2;i:2;i:3;i:3;i:5;}}i:56;a:3:{s:1:\"a\";i:125;s:1:\"b\";s:20:\"filedownload.destroy\";s:1:\"c\";s:3:\"web\";}i:57;a:4:{s:1:\"a\";i:130;s:1:\"b\";s:18:\"filedownload.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:2;i:1;i:5;}}i:58;a:3:{s:1:\"a\";i:135;s:1:\"b\";s:18:\"filedownload.store\";s:1:\"c\";s:3:\"web\";}i:59;a:3:{s:1:\"a\";i:140;s:1:\"b\";s:19:\"filedownload.update\";s:1:\"c\";s:3:\"web\";}i:60;a:4:{s:1:\"a\";i:145;s:1:\"b\";s:14:\"layanan.kontak\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:61;a:4:{s:1:\"a\";i:146;s:1:\"b\";s:16:\"instruktur.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:62;a:4:{s:1:\"a\";i:147;s:1:\"b\";s:12:\"pages.create\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:63;a:4:{s:1:\"a\";i:148;s:1:\"b\";s:13:\"pages.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:64;a:4:{s:1:\"a\";i:149;s:1:\"b\";s:11:\"pages.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:65;a:4:{s:1:\"a\";i:150;s:1:\"b\";s:11:\"pages.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:66;a:4:{s:1:\"a\";i:151;s:1:\"b\";s:12:\"pages.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:67;a:4:{s:1:\"a\";i:152;s:1:\"b\";s:18:\"instruktur.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:68;a:4:{s:1:\"a\";i:153;s:1:\"b\";s:16:\"instruktur.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:69;a:4:{s:1:\"a\";i:154;s:1:\"b\";s:17:\"instruktur.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:70;a:4:{s:1:\"a\";i:155;s:1:\"b\";s:19:\"testimonial.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:71;a:4:{s:1:\"a\";i:156;s:1:\"b\";s:17:\"testimonial.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:72;a:4:{s:1:\"a\";i:157;s:1:\"b\";s:18:\"testimonial.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:73;a:4:{s:1:\"a\";i:158;s:1:\"b\";s:17:\"testimonial.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:74;a:4:{s:1:\"a\";i:159;s:1:\"b\";s:12:\"events.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:75;a:4:{s:1:\"a\";i:160;s:1:\"b\";s:14:\"events.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:76;a:4:{s:1:\"a\";i:161;s:1:\"b\";s:12:\"events.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:77;a:4:{s:1:\"a\";i:162;s:1:\"b\";s:13:\"events.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:78;a:4:{s:1:\"a\";i:163;s:1:\"b\";s:24:\"vendors_categories.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:79;a:4:{s:1:\"a\";i:164;s:1:\"b\";s:26:\"vendors_categories.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:80;a:4:{s:1:\"a\";i:165;s:1:\"b\";s:25:\"vendors_categories.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:81;a:4:{s:1:\"a\";i:166;s:1:\"b\";s:24:\"vendors_categories.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:82;a:4:{s:1:\"a\";i:167;s:1:\"b\";s:15:\"package.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:83;a:4:{s:1:\"a\";i:168;s:1:\"b\";s:13:\"package.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:84;a:4:{s:1:\"a\";i:169;s:1:\"b\";s:14:\"package.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:85;a:4:{s:1:\"a\";i:170;s:1:\"b\";s:13:\"package.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:86;a:4:{s:1:\"a\";i:171;s:1:\"b\";s:14:\"package.member\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:87;a:4:{s:1:\"a\";i:172;s:1:\"b\";s:15:\"classes.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:88;a:4:{s:1:\"a\";i:173;s:1:\"b\";s:13:\"classes.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:89;a:4:{s:1:\"a\";i:174;s:1:\"b\";s:13:\"classes.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:90;a:4:{s:1:\"a\";i:175;s:1:\"b\";s:14:\"classes.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:91;a:4:{s:1:\"a\";i:176;s:1:\"b\";s:22:\"dashboard.submitSumber\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:92;a:4:{s:1:\"a\";i:177;s:1:\"b\";s:14:\"classes.create\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:93;a:4:{s:1:\"a\";i:178;s:1:\"b\";s:12:\"classes.edit\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:3;i:2;i:5;}}i:94;a:4:{s:1:\"a\";i:179;s:1:\"b\";s:20:\"classes.change-level\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:95;a:4:{s:1:\"a\";i:180;s:1:\"b\";s:23:\"class-schedules.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:96;a:4:{s:1:\"a\";i:181;s:1:\"b\";s:21:\"class-schedules.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:4:{i:0;i:1;i:1;i:2;i:2;i:3;i:3;i:5;}}i:97;a:4:{s:1:\"a\";i:182;s:1:\"b\";s:21:\"class-schedules.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:98;a:4:{s:1:\"a\";i:183;s:1:\"b\";s:22:\"class-schedules.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:99;a:4:{s:1:\"a\";i:184;s:1:\"b\";s:21:\"class-schedules.print\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:4:{i:0;i:1;i:1;i:2;i:2;i:3;i:3;i:5;}}i:100;a:4:{s:1:\"a\";i:185;s:1:\"b\";s:14:\"pengguna.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:101;a:4:{s:1:\"a\";i:186;s:1:\"b\";s:15:\"pengguna.export\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:102;a:4:{s:1:\"a\";i:187;s:1:\"b\";s:12:\"venues.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:103;a:4:{s:1:\"a\";i:188;s:1:\"b\";s:14:\"venues.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:104;a:4:{s:1:\"a\";i:189;s:1:\"b\";s:13:\"venues.create\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:105;a:4:{s:1:\"a\";i:190;s:1:\"b\";s:12:\"venues.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:106;a:4:{s:1:\"a\";i:191;s:1:\"b\";s:13:\"venues.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:1:{i:0;i:1;}}i:107;a:4:{s:1:\"a\";i:192;s:1:\"b\";s:17:\"instruktur.mobile\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:2;}}i:108;a:4:{s:1:\"a\";i:193;s:1:\"b\";s:16:\"checkout.package\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:109;a:4:{s:1:\"a\";i:194;s:1:\"b\";s:12:\"orders.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:110;a:4:{s:1:\"a\";i:195;s:1:\"b\";s:11:\"orders.show\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:111;a:4:{s:1:\"a\";i:196;s:1:\"b\";s:12:\"orders.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:112;a:4:{s:1:\"a\";i:197;s:1:\"b\";s:13:\"menu.keamanan\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:113;a:4:{s:1:\"a\";i:198;s:1:\"b\";s:20:\"login-activity.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:114;a:4:{s:1:\"a\";i:199;s:1:\"b\";s:22:\"login-activity.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:115;a:4:{s:1:\"a\";i:200;s:1:\"b\";s:19:\"login-lockout.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:116;a:4:{s:1:\"a\";i:201;s:1:\"b\";s:21:\"login-lockout.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:117;a:4:{s:1:\"a\";i:202;s:1:\"b\";s:15:\"audit-log.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:118;a:4:{s:1:\"a\";i:203;s:1:\"b\";s:17:\"audit-log.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:119;a:4:{s:1:\"a\";i:204;s:1:\"b\";s:18:\"failed-login.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:120;a:4:{s:1:\"a\";i:205;s:1:\"b\";s:20:\"failed-login.destroy\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:121;a:4:{s:1:\"a\";i:206;s:1:\"b\";s:22:\"website-identity.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:122;a:4:{s:1:\"a\";i:207;s:1:\"b\";s:23:\"website-identity.update\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:123;a:4:{s:1:\"a\";i:208;s:1:\"b\";s:17:\"memberships.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:124;a:4:{s:1:\"a\";i:209;s:1:\"b\";s:16:\"memberships.show\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:125;a:4:{s:1:\"a\";i:210;s:1:\"b\";s:20:\"class-bookings.index\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:126;a:4:{s:1:\"a\";i:211;s:1:\"b\";s:20:\"class-bookings.store\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:127;a:4:{s:1:\"a\";i:212;s:1:\"b\";s:22:\"class-bookings.checkin\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:128;a:4:{s:1:\"a\";i:213;s:1:\"b\";s:21:\"class-bookings.cancel\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}i:129;a:4:{s:1:\"a\";i:214;s:1:\"b\";s:14:\"orders.approve\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:130;a:4:{s:1:\"a\";i:215;s:1:\"b\";s:13:\"orders.reject\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:2:{i:0;i:1;i:1;i:3;}}i:131;a:4:{s:1:\"a\";i:216;s:1:\"b\";s:12:\"orders.proof\";s:1:\"c\";s:3:\"web\";s:1:\"r\";a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}}}s:5:\"roles\";a:4:{i:0;a:3:{s:1:\"a\";i:1;s:1:\"b\";s:11:\"super-admin\";s:1:\"c\";s:3:\"web\";}i:1;a:3:{s:1:\"a\";i:3;s:1:\"b\";s:5:\"admin\";s:1:\"c\";s:3:\"web\";}i:2;a:3:{s:1:\"a\";i:2;s:1:\"b\";s:4:\"user\";s:1:\"c\";s:3:\"web\";}i:3;a:3:{s:1:\"a\";i:5;s:1:\"b\";s:10:\"instruktur\";s:1:\"c\";s:3:\"web\";}}}', 1795159547),
-('website-identity:public', 'a:19:{s:9:\"site_name\";s:14:\"Sagita Wedding\";s:10:\"site_title\";s:14:\"Sagita Wedding\";s:7:\"tagline\";s:15:\"Wedding Planner\";s:17:\"short_description\";s:84:\"Wedding planning, concept, and celebration services designed with elegance and care.\";s:5:\"email\";N;s:5:\"phone\";N;s:7:\"address\";N;s:12:\"facebook_url\";N;s:13:\"instagram_url\";N;s:11:\"youtube_url\";N;s:10:\"tiktok_url\";N;s:10:\"meta_title\";N;s:16:\"meta_description\";N;s:13:\"meta_keywords\";N;s:19:\"google_analytics_id\";N;s:24:\"google_site_verification\";N;s:8:\"logo_url\";N;s:11:\"favicon_url\";N;s:12:\"og_image_url\";N;}', 1795070793);
 
 -- --------------------------------------------------------
 
@@ -343,7 +334,7 @@ CREATE TABLE `classes` (
   `description` text DEFAULT NULL,
   `price` decimal(15,2) NOT NULL DEFAULT 0.00,
   `quota_cost` int(10) UNSIGNED NOT NULL DEFAULT 1,
-  `instructor_uuid` char(36) DEFAULT NULL,
+  `vendor_uuid` char(36) DEFAULT NULL,
   `image` varchar(255) DEFAULT NULL,
   `level` enum('foundation','intermediate','advance') NOT NULL,
   `duration` mediumint(10) DEFAULT NULL,
@@ -356,7 +347,7 @@ CREATE TABLE `classes` (
 -- Dumping data for table `classes`
 --
 
-INSERT INTO `classes` (`uuid`, `name`, `slug`, `description`, `price`, `quota_cost`, `instructor_uuid`, `image`, `level`, `duration`, `is_active`, `created_at`, `updated_at`) VALUES
+INSERT INTO `classes` (`uuid`, `name`, `slug`, `description`, `price`, `quota_cost`, `vendor_uuid`, `image`, `level`, `duration`, `is_active`, `created_at`, `updated_at`) VALUES
 ('01a07699-0698-73e1-8251-7afede34bbb1', 'Yin Yoga', 'yin-yoga', 'Yin yoga is a style of yoga which targets the connective tissue through poses which are held for longer periods of time, typically 3-5 minutes.', 0.00, 1, '95294c43-b3d8-4b46-b938-e4eea1f3a359', 'classes/klSn534j2UGQDMi3KFBImTLGx63CNMBOdTllJlUj.jpg', 'foundation', 60, 'active', '2026-09-06 05:02:15', '2026-10-04 02:04:18'),
 ('01a0aab9-cdc8-71d6-9dfc-bd30601b7ecb', 'Hatha', 'hatha', 'Grounding Hatha draws from the classical roots of Hatha yoga to create a steady, breath-centered practice that builds both physical awareness and inner stillness.', 0.00, 1, '787b72ea-59d0-4d54-848b-c200bddafdd2', NULL, 'foundation', 60, 'active', '2026-09-16 14:58:18', '2026-09-16 14:59:41'),
 ('01a0aac6-831b-73b8-8746-869d56f563a4', 'Vinyasa', 'vinyasa', 'A dynamic, breath-led flow linking movement with breath to build strength, flexibility, and focus', 0.00, 1, '787b72ea-59d0-4d54-848b-c200bddafdd2', NULL, 'foundation', 60, 'active', '2026-09-16 15:12:11', '2026-09-16 15:12:11');
@@ -536,6 +527,7 @@ INSERT INTO `failed_logins` (`id`, `email`, `user_uuid`, `ip_address`, `user_age
 CREATE TABLE `faqs` (
   `uuid` char(36) NOT NULL,
   `pertanyaan` varchar(255) NOT NULL,
+  `kategori` varchar(100) NOT NULL DEFAULT 'Perencanaan Pernikahan',
   `jawaban` text NOT NULL,
   `urutan` int(11) NOT NULL DEFAULT 0,
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
@@ -547,13 +539,13 @@ CREATE TABLE `faqs` (
 -- Dumping data for table `faqs`
 --
 
-INSERT INTO `faqs` (`uuid`, `pertanyaan`, `jawaban`, `urutan`, `status`, `created_at`, `updated_at`) VALUES
-('4b9411a3-ccc5-44fd-bc24-e8dc7065773c', 'What should I bring to class?', 'Wear comfortable clothes that allow you to move freely. Bring a water bottle and your own yoga mat if needed.', 2, 'active', '2025-09-17 20:19:23', '2026-09-10 17:00:55'),
-('6bb623f8-916a-436b-85b3-a57035fe5ac5', 'How often should I practice yoga?', 'It depends on your goals and routine. For most people, practicing 2–3 times a week is a great way to build consistency while giving your body enough time to rest.', 4, 'active', '2025-09-17 20:20:44', '2026-09-10 17:01:41'),
-('95b200f1-69c7-4f1b-a76b-172bcf5fcc55', 'How long is each class?', 'Most Yoga Roots classes run for 60–90 minutes, depending on the type of class. Each session gives you time to move, breathe, and slow down.', 5, 'active', '2025-09-17 20:21:00', '2026-09-10 17:02:03'),
-('9f25d34e-2a60-42cf-8379-ed069dc50ac0', 'How can I join Yoga Roots?', 'Choose the class that feels right for you, select your preferred schedule, and register through our website. We’ll be happy to have you join us.', 6, 'active', '2026-09-10 17:02:30', '2026-09-10 17:02:30'),
-('fa2b17f9-f0d4-4849-8373-8d787b80113e', 'Is Yoga Roots suitable for beginners?', 'Absolutely. Yoga Roots welcomes everyone, whether you’re completely new to yoga or have been practicing for years. Our classes are designed to help you feel comfortable and progress at your own pace.', 1, 'active', '2025-09-17 20:13:33', '2026-09-10 17:00:36'),
-('fd90f57c-53aa-4b5d-8e11-faea4808686d', 'Do I need to be flexible to practice yoga?', 'Not at all. You don’t need to be flexible to start yoga. With regular practice, you’ll gradually build flexibility, strength, balance, and a better connection with your body.', 3, 'active', '2025-09-17 20:20:22', '2026-09-10 17:01:17');
+INSERT INTO `faqs` (`uuid`, `pertanyaan`, `kategori`, `jawaban`, `urutan`, `status`, `created_at`, `updated_at`) VALUES
+('4b9411a3-ccc5-44fd-bc24-e8dc7065773c', 'When should we start planning our wedding?', 'Perencanaan Pernikahan', 'Ideally, start 6–12 months before the big day. Setting the date, venue, and budget early gives you access to a wider range of options.', 1, 'active', '2025-09-17 20:19:23', '2026-09-10 17:00:55'),
+('6bb623f8-916a-436b-85b3-a57035fe5ac5', 'Can we choose our own vendors?', 'Vendor & Mitra', 'Absolutely. You can select from our recommended vendors or propose your own. We will help make sure they fit your concept and budget.', 4, 'active', '2025-09-17 20:20:44', '2026-09-10 17:01:41'),
+('95b200f1-69c7-4f1b-a76b-172bcf5fcc55', 'Can we change the date or package after booking?', 'Perubahan & Pembatalan', 'Changes can be requested up to 30 days before the event, subject to availability. Cancellations follow the terms stated in your booking agreement.', 6, 'active', '2025-09-17 20:21:00', '2026-09-10 17:02:03'),
+('9f25d34e-2a60-42cf-8379-ed069dc50ac0', 'How do I book a package and make a payment?', 'Pemesanan & Pembayaran', 'Choose a package and submit the booking form. Our team will send an invoice, and payment can be made by bank transfer based on the agreed schedule.', 3, 'active', '2026-09-10 17:02:30', '2026-09-10 17:02:30'),
+('fa2b17f9-f0d4-4849-8373-8d787b80113e', 'What is included in a wedding package?', 'Paket & Layanan', 'Packages can include decoration, photography, videography, MC, music, and event coordination. Details can be tailored to your needs.', 2, 'active', '2025-09-17 20:13:33', '2026-09-10 17:00:36'),
+('fd90f57c-53aa-4b5d-8e11-faea4808686d', 'What happens on the wedding day?', 'Pelaksanaan Acara', 'Our team arrives early for setup, vendor coordination, and final checks, so you can enjoy the celebration with your guests.', 5, 'active', '2025-09-17 20:20:22', '2026-09-10 17:01:17');
 
 -- --------------------------------------------------------
 
@@ -720,6 +712,36 @@ INSERT INTO `kelurahans` (`id`, `kecamatan_id`, `nama`, `kodepos`, `created_at`,
 -- Table structure for table `kontak`
 --
 
+CREATE TABLE `consultations` (
+  `uuid` char(36) NOT NULL,
+  `full_name` varchar(150) NOT NULL,
+  `whatsapp` varchar(20) NOT NULL,
+  `wedding_date` date DEFAULT NULL,
+  `guest_estimate` enum('Di bawah 200 tamu','200–500 tamu','500–1.000 tamu','Di atas 1.000 tamu') DEFAULT NULL,
+  `venue` varchar(255) DEFAULT NULL,
+  `package_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `wedding_concept` text DEFAULT NULL,
+  `consultation_date` date DEFAULT NULL,
+  `consultation_time` time DEFAULT NULL,
+  `consultation_method` enum('Online','Offline') DEFAULT NULL,
+  `consultation_status` enum('Pending','Confirmed','Rescheduled','Completed','Cancelled','No Show') NOT NULL DEFAULT 'Pending',
+  `admin_notes` text DEFAULT NULL,
+  `handled_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `follow_up_at` datetime DEFAULT NULL,
+  `lead_status` enum('New','Contacted','Interested','Negotiation','Converted','Lost') NOT NULL DEFAULT 'New',
+  `source` varchar(50) NOT NULL DEFAULT 'Website',
+  `converted_to_booking_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `kontak`
+--
+
 CREATE TABLE `kontak` (
   `uuid` char(36) NOT NULL,
   `nama` varchar(255) DEFAULT NULL,
@@ -856,17 +878,18 @@ INSERT INTO `menu_groups` (`id`, `name`, `status`, `permission_name`, `icon`, `p
 (2, 'Role dan Akses', 1, 'menu.role-permission', 'bx-shield-quarter', 11, '2024-09-26 23:27:05', '2024-09-26 23:56:50'),
 (3, 'Settings', 1, 'menu-item.index', 'bx-cog', 12, '2024-09-26 23:27:05', '2026-09-06 19:40:05'),
 (4, 'Orders', 1, 'orders.index', 'bx-receipt', 3, '2024-09-26 23:35:30', '2026-09-13 14:27:12'),
-(7, 'Content', 1, 'articles.index', 'bxs-file', 9, '2024-09-29 12:37:06', '2026-09-07 20:02:14'),
-(8, 'Media Library', 1, 'banner.index', 'bx-camera', 9, '2024-10-13 22:33:06', '2026-09-06 21:51:58'),
+(7, 'Konten', 1, 'articles.index', 'bxs-file', 9, '2024-09-29 12:37:06', '2026-09-07 20:02:14'),
+(8, 'Perpustakaan Media', 1, 'banner.index', 'bx-camera', 9, '2024-10-13 22:33:06', '2026-09-06 21:51:58'),
 (9, 'Master Data', 1, 'testimonial.index', 'bx-folder-open', 10, '2025-07-21 17:56:19', '2026-08-30 19:07:27'),
-(10, 'Instructors', 1, 'instruktur.index', 'bx-user', 7, '2025-07-23 22:38:22', '2026-09-03 17:38:48'),
-(11, 'Events', 1, 'events.index', 'bxs-calendar', 5, '2025-07-25 16:53:44', '2026-09-11 00:30:47'),
+(10, 'Vendor', 1, 'vendor.index', 'bx-user', 7, '2025-07-23 22:38:22', '2026-09-03 17:38:48'),
+(11, 'Acara', 1, 'events.index', 'bxs-calendar', 5, '2025-07-25 16:53:44', '2026-09-11 00:30:47'),
 (12, 'Packages', 1, 'package.member', 'bx-package', 1, '2025-09-14 12:05:35', '2026-09-07 20:00:15'),
 (22, 'Classes', 1, 'class-schedules.index', 'bx-book', 2, '2026-09-02 15:16:09', '2026-09-06 03:39:03'),
 (23, 'Venues', 1, 'venues.index', 'bx-camera-home', 6, '2026-09-08 06:44:24', '2026-09-08 06:44:24'),
 (24, 'Security', 1, 'menu.keamanan', 'bx-shield-alt-2', 13, '2026-10-02 00:30:47', '2026-10-03 12:02:43'),
 (26, 'Memberships', 1, 'memberships.index', 'bx-id-card', 4, '2026-10-04 02:13:11', '2026-10-04 02:23:55'),
-(27, 'Memberships', 1, 'menu.memberships', 'bx-id-card', 55, '2026-10-04 02:31:55', '2026-10-04 02:31:55');
+(27, 'Memberships', 1, 'menu.memberships', 'bx-id-card', 55, '2026-10-04 02:31:55', '2026-10-04 02:31:55'),
+(28, 'Konsultasi', 1, 'konsultasi.index', 'bx-message-detail', 8, '2026-11-20 00:00:00', '2026-11-20 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -898,20 +921,19 @@ INSERT INTO `menu_items` (`id`, `name`, `icon`, `route`, `status`, `permission_n
 (4, 'Daftar Pengguna', NULL, 'user.index', 1, 'user.index', 3, 1, '2024-09-26 23:27:05', '2024-09-26 23:39:25'),
 (5, 'Module Aplikasi', NULL, 'route.index', 1, 'route.index', 3, 2, '2024-09-26 23:27:05', '2024-09-26 23:44:54'),
 (6, 'Menu Manager', NULL, 'menu.index', 1, 'menu-group.index', 3, 3, '2024-09-26 23:27:05', '2024-09-26 23:44:09'),
-(8, 'Category', NULL, 'categories.index', 1, 'categories.index', 7, 3, '2024-09-29 12:39:24', '2026-09-07 20:01:25'),
-(9, 'Articles', NULL, 'articles.index', 1, 'articles.index', 7, 1, '2024-09-30 12:08:38', '2026-09-07 20:04:28'),
-(10, 'All Media', NULL, 'banner.index', 1, 'banner.index', 8, 1, '2024-10-13 22:38:24', '2026-09-06 21:52:06'),
-(12, 'Add Articles', NULL, 'articles.create', 1, 'articles.create', 7, 2, '2025-07-22 12:59:27', '2026-09-07 20:04:20'),
-(13, 'Vendor Category', NULL, 'vendors_categories.index', 1, 'vendors_categories.index', 10, 1, '2025-07-23 23:12:46', '2026-09-03 15:02:16'),
-(14, 'All Events', NULL, 'events.index', 1, 'events.index', 11, 1, '2025-07-25 16:55:36', '2026-09-03 05:05:58'),
+(8, 'Kategori', NULL, 'categories.index', 1, 'categories.index', 7, 3, '2024-09-29 12:39:24', '2026-09-07 20:01:25'),
+(9, 'Artikel', NULL, 'articles.index', 1, 'articles.index', 7, 1, '2024-09-30 12:08:38', '2026-09-07 20:04:28'),
+(10, 'Semua Media', NULL, 'banner.index', 1, 'banner.index', 8, 1, '2024-10-13 22:38:24', '2026-09-06 21:52:06'),
+(12, 'Tambah Artikel', NULL, 'articles.create', 1, 'articles.create', 7, 2, '2025-07-22 12:59:27', '2026-09-07 20:04:20'),
+(13, 'Kategori Vendor', NULL, 'vendors_categories.index', 1, 'vendors_categories.index', 10, 1, '2025-07-23 23:12:46', '2026-09-03 15:02:16'),
+(14, 'Semua Acara', NULL, 'events.index', 1, 'events.index', 11, 1, '2025-07-25 16:55:36', '2026-09-03 05:05:58'),
 (40, 'Static Pages', NULL, 'pages.index', 1, 'pages.index', 9, 3, '2025-10-21 03:46:02', '2026-09-03 15:13:56'),
-(41, 'All Instructors', NULL, 'instruktur.index', 1, 'instruktur.index', 10, 2, '2025-11-12 04:02:59', '2026-10-03 15:14:04'),
+(41, 'Daftar Vendor', NULL, 'vendor.index', 1, 'vendor.index', 10, 2, '2025-11-12 04:02:59', '2026-10-03 15:14:04'),
 (44, 'Packages', NULL, 'packages.index', 1, 'package.index', 12, 1, '2026-09-02 04:59:49', '2026-09-02 04:59:49'),
 (45, 'Browse Packages', NULL, 'packages.member', 1, 'package.member', 12, 2, '2026-09-02 05:52:23', '2026-09-07 20:00:31'),
 (46, 'Class List', NULL, 'classes.index', 1, 'classes.index', 22, 1, '2026-09-02 15:18:03', '2026-09-02 15:18:03'),
 (47, 'Schedule', NULL, 'class-schedules.index', 1, 'class-schedules.index', 22, 2, '2026-09-06 03:39:53', '2026-09-06 03:39:53'),
-(48, 'Messages', NULL, 'layanan.kontak', 1, 'layanan.kontak', 3, 4, '2026-09-06 19:44:23', '2026-09-06 19:44:23'),
-(49, 'All Members', NULL, 'pengguna.index', 1, 'pengguna.index', 3, 5, '2026-09-06 20:40:53', '2026-09-06 20:40:53'),
+(49, 'Calon Pelanggan', NULL, 'pengguna.index', 1, 'pengguna.index', 3, 5, '2026-09-06 20:40:53', '2026-11-20 00:00:00'),
 (50, 'Testimonials', NULL, 'testimonial.index', 1, 'testimonial.index', 9, 4, '2026-09-07 23:00:45', '2026-09-07 23:00:45'),
 (51, 'Faq & Answer', NULL, 'faq.index', 1, 'faq.index', 9, 5, '2026-09-07 23:04:55', '2026-09-07 23:04:55'),
 (52, 'All Venues', NULL, 'venues.index', 1, 'venues.index', 23, 1, '2026-09-08 07:14:52', '2026-09-08 07:14:52'),
@@ -926,7 +948,9 @@ INSERT INTO `menu_items` (`id`, `name`, `icon`, `route`, `status`, `permission_n
 (61, 'All Members', NULL, 'memberships.index', 1, 'memberships.index', 26, 1, '2026-10-04 02:13:11', '2026-10-04 02:13:11'),
 (62, 'Bookings', NULL, 'class-bookings.index', 1, 'class-bookings.index', 26, 2, '2026-10-04 02:13:11', '2026-10-04 02:13:11'),
 (63, 'All Members', NULL, 'memberships.index', 1, 'memberships.index', 27, 1, '2026-10-04 02:31:55', '2026-10-04 02:31:55'),
-(64, 'Bookings', NULL, 'class-bookings.index', 1, 'class-bookings.index', 27, 2, '2026-10-04 02:31:55', '2026-10-04 02:31:55');
+(64, 'Bookings', NULL, 'class-bookings.index', 1, 'class-bookings.index', 27, 2, '2026-10-04 02:31:55', '2026-10-04 02:31:55'),
+(65, 'Arsip Vendor', NULL, 'vendor.archive', 1, 'vendor.index', 10, 3, '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(66, 'Pertanyaan Masuk', NULL, 'konsultasi.index', 1, 'konsultasi.index', 28, 1, '2026-11-20 00:00:00', '2026-11-20 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -1200,6 +1224,7 @@ INSERT INTO `orders` (`uuid`, `user_uuid`, `order_number`, `type`, `package_uuid
 --
 
 CREATE TABLE `packages` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
   `uuid` char(36) NOT NULL,
   `name` varchar(255) NOT NULL,
   `slug` varchar(255) NOT NULL,
@@ -1486,16 +1511,15 @@ INSERT INTO `permissions` (`id`, `name`, `guard_name`, `created_at`, `updated_at
 (130, 'filedownload.index', 'web', '2025-07-25 16:48:48', '2025-07-25 16:48:48'),
 (135, 'filedownload.store', 'web', '2025-07-25 16:49:09', '2025-07-25 16:49:09'),
 (140, 'filedownload.update', 'web', '2025-07-25 16:49:23', '2025-07-25 16:49:23'),
-(145, 'layanan.kontak', 'web', '2025-07-27 23:46:01', '2025-07-27 23:46:01'),
-(146, 'instruktur.index', 'web', '2025-09-14 12:04:29', '2026-09-01 14:30:03'),
+(146, 'vendor.index', 'web', '2025-09-14 12:04:29', '2026-09-01 14:30:03'),
 (147, 'pages.create', 'web', '2025-09-17 23:27:58', '2025-09-17 23:27:58'),
 (148, 'pages.destroy', 'web', '2025-09-17 23:28:08', '2025-09-17 23:28:08'),
 (149, 'pages.index', 'web', '2025-09-17 23:28:19', '2025-09-17 23:28:19'),
 (150, 'pages.store', 'web', '2025-09-17 23:28:28', '2025-09-17 23:28:28'),
 (151, 'pages.update', 'web', '2025-09-17 23:28:36', '2025-09-17 23:28:36'),
-(152, 'instruktur.destroy', 'web', '2025-09-18 01:25:31', '2026-09-01 14:29:43'),
-(153, 'instruktur.store', 'web', '2025-09-18 01:25:43', '2026-09-01 14:30:14'),
-(154, 'instruktur.update', 'web', '2025-09-18 01:29:03', '2026-09-01 14:30:28'),
+(152, 'vendor.destroy', 'web', '2025-09-18 01:25:31', '2026-09-01 14:29:43'),
+(153, 'vendor.store', 'web', '2025-09-18 01:25:43', '2026-09-01 14:30:14'),
+(154, 'vendor.update', 'web', '2025-09-18 01:29:03', '2026-09-01 14:30:28'),
 (155, 'testimonial.destroy', 'web', '2025-09-21 21:43:09', '2025-09-21 21:43:09'),
 (156, 'testimonial.index', 'web', '2025-09-21 21:43:15', '2025-09-21 21:43:15'),
 (157, 'testimonial.update', 'web', '2025-09-21 21:43:32', '2025-09-21 21:43:32'),
@@ -1533,7 +1557,7 @@ INSERT INTO `permissions` (`id`, `name`, `guard_name`, `created_at`, `updated_at
 (189, 'venues.create', 'web', '2026-09-08 06:30:57', '2026-09-08 06:30:57'),
 (190, 'venues.store', 'web', '2026-09-08 06:31:17', '2026-09-08 06:31:17'),
 (191, 'venues.update', 'web', '2026-09-08 06:31:34', '2026-09-08 06:31:34'),
-(192, 'instruktur.mobile', 'web', '2026-09-12 06:49:00', '2026-09-12 06:49:00'),
+(192, 'vendor.mobile', 'web', '2026-09-12 06:49:00', '2026-09-12 06:49:00'),
 (193, 'checkout.package', 'web', '2026-09-12 15:39:44', '2026-09-12 15:39:44'),
 (194, 'orders.index', 'web', '2026-09-13 13:23:41', '2026-09-13 13:23:41'),
 (195, 'orders.show', 'web', '2026-09-13 13:23:57', '2026-09-13 13:23:57'),
@@ -1557,7 +1581,10 @@ INSERT INTO `permissions` (`id`, `name`, `guard_name`, `created_at`, `updated_at
 (213, 'class-bookings.cancel', 'web', '2026-10-04 02:13:11', '2026-10-04 02:13:11'),
 (214, 'orders.approve', 'web', '2026-10-04 02:13:11', '2026-10-04 02:13:11'),
 (215, 'orders.reject', 'web', '2026-10-04 02:13:11', '2026-10-04 02:13:11'),
-(216, 'orders.proof', 'web', '2026-10-04 02:31:55', '2026-10-04 02:31:55');
+(216, 'orders.proof', 'web', '2026-10-04 02:31:55', '2026-10-04 02:31:55'),
+(217, 'vendor.archive', 'web', '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(218, 'vendor.restore', 'web', '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(219, 'konsultasi.index', 'web', '2026-11-20 00:00:00', '2026-11-20 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -1637,7 +1664,7 @@ INSERT INTO `roles` (`id`, `name`, `guard_name`, `created_at`, `updated_at`) VAL
 (1, 'super-admin', 'web', '2024-09-26 23:27:05', '2024-09-26 23:27:05'),
 (2, 'user', 'web', '2024-09-26 23:27:05', '2024-09-26 23:27:05'),
 (3, 'admin', 'web', '2024-09-27 01:40:58', '2024-09-27 01:40:58'),
-(5, 'instruktur', 'web', '2025-07-21 13:29:16', '2026-09-01 14:24:16');
+(5, 'vendor', 'web', '2025-07-21 13:29:16', '2026-09-01 14:24:16');
 
 -- --------------------------------------------------------
 
@@ -1757,8 +1784,6 @@ INSERT INTO `role_has_permissions` (`permission_id`, `role_id`) VALUES
 (90, 5),
 (130, 2),
 (130, 5),
-(145, 1),
-(145, 3),
 (146, 1),
 (146, 3),
 (147, 1),
@@ -1917,7 +1942,9 @@ INSERT INTO `role_has_permissions` (`permission_id`, `role_id`) VALUES
 (215, 3),
 (216, 1),
 (216, 2),
-(216, 3);
+(216, 3),
+(219, 1),
+(219, 3);
 
 -- --------------------------------------------------------
 
@@ -1996,17 +2023,16 @@ INSERT INTO `routes` (`id`, `route`, `permission_name`, `status`, `description`,
 (125, 'filedownload.destroy', 'filedownload.destroy', 1, NULL, '2025-07-25 16:50:24', '2025-07-25 16:50:24'),
 (130, 'filedownload.store', 'filedownload.store', 1, NULL, '2025-07-25 16:50:51', '2025-07-25 16:50:51'),
 (135, 'filedownload.update', 'filedownload.update', 1, NULL, '2025-07-25 16:51:29', '2025-07-25 16:51:29'),
-(140, 'layanan.kontak', 'layanan.kontak', 1, NULL, '2025-07-27 23:47:08', '2025-07-27 23:47:08'),
 (145, 'banner.update', 'banner.update', 1, NULL, '2025-08-07 12:52:06', '2025-08-07 12:52:06'),
-(146, 'instruktur.destroy', 'instruktur.destroy', 1, NULL, '2025-09-14 12:04:52', '2026-09-01 14:31:34'),
+(146, 'vendor.destroy', 'vendor.destroy', 1, NULL, '2025-09-14 12:04:52', '2026-09-01 14:31:34'),
 (147, 'pages.create', 'pages.create', 1, NULL, '2025-09-17 23:29:27', '2025-09-17 23:29:27'),
 (148, 'pages.index', 'pages.index', 1, NULL, '2025-09-17 23:29:41', '2025-09-17 23:29:41'),
 (149, 'pages.store', 'pages.store', 1, NULL, '2025-09-17 23:29:59', '2025-09-17 23:29:59'),
 (150, 'pages.destroy', 'pages.destroy', 1, NULL, '2025-09-17 23:30:31', '2025-09-17 23:30:31'),
 (151, 'pages.update', 'pages.update', 1, NULL, '2025-09-17 23:30:45', '2025-09-17 23:30:45'),
-(152, 'instruktur.index', 'instruktur.index', 1, NULL, '2025-09-18 01:27:46', '2026-09-01 14:32:00'),
-(153, 'instruktur.store', 'instruktur.store', 1, NULL, '2025-09-18 01:27:59', '2026-09-01 14:32:18'),
-(154, 'instruktur.update', 'instruktur.update', 1, NULL, '2025-09-18 01:31:29', '2026-09-01 14:32:46'),
+(152, 'vendor.index', 'vendor.index', 1, NULL, '2025-09-18 01:27:46', '2026-09-01 14:32:00'),
+(153, 'vendor.store', 'vendor.store', 1, NULL, '2025-09-18 01:27:59', '2026-09-01 14:32:18'),
+(154, 'vendor.update', 'vendor.update', 1, NULL, '2025-09-18 01:31:29', '2026-09-01 14:32:46'),
 (155, 'testimonial.destroy', 'testimonial.destroy', 1, NULL, '2025-09-21 21:44:13', '2025-09-21 21:44:13'),
 (156, 'testimonial.index', 'testimonial.index', 1, NULL, '2025-09-21 21:44:25', '2025-09-21 21:44:25'),
 (157, 'testimonial.store', 'testimonial.store', 1, NULL, '2025-09-21 21:44:40', '2025-09-21 21:44:40'),
@@ -2044,7 +2070,7 @@ INSERT INTO `routes` (`id`, `route`, `permission_name`, `status`, `description`,
 (189, 'venues.destroy', 'venues.destroy', 1, NULL, '2026-09-08 06:33:15', '2026-09-08 06:33:15'),
 (190, 'venues.update', 'venues.update', 1, NULL, '2026-09-08 06:33:33', '2026-09-08 06:33:33'),
 (191, 'venues.store', 'venues.store', 1, NULL, '2026-09-08 06:33:55', '2026-09-08 06:33:55'),
-(192, 'instruktur.mobile', 'instruktur.mobile', 1, NULL, '2026-09-12 06:49:32', '2026-09-12 06:49:32'),
+(192, 'vendor.mobile', 'vendor.mobile', 1, NULL, '2026-09-12 06:49:32', '2026-09-12 06:49:32'),
 (193, 'checkout.package', 'checkout.package', 1, NULL, '2026-09-12 15:40:03', '2026-09-12 15:40:03'),
 (194, 'orders.index', 'orders.index', 1, NULL, '2026-09-13 13:24:29', '2026-09-13 13:24:29'),
 (195, 'orders.store', 'orders.store', 1, NULL, '2026-09-13 13:24:43', '2026-09-13 13:24:43'),
@@ -2086,7 +2112,15 @@ INSERT INTO `routes` (`id`, `route`, `permission_name`, `status`, `description`,
 (231, 'orders.approve', 'orders.approve', 1, NULL, '2026-10-04 02:13:11', '2026-10-04 02:13:11'),
 (232, 'orders.reject', 'orders.reject', 1, NULL, '2026-10-04 02:13:11', '2026-10-04 02:13:11'),
 (233, 'orders.proof', 'orders.proof', 1, NULL, '2026-10-04 02:31:55', '2026-10-04 02:31:55'),
-(234, 'orders.proof.show', 'orders.proof', 1, NULL, '2026-10-04 02:55:13', '2026-10-04 02:55:13');
+(234, 'orders.proof.show', 'orders.proof', 1, NULL, '2026-10-04 02:55:13', '2026-10-04 02:55:13'),
+(235, 'konsultasi.index', 'konsultasi.index', 1, NULL, '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(236, 'konsultasi.create', 'konsultasi.index', 1, NULL, '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(237, 'konsultasi.store', 'konsultasi.index', 1, NULL, '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(238, 'konsultasi.show', 'konsultasi.index', 1, NULL, '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(239, 'konsultasi.edit', 'konsultasi.index', 1, NULL, '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(240, 'konsultasi.update', 'konsultasi.index', 1, NULL, '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(241, 'konsultasi.destroy', 'konsultasi.index', 1, NULL, '2026-11-20 00:00:00', '2026-11-20 00:00:00'),
+(242, 'pengguna.update-status', 'pengguna.index', 1, NULL, '2026-11-20 00:00:00', '2026-11-20 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -2279,6 +2313,7 @@ INSERT INTO `testimonials` (`uuid`, `nama`, `jabatan`, `isi_testimoni`, `foto`, 
 --
 
 CREATE TABLE `users` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
   `uuid` char(36) NOT NULL,
   `name` varchar(255) NOT NULL,
   `no_hp` varchar(20) DEFAULT NULL,
@@ -2308,7 +2343,9 @@ CREATE TABLE `users` (
   `youtube` varchar(255) DEFAULT NULL,
   `biografi` text DEFAULT NULL,
   `package_uuid` char(36) DEFAULT NULL,
-  `sumber_informasi` enum('google','sosmed','friend','community','event','website','other') DEFAULT NULL
+  `sumber_informasi` enum('google','sosmed','friend','community','event','website','other') DEFAULT NULL,
+  `prospect_status` enum('new_registered','interested','consultation','negotiation','customer','inactive') NOT NULL DEFAULT 'new_registered',
+  `prospect_status_updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -2553,7 +2590,7 @@ ALTER TABLE `categories`
 ALTER TABLE `classes`
   ADD PRIMARY KEY (`uuid`),
   ADD UNIQUE KEY `classes_slug_unique` (`slug`),
-  ADD KEY `classes_instructor_uuid_index` (`instructor_uuid`),
+  ADD KEY `classes_vendor_uuid_index` (`vendor_uuid`),
   ADD KEY `classes_is_active_index` (`is_active`);
 
 --
@@ -2612,7 +2649,8 @@ ALTER TABLE `failed_logins`
 -- Indexes for table `faqs`
 --
 ALTER TABLE `faqs`
-  ADD PRIMARY KEY (`uuid`);
+  ADD PRIMARY KEY (`uuid`),
+  ADD KEY `faqs_kategori_index` (`kategori`);
 
 --
 -- Indexes for table `file_downloads`
@@ -3028,7 +3066,7 @@ ALTER TABLE `articles`
 -- Constraints for table `classes`
 --
 ALTER TABLE `classes`
-  ADD CONSTRAINT `classes_instructor_uuid_foreign` FOREIGN KEY (`instructor_uuid`) REFERENCES `users` (`uuid`) ON DELETE SET NULL;
+  ADD CONSTRAINT `classes_vendor_uuid_foreign` FOREIGN KEY (`vendor_uuid`) REFERENCES `users` (`uuid`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `class_bookings`

@@ -111,7 +111,7 @@
                             <div class="d-flex justify-content-between align-items-start gap-2">
                                 <div>
                                     <p class="small fw-semibold mb-1">
-                                        {{ $order->package?->name ?? 'Single Class' }}
+                                        {{ $order->package?->name ?? 'Kelas Tunggal' }}
                                         @if ($order->packageOption?->name)
                                             <small class="d-block text-muted2 fw-normal">{{ $order->packageOption->name }}</small>
                                         @endif
@@ -178,22 +178,22 @@
         </div>
 
         {{-- ================================================= --}}
-        {{-- TEACHER --}}
+        {{-- VENDOR --}}
         {{-- ================================================= --}}
 
         <div class="d-flex justify-content-between align-items-end mt-4">
-            <h3 class="h5 fw-semibold mb-0">{{ __('mobile.teacher') }}</h3>
-            <a href="{{ route('instruktur.mobile') }}"
+            <h3 class="h5 fw-semibold mb-0">{{ __('mobile.vendor_list') }}</h3>
+            <a href="{{ route('vendor.mobile') }}"
                 class="btn btn-link p-0 text-terra fw-semibold text-small text-decoration-none">{{ __('mobile.view_all') }}</a>
         </div>
 
         <div class="app-card overflow-hidden gap-3 mt-3">
-            <a href="{{ route('instruktur.mobile') }}"
+            <a href="{{ route('vendor.mobile') }}"
                 class="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none text-dark">
                 <i class="bi bi-easel2 text-sage"></i>
                 <div class="flex-fill">
-                    <p class="small fw-semibold mb-0">{{ __('mobile.meet_teachers') }}</p>
-                    <p class="mb-0 m-micro text-muted2">{{ __('mobile.meet_teachers_desc') }}</p>
+                    <p class="small fw-semibold mb-0">{{ __('mobile.meet_your_vendors') }}</p>
+                    <p class="mb-0 m-micro text-muted2">{{ __('mobile.meet_vendors_desc') }}</p>
                 </div>
                 <i class="bi bi-chevron-right text-muted2"></i>
             </a>
@@ -348,18 +348,18 @@
                 <div class="flex-fill">
 
                     <p class="small text-muted2 mb-1">
-                        Gender
+                        {{ __('mobile.gender') }}
                     </p>
 
                     <p class="small fw-medium mb-0">
 
                         @if($user->jenis_kelamin === 'L')
 
-                        Male
+                        {{ __('mobile.male') }}
 
                         @elseif($user->jenis_kelamin === 'P')
 
-                        Female
+                        {{ __('mobile.female') }}
 
                         @else
 
@@ -542,7 +542,7 @@
                 <i class="bi bi-phone-download text-sage"></i>
 
                 <span class="small fw-medium flex-fill text-dark">
-                    Install App
+                    Pasang Aplikasi
                 </span>
 
                 <i class="bi bi-chevron-right text-muted2"></i>
@@ -686,7 +686,7 @@
                     type="button"
                     class="btn-close"
                     data-bs-dismiss="modal"
-                    aria-label="Close">
+                    aria-label="Tutup">
                 </button>
             </div>
 

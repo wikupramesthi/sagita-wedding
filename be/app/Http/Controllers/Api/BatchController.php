@@ -36,10 +36,11 @@ class BatchController extends Controller
                 'blog-detail' => $this->blogDetail($request),
                 'packages' => $this->packagesPage($request),
                 'package-detail' => $this->packageDetail($request),
-                'instructors' => $this->instructorsPage(),
+                'vendors' => $this->vendorsPage(),
                 'events' => $this->eventsPage($request),
                 'gallery' => $this->gallery(),
                 'contact' => $this->contactPage(),
+                'faq' => $this->faqPage(),
                 'page-detail' => $this->pageDetail($request),
                 'schedules' => $this->schedules($request),
                 default => null,
@@ -112,7 +113,7 @@ class BatchController extends Controller
         return [
             'stats' => [
                 'members' => User::role('user')->count(),
-                'instructors' => User::role('instruktur')->count(),
+                'vendors' => User::role('vendor')->count(),
                 'classes' => ClassModel::query()->where('is_active', 'active')->count(),
             ],
             'articles' => array_slice($this->articles(), 0, 3),
@@ -166,7 +167,7 @@ class BatchController extends Controller
         ));
         $rest = array_values(array_filter(
             $others,
-            fn ($article) => !$category || ($article['category'] ?? null) !== $category,
+            fn ($article) => ! $category || ($article['category'] ?? null) !== $category,
         ));
 
         return [
@@ -193,13 +194,13 @@ class BatchController extends Controller
         ];
     }
 
-    private function instructorsPage(): array
+    private function vendorsPage(): array
     {
-        $request = Request::create('/api/instructors', 'GET', ['per_page' => 20]);
+        $request = Request::create('/api/vendors', 'GET', ['per_page' => 20]);
 
         return $this->paginated(
-            app(InstructorController::class)->index($request),
-            'instructors',
+            app(VendorController::class)->index($request),
+            'vendors',
         );
     }
 
@@ -225,8 +226,8 @@ class BatchController extends Controller
         return [
             'gallery' => array_values(array_filter(
                 $banners,
-                fn ($banner) => !empty($banner['gambar'])
-                    && !str_contains((string) $banner['gambar'], 'default.png'),
+                fn ($banner) => ! empty($banner['gambar'])
+                    && ! str_contains((string) $banner['gambar'], 'default.png'),
             )),
         ];
     }
@@ -236,6 +237,18 @@ class BatchController extends Controller
         return [
             'captcha' => $this->data(app(ContactController::class)->captcha(), 'captcha'),
             'faqs' => $this->data(app(FaqController::class)->index(), 'faqs') ?? [],
+        ];
+    }
+
+    private function faqPage(): array
+    {
+        $body = app(FaqController::class)
+            ->index(Request::create('/api/faqs', 'GET'))
+            ->getData(true);
+
+        return [
+            'faqs' => $body['data'] ?? [],
+            'categories' => $body['meta']['categories'] ?? [],
         ];
     }
 
@@ -266,7 +279,7 @@ class BatchController extends Controller
 
         $venues = collect($all)
             ->pluck('venue')
-            ->filter(fn ($venue) => is_array($venue) && !empty($venue['uuid']))
+            ->filter(fn ($venue) => is_array($venue) && ! empty($venue['uuid']))
             ->unique('uuid')
             ->values()
             ->all();

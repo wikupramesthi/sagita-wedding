@@ -64,23 +64,23 @@
                 <!-- INFO -->
                 <div class="grid grid-cols-2 gap-3 mt-7">
 
-                    <!-- INSTRUCTOR -->
+                    <!-- VENDOR -->
                     <div class="bg-cream border border-sage-100 rounded-2xl p-4">
 
                         <div class="text-xs text-stone-warm mb-2">
-                            <%= t.instructorLabel %>
+                            <%= t.vendorLabel %>
                         </div>
 
                         <div class="flex items-center gap-3">
 
                             <div class="relative w-10 h-10 shrink-0">
                                 <div class="absolute inset-0 rounded-full bg-sage-700 text-white grid place-items-center font-bold">
-                                    <%= (cls.instructor?.name || 'Y').charAt(0).toUpperCase() %>
+                                    <%= (cls.vendor?.name || 'Y').charAt(0).toUpperCase() %>
                                 </div>
-                                <% if (cls.instructor?.avatar) { %>
+                                <% if (cls.vendor?.avatar) { %>
                                     <img
-                                        src="<%= cls.instructor.avatar %>"
-                                        alt="<%= cls.instructor.name || t.instructorLabel %>"
+                                        src="<%= cls.vendor.avatar %>"
+                                        alt="<%= cls.vendor.name || t.vendorLabel %>"
                                         data-fallback="/img/logo.png"
                                         data-img-error="remove"
                                         class="absolute inset-0 w-10 h-10 rounded-full object-cover bg-sage-50"
@@ -90,7 +90,7 @@
 
                             <div>
                                 <div class="font-semibold text-sage-800">
-                                    <%= cls.instructor?.name || t.instructorLabel %>
+                                    <%= cls.vendor?.name || t.vendorLabel %>
                                 </div>
                             </div>
 

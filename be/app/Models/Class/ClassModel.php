@@ -3,8 +3,8 @@
 namespace App\Models\Class;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -13,9 +13,11 @@ class ClassModel extends Model
     use HasUuids;
 
     protected $table = 'classes';
+
     protected $primaryKey = 'uuid';
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -27,7 +29,7 @@ class ClassModel extends Model
         'image',
         'level',
         'duration',
-        'instructor_uuid',
+        'vendor_uuid',
         'is_active',
     ];
 
@@ -36,11 +38,11 @@ class ClassModel extends Model
         'quota_cost' => 'integer',
     ];
 
-    public function instructor(): BelongsTo
+    public function vendor(): BelongsTo
     {
         return $this->belongsTo(
             User::class,
-            'instructor_uuid',
+            'vendor_uuid',
             'uuid'
         );
     }

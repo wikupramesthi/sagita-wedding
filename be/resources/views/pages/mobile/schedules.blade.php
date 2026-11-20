@@ -68,7 +68,7 @@
                 <i class="bi bi-search text-muted2"></i>
                 <input type="search" name="search" value="{{ $search ?? '' }}"
                     class="border-0 bg-transparent w-100 small" style="outline:none"
-                    placeholder="{{ __('mobile.search_class_instructor') }}" autocomplete="off">
+                    placeholder="Cari kelas atau vendor" autocomplete="off">
                 @if (!empty($search) || !empty($venueUuid) || !empty($level))
                     <a href="{{ route('schedules.index', ['tab' => $tab]) }}" class="text-muted2" aria-label="Clear filters">
                         <i class="bi bi-x-circle"></i>

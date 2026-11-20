@@ -1,15 +1,15 @@
 @extends('layouts.app')
-@section('title', 'Venues')
+@section('title', 'Vendor & Mitra')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Venues" page="Venues" active="All Venues" route="{{ route('venues.index') }}" />
+<x-breadcrumb title="Vendor & Mitra" page="Vendor & Mitra" active="Semua Venue" route="{{ route('venues.index') }}" />
 @endsection
 
 @if (session('success'))
 <div class="alert alert-success alert-dismissible mb-3 mt-3 fade show" role="alert">
     <span class="alert-text text-white"> {{ session('success') }}</span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup">
         <span aria-hidden="true">&times;</span>
     </button>
 </div>
@@ -17,7 +17,7 @@
 @if (session('error'))
 <div class="alert alert-danger alert-dismissible mb-3 mt-3 fade show" role="alert">
     <span class="alert-text text-white"> {{ session('error') }}</span>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup">
         <span aria-hidden="true">&times;</span>
     </button>
 </div>
@@ -27,28 +27,56 @@
 <div class="page-heading">
     <div class="row g-3 ml-stats">
         <div class="col-6 col-xl-3">
-            <div class="card shadow-sm"><div class="card-body py-2 px-3"><div class="ml-stat">
-                <div class="ml-stat-icon ic-primary"><i class="bx bx-building"></i></div>
-                <div><div class="ml-stat-value">{{ number_format($stats['total']) }}</div><div class="ml-stat-label">Total Venues</div></div>
-            </div></div></div>
+            <div class="card shadow-sm">
+                <div class="card-body py-2 px-3">
+                    <div class="ml-stat">
+                        <div class="ml-stat-icon ic-primary"><i class="bx bx-building"></i></div>
+                        <div>
+                            <div class="ml-stat-value">{{ number_format($stats['total']) }}</div>
+                            <div class="ml-stat-label">Total Venue</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-6 col-xl-3">
-            <div class="card shadow-sm"><div class="card-body py-2 px-3"><div class="ml-stat">
-                <div class="ml-stat-icon ic-success"><i class="bx bx-check-shield"></i></div>
-                <div><div class="ml-stat-value">{{ number_format($stats['active']) }}</div><div class="ml-stat-label">Active Venues</div></div>
-            </div></div></div>
+            <div class="card shadow-sm">
+                <div class="card-body py-2 px-3">
+                    <div class="ml-stat">
+                        <div class="ml-stat-icon ic-success"><i class="bx bx-check-shield"></i></div>
+                        <div>
+                            <div class="ml-stat-value">{{ number_format($stats['active']) }}</div>
+                            <div class="ml-stat-label">Venue Aktif</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-6 col-xl-3">
-            <div class="card shadow-sm"><div class="card-body py-2 px-3"><div class="ml-stat">
-                <div class="ml-stat-icon ic-warning"><i class="bx bx-pause-circle"></i></div>
-                <div><div class="ml-stat-value">{{ number_format($stats['inactive']) }}</div><div class="ml-stat-label">Inactive Venues</div></div>
-            </div></div></div>
+            <div class="card shadow-sm">
+                <div class="card-body py-2 px-3">
+                    <div class="ml-stat">
+                        <div class="ml-stat-icon ic-warning"><i class="bx bx-pause-circle"></i></div>
+                        <div>
+                            <div class="ml-stat-value">{{ number_format($stats['inactive']) }}</div>
+                            <div class="ml-stat-label">Venue Nonaktif</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-6 col-xl-3">
-            <div class="card shadow-sm"><div class="card-body py-2 px-3"><div class="ml-stat">
-                <div class="ml-stat-icon ic-violet"><i class="bx bx-calendar-event"></i></div>
-                <div><div class="ml-stat-value">{{ number_format($stats['schedules']) }}</div><div class="ml-stat-label">Total Schedules</div></div>
-            </div></div></div>
+            <div class="card shadow-sm">
+                <div class="card-body py-2 px-3">
+                    <div class="ml-stat">
+                        <div class="ml-stat-icon ic-violet"><i class="bx bx-calendar-event"></i></div>
+                        <div>
+                            <div class="ml-stat-value">{{ number_format($stats['schedules']) }}</div>
+                            <div class="ml-stat-label">Total Jadwal</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -56,12 +84,16 @@
         <div class="card-body py-2 px-3">
             <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
                 <form method="GET" action="{{ route('venues.index') }}" class="d-flex flex-wrap align-items-end gap-2 flex-grow-1">
-                    <div style="flex:1 1 160px;min-width:0;"><label class="form-label small mb-0">Search</label><input type="text" name="q" value="{{ $q }}" class="form-control form-control-sm w-100" placeholder="Name, address..." autocomplete="off"></div>
-                    <div style="flex:1 1 130px;min-width:0;max-width:200px;"><label class="form-label small mb-0">Status</label><select name="status" class="form-select form-select-sm w-100"><option value="">All</option><option value="active" @selected($status==='active')>Active</option><option value="inactive" @selected($status==='inactive')>Inactive</option></select></div>
-                    <div class="d-flex gap-1"><button type="submit" class="btn btn-sm btn-success"><i class="bi bi-funnel"></i> Filter</button><a href="{{ route('venues.index') }}" class="btn btn-sm btn-light">Reset</a></div>
+                    <div style="flex:1 1 160px;min-width:0;"><label class="form-label small mb-0">Cari</label><input type="text" name="q" value="{{ $q }}" class="form-control form-control-sm w-100" placeholder="Cari nama atau alamat venue..." autocomplete="off"></div>
+                    <div style="flex:1 1 130px;min-width:0;max-width:200px;"><label class="form-label small mb-0">Status</label><select name="status" class="form-select form-select-sm w-100">
+                            <option value="">Semua</option>
+                            <option value="active" @selected($status==='active' )>Aktif</option>
+                            <option value="inactive" @selected($status==='inactive' )>Nonaktif</option>
+                        </select></div>
+                    <div class="d-flex gap-1"><button type="submit" class="btn btn-sm btn-success"><i class="bi bi-funnel"></i> Filter</button><a href="{{ route('venues.index') }}" class="btn btn-sm btn-light">Atur Ulang</a></div>
                 </form>
                 @can('venues.create')
-                <a href="{{ route('venues.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add Venue</a>
+                <a href="{{ route('venues.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Tambah Venue</a>
                 @endcan
             </div>
         </div>
@@ -96,7 +128,7 @@
                         <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
                             <i class="bi bi-circle-fill me-1"
                                 style="font-size: 7px;"></i>
-                            Active
+                            Aktif
                         </span>
 
                         @else
@@ -104,7 +136,7 @@
                         <span class="badge rounded-pill bg-secondary-subtle text-secondary px-3 py-2">
                             <i class="bi bi-circle-fill me-1"
                                 style="font-size: 7px;"></i>
-                            Inactive
+                            Nonaktif
                         </span>
 
                         @endif
@@ -164,7 +196,7 @@
 
                             <span class="small text-muted">
                                 {{ $venue->schedules_count ?? 0 }}
-                                {{ ($venue->schedules_count ?? 0) == 1 ? 'Schedule' : 'Schedules' }}
+                                Jadwal
                             </span>
 
                         </div>
@@ -184,7 +216,7 @@
                             class="btn btn-sm btn-outline-primary flex-fill">
 
                             <i class="bi bi-geo-alt me-1"></i>
-                            View Map
+                            Lihat Peta
 
                         </a>
                         @endif
@@ -195,7 +227,7 @@
                             class="btn btn-sm btn-outline-dark flex-fill">
 
                             <i class="bi bi-pencil me-1"></i>
-                            Edit
+                            Ubah
                         </a>
                         @endcan
 
@@ -213,7 +245,7 @@
                                 onclick="showDeleteVenue('{{ $venue->uuid }}')">
 
                                 <i class="bi bi-trash me-1"></i>
-                                Delete
+                                Hapus
 
                             </button>
 
@@ -249,15 +281,15 @@
 
                     <h5 class="fw-bold mb-2"
                         style="color: var(--bs-heading-color);">
-                        No Venues Found
+                        Venue Tidak Ditemukan
                     </h5>
 
                     <p class="text-muted mb-4">
                         @if ($q !== '' || $status !== '')
-                        Try a different keyword or filter, or
-                        <a href="{{ route('venues.index') }}">reset the filter</a>.
+                        Coba kata kunci atau filter lain, atau
+                        <a href="{{ route('venues.index') }}">atur ulang filter</a>.
                         @else
-                        Add your first YogaRoots venue location.
+                        Tambahkan venue pertama untuk mulai mengelola lokasi kelas.
                         @endif
                     </p>
 
@@ -266,7 +298,7 @@
                     <a href="{{ route('venues.create') }}"
                         class="btn btn-primary px-4">
                         <i class="bi bi-plus-lg me-1"></i>
-                        Add Venue
+                        Tambah Venue
                     </a>
                     @endif
                     @endcan
@@ -289,12 +321,12 @@
     function showDeleteVenue(uuid) {
 
         Swal.fire({
-            title: 'Delete Venue?',
-            text: 'This venue will be permanently deleted. Are you sure?',
+            title: 'Hapus Venue?',
+            text: 'Venue ini akan dihapus permanen. Apakah Anda yakin?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Delete It!',
-            cancelButtonText: 'Cancel',
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
             confirmButtonColor: '#d33'
         }).then((result) => {
 

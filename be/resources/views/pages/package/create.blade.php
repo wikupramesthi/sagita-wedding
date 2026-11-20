@@ -31,7 +31,7 @@
       <i class="bi bi-exclamation-circle-fill mt-1"></i>
 
       <div>
-        <strong>Please check the following errors:</strong>
+        <strong>Silakan periksa kesalahan berikut:</strong>
 
         <ul class="mb-0 mt-2 ps-3">
           @foreach ($errors->all() as $error)

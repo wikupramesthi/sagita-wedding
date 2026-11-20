@@ -4,15 +4,15 @@
             <div class="modal-header">
                 <h5 class="modal-title" id="modal-view-album-{{ $album->uuid }}-label">
                     <i class="bx bx-photo-album text-success"></i> {{ $album->nama }}
-                    <span class="badge bg-primary ms-2">{{ $album->fotos_count ?? $album->fotos()->count() }} photos</span>
+                    <span class="badge bg-primary ms-2">{{ $album->fotos_count ?? $album->fotos()->count() }} foto</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body">
                 @if (($viewFotos ?? collect())->isEmpty())
                     <div class="text-center py-4 text-muted">
                         <i class="bx bx-image-alt fs-1"></i>
-                        <p class="mb-0">This album has no photos yet.</p>
+                        <p class="mb-0">Album ini belum memiliki foto.</p>
                     </div>
                 @else
                     <div class="media-modal-photos" style="max-height: 60vh; overflow-y: auto;">
@@ -26,15 +26,15 @@
                 @endif
                 @if ($album->deskripsi)
                     <div class="mt-3">
-                        <strong>Description:</strong>
+                        <strong>Deskripsi:</strong>
                         <p class="mb-0 text-muted">{{ $album->deskripsi }}</p>
                     </div>
                 @endif
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
                 <button type="button" class="btn btn-primary js-edit-album-from-view" data-uuid="{{ $album->uuid }}">
-                    <i class="bi bi-pencil"></i> Edit Album
+                    <i class="bi bi-pencil"></i> Ubah Album
                 </button>
             </div>
         </div>

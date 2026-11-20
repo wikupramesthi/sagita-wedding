@@ -60,23 +60,24 @@ class LoginActivityController extends Controller
     {
         $loginActivity->delete();
 
-        return back()->with('success', 'Login history deleted successfully.');
+        return back()->with('success', 'Riwayat login berhasil dihapus.');
     }
 
     public function bulkDestroy(Request $request)
     {
         $ids = $request->input('ids', []);
-        if (!is_array($ids) || empty($ids)) {
-            return back()->with('error', 'No data selected.');
+        if (! is_array($ids) || empty($ids)) {
+            return back()->with('error', 'Tidak ada data yang dipilih.');
         }
         $count = LoginActivity::whereIn('id', array_map('intval', $ids))->delete();
-        return back()->with('success', $count . ' login history records deleted successfully.');
+
+        return back()->with('success', $count.' riwayat login berhasil dihapus.');
     }
 
     public function clear()
     {
         LoginActivity::query()->delete();
 
-        return back()->with('success', 'All login history cleared successfully.');
+        return back()->with('success', 'Seluruh riwayat login berhasil dihapus.');
     }
 }

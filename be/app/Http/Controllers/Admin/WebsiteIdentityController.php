@@ -31,28 +31,28 @@ class WebsiteIdentityController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'site_name'               => 'required|string|max:255',
-            'site_title'              => 'required|string|max:255',
-            'tagline'                 => 'nullable|string|max:255',
-            'short_description'       => 'nullable|string',
-            'email'                   => 'nullable|email|max:255',
-            'phone'                   => 'nullable|string|max:50',
-            'address'                 => 'nullable|string',
-            'facebook_url'            => 'nullable|url|max:255',
-            'instagram_url'           => 'nullable|url|max:255',
-            'youtube_url'             => 'nullable|url|max:255',
-            'tiktok_url'              => 'nullable|url|max:255',
-            'meta_title'              => 'nullable|string|max:255',
-            'meta_description'        => 'nullable|string',
-            'meta_keywords'           => 'nullable|string',
-            'google_analytics_id'     => 'nullable|string|max:50',
+            'site_name' => 'required|string|max:255',
+            'site_title' => 'required|string|max:255',
+            'tagline' => 'nullable|string|max:255',
+            'short_description' => 'nullable|string',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string',
+            'facebook_url' => 'nullable|url|max:255',
+            'instagram_url' => 'nullable|url|max:255',
+            'youtube_url' => 'nullable|url|max:255',
+            'tiktok_url' => 'nullable|url|max:255',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string',
+            'google_analytics_id' => 'nullable|string|max:50',
             'google_site_verification' => 'nullable|string|max:255',
-            'logo'                    => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
-            'favicon'                 => 'nullable|file|mimes:ico,png,jpg,jpeg,webp|max:1024',
-            'og_image'                => 'nullable|image|mimes:png,jpg,jpeg,webp|max:3072',
-            'remove_logo'             => 'nullable|boolean',
-            'remove_favicon'          => 'nullable|boolean',
-            'remove_og_image'         => 'nullable|boolean',
+            'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
+            'favicon' => 'nullable|file|mimes:ico,png,jpg,jpeg,webp|max:1024',
+            'og_image' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:3072',
+            'remove_logo' => 'nullable|boolean',
+            'remove_favicon' => 'nullable|boolean',
+            'remove_og_image' => 'nullable|boolean',
         ]);
 
         DB::beginTransaction();
@@ -79,7 +79,7 @@ class WebsiteIdentityController extends Controller
             ]);
 
             foreach (['logo', 'favicon', 'og_image'] as $field) {
-                $remove = 'remove_' . $field;
+                $remove = 'remove_'.$field;
 
                 if ($request->hasFile($field)) {
                     if ($identitas->{$field} && Storage::disk('public')->exists($identitas->{$field})) {
@@ -101,11 +101,11 @@ class WebsiteIdentityController extends Controller
             // Segarkan cache API publik agar frontend langsung membaca data baru.
             Cache::forget('website-identity:public');
 
-            return redirect()->route('website-identity.index')->with('success', 'Website identity saved successfully.');
+            return redirect()->route('website-identity.index')->with('success', 'Identitas website berhasil disimpan.');
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->withInput()->with('error', $th->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan identitas website: '.$th->getMessage());
         }
     }
 }

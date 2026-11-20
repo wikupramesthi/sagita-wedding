@@ -1,16 +1,16 @@
 @extends('layouts.app')
-@section('title', 'Static Pages')
+@section('title', 'Halaman Statis')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Master Data" page="Master Data" active="Static Pages" route="{{ route('pages.index') }}" />
+<x-breadcrumb title="Master Data" page="Master Data" active="Halaman Statis" route="{{ route('pages.index') }}" />
 @endsection
 <!-- Content -->
 <section class="section">
     @if (session('success'))
     <div class="alert alert-success alert-dismissible mb-3 mt-3 fade show" role="alert">
         <span class="alert-text text-white"> {{ session('success') }}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -20,9 +20,9 @@
         <div class="d-flex">
             <i class="bi-exclamation-triangle-fill text-white fs-1 me-3 flex-shrink-0 align-self-start"></i>
             <div class="text-white mt-0">
-                <strong>Attention!</strong> Changing the <em>sidebar</em> status will affect the appearance and layout of the page.
+                <strong>Perhatian!</strong> Mengubah status <em>sidebar</em> akan memengaruhi tampilan dan tata letak halaman.
                 <br>
-                Please make sure to review the changes before saving.
+                Pastikan untuk meninjau perubahan sebelum menyimpan.
             </div>
         </div>
     </div>
@@ -30,10 +30,10 @@
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center ">
-                <h4 class="fw-normal mb-0 text-body">All Pages</h4>
+                <h4 class="fw-normal mb-0 text-body">Semua Halaman</h4>
                 @can('pages.store')
                 <a href="{{ route('pages.create') }}" class="btn btn-primary btn-md"><i class="bi bi-plus-lg"></i>
-                    Add New Page</a>
+                    Tambah Halaman Baru</a>
                 @endcan
 
             </div>
@@ -44,14 +44,14 @@
                     <thead>
                         <tr>
                             <th>No.</th>
-                            <th>Image</th>
-                            <th>Title</th>
+                            <th>Gambar</th>
+                            <th>Judul</th>
                             <th>Slug</th>
                             <th>Sidebar</th>
                             <th>Status</th>
-                            <th>Publish Date</th>
-                            <th>Edit</th>
-                            <th>Delete</th>
+                            <th>Tanggal Terbit</th>
+                            <th>Ubah</th>
+                            <th>Hapus</th>
                         </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
@@ -67,7 +67,7 @@
                             <td>
                                 @php
                                 $statusClass = $item->has_sidebar ? 'btn-info' : 'btn-danger';
-                                $statusText = $item->has_sidebar ? 'Yes' : 'No';
+                                $statusText = $item->has_sidebar ? 'Ya' : 'Tidak';
                                 @endphp
 
                                 <button type="button" class="btn {{ $statusClass }} btn-sm text-white"
@@ -78,7 +78,7 @@
                                 @include('pages.halaman.modal-update-sidebar')
                             </td>
                             <td>
-                                {{ $item->is_published ? 'Active' : 'Inactive' }}
+                                {{ $item->is_published ? 'Aktif' : 'Nonaktif' }}
                             </td>
                             <td> {{ $item->created_at->format('d-m-Y') }}</td>
 
@@ -86,15 +86,15 @@
                                 @can('pages.update')
                                 <a href="{{ route('pages.edit', $item->uuid) }}"
                                     class="btn btn-icon btn-success text-white"><i class="bi bi-pencil-square"></i>
-                                    Edit</a>
+                                    Ubah</a>
                                 @endcan
                             </td>
 
                             <td>
                                 @can('pages.destroy')
-                                <a onclick="showSweetAlert('{{ $item->uuid }}')" title="Delete"
+                                <a onclick="showSweetAlert('{{ $item->uuid }}')" title="Hapus"
                                     class="btn btn-icon btn-danger text-white">
-                                    <i class="bi bi-x-square"></i> Delete
+                                    <i class="bi bi-x-square"></i> Hapus
                                 </a>
                                 <form id="deleteForm_{{ $item->uuid }}"
                                     action="{{ route('pages.destroy', $item->uuid) }}" method="POST">
@@ -117,14 +117,14 @@
 <script>
     function showSweetAlert(getId) {
         Swal.fire({
-            title: 'Confirm Deletion',
-            text: 'This data will be permanently deleted and cannot be recovered. Are you sure you want to delete it?',
+            title: 'Konfirmasi Penghapusan',
+            text: 'Data ini akan dihapus permanen dan tidak dapat dikembalikan. Apakah Anda yakin ingin menghapusnya?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Deleted!'
+            confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {
-                // If the user clicks "Yes, delete it!", submit the corresponding form
+                // Jika pengguna mengklik "Ya, Hapus!", kirim formulir yang sesuai
                 document.getElementById('deleteForm_' + getId).submit();
             }
         });

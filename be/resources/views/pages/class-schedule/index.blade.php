@@ -21,7 +21,7 @@
 .schedule-time { font-weight: 700; font-size: 13px; }
 .schedule-class { font-size: 13px; font-weight: 500; margin-top: 3px; }
 .schedule-duration { font-size: 12px; opacity: .85; }
-.schedule-instructor { font-size: 12px; margin-top: 2px; }
+.schedule-vendor { font-size: 12px; margin-top: 2px; }
 .schedule-venue { font-size: 12px; margin-top: 2px; opacity: .85; }
 .schedule-empty { text-align: center; color: #aaa; font-size: 12px; padding: 20px 5px; }
 .schedule-legend { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
@@ -34,13 +34,13 @@
     @if (session('success'))
     <div class="alert alert-success alert-dismissible mb-3 mt-3 fade show" role="alert">
         <span class="alert-text text-white"> {{ session('success') }}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
     </div>
     @endif
     @if (session('error'))
     <div class="alert alert-danger alert-dismissible mb-3 mt-3 fade show" role="alert">
         <span class="alert-text text-white"> {{ session('error') }}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
     </div>
     @endif
 
@@ -188,7 +188,7 @@
                                     {{ \Carbon\Carbon::parse($schedule->start_time)->diffInMinutes(\Carbon\Carbon::parse($schedule->end_time)) }} min
                                     @endif
                                 </div>
-                                <div class="schedule-instructor">{{ $schedule->class->instructor->name ?? '-' }}</div>
+                                <div class="schedule-vendor">{{ $schedule->class->vendor->name ?? '-' }}</div>
                                 <div class="schedule-venue"><i class="bi bi-geo-alt me-1"></i>{{ $schedule->venue->name ?? '-' }}</div>
                             </div>
                             @empty

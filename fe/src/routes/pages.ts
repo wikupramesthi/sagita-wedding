@@ -20,7 +20,7 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 		const data = await getPageBatch("home").catch(() => null);
 
 		res.render("pages/home", {
-			title: "YogaRoots — Find Balance in Every Breath",
+			title: "YogaRoots � Find Balance in Every Breath",
 			pageScript: "home",
 			classes: data?.classes || [],
 			packages: data?.packages || [],
@@ -44,7 +44,7 @@ router.get(
 				? data.articles.slice(0, 3)
 				: [];
 			res.render("pages/about", {
-				title: "About YogaRoots — Our Story & Practice",
+				title: "About YogaRoots � Our Story & Practice",
 				liveStats: data?.stats || null,
 				formatStat: (v: unknown) => formatStatCount(v, res.locals.lang),
 				posts,
@@ -62,7 +62,7 @@ router.get(
 			const data = await getPageBatch("classes").catch(() => null);
 			const classes = Array.isArray(data?.classes) ? data.classes : [];
 			res.render("pages/classes", {
-				title: "YogaRoots — Class Guide",
+				title: "YogaRoots � Class Guide",
 				metaDescription: res.locals.t.classGuideDesc,
 				pageScript: "classes",
 				classes,
@@ -76,7 +76,7 @@ router.get(
 // ---------- Schedules (weekly timetable) ----------
 router.get("/schedules", (_req: Request, res: Response) => {
 	res.render("pages/schedules", {
-		title: "YogaRoots — Class Schedules",
+		title: "YogaRoots � Class Schedules",
 		metaDescription: res.locals.t.classesDesc,
 		pageScript: "schedules",
 	});
@@ -87,11 +87,11 @@ router.get("/art-of-living", (_req: Request, res: Response) => {
 	const isID = res.locals.lang === "id";
 	res.render("pages/art-of-living", {
 		title: isID
-			? "Art of Living — Gurudev Sri Sri Ravi Shankar | YogaRoots"
-			: "Art of Living — Gurudev Sri Sri Ravi Shankar | YogaRoots",
+			? "Art of Living � Gurudev Sri Sri Ravi Shankar | YogaRoots"
+			: "Art of Living � Gurudev Sri Sri Ravi Shankar | YogaRoots",
 		metaDescription: isID
-			? "Mengenal Gurudev Sri Sri Ravi Shankar, pendiri Art of Living — duta perdamaian, pencipta Sudarshan Kriya, menjangkau 800 juta+ jiwa di 180 negara."
-			: "Meet Gurudev Sri Sri Ravi Shankar, founder of Art of Living — ambassador of peace, creator of Sudarshan Kriya, reaching 800M+ lives across 180 countries.",
+			? "Mengenal Gurudev Sri Sri Ravi Shankar, pendiri Art of Living � duta perdamaian, pencipta Sudarshan Kriya, menjangkau 800 juta+ jiwa di 180 negara."
+			: "Meet Gurudev Sri Sri Ravi Shankar, founder of Art of Living � ambassador of peace, creator of Sudarshan Kriya, reaching 800M+ lives across 180 countries.",
 		heroNav: true,
 	});
 });
@@ -154,21 +154,26 @@ router.get(
 	},
 );
 
-// ---------- Instructors ----------
+// ---------- Vendors ----------
 router.get(
-	"/instructors",
+	"/vendors",
 	async (_req: Request, res: Response, next: NextFunction) => {
 		try {
-			const data = await getPageBatch("instructors");
-			res.render("pages/instructors", {
-				title: "Our Instructors — YogaRoots",
-				instructors: data?.instructors || [],
+			const data = await getPageBatch("vendors");
+			res.render("pages/vendors", {
+				title: "Our Vendors � YogaRoots",
+				vendors: data?.vendors || [],
 			});
 		} catch (err) {
 			next(err);
 		}
 	},
 );
+
+// ---------- Legacy route (301) ----------
+router.get("/instructors", (_req: Request, res: Response) => {
+	res.redirect(301, "/vendors");
+});
 
 // ---------- Blog ----------
 router.get(
@@ -325,6 +330,19 @@ router.get(
 		}
 	},
 );
+
+// ---------- FAQ ----------
+router.get("/faq", async (_req: Request, res: Response) => {
+	const data = await getPageBatch("faq").catch(() => null);
+	res.render("pages/faq", {
+		title: "Frequently Asked Questions � Sagita Wedding",
+		metaDescription:
+			"Answers about wedding planning, packages, payments, vendors, and your big day.",
+		pageScript: "faq",
+		faqs: Array.isArray(data?.faqs) ? data.faqs : [],
+		categories: Array.isArray(data?.categories) ? data.categories : [],
+	});
+});
 
 // ---------- Contact ----------
 router.get("/contact", async (_req: Request, res: Response) => {

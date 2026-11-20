@@ -49,7 +49,7 @@ Poin penting:
 - **Backend hanya menyajikan panel admin dan API.** Halaman publik disajikan oleh Express.
 - **Frontend memakai pola BFF (Backend for Frontend)**: setiap halaman publik mengambil semua datanya lewat **satu** request `GET /api/batch/{page}` ke Laravel, bukan puluhan request per resource.
 - Kedua aplikasi **harus berjalan bersamaan** agar website publik menampilkan data.
-- Repo masih dalam masa transisi branding: sebagian konten/kode masih memakai nama **YogaRoots / yoga** (kelas, instruktur, jadwal), sementara migrasi terbaru mengarah ke **venue & vendor wedding** (`studios` → `venues`, `specializations` → `vendors_categories`).
+- Repo masih dalam masa transisi branding: sebagian konten/kode masih memakai nama **YogaRoots / yoga** (kelas, vendor, jadwal), sementara migrasi terbaru mengarah ke **venue & vendor wedding** (`studios` → `venues`, `specializations` → `vendors_categories`).
 
 ---
 
@@ -275,7 +275,7 @@ Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Menu`, `Role`, `Route`, 
 
 - Beranda (testimoni, kelas, paket, event), halaman Tentang dengan statistik live
 - Katalog & detail kelas, jadwal mingguan dengan filter tanggal/level/waktu/venue
-- Paket keanggotaan & detail paket, daftar instruktur
+- Paket keanggotaan & detail paket, daftar vendor
 - Blog/artikel + kategori + artikel terkait, event/workshop
 - Galeri (dari banner/media admin), halaman statis via CMS (`/pages/:slug`)
 - Form kontak + captcha & FAQ, halaman "Art of Living"
@@ -308,7 +308,7 @@ Endpoint di bawah ini diawali `/api` dan melewati middleware `ApiSecurityHeaders
 
 `GET /api/batch/{page}`, dengan `{page}` salah satu dari:
 
-`home`, `about`, `classes`, `class-detail`, `blog`, `blog-detail`, `packages`, `package-detail`, `instructors`, `events`, `gallery`, `contact`, `page-detail`, `schedules`
+`home`, `about`, `classes`, `class-detail`, `blog`, `blog-detail`, `packages`, `package-detail`, `vendors`, `events`, `gallery`, `contact`, `page-detail`, `schedules`
 
 Contoh parameter: `?slug=...`, `?date=...`, `?level=...`, `?time=...`, `?venue_uuid=...` (tergantung halaman). Respons umum:
 
@@ -333,12 +333,14 @@ GET  /api/pages                /api/pages/{slug}
 GET  /api/events               /api/events/{slug}
 GET  /api/classes              /api/classes/{slug}
 GET  /api/class-schedules      /api/class-schedules/{uuid}
-GET  /api/instructors          /api/packages           /api/packages/{slug}
+GET  /api/vendors              /api/packages           /api/packages/{slug}
 GET  /api/staff                /api/pegawai            (alias legacy)
 GET  /api/contact/captcha
 POST /api/contact
 POST /api/analytics/visits
 ```
+
+`GET /api/faqs` menerima `?kategori=<nama kategori>` dan mengembalikan `data` berisi `uuid`, `kategori`, `question`, `answer` serta `meta` berisi `total`, `kategori`, dan daftar `categories`.
 
 Endpoint internal Express (dipanggil browser) ada di `fe/src/routes/api.ts`, antara lain `/api/classes`, `/api/class-schedules`, `/api/batch/schedules`, `/api/contact/captcha`, `/api/contact`.
 

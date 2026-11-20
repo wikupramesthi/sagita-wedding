@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="<%= lang || 'en' %>">
+  <head>
+    <%- include('../partials/head') %>
+  </head>
+
+  <body class="min-h-screen bg-sand-50 antialiased">
+    <%- include('../partials/navbar') %>
+
+    <%
+      const L = t.faqPage;
+      const allFaqs = Array.isArray(faqs) ? faqs : [];
+      const categoryList = Array.isArray(categories) && categories.length
+        ? categories
+        : [...new Set(allFaqs.map((item) => item && item.kategori).filter(Boolean))];
+      const countFor = (category) => allFaqs.filter((item) => item && item.kategori === category).length;
+    %>
+
+    <main>
+      <section class="relative overflow-hidden text-sand-50">
+        <div class="absolute inset-0" style="background:
+          radial-gradient(ellipse 60% 50% at 12% 8%, rgba(183, 159, 128, 0.28) 0%, transparent 60%),
+          radial-gradient(ellipse 50% 60% at 90% 100%, #403a34 0%, transparent 70%),
+          linear-gradient(135deg, #89745f 0%, #6c5a4a 55%, #403a34 100%)"></div>
+        <div class="absolute inset-0 opacity-[0.06] mix-blend-overlay pointer-events-none" style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;)"></div>
+        <div class="hero-shimmer"></div>
+
+        <div class="relative mx-auto max-w-4xl px-5 pb-28 pt-28 text-center sm:px-6 sm:pb-32 sm:pt-32">
+          <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-sand-100 backdrop-blur-sm anim-fade-in">
+            <span class="h-1.5 w-1.5 rounded-full bg-gold-light"></span>
+            <%= L.badge %>
+          </span>
+          <h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight anim-slide-up sm:text-5xl lg:text-6xl">
+            <span class="block"><%= L.titleA %></span>
+            <span class="block font-light italic text-gold-light"><%= L.titleB %></span>
+          </h1>
+          <p class="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-sand-100/80 anim-fade-in sm:text-base" style="animation-delay:.3s"><%= L.heroDesc %></p>
+          <div class="mt-7 inline-flex items-center gap-4 rounded-full border border-white/15 bg-white/5 px-5 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-sand-100/90 anim-fade-in sm:gap-6 sm:text-xs" style="animation-delay:.42s">
+            <span><%= allFaqs.length %> <%= L.questionsLabel %></span>
+            <span class="h-3 w-px bg-white/25"></span>
+            <span><%= categoryList.length %> <%= L.topicsCountLabel %></span>
+          </div>
+        </div>
+        <div class="absolute inset-x-0 bottom-0 h-20" style="background:linear-gradient(to top, #fffefd, transparent)"></div>
+      </section>
+
+      <section class="relative z-10 -mt-20 px-5 pb-20 sm:px-6">
+        <div class="mx-auto max-w-4xl">
+          <div class="rounded-3xl border border-sand-200/80 bg-white p-4 shadow-xl shadow-sage-900/5 sm:p-5">
+            <label for="faqSearch" class="sr-only"><%= L.searchLabel %></label>
+            <div class="relative">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-sand-500"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+              <input id="faqSearch" type="search" autocomplete="off" placeholder="<%= L.searchPh %>"
+                class="w-full rounded-xl border border-sand-200 bg-sand-50 py-3.5 pl-11 pr-4 text-sm text-sage-900 outline-none transition placeholder:text-sand-500 focus:border-sage-500 focus:bg-white focus:ring-2 focus:ring-sage-500/15" />
+            </div>
+
+            <div class="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0" role="group" aria-label="<%= L.topicsLabel %>">
+              <button type="button" class="faq-filter inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30 sm:text-sm bg-sand-900 text-sand-50 shadow-sm ring-1 ring-sand-900"
+                data-category="" aria-pressed="true">
+                <%= L.allTopics %>
+                <span class="grid h-5 min-w-5 place-items-center rounded-full bg-white/15 px-1 text-[10px] font-semibold text-sand-50"><%= allFaqs.length %></span>
+              </button>
+              <% categoryList.forEach((category) => { %>
+                <button type="button" class="faq-filter inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30 sm:text-sm bg-white text-sand-700 ring-1 ring-sand-200 hover:bg-sand-100"
+                  data-category="<%= category %>" aria-pressed="false">
+                  <%= category %>
+                  <span class="grid h-5 min-w-5 place-items-center rounded-full bg-sand-100 px-1 text-[10px] font-semibold text-sand-700"><%= countFor(category) %></span>
+                </button>
+              <% }) %>
+            </div>
+          </div>
+
+          <div class="mt-10 flex items-center gap-4">
+            <p class="shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-warm"><%= L.topicsLabel %></p>
+            <span class="h-px flex-1 bg-sand-200"></span>
+            <p id="faqResultCount" aria-live="polite" class="shrink-0 text-xs text-stone-warm"><%= allFaqs.length %> <%= L.questionsLabel %></p>
+          </div>
+
+          <div id="faqGroups" class="mt-5 space-y-10">
+            <% categoryList.forEach((category, categoryIndex) => { %>
+              <% const groupFaqs = allFaqs.filter((item) => item && item.kategori === category); %>
+              <% if (!groupFaqs.length) return; %>
+              <section class="faq-group reveal" data-faq-group data-category="<%= category %>">
+                <div class="mb-4 flex items-start justify-between gap-3 border-b border-sand-200 pb-3 sm:items-center">
+                  <div class="flex min-w-0 items-center gap-3">
+                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-sand-100 font-display text-sm text-terracotta-600"><%= String(categoryIndex + 1).padStart(2, '0') %></span>
+                    <h2 class="min-w-0 font-display text-lg leading-snug text-sage-900 sm:text-2xl"><%= category %></h2>
+                  </div>
+                  <span class="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-medium text-sand-700"><%= groupFaqs.length %> <%= L.questionsLabel %></span>
+                </div>
+
+                <div class="grid gap-2.5">
+                  <% groupFaqs.forEach((item, itemIndex) => { %>
+                    <% const uid = item.uuid || `${categoryIndex}-${itemIndex}`; %>
+                    <% const buttonId = `faq-question-${uid}`; %>
+                    <% const panelId = `faq-answer-${uid}`; %>
+                    <article class="faq-item overflow-hidden rounded-xl border border-sand-200 bg-white shadow-sm transition-all duration-200"
+                      data-faq-item
+                      data-category="<%= category %>"
+                      data-search="<%= [item.kategori, item.question, item.answer].filter(Boolean).join(' ').toLowerCase() %>">
+                      <button type="button" id="<%= buttonId %>" data-faq data-faq-button
+                        class="flex w-full items-center gap-3 px-4 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage-500/30 sm:px-5"
+                        aria-expanded="false" aria-controls="<%= panelId %>">
+                        <span class="w-5 shrink-0 text-[11px] font-semibold tracking-[0.1em] text-sand-500"><%= String(itemIndex + 1).padStart(2, '0') %></span>
+                        <span class="min-w-0 flex-1 font-semibold text-sm leading-snug text-sage-900 sm:text-[15px]"><%= item.question %></span>
+                        <span class="faq-toggle grid h-7 w-7 shrink-0 place-items-center rounded-full bg-sand-100 text-base leading-none text-sage-700 transition-colors">+</span>
+                      </button>
+                      <div id="<%= panelId %>" data-faq-panel role="region" aria-labelledby="<%= buttonId %>" class="hidden px-4 pb-4 sm:px-5">
+                        <div class="ml-8 rounded-xl bg-sand-50 px-4 py-3 text-sm leading-relaxed text-stone-warm whitespace-pre-line">
+                          <span class="sr-only"><%= L.answerLabel %>: </span><%= item.answer %>
+                        </div>
+                      </div>
+                    </article>
+                  <% }) %>
+                </div>
+              </section>
+            <% }) %>
+          </div>
+
+          <div id="faqEmpty" class="<%= allFaqs.length ? 'hidden' : '' %> mt-8 rounded-3xl border border-dashed border-sand-300 bg-white px-6 py-12 text-center" role="status">
+            <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-sand-100 text-sand-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+            </span>
+            <h3 class="mt-5 font-display text-2xl text-sage-900"><%= L.emptyTitle %></h3>
+            <p class="mt-2 text-sm text-stone-warm"><%= L.emptyDesc %></p>
+            <button type="button" id="faqReset" class="mt-6 rounded-full bg-sage-700 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sage-800"><%= L.reset %></button>
+          </div>
+
+          <div class="relative mt-12 overflow-hidden rounded-3xl bg-sage-900 px-6 py-10 text-center text-sand-50 sm:px-10">
+            <div class="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full border border-white/10"></div>
+            <div class="pointer-events-none absolute -bottom-24 -right-10 h-64 w-64 rounded-full border border-white/10"></div>
+            <div class="relative">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-light"><%= L.badge %></p>
+              <h2 class="mt-3 font-display text-2xl sm:text-3xl"><%= L.stillTitle %></h2>
+              <p class="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-sand-100/80"><%= L.stillDesc %></p>
+              <a href="<%= contactLinks.whatsappLink %>" target="_blank" rel="noopener noreferrer"
+                class="mt-7 inline-flex items-center gap-2.5 rounded-full bg-sand-50 px-7 py-3 text-sm font-semibold text-sage-900 transition-colors hover:bg-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <%= L.stillBtn %>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <%- include('../partials/footer') %>
+  </body>
+</html>

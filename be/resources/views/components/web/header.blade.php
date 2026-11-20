@@ -211,7 +211,7 @@
             items = list;
             activeIdx = list.length ? 0 : -1;
             if (!list.length) {
-                results.innerHTML = '<p class="gs-hint">No results. Try different keywords.</p>';
+                results.innerHTML = '<p class="gs-hint">Tidak ada hasil. Coba kata kunci lain.</p>';
                 return;
             }
             results.innerHTML = list.map(function(it, i) {

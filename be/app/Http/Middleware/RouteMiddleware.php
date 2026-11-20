@@ -2,18 +2,19 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
-use Illuminate\Http\Request;
 use App\Models\ManagementAccess\Route;
-use Symfony\Component\HttpFoundation\Response;
+use Closure;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class RouteMiddleware
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     // public function handle(Request $request, Closure $next) : Response
     // {
@@ -78,7 +79,7 @@ class RouteMiddleware
             'checkout.*',
             'schedules.*',
             'bookings.*',
-            'instruktur.mobile',
+            'vendor.mobile',
             'orders.*',
             'memberships.*',
             'class-bookings.*',
@@ -90,7 +91,7 @@ class RouteMiddleware
         ];
 
         foreach ($allowed as $pattern) {
-            if (\Illuminate\Support\Str::is($pattern, $routeName)) {
+            if (Str::is($pattern, $routeName)) {
                 return true;
             }
         }

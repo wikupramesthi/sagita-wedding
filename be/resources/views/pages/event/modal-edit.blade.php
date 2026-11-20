@@ -8,21 +8,21 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modal-form-edit-events-{{ $item->uuid }}-label">Edit Events
+                    <h5 class="modal-title" id="modal-form-edit-events-{{ $item->uuid }}-label">Ubah Acara
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"> </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"> </button>
                 </div>
 
                 <div class="modal-body">
 
                     {{-- Judul --}}
                     <div class="form-group mb-3">
-                        <label for="judul" class="mb-2">
-                            Event Name <span class="text-danger">*</span>
+                        <label for="judul-{{ $item->uuid }}" class="mb-2">
+                            Nama Acara <span class="text-danger">*</span>
                         </label>
 
-                        <input type="text" class="form-control @error('judul') is-invalid @enderror" id="judul"
-                            name="judul" placeholder="Event Name" value="{{ old('judul', $item->judul) }}"
+                        <input type="text" class="form-control @error('judul') is-invalid @enderror" id="judul-{{ $item->uuid }}"
+                            name="judul" placeholder="Nama Acara" value="{{ old('judul', $item->judul) }}"
                             required>
 
                         @error('judul')
@@ -37,12 +37,12 @@
                         {{-- Tanggal --}}
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                <label for="tanggal" class="mb-2">
-                                    Date <span class="text-danger">*</span>
+                                <label for="tanggal-{{ $item->uuid }}" class="mb-2">
+                                    Tanggal <span class="text-danger">*</span>
                                 </label>
 
                                 <input type="date" class="form-control @error('tanggal') is-invalid @enderror"
-                                    id="tanggal" name="tanggal"
+                                    id="tanggal-{{ $item->uuid }}" name="tanggal"
                                     value="{{ old('tanggal', $item->tanggal ? \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') : '') }}"
                                     required>
 
@@ -57,12 +57,12 @@
                         {{-- Lokasi --}}
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                <label for="lokasi" class="mb-2">
-                                    Location
+                                <label for="lokasi-{{ $item->uuid }}" class="mb-2">
+                                    Lokasi
                                 </label>
 
                                 <input type="text" class="form-control @error('lokasi') is-invalid @enderror"
-                                    id="lokasi" name="lokasi" placeholder="Event Location"
+                                    id="lokasi-{{ $item->uuid }}" name="lokasi" placeholder="Lokasi Acara"
                                     value="{{ old('lokasi', $item->lokasi) }}">
 
                                 @error('lokasi')
@@ -80,12 +80,12 @@
                         {{-- Waktu Mulai --}}
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                <label for="waktu_mulai" class="mb-2">
-                                    Start Time
+                                <label for="waktu_mulai-{{ $item->uuid }}" class="mb-2">
+                                    Waktu Mulai
                                 </label>
 
                                 <input type="time" class="form-control @error('waktu_mulai') is-invalid @enderror"
-                                    id="waktu_mulai" name="waktu_mulai"
+                                    id="waktu_mulai-{{ $item->uuid }}" name="waktu_mulai"
                                     value="{{ old('waktu_mulai', $item->waktu_mulai ? \Carbon\Carbon::parse($item->waktu_mulai)->format('H:i') : '') }}">
 
                                 @error('waktu_mulai')
@@ -99,12 +99,12 @@
                         {{-- Waktu Selesai --}}
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                <label for="waktu_selesai" class="mb-2">
-                                    End Time
+                                <label for="waktu_selesai-{{ $item->uuid }}" class="mb-2">
+                                    Waktu Selesai
                                 </label>
 
                                 <input type="time" class="form-control @error('waktu_selesai') is-invalid @enderror"
-                                    id="waktu_selesai" name="waktu_selesai"
+                                    id="waktu_selesai-{{ $item->uuid }}" name="waktu_selesai"
                                     value="{{ old('waktu_selesai', $item->waktu_selesai ? \Carbon\Carbon::parse($item->waktu_selesai)->format('H:i') : '') }}">
 
                                 @error('waktu_selesai')
@@ -118,12 +118,12 @@
 
                     {{-- Kapasitas --}}
                     <div class="form-group mb-3">
-                        <label for="kapasitas" class="mb-2">
-                            Capacity
+                        <label for="kapasitas-{{ $item->uuid }}" class="mb-2">
+                            Kapasitas
                         </label>
 
                         <input type="number" class="form-control @error('kapasitas') is-invalid @enderror"
-                            id="kapasitas" name="kapasitas" placeholder="Number of Participants" min="1"
+                            id="kapasitas-{{ $item->uuid }}" name="kapasitas" placeholder="Jumlah Peserta" min="1"
                             value="{{ old('kapasitas', $item->kapasitas) }}">
 
                         @error('kapasitas')
@@ -135,12 +135,12 @@
 
                     {{-- Deskripsi --}}
                     <div class="form-group mb-3">
-                        <label for="deskripsi" class="mb-2">
-                            Description
+                        <label for="deskripsi-{{ $item->uuid }}" class="mb-2">
+                            Deskripsi <span class="text-danger">*</span>
                         </label>
 
-                        <textarea class="form-control @error('deskripsi') is-invalid @enderror" id="deskripsi" name="deskripsi" rows="10"
-                            placeholder="Event Description">{{ old('deskripsi', $item->deskripsi) }}</textarea>
+                        <textarea class="form-control @error('deskripsi') is-invalid @enderror" id="deskripsi-{{ $item->uuid }}" name="deskripsi" rows="10"
+                            placeholder="Deskripsi Acara" required>{{ old('deskripsi', $item->deskripsi) }}</textarea>
 
                         @error('deskripsi')
                         <div class="invalid-feedback">
@@ -155,8 +155,8 @@
                         <div class="col-md-8">
                             <div class="form-group mb-3">
 
-                                <label for="gambar" class="mb-2">
-                                    Image
+                                <label for="gambar-{{ $item->uuid }}" class="mb-2">
+                                    Gambar
                                 </label>
 
                                 @if ($item->gambar)
@@ -168,11 +168,11 @@
                                 @endif
 
                                 <input type="file" class="form-control-file @error('gambar') is-invalid @enderror"
-                                    id="gambar" name="gambar" accept="image/jpg,image/jpeg,image/png,image/webp">
+                                    id="gambar-{{ $item->uuid }}" name="gambar" accept="image/jpg,image/jpeg,image/png,image/webp">
 
                                 <small class="text-muted" style="display: block; margin-top: 5px;">
-                                    JPG, JPEG, PNG, WEBP. Max 2MB.
-                                    Leave blank if you don't want to change the image.
+                                    JPG, JPEG, PNG, WEBP. Maksimal 2MB.
+                                    Biarkan kosong jika tidak ingin mengubah gambar.
                                 </small>
 
                                 @error('gambar')
@@ -188,31 +188,31 @@
                         <div class="col-md-4">
                             <div class="form-group mb-3">
 
-                                <label for="status" class="mb-2">
+                                <label for="status-{{ $item->uuid }}" class="mb-2">
                                     Status <span class="text-danger">*</span>
                                 </label>
 
-                                <select class="form-control @error('status') is-invalid @enderror" id="status"
+                                <select class="form-control @error('status') is-invalid @enderror" id="status-{{ $item->uuid }}"
                                     name="status" required>
 
                                     <option value="draft"
                                         {{ old('status', $item->status) == 'draft' ? 'selected' : '' }}>
-                                        Draft
+                                        Draf
                                     </option>
 
                                     <option value="published"
                                         {{ old('status', $item->status) == 'published' ? 'selected' : '' }}>
-                                        Published
+                                        Diterbitkan
                                     </option>
 
                                     <option value="cancelled"
                                         {{ old('status', $item->status) == 'cancelled' ? 'selected' : '' }}>
-                                        Cancelled
+                                        Dibatalkan
                                     </option>
 
                                     <option value="completed"
                                         {{ old('status', $item->status) == 'completed' ? 'selected' : '' }}>
-                                        Completed
+                                        Selesai
                                     </option>
 
                                 </select>
@@ -231,8 +231,8 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary ">Update</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary ">Simpan Perubahan</button>
                 </div>
             </form>
 

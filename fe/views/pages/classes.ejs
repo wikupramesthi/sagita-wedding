@@ -63,8 +63,8 @@
               </div>
               <h3 class="font-display text-xl text-sage-900 mb-2"><%= c.name %></h3>
               <p class="text-sm text-stone-warm leading-relaxed line-clamp-3"><%= c.description || '' %></p>
-              <% if (c.instructor && c.instructor.name) { %>
-                <p class="mt-2 text-xs font-medium text-sage-700">By <%= c.instructor.name %></p>
+              <% if (c.vendor && c.vendor.name) { %>
+                <p class="mt-2 text-xs font-medium text-sage-700">By <%= c.vendor.name %></p>
               <% } %>
               <div class="mt-4 flex items-center gap-1 text-xs text-sage-700 opacity-0 group-hover:opacity-100 transition-opacity">
                 <%= t.learnMore %>

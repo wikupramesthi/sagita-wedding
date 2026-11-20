@@ -235,7 +235,7 @@
         <div class="col-6 col-lg-3 col-md-6">
             <div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat">
                 <div class="ml-stat-icon ic-warning"><i class="bx bx-user-voice"></i></div>
-                <div><div class="ml-stat-value">{{ $jumlahInstruktur }}</div><div class="ml-stat-label">Total Vendors</div></div>
+                <div><div class="ml-stat-value">{{ $jumlahVendor }}</div><div class="ml-stat-label">Total Vendors</div></div>
             </div></div></div>
         </div>
         <div class="col-6 col-lg-3 col-md-6">
@@ -261,20 +261,20 @@
                     @forelse($upcomingClasses as $schedule)
                     @php
                     $class = $schedule->class;
-                    $instructor = $class?->instructor;
+                    $vendor = $class?->vendor;
                     @endphp
 
                     <div class="py-3 border-bottom">
                         <div class="d-flex align-items-center gap-3">
 
-                            {{-- Instructor Photo --}}
+                            {{-- Vendor Photo --}}
                             <div class="avatar avatar-md flex-shrink-0">
-                                <img src="{{ $instructor?->avatar
-                                            ? (Str::startsWith($instructor->avatar, 'http')
-                                                ? $instructor->avatar
-                                                : asset('storage/' . $instructor->avatar))
+                                <img src="{{ $vendor?->avatar
+                                            ? (Str::startsWith($vendor->avatar, 'http')
+                                                ? $vendor->avatar
+                                                : asset('storage/' . $vendor->avatar))
                                             : asset('dist/assets/images/avatar.jpg') }}"
-                                    alt="{{ $instructor?->name ?? 'Instructor' }}"
+                                    alt="{{ $vendor?->name ?? 'Vendor' }}"
                                     class="img-thumbnail rounded-circle">
                             </div>
 
@@ -291,7 +291,7 @@
 
                                 <div class="small text-secondary mt-1">
                                     <i class="bi bi-person me-1"></i>
-                                    {{ $instructor?->name ?? 'No Instructor' }}
+                                    {{ $vendor?->name ?? 'No Vendor' }}
                                 </div>
 
                                 <div class="small text-secondary mt-1">
@@ -436,7 +436,7 @@
                                 <tr>
                                     <th>Class</th>
                                     <th>Day &amp; Time</th>
-                                    <th>Instructor</th>
+                                    <th>Vendor</th>
                                     <th>Level</th>
                                     <th>Status</th>
                                 </tr>
@@ -459,7 +459,7 @@
                                     </td>
 
                                     <td>
-                                        {{ $schedule->class?->instructor?->name ?? '-' }}
+                                        {{ $schedule->class?->vendor?->name ?? '-' }}
                                     </td>
 
                                     <td>

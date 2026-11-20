@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Information Center')
+@section('title', 'Master Data')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Information Center" page="Information Center" active="Testimonial" route="{{ route('testimonial.index') }}" />
+<x-breadcrumb title="Master Data" page="Master Data" active="Testimoni" route="{{ route('testimonial.index') }}" />
 @endsection
 <!-- Content -->
 <section class="section">
@@ -11,7 +11,7 @@
     @if (session('success'))
     <div class="alert alert-success alert-dismissible mb-3 mt-3 fade show" role="alert">
         <span class="alert-text text-white"> {{ session('success') }}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -20,7 +20,7 @@
     @if (session('error'))
     <div class="alert alert-danger alert-dismissible mb-3 mt-3 fade show" role="alert">
         <span class="alert-text text-white"> {{ session('error') }}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -28,10 +28,10 @@
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center ">
-                <h4 class="fw-normal mb-0 text-body">Testimonials</h4>
+                <h4 class="fw-normal mb-0 text-body">Testimoni</h4>
                 <button type="button" class="btn btn-primary btn-md" data-bs-toggle="modal"
                     data-bs-target="#modal-form-add-testimonial">
-                    <i class="bi bi-plus-lg"></i> Add New
+                    <i class="bi bi-plus-lg"></i> Tambah Baru
                 </button>
             </div>
         </div>
@@ -41,14 +41,14 @@
                     <thead>
                         <tr>
                             <th>No.</th>
-                            <th>Photo</th>
-                            <th>Name</th>
-                            <th>Joined Since</th>
-                            <th>Testimonial Content</th>
-                            <th>Order</th>
+                            <th>Foto</th>
+                            <th>Nama</th>
+                            <th>Bergabung Sejak</th>
+                            <th>Isi Testimoni</th>
+                            <th>Urutan</th>
                             <th>Status</th>
-                            <th>Edit</th>
-                            <th>Delete</th>
+                            <th>Ubah</th>
+                            <th>Hapus</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,7 +57,7 @@
                             <td>{{ $loop->iteration }}</td>
                             <td>
                                 @if ($item->foto)
-                                <img src="{{ asset('storage/' . $item->foto) }}" alt="Photo {{ $item->name }}"
+                                <img src="{{ asset('storage/' . $item->foto) }}" alt="Foto {{ $item->name }}"
                                     width="60" class="img-thumbnail">
                                 @else
                                 <span class="text-muted">-</span>
@@ -69,7 +69,7 @@
                             <td>{{ $item->urutan }}</td>
                             <td>
                                 <span class="badge {{ $item->is_active === 'active' ? 'bg-info' : 'bg-danger' }}">
-                                    {{ $item->is_active === 'active' ? 'Active' : 'Inactive' }}
+                                    {{ $item->is_active === 'active' ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
                             <td>
@@ -77,7 +77,7 @@
                                 <a data-bs-toggle="modal"
                                     data-bs-target="#modal-form-edit-testimonial-{{ $item->uuid }}"
                                     class="btn btn-icon btn-success text-white">
-                                    <i class="bi bi-pencil-square"></i> Edit
+                                    <i class="bi bi-pencil-square"></i> Ubah
                                 </a>
                                 @include('pages.testimonial.modal-edit')
                                 @endcan
@@ -85,9 +85,9 @@
 
                             <td>
                                 @can('testimonial.destroy')
-                                <a onclick="showSweetAlert('{{ $item->uuid }}')" title="Delete"
+                                <a onclick="showSweetAlert('{{ $item->uuid }}')" title="Hapus"
                                     class="btn btn-icon btn-danger text-white">
-                                    <i class="bi bi-x-square"></i> Delete
+                                    <i class="bi bi-x-square"></i> Hapus
                                 </a>
                                 <form id="deleteForm_{{ $item->uuid }}"
                                     action="{{ route('testimonial.destroy', $item->uuid) }}" method="POST">
@@ -112,14 +112,14 @@
 <script>
     function showSweetAlert(getId) {
         Swal.fire({
-            title: 'Delete Confirmation',
-            text: 'This data will be permanently deleted and cannot be recovered. Are you sure you want to delete it?',
+            title: 'Konfirmasi Hapus',
+            text: 'Data ini akan dihapus permanen dan tidak dapat dikembalikan. Apakah Anda yakin ingin menghapusnya?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Delete!'
+            confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {
-                // If the user clicks "Yes, delete it!", submit the corresponding form
+                // Jika pengguna mengklik "Ya, Hapus!", kirim formulir yang sesuai
                 document.getElementById('deleteForm_' + getId).submit();
             }
         });

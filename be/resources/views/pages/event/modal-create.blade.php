@@ -7,22 +7,22 @@
                 @csrf
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modal-form-add-events-label">Add Events</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"> </button>
+                    <h5 class="modal-title" id="modal-form-add-events-label">Tambah Acara</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"> </button>
                 </div>
                 <div class="modal-body">
 
                     {{-- Judul --}}
                     <div class="form-group mb-3">
                         <label for="judul" class="mb-2">
-                            Event Name <span class="text-danger">*</span>
+                            Nama Acara <span class="text-danger">*</span>
                         </label>
 
                         <input type="text"
                             class="form-control @error('judul') is-invalid @enderror"
                             id="judul"
                             name="judul"
-                            placeholder="Event Name"
+                            placeholder="Nama Acara"
                             value="{{ old('judul') }}"
                             required>
 
@@ -39,7 +39,7 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label for="tanggal" class="mb-2">
-                                    Date <span class="text-danger">*</span>
+                                    Tanggal <span class="text-danger">*</span>
                                 </label>
 
                                 <input type="date"
@@ -61,14 +61,14 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label for="lokasi" class="mb-2">
-                                    Location
+                                    Lokasi
                                 </label>
 
                                 <input type="text"
                                     class="form-control @error('lokasi') is-invalid @enderror"
                                     id="lokasi"
                                     name="lokasi"
-                                    placeholder="Event Location"
+                                    placeholder="Lokasi Acara"
                                     value="{{ old('lokasi') }}">
 
                                 @error('lokasi')
@@ -87,7 +87,7 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label for="waktu_mulai" class="mb-2">
-                                    Start Time
+                                    Waktu Mulai
                                 </label>
 
                                 <input type="time"
@@ -108,7 +108,7 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label for="waktu_selesai" class="mb-2">
-                                    End Time
+                                    Waktu Selesai
                                 </label>
 
                                 <input type="time"
@@ -130,14 +130,14 @@
                     {{-- Kapasitas --}}
                     <div class="form-group mb-3">
                         <label for="kapasitas" class="mb-2">
-                            Capacity
+                            Kapasitas
                         </label>
 
                         <input type="number"
                             class="form-control @error('kapasitas') is-invalid @enderror"
                             id="kapasitas"
                             name="kapasitas"
-                            placeholder="Number of Participants"
+                            placeholder="Jumlah Peserta"
                             min="1"
                             value="{{ old('kapasitas') }}">
 
@@ -151,15 +151,16 @@
                     <!-- DESKRIPSI -->
                     <div class="form-group mb-3">
                         <label for="deskripsi" class="mb-2">
-                            Description <span class="text-danger">*</span>
+                            Deskripsi <span class="text-danger">*</span>
                         </label>
 
                         <textarea
                             name="deskripsi"
-                            id="event"
+                            id="deskripsi"
                             rows="10"
                             class="form-control @error('deskripsi') is-invalid @enderror"
-                            placeholder="Event Description">{{ old('deskripsi') }}</textarea>
+                            placeholder="Deskripsi Acara"
+                            required>{{ old('deskripsi') }}</textarea>
 
                         @error('deskripsi')
                         <div class="invalid-feedback">
@@ -173,17 +174,18 @@
                         <div class="col-md-8">
                             <div class="form-group mb-3">
                                 <label for="gambar" class="mb-2">
-                                    Image
+                                    Gambar <span class="text-danger">*</span>
                                 </label>
 
                                 <input type="file"
                                     class="form-control-file @error('gambar') is-invalid @enderror"
                                     id="gambar"
                                     name="gambar"
-                                    accept="image/jpg,image/jpeg,image/png,image/webp">
+                                    accept="image/jpg,image/jpeg,image/png,image/webp"
+                                    required>
 
                                 <small class="text-muted">
-                                    JPG, JPEG, PNG, WEBP. Max 2MB.
+                                    JPG, JPEG, PNG, WEBP. Maksimal 2MB.
                                 </small>
 
                                 @error('gambar')
@@ -209,22 +211,22 @@
 
                                     <option value="draft"
                                         {{ old('status', 'draft') == 'draft' ? 'selected' : '' }}>
-                                        Draft
+                                        Draf
                                     </option>
 
                                     <option value="published"
                                         {{ old('status') == 'published' ? 'selected' : '' }}>
-                                        Published
+                                        Diterbitkan
                                     </option>
 
                                     <option value="cancelled"
                                         {{ old('status') == 'cancelled' ? 'selected' : '' }}>
-                                        Cancelled
+                                        Dibatalkan
                                     </option>
 
                                     <option value="completed"
                                         {{ old('status') == 'completed' ? 'selected' : '' }}>
-                                        Completed
+                                        Selesai
                                     </option>
 
                                 </select>
@@ -241,8 +243,8 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary ">Save Changes</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary ">Simpan</button>
                 </div>
             </form>
 

@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Poll;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
 class PollController extends Controller
 {
@@ -17,6 +15,7 @@ class PollController extends Controller
     public function index()
     {
         $polls = Poll::orderBy('created_at', 'desc')->get();
+
         return view('pages.poll.index', compact('polls'));
     }
 
@@ -36,7 +35,7 @@ class PollController extends Controller
         $request->validate([
             'question' => 'required|string|max:255',
             'status' => 'required|in:active,inactive',
-            'options'  => 'required|array|min:2',
+            'options' => 'required|array|min:2',
             'options.*' => 'required|string|max:100',
         ]);
 
@@ -44,15 +43,17 @@ class PollController extends Controller
         try {
             Poll::create([
                 'question' => $request->question,
-                'options'  => $request->options,
+                'options' => $request->options,
                 'status' => $request->status,
             ]);
 
             DB::commit();
-            return redirect()->back()->with('success', 'Poll added successfully.');
+
+            return redirect()->back()->with('success', 'Polling berhasil ditambahkan.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+
+            return redirect()->back()->with('error', 'Gagal menambahkan polling: '.$th->getMessage());
         }
     }
 
@@ -80,7 +81,7 @@ class PollController extends Controller
         $request->validate([
             'question' => 'required|string|max:255',
             'status' => 'required|in:active,inactive',
-            'options'  => 'required|array|min:2',
+            'options' => 'required|array|min:2',
             'options.*' => 'required|string|max:100',
         ]);
 
@@ -89,15 +90,17 @@ class PollController extends Controller
             $poll = Poll::where('uuid', $uuid)->firstOrFail();
             $poll->update([
                 'question' => $request->question,
-                'options'  => $request->options,
+                'options' => $request->options,
                 'status' => $request->status,
             ]);
 
             DB::commit();
-            return redirect()->route('poll.index')->with('success', 'Poll updated successfully.');
+
+            return redirect()->route('poll.index')->with('success', 'Polling berhasil diperbarui.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+
+            return redirect()->back()->with('error', 'Gagal memperbarui polling: '.$th->getMessage());
         }
     }
 
@@ -112,10 +115,12 @@ class PollController extends Controller
             $poll->delete();
 
             DB::commit();
-            return redirect()->back()->with('success', 'Poll deleted successfully.');
+
+            return redirect()->back()->with('success', 'Polling berhasil dihapus.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+
+            return redirect()->back()->with('error', 'Gagal menghapus polling: '.$th->getMessage());
         }
     }
 }

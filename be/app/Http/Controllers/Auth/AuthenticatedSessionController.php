@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Faq;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Models\Faq;
 use Illuminate\View\View;
+use Spatie\Permission\Models\Role;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -22,19 +23,19 @@ class AuthenticatedSessionController extends Controller
     public function create(): View
     {
         $faqs = Faq::where('status', 'active')
-            ->orderBy('created_at', 'asc')
+            ->orderByKategori()
             ->get();
 
         // Tahan 500 bila role belum di-seed (mis. instalasi baru / testing).
-        $hasRoles = \Spatie\Permission\Models\Role::whereIn('name', ['instruktur', 'user'])->exists();
-        $jumlahInstruktur = $hasRoles ? User::role('instruktur')->count() : 0;
+        $hasRoles = Role::whereIn('name', ['vendor', 'user'])->exists();
+        $jumlahVendor = $hasRoles ? User::role('vendor')->count() : 0;
         $jumlahMembers = $hasRoles ? User::role('user')->count() : 0;
 
         if ($this->isMobile()) {
             return view('auth.login-mobile');
         }
 
-        return view('auth.login', compact('faqs', 'jumlahInstruktur', 'jumlahMembers'));
+        return view('auth.login', compact('faqs', 'jumlahVendor', 'jumlahMembers'));
     }
 
     /**
@@ -53,6 +54,7 @@ class AuthenticatedSessionController extends Controller
             ->intended(route('dashboard.index', absolute: false))
             ->with('success', $welcome);
     }
+
     /**
      * Destroy an authenticated session.
      */
@@ -73,7 +75,7 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * Deteksi HP dengan pola yang sama seperti controller member mobile
-     * (Dashboard, Profile, Package, Instruktur, Checkout).
+     * (Dashboard, Profile, Package, Vendor, Checkout).
      */
     private function isMobile(): bool
     {

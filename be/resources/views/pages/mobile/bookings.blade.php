@@ -33,7 +33,7 @@
                 @php
                     $schedule = $booking->schedule;
                     $class = $schedule?->class;
-                    $instructor = $class?->instructor;
+                    $vendor = $class?->vendor;
                     $start = $schedule ? \Carbon\Carbon::parse($schedule->start_time) : null;
                     $end = $schedule ? \Carbon\Carbon::parse($schedule->end_time) : null;
                     $isToday = $booking->booking_date?->format('Y-m-d') === now()->format('Y-m-d');
@@ -86,7 +86,7 @@
                                 </p>
                             @endif
                             <p class="mb-1 text-muted2 text-truncate text-small">
-                                <i class="bi bi-person me-1"></i>{{ $instructor?->name ?? 'No instructor' }}
+                                <i class="bi bi-person me-1"></i>{{ $vendor?->name ?? 'No vendor' }}
                             </p>
                             <p class="mb-0 text-muted2 text-truncate text-small">
                                 <i class="bi bi-clock me-1"></i>{{ $start ? $start->format('H:i') : '-' }} - {{ $end ? $end->format('H:i') : '-' }}

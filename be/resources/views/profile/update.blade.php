@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title', 'Profile')
+@section('title', 'Profil')
 @section('breadcrumb')
 <x-breadcrumb
-    title="Profile"
-    page="Account Settings"
-    active="Profile"
+    title="Profil"
+    page="Pengaturan Akun"
+    active="Profil"
     route="{{ route('profile.edit') }}" />
 @endsection
 
@@ -22,7 +22,7 @@
     <button type="button"
         class="btn-close"
         data-bs-dismiss="alert"
-        aria-label="Close">
+        aria-label="Tutup">
     </button>
 </div>
 @endif
@@ -45,7 +45,7 @@
     <button type="button"
         class="btn-close"
         data-bs-dismiss="alert"
-        aria-label="Close">
+        aria-label="Tutup">
     </button>
 
 </div>
@@ -109,12 +109,12 @@
 
                     <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
                         <i class="bi bi-check-circle-fill me-1"></i>
-                        Active Account
+                        Akun Aktif
                     </span>
 
                     <span class="badge rounded-pill bg-light text-muted border px-3 py-2">
                         <i class="bi bi-calendar3 me-1"></i>
-                        Joined {{ auth()->user()->created_at->format('d M Y') }}
+                        Bergabung {{ auth()->user()->created_at->format('d M Y') }}
                     </span>
 
                 </div>
@@ -133,7 +133,7 @@
                         data-bs-target="#modal-form-edit-password-{{ auth()->user()->id }}">
 
                         <i class="bi bi-lock me-1"></i>
-                        Change Password
+                        Ganti Password
 
                     </button>
 
@@ -172,11 +172,11 @@
                         <div>
 
                             <h5 class="fw-semibold mb-1">
-                                Profile Photo
+                                Foto Profil
                             </h5>
 
                             <small class="text-muted">
-                                Your account profile picture
+                                Foto profil akun Anda
                             </small>
 
                         </div>
@@ -212,11 +212,11 @@
                             <div>
 
                                 <div class="fw-semibold">
-                                    Upload New Photo
+                                    Unggah Foto Baru
                                 </div>
 
                                 <small class="text-muted">
-                                    JPG or PNG, maximum 1 MB
+                                    JPG atau PNG, maksimal 1 MB
                                 </small>
 
                             </div>
@@ -258,11 +258,11 @@
                         <div>
 
                             <h5 class="fw-semibold mb-1">
-                                Personal Information
+                                Informasi Pribadi
                             </h5>
 
                             <small class="text-muted">
-                                Keep your personal information accurate and up to date.
+                                Pastikan data pribadi Anda akurat dan selalu terbaru.
                             </small>
 
                         </div>
@@ -280,7 +280,7 @@
                     <div class="mb-4">
 
                         <label for="name" class="form-label fw-medium">
-                            Full Name
+                            Nama Lengkap
                             <span class="text-danger">*</span>
                         </label>
 
@@ -290,7 +290,7 @@
                             type="text"
                             name="name"
                             value="{{ old('name', $user->name) }}"
-                            placeholder="Enter your full name"
+                            placeholder="Masukkan nama lengkap Anda"
                             required>
 
                         @error('name')
@@ -308,7 +308,7 @@
                         <div class="col-md-6">
 
                             <label for="email" class="form-label fw-medium">
-                                Email Address
+                                Alamat Email
                             </label>
 
                             <input
@@ -319,7 +319,7 @@
                                 disabled>
 
                             <small class="text-muted">
-                                Your email address cannot be changed.
+                                Alamat email Anda tidak dapat diubah.
                             </small>
 
                         </div>
@@ -328,7 +328,7 @@
                         <div class="col-md-6">
 
                             <label for="no_hp" class="form-label fw-medium">
-                                WhatsApp Number
+                                Nomor WhatsApp
                                 <span class="text-danger">*</span>
                             </label>
 
@@ -338,7 +338,7 @@
                                 type="text"
                                 name="no_hp"
                                 value="{{ old('no_hp', $user->no_hp) }}"
-                                placeholder="e.g. 08123456789"
+                                placeholder="Contoh: 08123456789"
                                 required>
 
                             @error('no_hp')
@@ -358,7 +358,7 @@
                         <div class="col-md-6">
 
                             <label for="tempat_lahir" class="form-label fw-medium">
-                                Place of Birth
+                                Tempat Lahir
                                 <span class="text-danger">*</span>
                             </label>
 
@@ -368,7 +368,7 @@
                                 type="text"
                                 name="tempat_lahir"
                                 value="{{ old('tempat_lahir', $user->tempat_lahir) }}"
-                                placeholder="Enter your place of birth"
+                                placeholder="Masukkan tempat lahir Anda"
                                 required>
 
                             @error('tempat_lahir')
@@ -383,7 +383,7 @@
                         <div class="col-md-6">
 
                             <label for="tanggal_lahir" class="form-label fw-medium">
-                                Date of Birth
+                                Tanggal Lahir
                                 <span class="text-danger">*</span>
                             </label>
 
@@ -412,7 +412,7 @@
                         <div class="col-md-6">
 
                             <label for="jenis_kelamin" class="form-label fw-medium">
-                                Gender
+                                Jenis Kelamin
                                 <span class="text-danger">*</span>
                             </label>
 
@@ -423,17 +423,17 @@
                                 required>
 
                                 <option value="">
-                                    Select Gender
+                                    Pilih jenis kelamin
                                 </option>
 
                                 <option value="L"
                                     {{ old('jenis_kelamin', $user->jenis_kelamin) == 'L' ? 'selected' : '' }}>
-                                    Male
+                                    Laki-laki
                                 </option>
 
                                 <option value="P"
                                     {{ old('jenis_kelamin', $user->jenis_kelamin) == 'P' ? 'selected' : '' }}>
-                                    Female
+                                    Perempuan
                                 </option>
 
                             </select>
@@ -450,7 +450,7 @@
                         <div class="col-md-6">
 
                             <label for="agama" class="form-label fw-medium">
-                                Religion
+                                Agama
                                 <span class="text-danger">*</span>
                             </label>
 
@@ -461,7 +461,7 @@
                                 required>
 
                                 <option value="">
-                                    Select Religion
+                                    Pilih agama
                                 </option>
 
                                 @foreach ([
@@ -498,7 +498,7 @@
                     <div class="mb-4">
 
                         <label for="alamat" class="form-label fw-medium">
-                            Address
+                            Alamat
                             <span class="text-danger">*</span>
                         </label>
 
@@ -507,7 +507,7 @@
                             id="alamat"
                             name="alamat"
                             rows="3"
-                            placeholder="Enter your current address"
+                            placeholder="Masukkan alamat Anda saat ini"
                             required>{{ old('alamat', $user->alamat) }}</textarea>
 
                         @error('alamat')
@@ -533,11 +533,11 @@
                             <div>
 
                                 <h5 class="fw-semibold mb-1">
-                                    Professional Information
+                                    Informasi Profesional
                                 </h5>
 
                                 <small class="text-muted">
-                                    Your professional experience and expertise.
+                                    Pengalaman dan keahlian profesional Anda.
                                 </small>
 
                             </div>
@@ -557,7 +557,7 @@
                             <label for="vendors_categories"
                                 class="form-label fw-medium">
 
-                                Vendor Categories
+                                Kategori Vendor
                                 <span class="text-danger">*</span>
 
                             </label>
@@ -607,7 +607,7 @@
                             <label for="pengalaman"
                                 class="form-label fw-medium">
 
-                                Experience
+                                Pengalaman
                                 <span class="text-danger">*</span>
 
                             </label>
@@ -618,7 +618,7 @@
                                 type="text"
                                 name="pengalaman"
                                 value="{{ old('pengalaman', $user->pengalaman) }}"
-                                placeholder="e.g. 10 years"
+                                placeholder="Contoh: 10 tahun"
                                 required>
 
                             @error('pengalaman')
@@ -638,7 +638,7 @@
                             <label for="biografi"
                                 class="form-label fw-medium">
 
-                                Biography
+                                Biografi
 
                             </label>
 
@@ -647,7 +647,7 @@
                                 id="biografi"
                                 name="biografi"
                                 rows="4"
-                                placeholder="Tell us about yourself...">{{ old('biografi', $user->biografi) }}</textarea>
+                                placeholder="Ceritakan tentang diri Anda...">{{ old('biografi', $user->biografi) }}</textarea>
 
                             @error('biografi')
 
@@ -672,11 +672,11 @@
                             <div>
 
                                 <h5 class="fw-semibold mb-1">
-                                    Social Media
+                                    Media Sosial
                                 </h5>
 
                                 <small class="text-muted">
-                                    Connect your social media accounts.
+                                    Hubungkan akun media sosial Anda.
                                 </small>
 
                             </div>
@@ -708,7 +708,7 @@
                                     type="text"
                                     name="facebook"
                                     value="{{ old('facebook', $user->facebook) }}"
-                                    placeholder="Facebook profile URL">
+                                    placeholder="Tautan profil Facebook">
 
                             </div>
 
@@ -729,7 +729,7 @@
                                     type="text"
                                     name="instagram"
                                     value="{{ old('instagram', $user->instagram) }}"
-                                    placeholder="Instagram profile URL">
+                                    placeholder="Tautan profil Instagram">
 
                             </div>
 
@@ -750,7 +750,7 @@
                                     type="text"
                                     name="tiktok"
                                     value="{{ old('tiktok', $user->tiktok) }}"
-                                    placeholder="TikTok profile URL">
+                                    placeholder="Tautan profil TikTok">
 
                             </div>
 
@@ -771,7 +771,7 @@
                                     type="text"
                                     name="youtube"
                                     value="{{ old('youtube', $user->youtube) }}"
-                                    placeholder="YouTube channel URL">
+                                    placeholder="Tautan kanal YouTube">
 
                             </div>
 
@@ -788,7 +788,7 @@
                             class="btn btn-light border px-4"
                             onclick="window.history.back()">
 
-                            Cancel
+                            Batal
 
                         </button>
 
@@ -797,7 +797,7 @@
                             class="btn btn-primary px-4">
 
                             <i class="bi bi-check2 me-1"></i>
-                            Save Changes
+                            Simpan Perubahan
 
                         </button>
 

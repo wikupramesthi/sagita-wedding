@@ -123,7 +123,7 @@
             font-size: 9px;
         }
 
-        .instructor {
+        .vendor {
             font-size: 9px;
             margin-top: 2px;
         }
@@ -252,8 +252,8 @@
                         </div>
                         @endif
 
-                        <div class="instructor">
-                            {{ $schedule->class->instructor->name ?? '-' }}
+                        <div class="vendor">
+                            {{ $schedule->class->vendor->name ?? '-' }}
                         </div>
 
                     </div>

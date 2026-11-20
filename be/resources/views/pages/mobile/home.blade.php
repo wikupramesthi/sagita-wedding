@@ -68,8 +68,8 @@
         <div class="row g-3 mt-1 text-center">
             <div class="col-4">
                 <div class="app-card py-3">
-                    <p class="mb-0 fw-semibold text-sage">{{ $jumlahInstruktur }}</p>
-                    <p class="mb-0 text-muted2 text-small">{{ __('mobile.instructors') }}</p>
+                    <p class="mb-0 fw-semibold text-sage">{{ $jumlahVendor }}</p>
+                    <p class="mb-0 text-muted2 text-small">Vendor</p>
                 </div>
             </div>
             <div class=" col-4">
@@ -194,7 +194,7 @@
 
             $level = ($lvl = $schedule->class?->level) ? __('mobile.level.' . $lvl) : '-';
             $className = $schedule->class?->name ?? '-';
-            $instructor = $schedule->class?->instructor?->name ?? '-';
+            $vendor = $schedule->class?->vendor?->name ?? '-';
             @endphp
 
             <div class="app-card d-flex align-items-center gap-3 p-3">
@@ -228,7 +228,7 @@
 
                         <span class="text-truncate">
                             <i class="bi bi-person"></i>
-                            {{ $instructor }}
+                            {{ $vendor }}
                         </span>
 
                         <span>•</span>
@@ -309,7 +309,7 @@
 
             @php
             $class = $schedule->class;
-            $instructor = $class?->instructor;
+            $vendor = $class?->vendor;
 
             $startTime = \Carbon\Carbon::parse($schedule->start_time);
             $endTime = \Carbon\Carbon::parse($schedule->end_time);
@@ -320,12 +320,12 @@
                 <div class="d-flex align-items-center gap-3">
 
                     <div class="avatar flex-shrink-0">
-                        <img src="{{ $instructor?->avatar
-        ? (Str::startsWith($instructor->avatar, 'http')
-            ? $instructor->avatar
-            : asset('storage/' . $instructor->avatar))
+                        <img src="{{ $vendor?->avatar
+        ? (Str::startsWith($vendor->avatar, 'http')
+            ? $vendor->avatar
+            : asset('storage/' . $vendor->avatar))
         : asset('dist/assets/images/avatar.jpg') }}"
-                            alt="{{ $instructor?->name ?? 'Instructor' }}"
+                            alt="{{ $vendor?->name ?? 'Vendor' }}"
                             class="rounded-circle"
                             loading="lazy"
                             decoding="async"
@@ -341,7 +341,7 @@
 
                         <p class="mb-1 text-muted2 text-truncate text-small">
                             <i class="bi bi-person me-1"></i>
-                            {{ $instructor?->name ?? 'No Instructor' }}
+                            {{ $vendor?->name ?? 'No Vendor' }}
 
                             @if ($class?->level)
                             <span class="mx-1">•</span>

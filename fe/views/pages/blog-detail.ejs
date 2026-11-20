@@ -123,8 +123,8 @@
                     <% if (c.description) { %>
                       <p class="text-xs text-stone-warm leading-relaxed line-clamp-2 mt-1"><%= c.description %></p>
                     <% } %>
-                    <% if (c.instructor && c.instructor.name) { %>
-                      <p class="text-[11px] font-medium text-sage-700 mt-1.5">By <%= c.instructor.name %></p>
+                    <% if (c.vendor && c.vendor.name) { %>
+                      <p class="text-[11px] font-medium text-sage-700 mt-1.5">By <%= c.vendor.name %></p>
                     <% } %>
                   </a>
                 <% }) %>

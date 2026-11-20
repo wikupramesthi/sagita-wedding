@@ -72,7 +72,7 @@
             </button>
 
             <button type="button"
-                class="tab-item {{ request()->routeIs('profile.edit', 'account.*', 'bookings.my', 'memberships.*', 'instruktur.mobile') ? 'active' : '' }}"
+                class="tab-item {{ request()->routeIs('profile.edit', 'account.*', 'bookings.my', 'memberships.*', 'vendor.mobile') ? 'active' : '' }}"
                 onclick="window.location.href='{{ route('profile.edit') }}'">
                 <span class="ico"><i class="bi bi-person-circle"></i></span>
                 <span>{{ __('mobile.profile') }}</span>
@@ -102,7 +102,7 @@
         style="background: rgba(250, 248, 242, .65); z-index: 1050;">
         <div class="mobile-loader-bar"></div>
         <div class="spinner-border text-sage" role="status" style="margin-top:50vh;">
-            <span class="visually-hidden">Loading...</span>
+            <span class="visually-hidden">Memuat...</span>
         </div>
     </div>
     <style>

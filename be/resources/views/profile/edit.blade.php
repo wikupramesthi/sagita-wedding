@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title', 'Profile')
+@section('title', 'Profil')
 @section('breadcrumb')
 
-<x-breadcrumb title="Profile" page="User Management" active="Profile" route="{{ route('profile.edit') }}" />
+<x-breadcrumb title="Profil" page="Manajemen Pengguna" active="Profil" route="{{ route('profile.edit') }}" />
 
 @endsection
 
@@ -16,7 +16,7 @@
 
     {{ $error }}
 
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup">
     </button>
 
 </div>
@@ -72,12 +72,12 @@
 
                     <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
                         <i class="bi bi-check-circle-fill me-1"></i>
-                        Active Account
+                        Akun Aktif
                     </span>
 
                     <span class="badge rounded-pill bg-light text-muted border px-3 py-2">
                         <i class="bi bi-calendar3 me-1"></i>
-                        Joined
+                        Bergabung
                         {{ auth()->user()->created_at->format('d M Y') }}
                     </span>
 
@@ -93,7 +93,7 @@
                 <a href="{{ route('member-view', 'mobile') }}" class="btn btn-success px-4">
 
                     <i class="bi bi-phone me-1"></i>
-                    Mobile view
+                    Tampilan Seluler
 
                 </a>
                 @endrole
@@ -101,7 +101,7 @@
                 <a href="{{ route('account.index') }}" class="btn btn-primary px-4">
 
                     <i class="bi bi-pencil-square me-1"></i>
-                    Edit Profile
+                    Ubah Profil
 
                 </a>
 
@@ -109,7 +109,7 @@
                     data-bs-target="#modal-form-edit-password-{{ auth()->user()->id }}">
 
                     <i class="bi bi-lock me-1"></i>
-                    Change Password
+                    Ganti Password
 
                 </button>
 
@@ -135,11 +135,11 @@
                 <div class="mb-4">
 
                     <h5 class="fw-semibold mb-1">
-                        Personal Information
+                        Informasi Pribadi
                     </h5>
 
                     <small class="text-muted">
-                        Your basic personal information
+                        Data pribadi dasar Anda
                     </small>
 
                 </div>
@@ -153,7 +153,7 @@
                         <div class="bg-primary-subtle rounded-3 p-3 h-100">
 
                             <small class="text-primary d-block mb-1">
-                                Full Name
+                                Nama Lengkap
                             </small>
 
                             <div class="fw-semibold text-dark">
@@ -171,7 +171,7 @@
                         <div class="bg-info-subtle rounded-3 p-3 h-100">
 
                             <small class="text-info-emphasis d-block mb-1">
-                                Email Address
+                                Alamat Email
                             </small>
 
                             <div class="fw-semibold text-dark text-break">
@@ -189,7 +189,7 @@
                         <div class="bg-success-subtle rounded-3 p-3 h-100">
 
                             <small class="text-success d-block mb-1">
-                                Phone Number
+                                Nomor HP
                             </small>
 
                             <div class="fw-semibold text-dark">
@@ -207,11 +207,11 @@
                         <div class="bg-warning-subtle rounded-3 p-3 h-100">
 
                             <small class="text-warning-emphasis d-block mb-1">
-                                Gender
+                                Jenis Kelamin
                             </small>
 
                             <div class="fw-semibold text-dark">
-                                {{ $user->jenis_kelamin === 'L' ? 'Male' : ($user->jenis_kelamin === 'P' ? 'Female' : '-') }}
+                                {{ $user->jenis_kelamin === 'L' ? 'Laki-laki' : ($user->jenis_kelamin === 'P' ? 'Perempuan' : '-') }}
                             </div>
 
                         </div>
@@ -225,7 +225,7 @@
                         <div class="bg-light border rounded-3 p-3 h-100">
 
                             <small class="text-muted d-block mb-1">
-                                Place of Birth
+                                Tempat Lahir
                             </small>
 
                             <div class="fw-semibold">
@@ -243,7 +243,7 @@
                         <div class="bg-light border rounded-3 p-3 h-100">
 
                             <small class="text-muted d-block mb-1">
-                                Date of Birth
+                                Tanggal Lahir
                             </small>
 
                             <div class="fw-semibold">
@@ -267,7 +267,7 @@
                         <div class="bg-light border rounded-3 p-3 h-100">
 
                             <small class="text-muted d-block mb-1">
-                                Religion
+                                Agama
                             </small>
 
                             <div class="fw-semibold">
@@ -297,11 +297,11 @@
                 <div class="mb-4">
 
                     <h5 class="fw-semibold mb-1">
-                        Account Information
+                        Informasi Akun
                     </h5>
 
                     <small class="text-muted">
-                        Account details and security
+                        Detail akun dan keamanan
                     </small>
 
                 </div>
@@ -311,7 +311,7 @@
                 <div class="bg-primary-subtle rounded-3 p-3 mb-3">
 
                     <small class="text-primary d-block mb-1">
-                        Account Role
+                        Peran Akun
                     </small>
 
                     <div class="fw-semibold">
@@ -327,7 +327,7 @@
                 <div class="bg-success-subtle rounded-3 p-3 mb-3">
 
                     <small class="text-success d-block mb-1">
-                        Member Since
+                        Bergabung Sejak
                     </small>
 
                     <div class="fw-semibold">
@@ -341,12 +341,12 @@
                 <div class="bg-info-subtle rounded-3 p-3 mb-3">
 
                     <small class="text-info-emphasis d-block mb-1">
-                        Account Status
+                        Status Akun
                     </small>
 
                     <span class="badge rounded-pill bg-success px-3 py-2">
                         <i class="bi bi-check-circle-fill me-1"></i>
-                        Active
+                        Aktif
                     </span>
 
                 </div>
@@ -366,11 +366,11 @@
                         <div>
 
                             <div class="fw-semibold">
-                                Account Security
+                                Keamanan Akun
                             </div>
 
                             <small class="text-muted">
-                                Keep your password secure
+                                Jaga keamanan password Anda
                             </small>
 
                         </div>
@@ -381,7 +381,7 @@
                         data-bs-target="#modal-form-edit-password-{{ auth()->user()->id }}">
 
                         <i class="bi bi-key me-1"></i>
-                        Change Password
+                        Ganti Password
 
                     </button>
 

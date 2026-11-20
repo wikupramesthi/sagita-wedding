@@ -4,19 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Support\ImageShrinker;
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-
 class EventsController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      */
-
     public function index(Request $request)
     {
         $search = trim((string) $request->get('search', ''));
@@ -28,7 +27,7 @@ class EventsController extends Controller
         $query = Event::query();
 
         if ($search !== '') {
-            $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search) . '%';
+            $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
             $query->where('judul', 'like', $like);
         }
 
@@ -49,7 +48,8 @@ class EventsController extends Controller
 
         $items = (clone $query)
             ->orderBy('tanggal', 'DESC')
-            ->get();
+            ->paginate(15)
+            ->withQueryString();
 
         // Member: versi mobile phone-frame — hanya event published mendatang.
         if (! auth()->user()->hasAnyRole(['super-admin', 'admin'])) {
@@ -59,7 +59,7 @@ class EventsController extends Controller
                 ->whereDate('tanggal', '>=', now()->toDateString());
 
             if ($searchMobile !== '') {
-                $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchMobile) . '%';
+                $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchMobile).'%';
                 $mobileQuery->where('judul', 'like', $like);
             }
 
@@ -83,7 +83,7 @@ class EventsController extends Controller
         ];
 
         return view('pages.event.index', [
-            'title' => 'Event',
+            'title' => 'Acara',
             'items' => $items,
             'stats' => $stats,
             'search' => $search,
@@ -92,6 +92,7 @@ class EventsController extends Controller
             'tanggal_selesai' => $tanggal_selesai,
         ]);
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -106,16 +107,16 @@ class EventsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'judul'          => 'required|string|max:255',
-            'deskripsi'      => 'required|string',
-            'gambar'         => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'tanggal'        => 'required|date',
-            'waktu_mulai'    => 'nullable|date_format:H:i',
-            'waktu_selesai'  => 'nullable|date_format:H:i|after_or_equal:waktu_mulai',
-            'lokasi'         => 'nullable|string|max:255',
-            'kapasitas'      => 'nullable|integer|min:1',
-            'status'         => 'required|in:draft,published,cancelled,completed',
-        ]);
+            'judul' => $this->judulRule(),
+            'deskripsi' => 'required|string',
+            'gambar' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'tanggal' => 'required|date',
+            'waktu_mulai' => 'nullable|date_format:H:i',
+            'waktu_selesai' => 'nullable|date_format:H:i|after_or_equal:waktu_mulai',
+            'lokasi' => 'nullable|string|max:255',
+            'kapasitas' => 'nullable|integer|min:1',
+            'status' => 'required|in:draft,published,cancelled,completed',
+        ], $this->validationMessages(), $this->validationAttributes());
 
         DB::beginTransaction();
 
@@ -123,35 +124,34 @@ class EventsController extends Controller
             $path = $request->file('gambar')->store('events', 'public');
 
             // Maks 1024px: hero & kartu event di HP hanya tampil <= 200px.
-            \App\Support\ImageShrinker::shrink(storage_path('app/public/' . $path), 1024);
+            ImageShrinker::shrink(storage_path('app/public/'.$path), 1024);
 
             Event::create([
-                'uuid'          => Str::uuid(),
-                'judul'         => $request->judul,
-                 'slug'          => Str::slug($request->judul),
-                'excerpt'       => $request->excerpt,
-                'deskripsi'     => $request->deskripsi,
-                'gambar'        => $path,
-                'tanggal'       => $request->tanggal,
-                'waktu_mulai'   => $request->waktu_mulai,
+                'uuid' => Str::uuid(),
+                'judul' => $request->judul,
+                'slug' => Str::slug($request->judul),
+                'deskripsi' => $request->deskripsi,
+                'gambar' => $path,
+                'tanggal' => $request->tanggal,
+                'waktu_mulai' => $request->waktu_mulai,
                 'waktu_selesai' => $request->waktu_selesai,
-                'lokasi'        => $request->lokasi,
-                'kapasitas'     => $request->kapasitas,
-                'status'        => $request->status,
+                'lokasi' => $request->lokasi,
+                'kapasitas' => $request->kapasitas,
+                'status' => $request->status,
             ]);
 
             DB::commit();
 
             return redirect()
                 ->back()
-                ->with('success', 'Event created successfully.');
+                ->with('success', 'Acara berhasil dibuat.');
         } catch (\Throwable $th) {
 
             DB::rollBack();
 
             return redirect()
                 ->back()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
 
@@ -186,23 +186,22 @@ class EventsController extends Controller
         $item = Event::where('uuid', $uuid)->firstOrFail();
 
         $request->validate([
-            'judul'          => 'required|string|max:255',
-            'deskripsi'      => 'required|string',
-            'gambar'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'tanggal'        => 'required|date',
-            'waktu_mulai'    => 'nullable|date_format:H:i',
-            'waktu_selesai'  => 'nullable|date_format:H:i|after_or_equal:waktu_mulai',
-            'lokasi'         => 'nullable|string|max:255',
-            'kapasitas'      => 'nullable|integer|min:1',
-            'status'         => 'required|in:draft,published,cancelled,completed',
-        ]);
+            'judul' => $this->judulRule($uuid),
+            'deskripsi' => 'required|string',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'tanggal' => 'required|date',
+            'waktu_mulai' => 'nullable|date_format:H:i',
+            'waktu_selesai' => 'nullable|date_format:H:i|after_or_equal:waktu_mulai',
+            'lokasi' => 'nullable|string|max:255',
+            'kapasitas' => 'nullable|integer|min:1',
+            'status' => 'required|in:draft,published,cancelled,completed',
+        ], $this->validationMessages(), $this->validationAttributes());
 
         DB::beginTransaction();
 
         try {
             $data = $request->only([
                 'judul',
-                'slug',
                 'deskripsi',
                 'tanggal',
                 'waktu_mulai',
@@ -211,6 +210,7 @@ class EventsController extends Controller
                 'kapasitas',
                 'status',
             ]);
+            $data['slug'] = Str::slug($data['judul']);
 
             // When uploading a new image
             if ($request->hasFile('gambar')) {
@@ -222,7 +222,7 @@ class EventsController extends Controller
 
                 // Save the new image
                 $data['gambar'] = $request->file('gambar')->store('events', 'public');
-                \App\Support\ImageShrinker::shrink(storage_path('app/public/' . $data['gambar']), 1024);
+                ImageShrinker::shrink(storage_path('app/public/'.$data['gambar']), 1024);
             }
 
             $item->update($data);
@@ -231,16 +231,17 @@ class EventsController extends Controller
 
             return redirect()
                 ->back()
-                ->with('success', 'Event updated successfully.');
+                ->with('success', 'Acara berhasil diperbarui.');
         } catch (\Throwable $th) {
 
             DB::rollBack();
 
             return redirect()
                 ->back()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -263,14 +264,68 @@ class EventsController extends Controller
 
             return redirect()
                 ->back()
-                ->with('success', 'Event deleted successfully.');
+                ->with('success', 'Acara berhasil dihapus.');
         } catch (\Throwable $th) {
 
             DB::rollBack();
 
             return redirect()
                 ->back()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
+    }
+
+    private function judulRule(?string $uuid = null): array
+    {
+        return [
+            'bail',
+            'required',
+            'string',
+            'max:255',
+            function (string $attribute, mixed $value, Closure $fail) use ($uuid): void {
+                $query = Event::where('slug', Str::slug($value));
+
+                if ($uuid) {
+                    $query->where('uuid', '!=', $uuid);
+                }
+
+                if ($query->exists()) {
+                    $fail('Nama acara ini sudah digunakan.');
+                }
+            },
+        ];
+    }
+
+    private function validationMessages(): array
+    {
+        return [
+            'required' => 'Kolom :attribute wajib diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'max' => ':attribute tidak boleh lebih dari :max karakter.',
+            'gambar.max' => 'Ukuran Gambar tidak boleh lebih dari :max KB.',
+            'image' => ':attribute harus berupa gambar.',
+            'mimes' => ':attribute harus berformat :values.',
+            'date' => ':attribute harus berupa tanggal yang valid.',
+            'date_format' => ':attribute harus sesuai format :format.',
+            'after_or_equal' => ':attribute tidak boleh lebih awal dari :date.',
+            'integer' => ':attribute harus berupa angka.',
+            'min' => ':attribute minimal :min.',
+            'in' => 'Pilihan :attribute tidak valid.',
+        ];
+    }
+
+    private function validationAttributes(): array
+    {
+        return [
+            'judul' => 'Nama Acara',
+            'deskripsi' => 'Deskripsi',
+            'gambar' => 'Gambar',
+            'tanggal' => 'Tanggal',
+            'waktu_mulai' => 'Waktu Mulai',
+            'waktu_selesai' => 'Waktu Selesai',
+            'lokasi' => 'Lokasi',
+            'kapasitas' => 'Kapasitas',
+            'status' => 'Status',
+        ];
     }
 }

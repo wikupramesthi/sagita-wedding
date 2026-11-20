@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\InstructorResource;
+use App\Http\Resources\VendorResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Throwable;
 
-class InstructorController extends Controller
+class VendorController extends Controller
 {
     public function index(Request $request)
     {
@@ -20,42 +20,44 @@ class InstructorController extends Controller
 
             $perPage = $request->input('per_page', 20);
 
-            $instructors = User::role('instruktur')
+            $vendors = User::role('vendor')
                 ->with('vendors_categories')
                 ->orderBy('name')
                 ->paginate($perPage);
 
+            $vendorData = VendorResource::collection($vendors->items());
+
             return response()->json([
                 'status' => 'success',
 
-                'message' => $instructors->isEmpty()
-                    ? 'No instructors available'
-                    : 'Instructor data retrieved successfully',
+                'message' => $vendors->isEmpty()
+                    ? 'No vendors available'
+                    : 'Vendor data retrieved successfully',
 
-                'data' => InstructorResource::collection(
-                    $instructors->items()
-                ),
+                'data' => $vendorData,
+                'vendors' => $vendorData,
 
                 'meta' => [
-                    'current_page' => $instructors->currentPage(),
-                    'per_page' => $instructors->perPage(),
-                    'total' => $instructors->total(),
-                    'last_page' => $instructors->lastPage(),
-                    'from' => $instructors->firstItem(),
-                    'to' => $instructors->lastItem(),
+                    'current_page' => $vendors->currentPage(),
+                    'per_page' => $vendors->perPage(),
+                    'total' => $vendors->total(),
+                    'last_page' => $vendors->lastPage(),
+                    'from' => $vendors->firstItem(),
+                    'to' => $vendors->lastItem(),
                 ],
             ], 200);
         } catch (Throwable $e) {
 
-            \Log::error('Instructor API error', [
+            \Log::error('Vendor API error', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to fetch instructor data',
+                'message' => 'Failed to fetch vendor data',
                 'data' => [],
+                'vendors' => [],
             ], 500);
         }
     }

@@ -9,7 +9,7 @@
         @if ($user->foto_pj && file_exists(public_path('storage/' . $user->foto_pj)))
           <img src="{{ asset('storage/' . $user->foto_pj) }}" class="img-fluid rounded" alt="Foto PJ">
         @else
-          <p class="text-danger">Foto KTP penanggung jawab/PIC belum diupload.</p>
+          <p class="text-danger">Foto KTP penanggung jawab/PIC belum diunggah.</p>
         @endif
       </div>
     </div>

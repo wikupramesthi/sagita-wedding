@@ -87,8 +87,8 @@
 
   <!-- ======================= STATS ======================= -->
   <section class="bg-sand-900 text-sand-50 py-16 px-6">
-  <!-- Angka live dari backend (members, instructors, classes); index ke-3+ tetap statis -->
-  <% const statKeys = ["members", "instructors", "classes"]; %>
+  <!-- Angka live dari backend (members, vendors, classes); index ke-3+ tetap statis -->
+  <% const statKeys = ["members", "vendors", "classes"]; %>
     <div class="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
       <% (t.about.stats || []).forEach((s, i) => { %>
         <div class="reveal" data-delay="<%= i * 90 %>">

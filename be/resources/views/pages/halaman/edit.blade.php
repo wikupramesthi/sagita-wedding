@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Edit Page')
+@section('title', 'Ubah Halaman')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Edit Page" page="Static Pages" active="Edit Page" route="{{ route('pages.index') }}" />
+<x-breadcrumb title="Ubah Halaman" page="Halaman Statis" active="Ubah Halaman" route="{{ route('pages.index') }}" />
 @endsection
 
 <!-- Content -->
@@ -15,7 +15,7 @@
                 @method('PUT')
 
                 <div class="form-group mb-3">
-                    <label for="title" class="mb-2">Page Title <span class="text-danger">*</span></label>
+                    <label for="title" class="mb-2">Judul Halaman <span class="text-danger">*</span></label>
                     <input type="text" name="title" id="title"
                         class="form-control @error('title') is-invalid @enderror"
                         value="{{ old('title', $page->title) }}" required>
@@ -25,7 +25,7 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="excerpt" class="mb-2">Page Content <span class="text-danger">*</span></label>
+                    <label for="excerpt" class="mb-2">Konten Halaman <span class="text-danger">*</span></label>
                     <input type="text" name="excerpt" id="excerpt"
                         class="form-control @error('excerpt') is-invalid @enderror"
                         value="{{ old('excerpt', $page->excerpt) }}" required>
@@ -35,7 +35,7 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="content" class="mb-2">Summary <span class='text-danger'>*</span></label>
+                    <label for="content" class="mb-2">Ringkasan <span class='text-danger'>*</span></label>
                     <textarea name="content" id="deskripsi" cols="30" rows="5"
                         class="form-control @error('content') is-invalid @enderror">{{ old('content', $page->content) }}</textarea>
                     @error('content')
@@ -44,10 +44,10 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="featured_image" class="mb-2">Page Image</label>
+                    <label for="featured_image" class="mb-2">Gambar Halaman</label>
                     @if ($page->featured_image)
                     <div class="mb-2">
-                        <img src="{{ asset('storage/' . $page->featured_image) }}" alt="Image"
+                        <img src="{{ asset('storage/' . $page->featured_image) }}" alt="Gambar"
                             class="img-thumbnail" width="200">
                     </div>
                     @endif
@@ -59,28 +59,28 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="has_sidebar" class="mb-2">Show in Sidebar <span
+                    <label for="has_sidebar" class="mb-2">Tampil di Sidebar <span
                             class="text-danger">*</span></label>
                     <select name="has_sidebar" id="has_sidebar" class="form-control">
-                        <option value="1" {{ old('has_sidebar', $page->has_sidebar) == 1 ? 'selected' : '' }}>Yes
+                        <option value="1" {{ old('has_sidebar', $page->has_sidebar) == 1 ? 'selected' : '' }}>Ya
                         </option>
                         <option value="0" {{ old('has_sidebar', $page->has_sidebar) == 0 ? 'selected' : '' }}>
-                            No</option>
+                            Tidak</option>
                     </select>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="is_published" class="mb-2">Publish Status <span class="text-danger">*</span></label>
+                    <label for="is_published" class="mb-2">Status Publikasi <span class="text-danger">*</span></label>
                     <select name="is_published" id="is_published" class="form-control">
                         <option value="1" {{ old('is_published', $page->is_published) == 1 ? 'selected' : '' }}>
-                            Publish</option>
+                            Terbitkan</option>
                         <option value="0" {{ old('is_published', $page->is_published) == 0 ? 'selected' : '' }}>
-                            Draft</option>
+                            Draf</option>
                     </select>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="published_at" class="mb-2">Publish Date <span class="text-danger">*</span></label>
+                    <label for="published_at" class="mb-2">Tanggal Publikasi <span class="text-danger">*</span></label>
                     <input type="date" name="published_at" id="published_at"
                         class="form-control @error('published_at') is-invalid @enderror"
                         value="{{ old('published_at', $page->published_at ? $page->published_at->format('Y-m-d') : '') }}"
@@ -91,8 +91,8 @@
                 </div>
 
                 <div class="form-group text-right mt-4">
-                    <a href="{{ route('pages.index') }}" class="btn btn-secondary me-2">Cancel</a>
-                    <button class="btn btn-danger">Update</button>
+                    <a href="{{ route('pages.index') }}" class="btn btn-secondary me-2">Batal</a>
+                    <button class="btn btn-danger">Perbarui</button>
                 </div>
             </form>
 

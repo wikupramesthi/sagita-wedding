@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 class VendorsCategoryController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Tampilkan daftar kategori vendor.
      */
     public function index()
     {
@@ -26,7 +26,7 @@ class VendorsCategoryController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Simpan kategori vendor baru.
      */
     public function store(Request $request)
     {
@@ -46,16 +46,16 @@ class VendorsCategoryController extends Controller
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Vendor category successfully added.');
+            return redirect()->back()->with('success', 'Kategori vendor berhasil ditambahkan.');
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', $th->getMessage());
+            return redirect()->back()->with('error', 'Gagal menambahkan kategori vendor: '.$th->getMessage());
         }
     }
 
     /**
-     * Update the specified resource in storage.
+     * Perbarui kategori vendor.
      */
     public function update($uuid, Request $request)
     {
@@ -76,16 +76,16 @@ class VendorsCategoryController extends Controller
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Vendor category successfully changed.');
+            return redirect()->back()->with('success', 'Kategori vendor berhasil diperbarui.');
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', $th->getMessage());
+            return redirect()->back()->with('error', 'Gagal memperbarui kategori vendor: '.$th->getMessage());
         }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Hapus kategori vendor.
      */
     public function destroy($uuid)
     {
@@ -96,11 +96,11 @@ class VendorsCategoryController extends Controller
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Vendor category successfully deleted.');
+            return redirect()->back()->with('success', 'Kategori vendor berhasil dihapus.');
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', $th->getMessage());
+            return redirect()->back()->with('error', 'Gagal menghapus kategori vendor: '.$th->getMessage());
         }
     }
 }

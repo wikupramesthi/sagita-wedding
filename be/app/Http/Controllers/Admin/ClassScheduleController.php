@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Class\ClassBooking;
 use App\Models\Class\ClassModel;
 use App\Models\Class\ClassSchedule;
 use App\Models\Payment\Order;
 use App\Models\Venue;
 use App\Services\MembershipService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class ClassScheduleController extends Controller
 {
@@ -28,12 +29,12 @@ class ClassScheduleController extends Controller
         $venueUuid = (string) $request->get('venue_uuid', '');
 
         $query = ClassSchedule::with([
-            'class.instructor',
-            'venue'
+            'class.vendor',
+            'venue',
         ])->where('status', 'active');
 
         if ($search !== '') {
-            $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search) . '%';
+            $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
             $query->whereHas('class', function ($q) use ($like) {
                 $q->where('name', 'like', $like);
             });
@@ -101,10 +102,10 @@ class ClassScheduleController extends Controller
         $todayDate = now()->format('Y-m-d');
 
         if ($isMember) {
-            $myBookings = \App\Models\Class\ClassBooking::where('user_uuid', $authUser->uuid)
+            $myBookings = ClassBooking::where('user_uuid', $authUser->uuid)
                 ->where('status', '!=', 'cancelled')
                 ->get()
-                ->keyBy(fn ($b) => $b->class_schedule_uuid . '|' . $b->booking_date?->format('Y-m-d'));
+                ->keyBy(fn ($b) => $b->class_schedule_uuid.'|'.$b->booking_date?->format('Y-m-d'));
         }
 
         return view(
@@ -125,6 +126,7 @@ class ClassScheduleController extends Controller
             )
         );
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -149,12 +151,12 @@ class ClassScheduleController extends Controller
         ]);
 
         // Pastikan end time lebih besar dari start time
-        $start = \Carbon\Carbon::createFromFormat(
+        $start = Carbon::createFromFormat(
             'H:i',
             $request->start_time
         );
 
-        $end = \Carbon\Carbon::createFromFormat(
+        $end = Carbon::createFromFormat(
             'H:i',
             $request->end_time
         );
@@ -162,7 +164,7 @@ class ClassScheduleController extends Controller
         if ($end->lessThanOrEqualTo($start)) {
             return back()
                 ->withErrors([
-                    'end_time' => 'End time must be after start time.'
+                    'end_time' => 'End time must be after start time.',
                 ])
                 ->withInput();
         }
@@ -188,7 +190,7 @@ class ClassScheduleController extends Controller
         if ($conflict) {
             return back()
                 ->withErrors([
-                    'start_time' => 'This venue already has a class scheduled at this time.'
+                    'start_time' => 'This venue already has a class scheduled at this time.',
                 ])
                 ->withInput();
         }
@@ -214,7 +216,7 @@ class ClassScheduleController extends Controller
                 ->route('class-schedules.index')
                 ->with(
                     'success',
-                    'Class schedule added successfully.'
+                    'Jadwal kelas berhasil ditambahkan.'
                 );
         } catch (\Throwable $th) {
 
@@ -222,9 +224,10 @@ class ClassScheduleController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
+
     /**
      * Display the specified resource.
      */
@@ -295,8 +298,7 @@ class ClassScheduleController extends Controller
                     ->back()
                     ->withInput()
                     ->withErrors([
-                        'start_time' =>
-                        'This venue already has a class scheduled at this time.'
+                        'start_time' => 'This venue already has a class scheduled at this time.',
                     ]);
             }
 
@@ -316,7 +318,7 @@ class ClassScheduleController extends Controller
                 ->route('class-schedules.index')
                 ->with(
                     'success',
-                    'Class schedule updated successfully.'
+                    'Jadwal kelas berhasil diperbarui.'
                 );
         } catch (\Throwable $th) {
 
@@ -327,7 +329,7 @@ class ClassScheduleController extends Controller
                 ->withInput()
                 ->with(
                     'error',
-                    $th->getMessage()
+                    'Terjadi kesalahan: '.$th->getMessage()
                 );
         }
     }
@@ -335,7 +337,7 @@ class ClassScheduleController extends Controller
     public function print()
     {
         $schedules = ClassSchedule::with([
-            'class.instructor'
+            'class.vendor',
         ])
             ->where('status', 'active')
             ->get();
@@ -365,14 +367,14 @@ class ClassScheduleController extends Controller
 
             return redirect()
                 ->route('class-schedules.index')
-                ->with('success', 'Class schedule deactivated successfully.');
+                ->with('success', 'Jadwal kelas berhasil dinonaktifkan.');
         } catch (\Throwable $th) {
 
             DB::rollBack();
 
             return redirect()
                 ->back()
-                ->with('error', 'Failed to deactivate class schedule.');
+                ->with('error', 'Gagal menonaktifkan jadwal kelas.');
         }
     }
 }

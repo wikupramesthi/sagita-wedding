@@ -83,7 +83,7 @@ export interface Article {
 /** Statistik agregat publik (tanpa PII). */
 export interface SiteStats {
 	members: number | null;
-	instructors: number | null;
+	vendors: number | null;
 	classes: number | null;
 }
 
@@ -94,11 +94,11 @@ export interface YogaClass {
 	description?: string;
 	level?: string;
 	image?: string;
-	instructor?: { name?: string; avatar?: string };
+	vendor?: { name?: string; avatar?: string };
 }
 
 /** Instruktur yoga. */
-export interface Instructor {
+export interface Vendor {
 	uuid?: string;
 	slug?: string;
 	name?: string;

@@ -21,7 +21,7 @@ class SiteStatsController extends Controller
             $data = Cache::remember('site-stats:public', 3600, function () {
                 return [
                     'members' => User::role('user')->count(),
-                    'instructors' => User::role('instruktur')->count(),
+                    'vendors' => User::role('vendor')->count(),
                     'classes' => ClassModel::query()->where('is_active', 'active')->count(),
                 ];
             });
@@ -32,7 +32,7 @@ class SiteStatsController extends Controller
                 'data' => $data,
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Site stats fetch error: ' . $e->getMessage());
+            Log::error('Site stats fetch error: '.$e->getMessage());
 
             return response()->json([
                 'status' => 'error',

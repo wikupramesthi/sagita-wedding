@@ -115,7 +115,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="{{ $isAdmin ? 8 : 7 }}" style="text-align:center; color:#6b7280;">No data for the selected filters.</td>
+            <td colspan="{{ $isAdmin ? 8 : 7 }}" style="text-align:center; color:#6b7280;">Tidak ada data untuk filter yang dipilih.</td>
         </tr>
         @endforelse
     </tbody>

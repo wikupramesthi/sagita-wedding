@@ -23,8 +23,30 @@ const contactPageEn = {
 	sendingBtn: "Sending...",
 	mapCardTitle: "YogaRoots Studio",
 	faqEyebrow: "FAQ",
-	faqTitle: "Frequently asked",
-	faqEmpty: "No FAQs available.",
+	faqTitle: "Frequently asked questions",
+	faqEmpty: "No questions have been added yet.",
+};
+
+const faqPageEn = {
+	badge: "Here to help",
+	titleA: "Answers for your",
+	titleB: "big day",
+	heroDesc:
+		"From the first invitation to the final dance, find clear answers on planning, packages, payments, vendors, and everything in between.",
+	searchLabel: "Search FAQs",
+	searchPh: "Search questions, topics, or keywords...",
+	topicsLabel: "Browse by topic",
+	allTopics: "All topics",
+	questionsLabel: "questions",
+	topicsCountLabel: "topics",
+	answerLabel: "Answer",
+	emptyTitle: "No matching questions",
+	emptyDesc: "Try another keyword or choose a different topic.",
+	reset: "Reset filters",
+	stillTitle: "Still have a question?",
+	stillDesc:
+		"Every wedding is different. Chat with our team and we'll help you find the right answer for your plans.",
+	stillBtn: "Chat on WhatsApp",
 };
 
 const artOfLivingEn = {
@@ -137,7 +159,7 @@ const rawTranslations = {
 			classes: "Classes",
 			schedules: "Schedules",
 			packages: "Packages",
-			instructors: "Instructors",
+			vendors: "Vendors",
 			events: "Events",
 			articles: "Articles",
 			contact: "Contact",
@@ -163,7 +185,7 @@ const rawTranslations = {
 		backToClasses: "Back to Classes",
 		levelLabel: "Level",
 		levelAdvanced: "Advanced",
-		instructorLabel: "Instructor",
+		vendorLabel: "Vendor",
 		venueLabel: "Venue",
 		scheduleLabel: "Class Schedule",
 		schedulePick: "Choose your preferred schedule",
@@ -295,7 +317,7 @@ const rawTranslations = {
 		classGuideTitle: "Class",
 		classGuideTitleItalic: "Guide",
 		classGuideDesc:
-			"All classes are led by certified instructors with personalized attention.",
+			"All classes are led by certified vendors with personalized attention.",
 		classSearchPlaceholder: "Search classes...",
 		classFilterLevel: "Level:",
 		classFilterAll: "All Levels",
@@ -307,10 +329,10 @@ const rawTranslations = {
 		classWhatsappUs: "WhatsApp Us",
 		tableOfContents: "On this page",
 		ctaQuestions: "Questions about these terms?",
-		instructorsTitleA: "Meet Our",
-		instructorsTitleB: "Instructors",
-		instructorsDesc:
-			"Meet the instructors who bring experience, intention, and warmth into every YogaRoots practice.",
+		vendorsTitleA: "Meet Our",
+		vendorsTitleB: "Vendors",
+		vendorsDesc:
+			"Meet the vendors who bring experience, intention, and warmth into every YogaRoots practice.",
 		eventsTitleA: "Something New",
 		eventsTitleB: "Awaits You",
 		eventsDesc:
@@ -377,7 +399,7 @@ const rawTranslations = {
 			],
 			stats: [
 				{ value: "12K+", label: "Active Members" },
-				{ value: "18", label: "Certified Instructors" },
+				{ value: "18", label: "Certified Vendors" },
 				{ value: "500+", label: "Total Classes" },
 				{ value: "4.8★", label: "Google Rating" },
 			],
@@ -418,7 +440,7 @@ const rawTranslations = {
 			whyFeatures: [
 				{
 					title: "Certified teachers",
-					desc: "Experienced, certified instructors guide every session with care and attention.",
+					desc: "Experienced, certified vendors guide every session with care and attention.",
 				},
 				{
 					title: "All levels welcome",
@@ -447,7 +469,7 @@ const rawTranslations = {
 		footerExplore: "Explore",
 		footerAbout: "About Us",
 		footerOurClasses: "Our Classes",
-		footerInstructors: "Instructors",
+		footervendors: "Vendors",
 		footerPackages: "Packages",
 		footerSupport: "Support",
 		footerFAQs: "FAQs",
@@ -467,6 +489,7 @@ const rawTranslations = {
 		privacyPolicy: "Privacy Policy",
 		termsConditions: "Terms & Conditions",
 		contactPage: contactPageEn,
+		faqPage: faqPageEn,
 		artOfLiving: artOfLivingEn,
 	},
 
@@ -478,7 +501,7 @@ const rawTranslations = {
 			classes: "Kelas",
 			schedules: "Jadwal",
 			packages: "Paket",
-			instructors: "Instruktur",
+			vendors: "Vendor",
 			events: "Acara",
 			articles: "Artikel",
 			contact: "Kontak",
@@ -504,7 +527,7 @@ const rawTranslations = {
 		backToClasses: "Kembali ke Daftar Kelas",
 		levelLabel: "Level",
 		levelAdvanced: "Lanjutan",
-		instructorLabel: "Instruktur",
+		vendorLabel: "Vendor",
 		venueLabel: "Venue",
 		scheduleLabel: "Jadwal Kelas",
 		schedulePick: "Pilih jadwal yang kamu inginkan",
@@ -637,7 +660,7 @@ const rawTranslations = {
 		classGuideTitle: "Panduan",
 		classGuideTitleItalic: "Kelas",
 		classGuideDesc:
-			"Semua kelas dipandu instruktur tersertifikasi dengan perhatian personal.",
+			"Semua kelas dipandu vendor tersertifikasi dengan perhatian personal.",
 		classSearchPlaceholder: "Cari kelas...",
 		classFilterLevel: "Level:",
 		classFilterAll: "Semua Level",
@@ -649,10 +672,10 @@ const rawTranslations = {
 		classWhatsappUs: "WhatsApp Kami",
 		tableOfContents: "Di halaman ini",
 		ctaQuestions: "Ada pertanyaan tentang ketentuan ini?",
-		instructorsTitleA: "Kenali",
-		instructorsTitleB: "Instruktur Kami",
-		instructorsDesc:
-			"Kenali para instruktur yang membawa pengalaman, niat, dan kehangatan dalam setiap latihan YogaRoots.",
+		vendorsTitleA: "Kenali",
+		vendorsTitleB: "Vendor Kami",
+		vendorsDesc:
+			"Kenali para vendor yang membawa pengalaman, niat, dan kehangatan dalam setiap latihan YogaRoots.",
 		eventsTitleA: "Sesuatu yang Baru",
 		eventsTitleB: "Menantimu",
 		eventsDesc:
@@ -720,7 +743,7 @@ const rawTranslations = {
 			],
 			stats: [
 				{ value: "12K+", label: "Member Aktif" },
-				{ value: "18", label: "Instruktur Bersertifikat" },
+				{ value: "18", label: "Vendor Bersertifikat" },
 				{ value: "500+", label: "Total Kelas" },
 				{ value: "4.8★", label: "Rating Google" },
 			],
@@ -790,7 +813,7 @@ const rawTranslations = {
 		footerExplore: "Eksplorasi",
 		footerAbout: "Tentang Kami",
 		footerOurClasses: "Kelas Kami",
-		footerInstructors: "Instruktur",
+		footervendors: "Vendor",
 		footerPackages: "Paket",
 		footerSupport: "Dukungan",
 		footerFAQs: "FAQ",
@@ -832,8 +855,29 @@ const rawTranslations = {
 			sendingBtn: "Mengirim...",
 			mapCardTitle: "YogaRoots Studio",
 			faqEyebrow: "FAQ",
-			faqTitle: "Sering ditanyakan",
-			faqEmpty: "Belum ada FAQ.",
+			faqTitle: "Pertanyaan yang sering diajukan",
+			faqEmpty: "Belum ada pertanyaan yang ditambahkan.",
+		},
+		faqPage: {
+			badge: "Kami siap membantu",
+			titleA: "Jawaban untuk",
+			titleB: "hari istimewamu",
+			heroDesc:
+				"Dari undangan pertama sampai tarian terakhir, temukan jawaban soal perencanaan, paket, pembayaran, vendor, dan semua yang ada di antaranya.",
+			searchLabel: "Cari FAQ",
+			searchPh: "Cari pertanyaan, topik, atau kata kunci...",
+			topicsLabel: "Jelajahi berdasarkan topik",
+			allTopics: "Semua topik",
+			questionsLabel: "pertanyaan",
+			topicsCountLabel: "topik",
+			answerLabel: "Jawaban",
+			emptyTitle: "Tidak ada pertanyaan yang cocok",
+			emptyDesc: "Coba kata kunci lain atau pilih topik berbeda.",
+			reset: "Atur ulang filter",
+			stillTitle: "Masih punya pertanyaan?",
+			stillDesc:
+				"Setiap pernikahan itu unik. Chat dengan tim kami dan kami bantu menemukan jawaban yang tepat untuk rencanamu.",
+			stillBtn: "Chat via WhatsApp",
 		},
 		artOfLiving: {
 			badge: "Pendiri — Art of Living",

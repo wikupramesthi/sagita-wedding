@@ -222,7 +222,12 @@
                     data-faq
                     class="w-full text-left px-6 py-5 font-semibold text-sm text-sage-900 flex justify-between items-center gap-4"
                   >
-                    <span><%= f.question %></span>
+                    <span class="flex flex-col gap-1">
+                      <% if (f.kategori) { %>
+                        <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-terracotta-600"><%= f.kategori %></span>
+                      <% } %>
+                      <span><%= f.question %></span>
+                    </span>
                     <span class="w-8 h-8 rounded-full bg-sand-100 text-sand-700 grid place-items-center text-lg leading-none shrink-0">+</span>
                   </button>
                   <div class="hidden px-6 pb-6 text-sm text-stone-warm leading-relaxed">

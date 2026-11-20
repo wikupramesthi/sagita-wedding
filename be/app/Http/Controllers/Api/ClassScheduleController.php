@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Class\ClassSchedule;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -70,7 +71,6 @@ class ClassScheduleController extends Controller
                 ],
             ]);
 
-
             /*
             |--------------------------------------------------------------------------
             | TANGGAL
@@ -83,7 +83,6 @@ class ClassScheduleController extends Controller
 
             $day = strtolower($date->format('l'));
 
-
             /*
             |--------------------------------------------------------------------------
             | QUERY DASAR
@@ -92,12 +91,11 @@ class ClassScheduleController extends Controller
 
             $query = ClassSchedule::query()
                 ->with([
-                    'class.instructor',
+                    'class.vendor',
                     'venue',
                 ])
                 ->where('day', $day)
                 ->where('status', 'active');
-
 
             /*
             |--------------------------------------------------------------------------
@@ -115,7 +113,6 @@ class ClassScheduleController extends Controller
                 });
             }
 
-
             /*
             |--------------------------------------------------------------------------
             | FILTER VENUE
@@ -129,7 +126,6 @@ class ClassScheduleController extends Controller
                     $request->venue_uuid
                 );
             }
-
 
             /*
             |--------------------------------------------------------------------------
@@ -155,7 +151,6 @@ class ClassScheduleController extends Controller
 
                         break;
 
-
                     case 'afternoon':
 
                         $query->whereTime(
@@ -170,7 +165,6 @@ class ClassScheduleController extends Controller
 
                         break;
 
-
                     case 'evening':
 
                         $query->whereTime(
@@ -183,7 +177,6 @@ class ClassScheduleController extends Controller
                 }
             }
 
-
             /*
             |--------------------------------------------------------------------------
             | ORDER
@@ -191,7 +184,6 @@ class ClassScheduleController extends Controller
             */
 
             $query->orderBy('start_time', 'asc');
-
 
             /*
             |--------------------------------------------------------------------------
@@ -207,7 +199,6 @@ class ClassScheduleController extends Controller
             $schedules = $query->paginate(
                 $perPage
             );
-
 
             /*
             |--------------------------------------------------------------------------
@@ -252,7 +243,6 @@ class ClassScheduleController extends Controller
 
                         'capacity' => $schedule->capacity,
 
-
                         /*
                         |--------------------------------------------------------------------------
                         | CLASS
@@ -268,19 +258,17 @@ class ClassScheduleController extends Controller
                             'image' => $schedule->class?->image,
                         ],
 
-
                         /*
                         |--------------------------------------------------------------------------
-                        | INSTRUCTOR
+                        | VENDOR
                         |--------------------------------------------------------------------------
                         */
 
-                        'instructor' => [
-                            'uuid' => $schedule->class?->instructor?->uuid,
-                            'name' => $schedule->class?->instructor?->name,
-                            'avatar' => $schedule->class?->instructor?->avatar,
+                        'vendor' => [
+                            'uuid' => $schedule->class?->vendor?->uuid,
+                            'name' => $schedule->class?->vendor?->name,
+                            'avatar' => $schedule->class?->vendor?->avatar,
                         ],
-
 
                         /*
                         |--------------------------------------------------------------------------
@@ -295,7 +283,6 @@ class ClassScheduleController extends Controller
                         ],
                     ];
                 });
-
 
             return response()->json([
 
@@ -340,13 +327,12 @@ class ClassScheduleController extends Controller
         } catch (\Throwable $e) {
 
             Log::error(
-                'Class schedule index error: ' . $e->getMessage(),
+                'Class schedule index error: '.$e->getMessage(),
                 [
                     'request' => $request->only(['date', 'level', 'time', 'venue_uuid', 'page', 'per_page']),
                     'trace' => $e->getTraceAsString(),
                 ]
             );
-
 
             return response()->json([
 
@@ -375,13 +361,12 @@ class ClassScheduleController extends Controller
 
             $schedule = ClassSchedule::query()
                 ->with([
-                    'class.instructor',
+                    'class.vendor',
                     'venue',
                 ])
                 ->where('uuid', $uuid)
                 ->where('status', 'active')
                 ->firstOrFail();
-
 
             /*
         |--------------------------------------------------------------------------
@@ -396,7 +381,6 @@ class ClassScheduleController extends Controller
             $endTime = $schedule->end_time
                 ? Carbon::parse($schedule->end_time)
                 : null;
-
 
             /*
         |--------------------------------------------------------------------------
@@ -434,7 +418,6 @@ class ClassScheduleController extends Controller
 
                     'capacity' => $schedule->capacity,
 
-
                     /*
                 |--------------------------------------------------------------------------
                 | CLASS
@@ -457,23 +440,21 @@ class ClassScheduleController extends Controller
 
                     ],
 
-
                     /*
                 |--------------------------------------------------------------------------
-                | INSTRUCTOR
+                | VENDOR
                 |--------------------------------------------------------------------------
                 */
 
-                    'instructor' => [
+                    'vendor' => [
 
-                        'uuid' => $schedule->class?->instructor?->uuid,
+                        'uuid' => $schedule->class?->vendor?->uuid,
 
-                        'name' => $schedule->class?->instructor?->name,
+                        'name' => $schedule->class?->vendor?->name,
 
-                        'avatar' => $schedule->class?->instructor?->avatar,
+                        'avatar' => $schedule->class?->vendor?->avatar,
 
                     ],
-
 
                     /*
                 |--------------------------------------------------------------------------
@@ -494,7 +475,7 @@ class ClassScheduleController extends Controller
                 ],
 
             ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
 
             return response()->json([
 
@@ -508,13 +489,12 @@ class ClassScheduleController extends Controller
         } catch (\Throwable $e) {
 
             Log::error(
-                'Class schedule show error: ' . $e->getMessage(),
+                'Class schedule show error: '.$e->getMessage(),
                 [
                     'uuid' => $uuid,
                     'trace' => $e->getTraceAsString(),
                 ]
             );
-
 
             return response()->json([
 

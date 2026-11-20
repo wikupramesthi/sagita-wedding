@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class InstructorResource extends JsonResource
+class VendorResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -14,7 +14,7 @@ class InstructorResource extends JsonResource
             'name' => $this->name,
 
             'avatar' => $this->avatar
-                ? asset('storage/' . $this->avatar)
+                ? asset('storage/'.$this->avatar)
                 : null,
 
             'pengalaman' => $this->pengalaman,

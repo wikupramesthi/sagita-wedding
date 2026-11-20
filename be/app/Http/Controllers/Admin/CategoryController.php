@@ -5,9 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
@@ -18,6 +17,7 @@ class CategoryController extends Controller
     {
         $categories = Category::withCount('articles')->get();
         $categoryCounts = $categories;
+
         return view('pages.categories.index', compact('categories', 'categoryCounts'));
     }
 
@@ -38,6 +38,10 @@ class CategoryController extends Controller
             'name' => 'required|unique:categories,name',
             'description' => 'nullable|string',
             'icon' => 'nullable|string|max:255',
+        ], [
+            'name.required' => 'Nama kategori wajib diisi.',
+            'name.unique' => 'Nama kategori sudah digunakan.',
+            'icon.max' => 'Ikon maksimal 255 karakter.',
         ]);
 
         DB::beginTransaction();
@@ -51,13 +55,14 @@ class CategoryController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->back()->with('success', 'Category added successfully.');
+
+            return redirect()->back()->with('success', 'Kategori berhasil ditambahkan.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
-
 
     /**
      * Display the specified resource.
@@ -81,9 +86,13 @@ class CategoryController extends Controller
     public function update($uuid, Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:categories,name,' . $uuid . ',uuid',
+            'name' => 'required|unique:categories,name,'.$uuid.',uuid',
             'description' => 'nullable|string',
             'icon' => 'nullable|string|max:255',
+        ], [
+            'name.required' => 'Nama kategori wajib diisi.',
+            'name.unique' => 'Nama kategori sudah digunakan.',
+            'icon.max' => 'Ikon maksimal 255 karakter.',
         ]);
 
         DB::beginTransaction();
@@ -98,10 +107,12 @@ class CategoryController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->back()->with('success', 'Category updated successfully.');
+
+            return redirect()->back()->with('success', 'Kategori berhasil diperbarui.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
 
@@ -116,10 +127,12 @@ class CategoryController extends Controller
             $item->delete();
 
             DB::commit();
-            return redirect()->back()->with('success', 'Category deleted successfully.');
+
+            return redirect()->back()->with('success', 'Kategori berhasil dihapus.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
 }

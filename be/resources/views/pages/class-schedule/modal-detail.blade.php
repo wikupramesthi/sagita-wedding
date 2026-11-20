@@ -54,7 +54,7 @@
                     {{-- Close Button --}}
                     <button type="button"
                         class="btn btn-light position-absolute top-0 end-0 m-3 rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center"
-                        data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-dismiss="modal" aria-label="Tutup"
                         style="
                             width: 40px;
                             height: 40px;
@@ -203,16 +203,16 @@
 
 
                     {{-- =====================================
-                        INSTRUCTOR
+                        VENDOR
                     ====================================== --}}
                     <div class="mb-4">
 
                         <h6 class="fw-semibold mb-3">
-                            Instructor
+                            Vendor
                         </h6>
 
 
-                        @if ($schedule->class->instructor)
+                        @if ($schedule->class->vendor)
                             <div class="d-flex align-items-center p-3 rounded-4"
                                 style="
                                     background: #fafafa;
@@ -220,9 +220,9 @@
                                 ">
 
                                 {{-- Avatar --}}
-                                @if ($schedule->class->instructor->avatar)
-                                    <img src="{{ asset('storage/' . $schedule->class->instructor->avatar) }}"
-                                        alt="{{ $schedule->class->instructor->name }}" class="rounded-circle me-3"
+                                @if ($schedule->class->vendor->avatar)
+                                    <img src="{{ asset('storage/' . $schedule->class->vendor->avatar) }}"
+                                        alt="{{ $schedule->class->vendor->name }}" class="rounded-circle me-3"
                                         style="
                                             width: 58px;
                                             height: 58px;
@@ -241,23 +241,23 @@
                                 @endif
 
 
-                                {{-- Instructor Info --}}
+                                {{-- Vendor Info --}}
                                 <div class="flex-grow-1">
 
                                     <div class="fw-semibold">
-                                        {{ $schedule->class->instructor->name }}
+                                        {{ $schedule->class->vendor->name }}
                                     </div>
 
 
-                                    @if ($schedule->class->instructor->vendors_categories && $schedule->class->instructor->vendors_categories->count())
+                                    @if ($schedule->class->vendor->vendors_categories && $schedule->class->vendor->vendors_categories->count())
                                         <div class="small text-muted mt-1">
 
-                                            {{ $schedule->class->instructor->vendors_categories->pluck('name')->join(' · ') }}
+                                            {{ $schedule->class->vendor->vendors_categories->pluck('name')->join(' · ') }}
 
                                         </div>
                                     @else
                                         <div class="small text-muted mt-1">
-                                            Yoga Instructor
+                                            Yoga Vendor
                                         </div>
                                     @endif
 
@@ -272,7 +272,7 @@
 
                                 <i class="bi bi-person-x me-2"></i>
 
-                                No instructor assigned
+                                No vendor assigned
 
                             </div>
                         @endif
@@ -474,7 +474,7 @@
 
                         {{-- Delete --}}
                         <form action="{{ route('class-schedules.destroy', $schedule->uuid) }}" method="POST"
-                            class="me-auto" onsubmit="return confirm('Are you sure you want to delete this schedule?')">
+                            class="me-auto" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
 
                             @csrf
                             @method('DELETE')
@@ -539,7 +539,7 @@
 
                         </h5>
 
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup">
                         </button>
 
                     </div>
@@ -803,11 +803,11 @@
 <script>
     function showSweetAlert(getId) {
         Swal.fire({
-            title: 'Confirm Deletion',
-            text: 'This data will be permanently deleted and cannot be recovered. Are you sure you want to delete it?',
+            title: 'Konfirmasi Penghapusan',
+            text: 'Data ini akan dihapus permanen dan tidak dapat dikembalikan. Apakah Anda yakin ingin menghapusnya?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Deleted!'
+            confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {
                 // If the user clicks "Yes, delete it!", submit the corresponding form

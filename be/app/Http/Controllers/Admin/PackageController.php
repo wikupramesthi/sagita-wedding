@@ -3,17 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Package\Package;
-use App\Models\Package\PackageOption;
 use App\Models\Package\PackageFeature;
+use App\Models\Package\PackageOption;
+use App\Support\MemberView;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PackageController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      */
@@ -30,7 +29,7 @@ class PackageController extends Controller
         $query = Package::query();
 
         if ($search !== '') {
-            $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search) . '%';
+            $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
             $query->where('name', 'like', $like);
         }
 
@@ -164,7 +163,6 @@ class PackageController extends Controller
             ],
         ]);
 
-
         /*
     |--------------------------------------------------------------------------
     | Validate Discount Price
@@ -181,13 +179,11 @@ class PackageController extends Controller
 
                 return back()
                     ->withErrors([
-                        "options.$index.discount_price" =>
-                        'Discounted price must be lower than regular price.'
+                        "options.$index.discount_price" => 'Discounted price must be lower than regular price.',
                     ])
                     ->withInput();
             }
         }
-
 
         /*
     |--------------------------------------------------------------------------
@@ -216,10 +212,9 @@ class PackageController extends Controller
                 Package::where('slug', $slug)->exists()
             ) {
 
-                $slug = $baseSlug . '-' . $counter;
+                $slug = $baseSlug.'-'.$counter;
                 $counter++;
             }
-
 
             /*
         |--------------------------------------------------------------------------
@@ -235,17 +230,13 @@ class PackageController extends Controller
 
                 'slug' => $slug,
 
-                'description' =>
-                $validated['description'] ?? null,
+                'description' => $validated['description'] ?? null,
 
-                'is_popular' =>
-                $validated['is_popular'] ?? false,
+                'is_popular' => $validated['is_popular'] ?? false,
 
-                'is_active' =>
-                $validated['is_active'],
+                'is_active' => $validated['is_active'],
 
             ]);
-
 
             /*
         |--------------------------------------------------------------------------
@@ -254,44 +245,33 @@ class PackageController extends Controller
         */
 
             foreach (
-                array_values($validated['options'])
-                as $index => $option
+                array_values($validated['options']) as $index => $option
             ) {
 
                 PackageOption::create([
 
                     'uuid' => (string) Str::uuid(),
 
-                    'package_uuid' =>
-                    $package->uuid,
+                    'package_uuid' => $package->uuid,
 
-                    'name' =>
-                    $option['name'],
+                    'name' => $option['name'],
 
-                    'quota' =>
-                    $option['quota'],
+                    'quota' => $option['quota'],
 
-                    'price' =>
-                    $option['price'],
+                    'price' => $option['price'],
 
-                    'discount_price' =>
-                    $option['discount_price'] ?? null,
+                    'discount_price' => $option['discount_price'] ?? null,
 
-                    'duration' =>
-                    $option['duration'],
+                    'duration' => $option['duration'],
 
-                    'duration_unit' =>
-                    $option['duration_unit'],
+                    'duration_unit' => $option['duration_unit'],
 
-                    'sort_order' =>
-                    $index,
+                    'sort_order' => $index,
 
-                    'is_active' =>
-                    true,
+                    'is_active' => true,
 
                 ]);
             }
-
 
             /*
         |--------------------------------------------------------------------------
@@ -300,8 +280,7 @@ class PackageController extends Controller
         */
 
             foreach (
-                $validated['features'] ?? []
-                as $index => $feature
+                $validated['features'] ?? [] as $index => $feature
             ) {
 
                 if (blank($feature)) {
@@ -312,19 +291,15 @@ class PackageController extends Controller
 
                     'uuid' => (string) Str::uuid(),
 
-                    'package_uuid' =>
-                    $package->uuid,
+                    'package_uuid' => $package->uuid,
 
-                    'feature' =>
-                    $feature,
+                    'feature' => $feature,
 
-                    'sort_order' =>
-                    $index,
+                    'sort_order' => $index,
 
                 ]);
             }
         });
-
 
         /*
     |--------------------------------------------------------------------------
@@ -336,7 +311,7 @@ class PackageController extends Controller
             ->route('packages.index')
             ->with(
                 'success',
-                'Package created successfully.'
+                'Paket berhasil dibuat.'
             );
     }
 
@@ -372,7 +347,6 @@ class PackageController extends Controller
     {
         $package = Package::where('uuid', $uuid)
             ->firstOrFail();
-
 
         /*
     |--------------------------------------------------------------------------
@@ -457,7 +431,6 @@ class PackageController extends Controller
 
         ]);
 
-
         /*
     |--------------------------------------------------------------------------
     | Validate Discount
@@ -474,13 +447,11 @@ class PackageController extends Controller
 
                 return back()
                     ->withErrors([
-                        "options.$index.discount_price" =>
-                        'Discounted price must be lower than regular price.'
+                        "options.$index.discount_price" => 'Discounted price must be lower than regular price.',
                     ])
                     ->withInput();
             }
         }
-
 
         /*
     |--------------------------------------------------------------------------
@@ -510,19 +481,17 @@ class PackageController extends Controller
             $slug = $baseSlug;
             $counter = 2;
 
-
             while (
                 Package::where('slug', $slug)
-                ->where('uuid', '!=', $package->uuid)
-                ->exists()
+                    ->where('uuid', '!=', $package->uuid)
+                    ->exists()
             ) {
 
                 $slug =
-                    $baseSlug . '-' . $counter;
+                    $baseSlug.'-'.$counter;
 
                 $counter++;
             }
-
 
             /*
         |--------------------------------------------------------------------------
@@ -532,23 +501,17 @@ class PackageController extends Controller
 
             $package->update([
 
-                'name' =>
-                $validated['name'],
+                'name' => $validated['name'],
 
-                'slug' =>
-                $slug,
+                'slug' => $slug,
 
-                'description' =>
-                $validated['description'] ?? null,
+                'description' => $validated['description'] ?? null,
 
-                'is_popular' =>
-                $validated['is_popular'] ?? false,
+                'is_popular' => $validated['is_popular'] ?? false,
 
-                'is_active' =>
-                $validated['is_active'],
+                'is_active' => $validated['is_active'],
 
             ]);
-
 
             /*
         |--------------------------------------------------------------------------
@@ -558,47 +521,34 @@ class PackageController extends Controller
 
             $package->options()->delete();
 
-
             foreach (
-                array_values($validated['options'])
-                as $index => $option
+                array_values($validated['options']) as $index => $option
             ) {
 
                 PackageOption::create([
 
-                    'uuid' =>
-                    (string) Str::uuid(),
+                    'uuid' => (string) Str::uuid(),
 
-                    'package_uuid' =>
-                    $package->uuid,
+                    'package_uuid' => $package->uuid,
 
-                    'name' =>
-                    $option['name'],
+                    'name' => $option['name'],
 
-                    'quota' =>
-                    $option['quota'],
+                    'quota' => $option['quota'],
 
-                    'price' =>
-                    $option['price'],
+                    'price' => $option['price'],
 
-                    'discount_price' =>
-                    $option['discount_price'] ?? null,
+                    'discount_price' => $option['discount_price'] ?? null,
 
-                    'duration' =>
-                    $option['duration'],
+                    'duration' => $option['duration'],
 
-                    'duration_unit' =>
-                    $option['duration_unit'],
+                    'duration_unit' => $option['duration_unit'],
 
-                    'sort_order' =>
-                    $index,
+                    'sort_order' => $index,
 
-                    'is_active' =>
-                    true,
+                    'is_active' => true,
 
                 ]);
             }
-
 
             /*
         |--------------------------------------------------------------------------
@@ -608,10 +558,8 @@ class PackageController extends Controller
 
             $package->features()->delete();
 
-
             foreach (
-                $validated['features'] ?? []
-                as $index => $feature
+                $validated['features'] ?? [] as $index => $feature
             ) {
 
                 if (blank($feature)) {
@@ -620,22 +568,17 @@ class PackageController extends Controller
 
                 PackageFeature::create([
 
-                    'uuid' =>
-                    (string) Str::uuid(),
+                    'uuid' => (string) Str::uuid(),
 
-                    'package_uuid' =>
-                    $package->uuid,
+                    'package_uuid' => $package->uuid,
 
-                    'feature' =>
-                    $feature,
+                    'feature' => $feature,
 
-                    'sort_order' =>
-                    $index,
+                    'sort_order' => $index,
 
                 ]);
             }
         });
-
 
         /*
     |--------------------------------------------------------------------------
@@ -647,10 +590,9 @@ class PackageController extends Controller
             ->route('packages.index')
             ->with(
                 'success',
-                'Package updated successfully.'
+                'Paket berhasil diperbarui.'
             );
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -670,14 +612,14 @@ class PackageController extends Controller
 
             return redirect()
                 ->route('packages.index')
-                ->with('success', 'Package deleted successfully.');
+                ->with('success', 'Paket berhasil dihapus.');
         } catch (\Throwable $th) {
 
             DB::rollBack();
 
             return redirect()
                 ->back()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
 
@@ -715,8 +657,7 @@ class PackageController extends Controller
 
                 $packages = $packages->sortBy(function ($package) {
                     return $package->options->min(
-                        fn($option) =>
-                        $option->discount_price ?? $option->price
+                        fn ($option) => $option->discount_price ?? $option->price
                     );
                 });
 
@@ -726,8 +667,7 @@ class PackageController extends Controller
 
                 $packages = $packages->sortByDesc(function ($package) {
                     return $package->options->max(
-                        fn($option) =>
-                        $option->discount_price ?? $option->price
+                        fn ($option) => $option->discount_price ?? $option->price
                     );
                 });
 
@@ -739,10 +679,10 @@ class PackageController extends Controller
                     return $package->options->min(function ($option) {
 
                         return match ($option->duration_unit) {
-                            'day'   => $option->duration,
-                            'week'  => $option->duration * 7,
+                            'day' => $option->duration,
+                            'week' => $option->duration * 7,
                             'month' => $option->duration * 30,
-                            'year'  => $option->duration * 365,
+                            'year' => $option->duration * 365,
                             default => $option->duration,
                         };
                     });
@@ -756,10 +696,10 @@ class PackageController extends Controller
                     return $package->options->max(function ($option) {
 
                         return match ($option->duration_unit) {
-                            'day'   => $option->duration,
-                            'week'  => $option->duration * 7,
+                            'day' => $option->duration,
+                            'week' => $option->duration * 7,
                             'month' => $option->duration * 30,
-                            'year'  => $option->duration * 365,
+                            'year' => $option->duration * 365,
                             default => $option->duration,
                         };
                     });
@@ -783,7 +723,7 @@ class PackageController extends Controller
         if (
             auth()->check() &&
             auth()->user()->hasRole('user') &&
-            \App\Support\MemberView::isMobile()
+            MemberView::isMobile()
         ) {
             return view(
                 'pages.mobile.package',

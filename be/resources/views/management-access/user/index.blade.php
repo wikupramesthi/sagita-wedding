@@ -134,11 +134,11 @@
 <script>
     function showSweetAlert(getId) {
         Swal.fire({
-            title: 'Are you sure?',
-            text: 'You won\'t be able to revert this!',
+            title: 'Apakah Anda yakin?',
+            text: 'Tindakan ini tidak dapat dibatalkan!',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonText: 'Ya, hapus!'
         }).then((result) => {
             if (result.isConfirmed) {
                 // If the user clicks "Yes, delete it!", submit the corresponding form

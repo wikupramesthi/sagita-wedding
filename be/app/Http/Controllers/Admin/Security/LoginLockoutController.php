@@ -46,16 +46,17 @@ class LoginLockoutController extends Controller
     {
         $loginLockout->delete();
 
-        return back()->with('success', 'Block lifted successfully.');
+        return back()->with('success', 'Blokir berhasil dilepas.');
     }
 
     public function bulkDestroy(Request $request)
     {
         $ids = $request->input('ids', []);
-        if (!is_array($ids) || empty($ids)) {
-            return back()->with('error', 'No data selected.');
+        if (! is_array($ids) || empty($ids)) {
+            return back()->with('error', 'Tidak ada data yang dipilih.');
         }
         $count = LoginLockout::whereIn('id', array_map('intval', $ids))->delete();
-        return back()->with('success', $count . ' blocks lifted successfully.');
+
+        return back()->with('success', $count.' blokir berhasil dilepas.');
     }
 }

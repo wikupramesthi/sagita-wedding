@@ -3,15 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use App\Models\Account;
 use App\Models\Kecamatan;
 use App\Models\Kelurahan;
 use App\Models\VendorsCategory;
+use App\Support\MemberView;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class AccountController extends Controller
@@ -30,7 +28,7 @@ class AccountController extends Controller
         $kecamatans = Kecamatan::all();
 
         // Member: laptop/desktop = view desktop, HP = phone-frame mobile.
-        if ($user->hasRole('user') && \App\Support\MemberView::isMobile()) {
+        if ($user->hasRole('user') && MemberView::isMobile()) {
             return view('pages.mobile.profile-update', [
                 'user' => $user,
                 'kecamatans' => $kecamatans,
@@ -51,9 +49,9 @@ class AccountController extends Controller
     public function getKelurahan($kecamatan_id)
     {
         $kelurahans = Kelurahan::where('kecamatan_id', $kecamatan_id)->pluck('nama', 'id');
+
         return response()->json($kelurahans);
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -63,7 +61,6 @@ class AccountController extends Controller
         //
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
@@ -71,6 +68,7 @@ class AccountController extends Controller
     {
         //
     }
+
     /**
      * Display the specified resource.
      */
@@ -90,12 +88,11 @@ class AccountController extends Controller
     /**
      * Update the specified resource in storage.
      */
-
     public function update(Request $request)
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return back()->with('error', __('flash.user_not_found'));
         }
 
@@ -106,24 +103,23 @@ class AccountController extends Controller
     */
 
         $rules = [
-            'avatar'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'name'          => 'required|string|max:255',
-            'email'         => 'nullable|email|unique:users,email,' . $user->uuid . ',uuid',
-            'no_hp'         => 'required|unique:users,no_hp,' . $user->uuid . ',uuid',
-            'tempat_lahir'  => 'nullable|string|max:100',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|unique:users,email,'.$user->uuid.',uuid',
+            'no_hp' => 'required|unique:users,no_hp,'.$user->uuid.',uuid',
+            'tempat_lahir' => 'nullable|string|max:100',
             'tanggal_lahir' => 'nullable|date',
             'jenis_kelamin' => 'nullable|in:L,P',
-            'agama'         => 'nullable|string|max:50',
-            'alamat'        => 'nullable|string',
-            'facebook'      => 'nullable|string|max:255',
-            'instagram'     => 'nullable|string|max:255',
-            'twitter'       => 'nullable|string|max:255',
-            'tiktok'        => 'nullable|string|max:255',
-            'youtube'       => 'nullable|string|max:255',
-            'pengalaman'    => 'nullable|string',
-            'biografi'      => 'nullable|string',
+            'agama' => 'nullable|string|max:50',
+            'alamat' => 'nullable|string',
+            'facebook' => 'nullable|string|max:255',
+            'instagram' => 'nullable|string|max:255',
+            'twitter' => 'nullable|string|max:255',
+            'tiktok' => 'nullable|string|max:255',
+            'youtube' => 'nullable|string|max:255',
+            'pengalaman' => 'nullable|string',
+            'biografi' => 'nullable|string',
         ];
-
 
         /*
     |--------------------------------------------------------------------------
@@ -143,8 +139,48 @@ class AccountController extends Controller
             $rules['vendors_categories.*'] = 'uuid|exists:vendors_categories,uuid';
         }
 
+        $messages = [
+            'required' => ':attribute wajib diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'max' => ':attribute tidak boleh lebih dari :max karakter.',
+            'email' => 'Format :attribute tidak valid.',
+            'lowercase' => ':attribute harus menggunakan huruf kecil.',
+            'unique' => ':attribute sudah digunakan.',
+            'image' => ':attribute harus berupa gambar.',
+            'mimes' => ':attribute harus berformat :values.',
+            'date' => 'Format :attribute tidak valid.',
+            'in' => 'Pilihan :attribute tidak valid.',
+            'array' => ':attribute harus berupa daftar.',
+            'min' => ':attribute minimal :min item.',
+            'uuid' => ':attribute tidak valid.',
+            'exists' => ':attribute yang dipilih tidak ditemukan.',
+            'avatar.max' => 'Ukuran foto profil tidak boleh lebih dari :max KB.',
+            'vendors_categories.*.uuid' => 'Kategori vendor tidak valid.',
+            'vendors_categories.*.exists' => 'Kategori vendor yang dipilih tidak ditemukan.',
+        ];
 
-        $validated = $request->validate($rules);
+        $attributes = [
+            'avatar' => 'Foto profil',
+            'name' => 'Nama',
+            'email' => 'Email',
+            'no_hp' => 'Nomor HP',
+            'tempat_lahir' => 'Tempat lahir',
+            'tanggal_lahir' => 'Tanggal lahir',
+            'jenis_kelamin' => 'Jenis kelamin',
+            'agama' => 'Agama',
+            'alamat' => 'Alamat',
+            'facebook' => 'Facebook',
+            'instagram' => 'Instagram',
+            'twitter' => 'Twitter',
+            'tiktok' => 'TikTok',
+            'youtube' => 'YouTube',
+            'pengalaman' => 'Pengalaman',
+            'biografi' => 'Biografi',
+            'vendors_categories' => 'Kategori vendor',
+            'vendors_categories.*' => 'Kategori vendor',
+        ];
+
+        $validated = $request->validate($rules, $messages, $attributes);
 
         $emailChanged = array_key_exists('email', $validated)
             && $validated['email'] !== $user->email;
@@ -165,16 +201,15 @@ class AccountController extends Controller
         $user->pengalaman = $validated['pengalaman'] ?? null;
         $user->biografi = $validated['biografi'] ?? null;
 
-
         if ($request->hasFile('avatar')) {
 
             if (
                 $user->avatar &&
-                !str_starts_with($user->avatar, 'http')
+                ! str_starts_with($user->avatar, 'http')
             ) {
 
                 $oldAvatar = storage_path(
-                    'app/public/' . $user->avatar
+                    'app/public/'.$user->avatar
                 );
 
                 if (file_exists($oldAvatar)) {
@@ -182,14 +217,13 @@ class AccountController extends Controller
                 }
             }
 
-
             // Simpan avatar baru (diperkecil maks 512px agar ringan di HP)
             $path = $request->file('avatar')->store(
                 'avatars',
                 'public'
             );
 
-            $this->shrinkImage(storage_path('app/public/' . $path), 512);
+            $this->shrinkImage(storage_path('app/public/'.$path), 512);
 
             $user->avatar = $path;
         }
@@ -201,14 +235,14 @@ class AccountController extends Controller
             $user->forceFill(['email_verified_at' => null])->save();
         }
 
-
-        if (!$user->hasRole('user')) {
+        if (! $user->hasRole('user')) {
             $user->vendors_categories()->sync(
                 $validated['vendors_categories'] ?? []
             );
         } else {
             $user->vendors_categories()->detach();
         }
+
         return redirect()
             ->back()
             ->with('success', __('flash.profile_ok'));

@@ -10,8 +10,8 @@ use App\Models\Package\PackageOption;
 use App\Models\Payment\Order;
 use App\Models\User;
 use App\Models\UserPackage;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -30,10 +30,10 @@ class MemberBookingTest extends TestCase
     {
         parent::setUp();
 
-        foreach (['user', 'admin', 'super-admin', 'instruktur'] as $role) {
+        foreach (['user', 'admin', 'super-admin', 'vendor'] as $role) {
             Role::create(['name' => $role, 'guard_name' => 'web']);
         }
-        \Illuminate\Support\Facades\Cache::put('dashboard.artofliving.courses', [], now()->addHour());
+        Cache::put('dashboard.artofliving.courses', [], now()->addHour());
 
         $this->member = User::factory()->create(['avatar' => 'test.png']);
         $this->member->assignRole('user');
@@ -79,7 +79,7 @@ class MemberBookingTest extends TestCase
 
         $order = Order::create([
             'user_uuid' => $this->member->uuid,
-            'order_number' => 'ORD-' . strtoupper(Str::random(10)),
+            'order_number' => 'ORD-'.strtoupper(Str::random(10)),
             'type' => 'package',
             'package_uuid' => $package->uuid,
             'package_option_uuid' => $option->uuid,
@@ -232,7 +232,7 @@ class MemberBookingTest extends TestCase
 
         $expired = Order::create([
             'user_uuid' => $this->member->uuid,
-            'order_number' => 'ORD-' . strtoupper(Str::random(10)),
+            'order_number' => 'ORD-'.strtoupper(Str::random(10)),
             'type' => 'package',
             'package_uuid' => $option->package_uuid,
             'package_option_uuid' => $option->uuid,
@@ -252,7 +252,7 @@ class MemberBookingTest extends TestCase
     public function test_scan_lookup_forbidden_for_member(): void
     {
         $this->actingAs($this->member())
-            ->get('/backend/class-bookings/lookup?uuid=' . (string) Str::uuid())
+            ->get('/backend/class-bookings/lookup?uuid='.(string) Str::uuid())
             ->assertForbidden();
     }
 

@@ -1286,7 +1286,7 @@
                         event.preventDefault();
 
                         alert(
-                            'Please select a package option.'
+                            'Silakan pilih opsi paket.'
                         );
 
                         return;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
@@ -7,22 +7,31 @@
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 11px;
+            color: #1f2937;
+        }
+
+        h3 {
+            margin-bottom: 4px;
+        }
+
+        p {
+            margin: 0;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
         th,
         td {
-            border: 1px solid #000;
+            border: 1px solid #d1d5db;
             padding: 6px;
         }
 
         th {
-            background: #f2f2f2;
+            background: #f3f4f6;
             text-align: center;
         }
 
@@ -33,48 +42,58 @@
 </head>
 
 <body>
-    <h3 style="text-align: center; margin-bottom: 5px;">📊 User Data Report</h3>
-    <p style="text-align: center; margin: 0;">
-        Printed on: {{ now()->translatedFormat('d F Y') }}
-    </p>
+    <h3 style="text-align: center;">Laporan Data Calon Pelanggan</h3>
+    <p style="text-align: center;">Dicetak pada {{ now()->translatedFormat('d F Y H:i') }}</p>
 
-    {{-- Info filter --}}
-    @if (! empty($filters['start_date']) || ! empty($filters['end_date']) || ! empty($filters['tahun']))
-        <p style="margin-top: 10px; font-size: 11px;">
+    @if (! empty($filters['q']) || ! empty($filters['status']) || ! empty($filters['tahun']) || ! empty($filters['start_date']) || ! empty($filters['end_date']))
+        <p style="margin-top: 12px;">
             <strong>Filter:</strong>
+            @if (! empty($filters['q']))
+                Kata kunci <u>{{ $filters['q'] }}</u>
+            @endif
+            @if (! empty($filters['status']))
+                | Status <u>{{ App\Models\User::PROSPECT_STATUS_LABELS[$filters['status']] ?? '-' }}</u>
+            @endif
             @if (! empty($filters['tahun']))
-                Year <u>{{ $filters['tahun'] }}</u>
+                | Tahun <u>{{ $filters['tahun'] }}</u>
             @endif
             @if (! empty($filters['start_date']))
-                | From <u>{{ \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') }}</u>
+                | Dari <u>{{ \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') }}</u>
             @endif
             @if (! empty($filters['end_date']))
-                | To <u>{{ \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y') }}</u>
+                | Sampai <u>{{ \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y') }}</u>
             @endif
         </p>
     @endif
-
 
     <table>
         <thead>
             <tr>
                 <th>No</th>
-                <th>Name</th>
+                <th>Nama Calon Pelanggan</th>
                 <th>Email</th>
-                <th>Phone No.</th>
-                <th>Registration Date</th>
+                <th>No. WhatsApp</th>
+                <th>Tanggal Daftar</th>
+                <th>Status Calon Pelanggan</th>
+                <th>Paket Member</th>
             </tr>
         </thead>
         <tbody>
-            @foreach ($pengguna as $index => $user)
+            @forelse ($pengguna as $index => $user)
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $user->name }}</td>
                     <td>{{ $user->email }}</td>
-                    <td>{{ $user->telp ?? '-' }}</td>
-                    <td>{{ $user->created_at->format('d-m-Y') }}</td>
+                    <td>{{ $user->no_hp ?? '-' }}</td>
+                    <td>{{ $user->created_at?->format('d-m-Y') ?? '-' }}</td>
+                    <td>{{ $user->prospect_status_label }}</td>
+                    <td>{{ $user->userPackages->isNotEmpty() ? 'Aktif' : 'Belum ada' }}</td>
                 </tr>
-            @endforeach
+            @empty
+                <tr>
+                    <td colspan="7" style="text-align: center;">Tidak ada data yang cocok dengan filter.</td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
 

@@ -25,7 +25,7 @@
             type="button"
             class="btn-close"
             data-bs-dismiss="alert"
-            aria-label="Close">
+            aria-label="Tutup">
 
             <span aria-hidden="true">&times;</span>
 
@@ -46,7 +46,7 @@
             type="button"
             class="btn-close"
             data-bs-dismiss="alert"
-            aria-label="Close">
+            aria-label="Tutup">
 
             <span aria-hidden="true">&times;</span>
 
@@ -73,7 +73,7 @@
                     <div><label class="form-label small mb-0">Search</label><input type="text" name="search" value="{{ $search }}" class="form-control form-control-sm" placeholder="Class name..." style="min-width:180px;" autocomplete="off"></div>
                     <div><label class="form-label small mb-0">Level</label><select name="level" class="form-select form-select-sm" style="min-width:150px;"><option value="">All</option><option value="foundation" @selected($level==='foundation')>Foundation</option><option value="intermediate" @selected($level==='intermediate')>Intermediate</option><option value="advance" @selected($level==='advance')>Advance</option></select></div>
                     @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin'))
-                    <div><label class="form-label small mb-0">Instructor</label><select name="instructor_uuid" class="form-select form-select-sm" style="min-width:160px;"><option value="">All Instructors</option>@foreach($instructors as $instructor)<option value="{{ $instructor->uuid }}" @selected($instructor_uuid==$instructor->uuid)>{{ $instructor->name }}</option>@endforeach</select></div>
+                    <div><label class="form-label small mb-0">Vendor</label><select name="vendor_uuid" class="form-select form-select-sm" style="min-width:160px;"><option value="">All Vendors</option>@foreach($vendors as $vendor)<option value="{{ $vendor->uuid }}" @selected($vendor_uuid==$vendor->uuid)>{{ $vendor->name }}</option>@endforeach</select></div>
                     @endif
                     <div><label class="form-label small mb-0">Status</label><select name="is_active" class="form-select form-select-sm" style="min-width:130px;"><option value="">All</option><option value="active" @selected($is_active==='active')>Active</option><option value="inactive" @selected($is_active==='inactive')>Inactive</option></select></div>
                     <div class="d-flex gap-1"><button type="submit" class="btn btn-sm btn-success"><i class="bi bi-funnel"></i> Filter</button><a href="{{ route('classes.index') }}" class="btn btn-sm btn-light">Reset</a></div>
@@ -98,7 +98,7 @@
                 <table class="table table-hover mb-0" style="font-size:0.9rem;">
                     <thead class="table-light">
                         <tr>
-                            <th>No.</th><th>Class</th><th>Level</th><th class="hide-xs">Duration</th><th class="hide-sm">Instructor</th><th>Price</th><th class="hide-xs">Quota</th><th>Status</th><th>Actions</th>
+                            <th>No.</th><th>Class</th><th>Level</th><th class="hide-xs">Duration</th><th class="hide-sm">Vendor</th><th>Price</th><th class="hide-xs">Quota</th><th>Status</th><th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -137,12 +137,12 @@
                             </td>
                             <td class="hide-xs"><small>{{ $class->duration ? $class->duration . ' min' : '-' }}</small></td>
                             <td class="hide-sm">
-                                @if ($class->instructor)
+                                @if ($class->vendor)
                                 <div class="d-flex align-items-center gap-2">
-                                    @if ($class->instructor->foto)
-                                    <img src="{{ asset('storage/' . $class->instructor->foto) }}" alt="{{ $class->instructor->name }}" class="rounded-circle" style="width:28px;height:28px;object-fit:cover;" loading="lazy">
+                                    @if ($class->vendor->foto)
+                                    <img src="{{ asset('storage/' . $class->vendor->foto) }}" alt="{{ $class->vendor->name }}" class="rounded-circle" style="width:28px;height:28px;object-fit:cover;" loading="lazy">
                                     @endif
-                                    <small>{{ $class->instructor->name }}</small>
+                                    <small>{{ $class->vendor->name }}</small>
                                 </div>
                                 @else
                                 <span class="text-muted">-</span>
@@ -190,12 +190,12 @@
 
         Swal.fire({
 
-            title: 'Delete Class?',
-            text: 'This class will be permanently deleted. Are you sure?',
+            title: 'Hapus kelas?',
+            text: 'Kelas ini akan dihapus permanen. Apakah Anda yakin?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Delete!',
-            cancelButtonText: 'Cancel'
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
 
         }).then((result) => {
 

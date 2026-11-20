@@ -6,7 +6,7 @@ interface ScheduleItem {
 	duration?: number | string;
 	capacity?: number | null;
 	class?: { name?: string; description?: string; level?: string };
-	instructor?: { name?: string };
+	vendor?: { name?: string };
 	venue?: { uuid?: string; name?: string };
 }
 
@@ -295,7 +295,7 @@ async function emptyState() {
 
 function renderSchedule(s: ScheduleItem): string {
 	const duration = s.duration ? `${s.duration} min` : "";
-	const capacity = s.capacity != null ? s.capacity : "â€”";
+	const capacity = s.capacity != null ? s.capacity : "—";
 	const barWidth =
 		typeof s.capacity === "number"
 			? Math.min(100, Math.max(10, s.capacity * 5))
@@ -311,8 +311,8 @@ function renderSchedule(s: ScheduleItem): string {
 		"</div></div>" +
 		'<div class="min-w-0">' +
 		'<div class="text-[13px] sm:text-sm text-stone-warm truncate">' +
-		escapeHtml(s.end_time || "â€”") +
-		(duration ? ` Â· ${escapeHtml(duration)}` : "") +
+		escapeHtml(s.end_time || "—") +
+		(duration ? ` · ${escapeHtml(duration)}` : "") +
 		"</div></div></div>" +
 		'<div class="flex-1 min-w-0">' +
 		'<div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">' +
@@ -330,10 +330,10 @@ function renderSchedule(s: ScheduleItem): string {
 		"</p>" +
 		'<div class="flex flex-wrap gap-x-4 sm:gap-x-5 gap-y-1 mt-2.5 sm:mt-3 text-[13px] sm:text-sm text-stone-warm">' +
 		'<span class="inline-flex items-center gap-1.5 min-w-0 max-w-full"><span class="truncate">' +
-		escapeHtml(s.instructor?.name || "â€”") +
+		escapeHtml(s.vendor?.name || "—") +
 		"</span></span>" +
 		'<span class="inline-flex items-center gap-1.5 min-w-0 max-w-full"><span class="truncate">' +
-		escapeHtml(s.venue?.name || "â€”") +
+		escapeHtml(s.venue?.name || "—") +
 		"</span></span></div></div>" +
 		'<div class="flex sm:items-center gap-3 md:block md:w-[150px] shrink-0 border-t border-sage-50 md:border-0 pt-3.5 md:pt-0">' +
 		'<div class="flex-1 md:flex-none min-w-0">' +

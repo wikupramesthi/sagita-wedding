@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Venue')
+@section('title', 'Ubah Venue')
 
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Edit Venue" page="Venues" active="Edit Venue" route="{{ route('venues.index') }}" />
+<x-breadcrumb title="Ubah Venue" page="Venue" active="Ubah Venue" route="{{ route('venues.index') }}" />
 @endsection
 
 <section class="section">
@@ -26,11 +26,11 @@
                     <div class="card-body p-4">
 
                         <h5 class="fw-bold mb-1">
-                            Venue Information
+                            Informasi Venue
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Update the basic information about this venue.
+                            Perbarui informasi utama agar data venue tetap akurat dan mudah dikenali.
                         </p>
 
 
@@ -38,7 +38,7 @@
                         <div class="mb-4">
 
                             <label for="name" class="form-label fw-semibold">
-                                Venue Name <span class="text-danger">*</span>
+                                Nama Venue <span class="text-danger">*</span>
                             </label>
 
                             <input type="text"
@@ -46,7 +46,7 @@
                                 name="name"
                                 class="form-control @error('name') is-invalid @enderror"
                                 value="{{ old('name', $venue->name) }}"
-                                placeholder="e.g. YogaRoots Jakarta"
+                                placeholder="Contoh: Gedung Serbaguna Melati"
                                 required>
 
                             @error('name')
@@ -70,10 +70,10 @@
                                 name="slug"
                                 class="form-control @error('slug') is-invalid @enderror"
                                 value="{{ old('slug', $venue->slug) }}"
-                                placeholder="yogaroots-jakarta">
+                                placeholder="gedung-serbaguna-melati">
 
                             <div class="form-text">
-                                Used as the venue's URL identifier.
+                                Digunakan sebagai pengenal URL venue.
                             </div>
 
                             @error('slug')
@@ -89,14 +89,14 @@
                         <div class="mb-4">
 
                             <label for="excerpt" class="form-label fw-semibold">
-                                Excerpt
+                                Ringkasan
                             </label>
 
                             <textarea id="excerpt"
                                 name="excerpt"
                                 rows="3"
                                 class="form-control @error('excerpt') is-invalid @enderror"
-                                placeholder="A short description of the venue...">{{ old('excerpt', $venue->excerpt) }}</textarea>
+                                placeholder="Contoh: Tempat pertemuan dengan kapasitas 100 orang.">{{ old('excerpt', $venue->excerpt) }}</textarea>
 
                             @error('excerpt')
                             <div class="invalid-feedback">
@@ -111,14 +111,14 @@
                         <div>
 
                             <label for="description" class="form-label fw-semibold">
-                                Description
+                                Deskripsi
                             </label>
 
                             <textarea id="description"
                                 name="description"
                                 rows="7"
                                 class="form-control @error('description') is-invalid @enderror"
-                                placeholder="Describe the venue, facilities, atmosphere, and other information...">{{ old('description', $venue->description) }}</textarea>
+                                placeholder="Ceritakan fasilitas, kapasitas, suasana, dan hal menarik lain di venue ini...">{{ old('description', $venue->description) }}</textarea>
 
                             @error('description')
                             <div class="invalid-feedback">
@@ -139,11 +139,11 @@
                     <div class="card-body p-4">
 
                         <h5 class="fw-bold mb-1">
-                            Location & Contact
+                            Lokasi & Kontak
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Update the venue's location and contact details.
+                            Pastikan alamat dan kontak masih valid agar pengunjung mudah menemukan venue.
                         </p>
 
 
@@ -151,14 +151,14 @@
                         <div class="mb-4">
 
                             <label for="address" class="form-label fw-semibold">
-                                Address <span class="text-danger">*</span>
+                                Alamat <span class="text-danger">*</span>
                             </label>
 
                             <textarea id="address"
                                 name="address"
                                 rows="4"
                                 class="form-control @error('address') is-invalid @enderror"
-                                placeholder="Enter the complete venue address..."
+                                placeholder="Contoh: Jl. Melati No. 12, Jakarta Selatan"
                                 required>{{ old('address', $venue->address) }}</textarea>
 
                             @error('address')
@@ -176,7 +176,7 @@
                             <div class="col-md-6">
 
                                 <label for="phone" class="form-label fw-semibold">
-                                    Phone
+                                    Telepon
                                 </label>
 
                                 <input type="text"
@@ -207,7 +207,7 @@
                                     name="email"
                                     class="form-control @error('email') is-invalid @enderror"
                                     value="{{ old('email', $venue->email) }}"
-                                    placeholder="venue@yogaroots.com">
+                                    placeholder="kontak@namavenue.com">
 
                                 @error('email')
                                 <div class="invalid-feedback">
@@ -224,7 +224,7 @@
                         <div class="mt-4">
 
                             <label for="google_maps_url" class="form-label fw-semibold">
-                                Google Maps URL
+                                URL Google Maps
                             </label>
 
                             <input type="url"
@@ -235,7 +235,7 @@
                                 placeholder="https://maps.google.com/...">
 
                             <div class="form-text">
-                                Paste the Google Maps location link for this venue.
+                                Tempel tautan Google Maps agar lokasi venue dapat dibuka langsung.
                             </div>
 
                             @error('google_maps_url')
@@ -256,7 +256,7 @@
                                     class="btn btn-sm btn-outline-primary">
 
                                     <i class="bi bi-geo-alt me-1"></i>
-                                    View Current Location
+                                    Lihat Lokasi Saat Ini
 
                                 </a>
 
@@ -282,11 +282,11 @@
                     <div class="card-body p-4">
 
                         <h5 class="fw-bold mb-1">
-                            Venue Image
+                            Gambar Venue
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Update the venue image if needed.
+                            Ganti gambar jika ingin memperbarui tampilan venue.
                         </p>
 
 
@@ -310,7 +310,7 @@
                                     <i class="bi bi-image fs-1 d-block mb-2"></i>
 
                                     <small>
-                                        No image available
+                                        Tidak ada gambar tersedia
                                     </small>
 
                                 </div>
@@ -327,8 +327,8 @@
                                 accept=".jpg,.jpeg,.png,.webp">
 
                             <div class="form-text">
-                                Leave empty to keep the current image.
-                                Maximum 2 MB.
+                                Biarkan kosong untuk mempertahankan gambar saat ini.
+                                Maksimal 2 MB.
                             </div>
 
                             @error('image')
@@ -354,7 +354,7 @@
                         </h5>
 
                         <p class="text-muted small mb-4">
-                            Set the visibility of this venue.
+                            Tentukan apakah venue ini tampil di halaman publik.
                         </p>
 
 
@@ -371,12 +371,12 @@
 
                                 <option value="active"
                                     {{ old('status', $venue->status) === 'active' ? 'selected' : '' }}>
-                                    Active
+                                    Aktif
                                 </option>
 
                                 <option value="inactive"
                                     {{ old('status', $venue->status) === 'inactive' ? 'selected' : '' }}>
-                                    Inactive
+                                    Nonaktif
                                 </option>
 
                             </select>
@@ -403,14 +403,14 @@
                             class="btn btn-primary w-100 mb-2">
 
                             <i class="bi bi-check-lg me-1"></i>
-                            Update Venue
+                            Simpan Perubahan
 
                         </button>
 
                         <a href="{{ route('venues.index') }}"
                             class="btn btn-light w-100">
 
-                            Cancel
+                            Batal
 
                         </a>
 
@@ -443,7 +443,7 @@
         reader.onload = function(e) {
             preview.innerHTML = `
                 <img src="${e.target.result}"
-                    alt="Venue Preview"
+                    alt="Pratinjau Venue"
                     class="w-100 h-100"
                     style="object-fit: cover;">
             `;

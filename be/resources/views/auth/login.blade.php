@@ -17,7 +17,7 @@
                 <div class="stat-row">
                     <div class="stat"><strong>{{ $jumlahMembers }}+</strong><span>Active Members</span></div>
                     <div class="stat-divider"></div>
-                    <div class="stat"><strong>{{ $jumlahInstruktur }}</strong><span>Certified Instructors</span></div>
+                    <div class="stat"><strong>{{ $jumlahVendor }}</strong><span>Certified Vendors</span></div>
                     <div class="stat-divider"></div>
                     <div class="stat"><strong>4.9</strong><span>Member Rating</span></div>
                 </div>
@@ -61,8 +61,8 @@
                                 fill="none" />
                         </svg>
                     </div>
-                    <h3>Experienced Instructors</h3> 
-                    <p>Practice with certified instructors who guide you with care, expertise, and intention.</p>
+                    <h3>Experienced Vendors</h3> 
+                    <p>Practice with certified vendors who guide you with care, expertise, and intention.</p>
                 </div>
                 <div class="feature">
                     <div class="icon-wrap">
@@ -187,15 +187,18 @@
     <div class="modal-overlay" id="helpModal">
         <div class="modal">
             <div class="modal-header">
-                <h2>FAQ & ANSWERS</h2>
+                <h2>Frequently Asked Questions</h2>
                 <button class="modal-close" id="closeModal">&times;</button>
             </div>
             <div class="modal-body" id="faqList">
 
-                @foreach ($faqs as $faq)
+                @forelse ($faqs as $faq)
                     <div class="faq-item">
                         <button class="faq-q">
-                            {{ $faq->pertanyaan }}
+                            <span>
+                                <small class="d-block text-muted mb-1">{{ $faq->kategori }}</small>
+                                {{ $faq->pertanyaan }}
+                            </span>
 
                             <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="2">
@@ -207,7 +210,9 @@
                             <p>{{ $faq->jawaban }}</p>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-muted mb-0">No FAQ entries have been added yet.</p>
+                @endforelse
 
             </div>
         </div>

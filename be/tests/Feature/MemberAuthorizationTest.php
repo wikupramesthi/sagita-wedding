@@ -19,7 +19,7 @@ class MemberAuthorizationTest extends TestCase
         Role::create(['name' => 'user', 'guard_name' => 'web']);
         Role::create(['name' => 'admin', 'guard_name' => 'web']);
         Role::create(['name' => 'super-admin', 'guard_name' => 'web']);
-        Role::create(['name' => 'instruktur', 'guard_name' => 'web']);
+        Role::create(['name' => 'vendor', 'guard_name' => 'web']);
 
         // Jangan panggil API Art of Living saat test dashboard.
         Cache::put('dashboard.artofliving.courses', [], now()->addHour());

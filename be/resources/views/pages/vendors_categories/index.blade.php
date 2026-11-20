@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Instructors')
+@section('title', 'Vendor & Mitra')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Instructors" page="Instructors" active="Vendor Category" route="{{ route('vendors_categories.index') }}" />
+<x-breadcrumb title="Vendor & Mitra" page="Vendor & Mitra" active="Kategori Vendor" route="{{ route('vendors_categories.index') }}" />
 @endsection
 <!-- Content -->
 <section class="section">
@@ -12,8 +12,8 @@
         <div class="d-flex">
             <i class="bi-bell-fill text-white fs-1 me-3 flex-shrink-0 align-self-start"></i>
             <div class="text-white mt-0">
-                Manage the Vendor Categories available in the system.<br>
-                Add, update, or deactivate vendor categories to support instructor and class management.
+                Kelola Kategori Vendor yang tersedia di sistem.<br>
+                Tambah, ubah, atau nonaktifkan kategori vendor untuk mendukung pengelolaan vendor dan kelas.
             </div>
         </div>
     </div>
@@ -21,12 +21,12 @@
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center ">
-                <h4 class="fw-normal mb-0 text-body">Vendor Category</h4>
+                <h4 class="fw-normal mb-0 text-body">Kategori Vendor</h4>
                 @can('vendors_categories.store')
                 <button type="button" class="btn btn-primary btn-md" data-bs-toggle="modal"
                     data-bs-target="#modal-form-add-vendors_categories">
                     <i class="bi bi-plus-lg"></i>
-                    Add New
+                    Tambah Baru
                 </button>
                 @endcan
 
@@ -38,11 +38,11 @@
                     <thead>
                         <tr>
                             <th>No.</th>
-                            <th>Vendor Category</th>
-                            <th>Description</th>
-                            <th>Total Vendors</th>
-                            <th>Edit</th>
-                            <th>Delete</th>
+                            <th>Kategori Vendor</th>
+                            <th>Deskripsi</th>
+                            <th>Total Vendor</th>
+                            <th>Ubah</th>
+                            <th>Hapus</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -58,7 +58,7 @@
                                 <a data-bs-toggle="modal"
                                     data-bs-target="#modal-form-edit-vendors_categories-{{ $item->uuid }}"
                                     class="btn btn-icon btn-success text-white">
-                                    <i class="bi bi-pencil-square"></i> Edit
+                                    <i class="bi bi-pencil-square"></i> Ubah
                                 </a>
                                 @include('pages.vendors_categories.modal-edit')
                                 @endcan
@@ -66,9 +66,9 @@
 
                             <td>
                                 @can('vendors_categories.destroy')
-                                <a onclick="showSweetAlert('{{ $item->uuid }}')" title="Delete"
+                                <a onclick="showSweetAlert('{{ $item->uuid }}')" title="Hapus"
                                     class="btn btn-icon btn-danger text-white">
-                                    <i class="bi bi-x-square"></i> Delete
+                                    <i class="bi bi-x-square"></i> Hapus
                                 </a>
                                 <form id="deleteForm_{{ $item->uuid }}"
                                     action="{{ route('vendors_categories.destroy', $item->uuid) }}" method="POST">
@@ -94,14 +94,13 @@
 <script>
     function showSweetAlert(getId) {
         Swal.fire({
-            title: 'Confirm Deletion',
-            text: 'This data will be permanently deleted and cannot be recovered. Are you sure you want to delete it?',
+            title: 'Konfirmasi Penghapusan',
+            text: 'Data ini akan dihapus permanen dan tidak dapat dikembalikan. Apakah Anda yakin ingin menghapusnya?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Deleted!'
+            confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
             if (result.isConfirmed) {
-                // If the user clicks "Yes, delete it!", submit the corresponding form
                 document.getElementById('deleteForm_' + getId).submit();
             }
         });

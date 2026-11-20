@@ -24,7 +24,7 @@
         <button type="button"
             class="btn-close"
             data-bs-dismiss="alert"
-            aria-label="Close">
+            aria-label="Tutup">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -39,7 +39,7 @@
         <button type="button"
             class="btn-close"
             data-bs-dismiss="alert"
-            aria-label="Close">
+            aria-label="Tutup">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -170,11 +170,11 @@
 <script>
     function showSweetAlert(getId) {
         Swal.fire({
-            title: 'Confirm Deletion',
-            text: 'This data will be permanently deleted and cannot be recovered. Are you sure you want to delete it?',
+            title: 'Konfirmasi Penghapusan',
+            text: 'Data ini akan dihapus permanen dan tidak dapat dikembalikan. Apakah Anda yakin ingin menghapusnya?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Deleted!'
+            confirmButtonText: 'Ya, Hapus!'
         }).then((result) => {
 
             if (result.isConfirmed) {

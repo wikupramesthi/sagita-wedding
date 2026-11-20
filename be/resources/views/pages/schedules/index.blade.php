@@ -13,14 +13,14 @@
     @if (session('success'))
         <div class="alert alert-success alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('success') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('error') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
@@ -38,7 +38,7 @@
                 <input type="hidden" name="tab" value="{{ $tab }}">
                 <div class="col-md-5">
                     <input type="search" name="search" value="{{ $search ?? '' }}" class="form-control"
-                        placeholder="Search class or instructor" autocomplete="off">
+                        placeholder="Search class or vendor" autocomplete="off">
                 </div>
                 <div class="col-md-3">
                     <select name="venue" class="form-select" onchange="this.form.submit()">

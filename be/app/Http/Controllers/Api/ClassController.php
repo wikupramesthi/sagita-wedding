@@ -16,30 +16,30 @@ class ClassController extends Controller
             $request->validate([
                 'level' => [
                     'nullable',
-                    'in:foundation,intermediate,advance'
+                    'in:foundation,intermediate,advance',
                 ],
-                'instructor_uuid' => [
+                'vendor_uuid' => [
                     'nullable',
                     'uuid',
-                    'exists:users,uuid'
+                    'exists:users,uuid',
                 ],
                 'page' => [
                     'nullable',
                     'integer',
-                    'min:1'
+                    'min:1',
                 ],
                 'per_page' => [
                     'nullable',
                     'integer',
                     'min:1',
-                    'max:50'
+                    'max:50',
                 ],
             ]);
 
             $perPage = $request->input('per_page', 20);
 
             $query = ClassModel::query()
-                ->with('instructor')
+                ->with('vendor')
                 ->where('is_active', 'active');
 
             if ($request->filled('level')) {
@@ -49,10 +49,10 @@ class ClassController extends Controller
                 );
             }
 
-            if ($request->filled('instructor_uuid')) {
+            if ($request->filled('vendor_uuid')) {
                 $query->where(
-                    'instructor_uuid',
-                    $request->instructor_uuid
+                    'vendor_uuid',
+                    $request->vendor_uuid
                 );
             }
 
@@ -99,12 +99,12 @@ class ClassController extends Controller
     public function show(string $slug)
     {
         try {
-            $class = ClassModel::with('instructor')
+            $class = ClassModel::with('vendor')
                 ->where('slug', $slug)
                 ->where('is_active', 'active')
                 ->first();
 
-            if (!$class) {
+            if (! $class) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Class not found',

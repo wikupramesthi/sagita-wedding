@@ -11,10 +11,11 @@ export type BatchPage =
 	| "blog-detail"
 	| "packages"
 	| "package-detail"
-	| "instructors"
+	| "vendors"
 	| "events"
 	| "gallery"
 	| "contact"
+	| "faq"
 	| "page-detail"
 	| "schedules";
 

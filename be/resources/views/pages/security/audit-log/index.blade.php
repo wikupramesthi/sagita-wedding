@@ -13,14 +13,14 @@
     @if (session('success'))
         <div class="alert alert-success alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('success') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('error') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
@@ -296,7 +296,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Audit Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body" id="audit-detail-body"></div>
             <div class="modal-footer">
@@ -378,12 +378,12 @@
 
         function deleteAuditLog(id) {
             Swal.fire({
-                title: 'Delete audit record?',
-                text: 'This record will be permanently deleted.',
+                title: 'Hapus catatan audit?',
+                text: 'Catatan ini akan dihapus permanen.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Delete!',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
                 confirmButtonColor: '#f43f5e'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -394,12 +394,12 @@
 
         function clearAuditLogs() {
             Swal.fire({
-                title: 'Clear all records?',
-                text: 'All audit history will be permanently deleted.',
+                title: 'Hapus semua catatan?',
+                text: 'Seluruh riwayat audit akan dihapus permanen.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Clear!',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
                 confirmButtonColor: '#f43f5e'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -439,12 +439,12 @@
             const ids = Array.from(document.querySelectorAll('.audit-check:checked')).map(c => c.value);
             if (ids.length === 0) return;
             Swal.fire({
-                title: 'Delete ' + ids.length + ' selected records?',
-                text: 'Selected data will be permanently deleted.',
+                title: 'Hapus ' + ids.length + ' catatan terpilih?',
+                text: 'Data yang dipilih akan dihapus permanen.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Delete!',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
                 confirmButtonColor: '#f43f5e'
             }).then((result) => {
                 if (result.isConfirmed) {

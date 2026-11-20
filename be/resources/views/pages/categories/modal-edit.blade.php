@@ -8,27 +8,27 @@
                 @method('PUT')
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modal-form-edit-categories-{{ $item->uuid }}-label">Edit Category
+                    <h5 class="modal-title" id="modal-form-edit-categories-{{ $item->uuid }}-label">Ubah Kategori
                         ({{ $item->name }})
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"> </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"> </button>
                 </div>
                 <div class="modal-body">
 
                     <div class="form-group mb-3">
-                        <label for="name" class="mb-2">Category Name <span class="text-danger">*</span></label>
+                        <label for="name" class="mb-2">Nama Kategori <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
-                            name="name" placeholder="Category Name" value="{{ old('name', $item->name) }}" required>
+                            name="name" placeholder="Nama kategori" value="{{ old('name', $item->name) }}" required>
                         @error('name')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="form-group mb-3">
-                        <label for="icon" class="mb-2">Icon (optional) <span class="text-danger">*example: fa-user
-                                or fa-book</span></label>
+                        <label for="icon" class="mb-2">Ikon (opsional) <span class="text-danger">*contoh: fa-user
+                                atau fa-book</span></label>
                         <input type="text" class="form-control @error('icon') is-invalid @enderror" id="icon"
-                            name="icon" placeholder="example: fa-user or fa-book"
+                            name="icon" placeholder="contoh: fa-user atau fa-book"
                             value="{{ old('icon', $item->icon) }}">
                         @error('icon')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -36,9 +36,9 @@
                     </div>
 
                     <div class="form-group mb-3">
-                        <label for="description" class="mb-2">Description (otsional)</label>
+                        <label for="description" class="mb-2">Deskripsi (opsional)</label>
                         <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description"
-                            rows="3" placeholder="Describe this category...”">{{ old('description', $item->description) }}</textarea>
+                            rows="3" placeholder="Jelaskan kategori ini...">{{ old('description', $item->description) }}</textarea>
                         @error('description')
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -47,8 +47,8 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary ">Update</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary ">Simpan</button>
                 </div>
             </form>
 

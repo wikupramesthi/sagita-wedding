@@ -1,26 +1,23 @@
 <?php
 
-use Illuminate\Http\Request;
-
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\BatchController;
-use App\Http\Controllers\Api\PegawaiController;
-use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\ArticleController;
-use App\Http\Controllers\Api\TestimonialController;
-use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\BannerController;
-use App\Http\Controllers\Api\EventController;
-use App\Http\Controllers\Api\PageController;
-use App\Http\Controllers\Api\ClassScheduleController;
+use App\Http\Controllers\Api\BatchController;
 use App\Http\Controllers\Api\ClassController;
-use App\Http\Controllers\Api\InstructorController;
+use App\Http\Controllers\Api\ClassScheduleController;
+use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\PackageController;
-use App\Http\Controllers\Api\WebsiteIdentityController;
-use App\Http\Controllers\Api\SiteStatsController;
+use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\PegawaiController;
 use App\Http\Controllers\Api\SiteAnalyticsController;
-
-
+use App\Http\Controllers\Api\SiteStatsController;
+use App\Http\Controllers\Api\TestimonialController;
+use App\Http\Controllers\Api\VendorController;
+use App\Http\Controllers\Api\WebsiteIdentityController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +43,7 @@ Route::get('/banners', [BannerController::class, 'index']);
 // Identitas website publik (nama, kontak, sosmed, SEO, branding) — untuk frontend
 Route::get('/website-identity', [WebsiteIdentityController::class, 'index']);
 
-// Statistik publik (agregat member/instruktur/kelas) — untuk frontend
+// Statistik publik (agregat member/vendor/kelas) — untuk frontend
 Route::get('/site-stats', [SiteStatsController::class, 'index']);
 Route::post('/analytics/visits', [SiteAnalyticsController::class, 'storeVisit']);
 
@@ -78,39 +75,43 @@ Route::get('/events/{slug}', [EventController::class, 'show']);
 // classes
 Route::get('/classes', [
     ClassController::class,
-    'index'
+    'index',
 ]);
 
 Route::get('/classes/{slug}', [
     ClassController::class,
-    'show'
+    'show',
 ]);
 
 // class schedules
 Route::get('/class-schedules', [
     ClassScheduleController::class,
-    'index'
+    'index',
 ]);
 
 Route::get('/class-schedules/{uuid}', [
     ClassScheduleController::class,
-    'show'
+    'show',
 ]);
 
-//instructors
+// vendors
+Route::get('/vendors', [
+    VendorController::class,
+    'index',
+]);
+
 Route::get('/instructors', [
-    InstructorController::class,
-    'index'
+    VendorController::class,
+    'index',
 ]);
-
 
 // packages
 Route::get('/packages', [
     PackageController::class,
-    'index'
+    'index',
 ]);
 
 Route::get('/packages/{slug}', [
     PackageController::class,
-    'show'
+    'show',
 ]);

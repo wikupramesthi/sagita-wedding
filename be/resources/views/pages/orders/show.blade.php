@@ -58,7 +58,7 @@
                                 <textarea name="admin_note" id="rejectNote" rows="2" class="form-control mb-2"
                                     placeholder="e.g. No transfer received"></textarea>
                                 <button type="submit" class="btn btn-outline-danger w-100"
-                                    onclick="return confirm('Reject this order?')">
+                                    onclick="return confirm('Tolak pesanan ini?')">
                                     <i class="bi bi-x-lg me-1"></i> Reject Order
                                 </button>
                             </form>
@@ -97,7 +97,7 @@
                 $bankAccount = config('manual_payment.bank_account');
                 $bankHolder = config('manual_payment.bank_holder');
                 $waNumber = preg_replace('/\D/', '', (string) config('manual_payment.admin_whatsapp'));
-                $waText = 'Hello YogaRoots Admin, I have transferred Rp ' . number_format($order->amount, 0, ',', '.') . ' for order ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Thank you.';
+                $waText = 'Halo Admin YogaRoots, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
             @endphp
             <div class="card border-primary mb-4">
                 <div class="card-header bg-primary bg-opacity-10 fw-bold">

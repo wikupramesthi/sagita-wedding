@@ -49,18 +49,17 @@ class ClassScheduleResource extends JsonResource
                 'level' => $this->class?->level,
                 'description' => $this->class?->description,
                 'image' => $this->class?->image
-                    ? asset('storage/' . $this->class->image)
+                    ? asset('storage/'.$this->class->image)
                     : null,
             ],
 
-            'instructor' => [
-                'uuid' => $this->class?->instructor?->uuid,
-                'name' => $this->class?->instructor?->name,
-                'avatar' => $this->class?->instructor?->avatar
-                    ? asset('storage/' . $this->class->instructor->avatar)
+            'vendor' => [
+                'uuid' => $this->class?->vendor?->uuid,
+                'name' => $this->class?->vendor?->name,
+                'avatar' => $this->class?->vendor?->avatar
+                    ? asset('storage/'.$this->class->vendor->avatar)
                     : null,
             ],
-
 
             'venue' => [
                 'uuid' => $this->venue?->uuid,

@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Class\ClassModel;
+use App\Models\Class\ClassSchedule;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ClassController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      */
@@ -23,20 +23,20 @@ class ClassController extends Controller
         $level = in_array($level, ['foundation', 'intermediate', 'advance'], true) ? $level : '';
         $is_active = $request->get('is_active', '');
         $is_active = in_array($is_active, ['active', 'inactive'], true) ? $is_active : '';
-        $instructor_uuid = $request->get('instructor_uuid', '');
+        $vendor_uuid = $request->get('vendor_uuid', '');
 
         $query = ClassModel::query();
 
-        // Instructors only see their own classes
-        if (auth()->user()->hasRole('instruktur')) {
+        // Vendors only see their own classes
+        if (auth()->user()->hasRole('vendor')) {
             $query->where(
-                'instructor_uuid',
+                'vendor_uuid',
                 auth()->user()->uuid
             );
         }
 
         if ($search !== '') {
-            $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search) . '%';
+            $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
             $query->where('name', 'like', $like);
         }
 
@@ -50,19 +50,19 @@ class ClassController extends Controller
             $query->where('is_active', $is_active);
         }
 
-        // Filter instructor - hanya admin
+        // Filter vendor - hanya admin
         if (
             auth()->user()->hasRole('admin') &&
-            $instructor_uuid !== ''
+            $vendor_uuid !== ''
         ) {
             $query->where(
-                'instructor_uuid',
-                $instructor_uuid
+                'vendor_uuid',
+                $vendor_uuid
             );
         }
 
         $classes = (clone $query)
-            ->with('instructor')
+            ->with('vendor')
             ->latest()
             ->get();
 
@@ -71,27 +71,29 @@ class ClassController extends Controller
             'total' => (clone $query)->count(),
             'active' => (clone $query)->where('is_active', 'active')->count(),
             'inactive' => (clone $query)->where('is_active', 'inactive')->count(),
-            'schedules' => \App\Models\Class\ClassSchedule::whereIn('class_uuid', (clone $query)->select('classes.uuid'))->count(),
+            'schedules' => ClassSchedule::whereIn('class_uuid', (clone $query)->select('classes.uuid'))->count(),
         ];
 
-        $instructors = User::role('instruktur')
+        $vendors = User::role('vendor')
             ->orderBy('name')
             ->get();
 
         return view(
             'pages.class.index',
-            compact('classes', 'instructors', 'stats', 'search', 'level', 'is_active', 'instructor_uuid')
+            compact('classes', 'vendors', 'stats', 'search', 'level', 'is_active', 'vendor_uuid')
         );
     }
+
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        $instructors = User::role('instruktur')
+        $vendors = User::role('vendor')
             ->orderBy('name')
             ->get();
-        return view('pages.class.create', compact('instructors'));
+
+        return view('pages.class.create', compact('vendors'));
     }
 
     /**
@@ -115,14 +117,14 @@ class ClassController extends Controller
             auth()->user()->hasRole('super-admin')
         ) {
             $request->validate([
-                'instructor_uuid' => 'required|uuid|exists:users,uuid',
+                'vendor_uuid' => 'required|uuid|exists:users,uuid',
             ]);
 
-            $instructorUuid = $request->instructor_uuid;
+            $vendorUuid = $request->vendor_uuid;
         } else {
 
-            // Instructor otomatis menggunakan dirinya sendiri
-            $instructorUuid = auth()->user()->uuid;
+            // Vendor otomatis menggunakan dirinya sendiri
+            $vendorUuid = auth()->user()->uuid;
         }
 
         DB::beginTransaction();
@@ -146,7 +148,7 @@ class ClassController extends Controller
                 'description' => $request->description,
                 'price' => $request->price,
                 'quota_cost' => $request->quota_cost,
-                'instructor_uuid' => $instructorUuid,
+                'vendor_uuid' => $vendorUuid,
                 'is_active' => $request->is_active,
             ]);
 
@@ -154,7 +156,7 @@ class ClassController extends Controller
 
             return redirect()
                 ->route('classes.index')
-                ->with('success', 'Class added successfully.');
+                ->with('success', 'Kelas berhasil ditambahkan.');
         } catch (\Throwable $th) {
 
             DB::rollBack();
@@ -162,7 +164,7 @@ class ClassController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
 
@@ -181,11 +183,11 @@ class ClassController extends Controller
 
             return redirect()
                 ->route('classes.index')
-                ->with('success', 'Class level updated successfully.');
+                ->with('success', 'Level kelas berhasil diperbarui.');
         } catch (\Throwable $th) {
             return redirect()
                 ->back()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
 
@@ -196,11 +198,11 @@ class ClassController extends Controller
     {
         $class = ClassModel::where('uuid', $uuid)->firstOrFail();
 
-        $instructors = User::role('instruktur')
+        $vendors = User::role('vendor')
             ->orderBy('name')
             ->get();
 
-        return view('pages.class.edit', compact('class', 'instructors'));
+        return view('pages.class.edit', compact('class', 'vendors'));
     }
 
     /**
@@ -209,7 +211,7 @@ class ClassController extends Controller
     public function update($uuid, Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:classes,name,' . $uuid . ',uuid',
+            'name' => 'required|string|max:255|unique:classes,name,'.$uuid.',uuid',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'level' => 'required|in:foundation,intermediate,advance',
             'duration' => 'required|integer|min:1',
@@ -221,13 +223,13 @@ class ClassController extends Controller
 
         $user = auth()->user();
 
-        // Admin & Superadmin boleh mengganti instructor
+        // Admin & Superadmin boleh mengganti vendor
         if (
             $user->hasRole('admin') ||
             $user->hasRole('super-admin')
         ) {
             $request->validate([
-                'instructor_uuid' => 'required|uuid|exists:users,uuid',
+                'vendor_uuid' => 'required|uuid|exists:users,uuid',
             ]);
         }
 
@@ -237,10 +239,10 @@ class ClassController extends Controller
 
             $query = ClassModel::where('uuid', $uuid);
 
-            // Instruktur hanya bisa update class miliknya
-            if ($user->hasRole('instruktur')) {
+            // Vendor hanya bisa update class miliknya
+            if ($user->hasRole('vendor')) {
                 $query->where(
-                    'instructor_uuid',
+                    'vendor_uuid',
                     $user->uuid
                 );
             }
@@ -275,16 +277,16 @@ class ClassController extends Controller
                 'is_active' => $request->is_active,
             ];
 
-            // Admin & Superadmin boleh mengganti instructor
+            // Admin & Superadmin boleh mengganti vendor
             if (
                 $user->hasRole('admin') ||
                 $user->hasRole('super-admin')
             ) {
-                $instructor = User::role('instruktur')
-                    ->where('uuid', $request->instructor_uuid)
+                $vendor = User::role('vendor')
+                    ->where('uuid', $request->vendor_uuid)
                     ->firstOrFail();
 
-                $data['instructor_uuid'] = $instructor->uuid;
+                $data['vendor_uuid'] = $vendor->uuid;
             }
 
             $class->update($data);
@@ -293,7 +295,7 @@ class ClassController extends Controller
 
             return redirect()
                 ->route('classes.index')
-                ->with('success', 'Class updated successfully.');
+                ->with('success', 'Kelas berhasil diperbarui.');
         } catch (\Throwable $th) {
 
             DB::rollBack();
@@ -301,14 +303,13 @@ class ClassController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-
     public function destroy($uuid)
     {
         DB::beginTransaction();
@@ -317,16 +318,15 @@ class ClassController extends Controller
 
             $query = ClassModel::where('uuid', $uuid);
 
-            // Instruktur hanya bisa hapus class miliknya
-            if (auth()->user()->hasRole('instruktur')) {
+            // Vendor hanya bisa hapus class miliknya
+            if (auth()->user()->hasRole('vendor')) {
                 $query->where(
-                    'instructor_uuid',
+                    'vendor_uuid',
                     auth()->user()->uuid
                 );
             }
 
             $class = $query->firstOrFail();
-
 
             // Hapus gambar
             if ($class->image) {
@@ -340,14 +340,14 @@ class ClassController extends Controller
 
             return redirect()
                 ->route('classes.index')
-                ->with('success', 'Class deleted successfully.');
+                ->with('success', 'Kelas berhasil dihapus.');
         } catch (\Throwable $th) {
 
             DB::rollBack();
 
             return redirect()
                 ->back()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
 }

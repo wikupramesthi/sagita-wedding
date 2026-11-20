@@ -1,12 +1,11 @@
 @extends('layouts.app')
-@section('title', 'Add Article')
+@section('title', 'Tambah Artikel')
 @section('content')
 
 @section('breadcrumb')
-    <x-breadcrumb title="Add Article" page="Article" active="Add Article" route="{{ route('articles.index') }}" />
+    <x-breadcrumb title="Tambah Artikel" page="Artikel" active="Tambah Artikel" route="{{ route('articles.index') }}" />
 @endsection
 
-<!-- Content -->
 <section class="section">
     <div class="card">
         <div class="card-body">
@@ -14,7 +13,7 @@
                 @csrf
 
                 <div class="form-group mb-3">
-                    <label for="title" class="mb-2">Title  <span class="text-danger">*</span></label>
+                    <label for="title" class="mb-2">Judul  <span class="text-danger">*</span></label>
                     <input type="text" name="title" class="form-control @error('title') is-invalid @enderror"
                         value="{{ old('title') }}" required>
                     @error('title')
@@ -23,7 +22,7 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="excerpt" class="mb-2">Excerpt</label>
+                    <label for="excerpt" class="mb-2">Ringkasan</label>
                     <input type="text" name="excerpt" class="form-control @error('excerpt') is-invalid @enderror"
                         value="{{ old('excerpt') }}">
                     @error('excerpt')
@@ -32,10 +31,10 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="category_uuid" class="mb-2">Category <span class="text-danger">*</span></label>
+                    <label for="category_uuid" class="mb-2">Kategori <span class="text-danger">*</span></label>
                     <select name="category_uuid" id="category_uuid"
                         class="form-control @error('category_uuid') is-invalid @enderror" required>
-                        <option value="">-- Select Category --</option>
+                        <option value="">-- Pilih Kategori --</option>
                         @foreach ($categories as $category)
                             <option value="{{ $category->uuid }}"
                                 data-name="{{ strtolower(str_replace(' ', '-', $category->name)) }}"
@@ -50,14 +49,14 @@
                 </div>
 
                 <div class="form-group mb-3" id="videoForm" style="display: none;">
-                    <label for="video" class="mb-2">Link YouTube <span class="text-danger">*Example: PlNOD--gPQU</span></label>
+                    <label for="video" class="mb-2">Tautan YouTube <span class="text-danger">*Contoh: PlNOD--gPQU</span></label>
                     <input type="text" name="video" id="video" class="form-control"
-                        value="{{ old('video', $article->video ?? '') }}" placeholder="Enter YouTube link">
+                        value="{{ old('video', $article->video ?? '') }}" placeholder="Masukkan tautan YouTube">
                 </div>
 
 
                 <div class="form-group mb-3">
-                    <label for="content" class="mb-2">Content  <span class="text-danger">*</span></label>
+                    <label for="content" class="mb-2">Konten  <span class="text-danger">*</span></label>
                     <textarea name="content" id="deskripsi" cols="30" rows="5"
                         class="form-control @error('content') is-invalid @enderror">{{ old('content') }}</textarea>
                     @error('content')
@@ -66,7 +65,7 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="featured_image" class="mb-2">Featured Image <span class="text-danger">*Maximum file size: 1 MB</span></label>
+                    <label for="featured_image" class="mb-2">Gambar Utama <span class="text-danger">*Ukuran file maksimal: 2 MB</span></label>
                     <input type="file" name="featured_image" id="featured_image" accept="image/*"
                         class="form-control @error('featured_image') is-invalid @enderror">
                     @error('featured_image')
@@ -75,40 +74,40 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="tagging">Tags <span class="text-danger"> *Separate tags with commas, e.g. yoga, mindfulness, wellness</span></label>
+                    <label for="tagging">Tag <span class="text-danger"> *Pisahkan tag dengan koma, mis. yoga, relaksasi, kesehatan</span></label>
                     <input type="text" name="tagging" class="form-control"
                         value="{{ old('tagging', $article->tagging ?? '') }}"
-                        placeholder="Separate with commas, e.g.: slb patriot, news, bekasi city">
+                        placeholder="Pisahkan dengan koma, mis.: slb patriot, berita, kota bekasi">
                 </div>
 
                 <div class="form-group mb-3">
                     <label for="status">Status <span class="text-danger">*</span></label>
                     <select name="status" class="form-control" required>
                         <option value="published"
-                            {{ old('status', $article->status ?? '') == 'published' ? 'selected' : '' }}>Published
+                            {{ old('status', $article->status ?? '') == 'published' ? 'selected' : '' }}>Diterbitkan
                         </option>
                         <option value="draft"
-                            {{ old('status', $article->status ?? '') == 'draft' ? 'selected' : '' }}>Draft</option>
+                            {{ old('status', $article->status ?? '') == 'draft' ? 'selected' : '' }}>Draf</option>
                         <option value="scheduled"
-                            {{ old('status', $article->status ?? '') == 'scheduled' ? 'selected' : '' }}>Scheduled
+                            {{ old('status', $article->status ?? '') == 'scheduled' ? 'selected' : '' }}>Terjadwal
                         </option>
                     </select>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="search_engine">Search Engine <span class="text-danger">*</span></label>
+                    <label for="search_engine">Mesin Pencari <span class="text-danger">*</span></label>
                     <select name="search_engine" class="form-control" required>
                         <option value="index"
                             {{ old('search_engine', $article->search_engine ?? '') == 'index' ? 'selected' : '' }}>
-                            Index</option>
+                            Indeks</option>
                         <option value="noindex"
-                            {{ old('search_engine', $article->search_engine ?? '') == 'noindex' ? 'selected' : '' }}>No
-                            Index</option>
+                            {{ old('search_engine', $article->search_engine ?? '') == 'noindex' ? 'selected' : '' }}>Tanpa
+                            Indeks</option>
                     </select>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="scheduled_at" class="mb-2">Published Date <span class="text-danger">*</span></label>
+                    <label for="scheduled_at" class="mb-2">Tanggal Terbit <span class="text-danger">*</span></label>
                     <input type="date" name="scheduled_at"
                         class="form-control @error('scheduled_at') is-invalid @enderror"
                         value="{{ old('scheduled_at') }}" required>
@@ -118,8 +117,8 @@
                 </div>
 
                 <div class="form-group text-right mt-4">
-                    <a href="{{ route('articles.index') }}" class="btn btn-secondary me-2">Cancel</a>
-                    <button class="btn btn-danger">Save Changes</button>
+                    <a href="{{ route('articles.index') }}" class="btn btn-secondary me-2">Batal</a>
+                    <button class="btn btn-danger">Simpan</button>
                 </div>
             </form>
 

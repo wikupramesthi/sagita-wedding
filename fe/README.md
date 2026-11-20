@@ -82,7 +82,7 @@ perlu backend MySQL.
 
 ## Halaman & route
 
-`/`, `/about`, `/classes`, `/classes/:slug`, `/schedules`, `/pages/:slug`, `/instructors`,
+`/`, `/about`, `/classes`, `/classes/:slug`, `/schedules`, `/pages/:slug`, `/vendors`,
 `/blog`, `/blog/:slug`, `/packages`, `/packages/:slug`, `/event`,
 `/gallery`, `/contact`
 

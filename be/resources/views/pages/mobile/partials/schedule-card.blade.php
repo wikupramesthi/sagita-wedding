@@ -7,15 +7,15 @@ $booked = $schedule->bookings_count ?? 0;
 $remaining = max(0, ($schedule->capacity ?? 0) - $booked);
 
 $class = $schedule->class;
-$instructor = $class?->instructor;
+$vendor = $class?->vendor;
 
 $start = \Carbon\Carbon::parse($schedule->start_time);
 $end = \Carbon\Carbon::parse($schedule->end_time);
 
-$avatar = $instructor?->avatar
-    ? (Str::startsWith($instructor->avatar, ['http://', 'https://'])
-        ? $instructor->avatar
-        : asset('storage/' . $instructor->avatar))
+$avatar = $vendor?->avatar
+    ? (Str::startsWith($vendor->avatar, ['http://', 'https://'])
+        ? $vendor->avatar
+        : asset('storage/' . $vendor->avatar))
     : asset('dist/assets/images/avatar.jpg');
 
 $myBooking = ($myBookings ?? collect())->get($schedule->uuid . '|' . $bookingDate);
@@ -25,7 +25,7 @@ $myBooking = ($myBookings ?? collect())->get($schedule->uuid . '|' . $bookingDat
     <div class="d-flex align-items-center gap-3">
         <div class="flex-shrink-0">
             <img src="{{ $avatar }}"
-                alt="{{ $instructor?->name ?? 'Instructor' }}"
+                alt="{{ $vendor?->name ?? 'Vendor' }}"
                 class="rounded-circle"
                 loading="lazy"
                 decoding="async"
@@ -38,7 +38,7 @@ $myBooking = ($myBookings ?? collect())->get($schedule->uuid . '|' . $bookingDat
             </p>
             <p class="mb-1 text-muted2 text-truncate text-small">
                 <i class="bi bi-person me-1"></i>
-                {{ $instructor?->name ?? 'No Instructor' }}
+                {{ $vendor?->name ?? 'No Vendor' }}
                 @if ($class?->level)
                     <span class="mx-1">•</span>
                     <i class="bi bi-bar-chart me-1"></i>

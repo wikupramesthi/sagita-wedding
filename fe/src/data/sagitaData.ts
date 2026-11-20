@@ -1,7 +1,7 @@
 /**
  * Data statis theme (non-CMS).
  * Konten dinamis (kelas, paket, event, artikel, dst.) berasal dari backend via services/.
- * Jangan taruh konten CMS di sini â€” file ini hanya untuk identitas & navigasi.
+ * Jangan taruh konten CMS di sini — file ini hanya untuk identitas & navigasi.
  */
 export const sagitaData = {
 	site: {
@@ -21,7 +21,7 @@ export const sagitaData = {
 		{ key: "classes", label: "Classes", href: "/classes" },
 		{ key: "schedules", label: "Schedules", href: "/schedules" },
 		{ key: "packages", label: "Packages", href: "/packages" },
-		{ key: "instructors", label: "Instructors", href: "/instructors" },
+		{ key: "vendors", label: "Vendors", href: "/vendors" },
 		{ key: "artofliving", label: "Art of Living", href: "/art-of-living" },
 	],
 	contact: {

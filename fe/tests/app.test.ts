@@ -58,6 +58,8 @@ const getPageBatch = vi.fn(
 				};
 			case "contact":
 				return { captcha: CAPTCHA, faqs: [] };
+			case "faq":
+				return { faqs: [], categories: [] };
 			case "about":
 				return { stats: null, articles: [] };
 			case "home":
@@ -271,6 +273,7 @@ describe("pageScript wiring", () => {
 			["/classes", "classes"],
 			["/schedules", "schedules"],
 			["/contact", "contact"],
+			["/faq", "faq"],
 			["/blog", "blog"],
 			["/", "home"],
 		];
@@ -294,7 +297,14 @@ describe("pageScript wiring", () => {
 
 describe("regresi CSP: tidak ada inline script tanpa nonce", () => {
 	it("halaman yang dulu punya inline script tetap aman", async () => {
-		for (const path of ["/", "/classes", "/schedules", "/blog", "/contact"]) {
+		for (const path of [
+			"/",
+			"/classes",
+			"/schedules",
+			"/blog",
+			"/contact",
+			"/faq",
+		]) {
 			const res = await request(app).get(path);
 			const scripts = [...res.text.matchAll(/<script\b([^>]*)>/gi)];
 			for (const [, attrs] of scripts) {

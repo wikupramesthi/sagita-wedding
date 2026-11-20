@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Class\ClassBooking;
 use App\Models\Class\ClassSchedule;
+use App\Models\Venue;
 use App\Support\MemberView;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -44,7 +45,7 @@ class MemberScheduleController extends Controller
             ->latest('started_at')
             ->first();
 
-        $base = ClassSchedule::with(['class.instructor', 'venue'])
+        $base = ClassSchedule::with(['class.vendor', 'venue'])
             ->withCount([
                 'bookings as bookings_count' => function ($q) {
                     $q->whereIn('status', ['confirmed', 'attended']);
@@ -54,17 +55,17 @@ class MemberScheduleController extends Controller
             ->orderBy('start_time');
 
         if ($search !== '') {
-            $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search) . '%';
+            $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
             $base->where(function ($q) use ($like) {
                 $q->whereHas('class', function ($cq) use ($like) {
                     $cq->where('name', 'like', $like);
-                })->orWhereHas('class.instructor', function ($iq) use ($like) {
+                })->orWhereHas('class.vendor', function ($iq) use ($like) {
                     $iq->where('name', 'like', $like);
                 });
             });
         }
 
-        if ($venueUuid !== '' && \App\Models\Venue::where('uuid', $venueUuid)->exists()) {
+        if ($venueUuid !== '' && Venue::where('uuid', $venueUuid)->exists()) {
             $base->where('venue_uuid', $venueUuid);
         } else {
             $venueUuid = '';
@@ -76,7 +77,7 @@ class MemberScheduleController extends Controller
             });
         }
 
-        $venues = \App\Models\Venue::orderBy('name')->get(['uuid', 'name']);
+        $venues = Venue::orderBy('name')->get(['uuid', 'name']);
 
         $filterView = [
             'search' => $search,
@@ -95,7 +96,7 @@ class MemberScheduleController extends Controller
                 ->whereDate('booking_date', $date)
                 ->where('status', '!=', 'cancelled')
                 ->get()
-                ->keyBy(fn ($b) => $b->class_schedule_uuid . '|' . $b->booking_date?->format('Y-m-d'));
+                ->keyBy(fn ($b) => $b->class_schedule_uuid.'|'.$b->booking_date?->format('Y-m-d'));
 
             return view(
                 MemberView::isMobile() ? 'pages.mobile.schedules' : 'pages.schedules.index',
@@ -130,7 +131,7 @@ class MemberScheduleController extends Controller
             ->whereIn('booking_date', $dates->all())
             ->where('status', '!=', 'cancelled')
             ->get()
-            ->keyBy(fn ($b) => $b->class_schedule_uuid . '|' . $b->booking_date?->format('Y-m-d'));
+            ->keyBy(fn ($b) => $b->class_schedule_uuid.'|'.$b->booking_date?->format('Y-m-d'));
 
         return view(
             MemberView::isMobile() ? 'pages.mobile.schedules' : 'pages.schedules.index',
@@ -168,7 +169,7 @@ class MemberScheduleController extends Controller
             ->latest('started_at')
             ->first();
 
-        $query = ClassBooking::with(['schedule.class.instructor', 'package'])
+        $query = ClassBooking::with(['schedule.class.vendor', 'package'])
             ->where('user_uuid', $user->uuid)
             ->where('status', '!=', 'cancelled');
 

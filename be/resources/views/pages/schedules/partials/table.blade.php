@@ -6,7 +6,7 @@
             <tr>
                 <th>Time</th>
                 <th>Class</th>
-                <th>Instructor</th>
+                <th>Vendor</th>
                 <th>Venue</th>
                 <th class="text-center">Slots</th>
                 <th class="text-end">Action</th>
@@ -30,7 +30,7 @@
                             <small class="log-muted">{{ ucfirst($schedule->class->level) }}</small>
                         @endif
                     </td>
-                    <td>{{ $schedule->class?->instructor?->name ?? '-' }}</td>
+                    <td>{{ $schedule->class?->vendor?->name ?? '-' }}</td>
                     <td>{{ $schedule->venue?->name ?? '-' }}</td>
                     <td class="text-center">
                         @if ($remaining <= 0 && empty($myBooking))

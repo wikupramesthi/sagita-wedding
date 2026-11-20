@@ -3,168 +3,174 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Payment\Order;
-use App\Models\UserPackage;
 use App\Models\Article;
-use App\Models\Event;
-use App\Models\Class\ClassModel;
-use App\Models\Package\Package;
-use App\Models\User;
-use App\Models\Faq;
-use App\Models\Kontak;
-use App\Models\Poll;
-use App\Models\Testimonial;
 use App\Models\Banner;
 use App\Models\Class\ClassBooking;
+use App\Models\Class\ClassModel;
 use App\Models\Class\ClassSchedule;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
+use App\Models\Consultation;
+use App\Models\Event;
+use App\Models\FailedLogin;
+use App\Models\LoginLockout;
+use App\Models\Package\Package;
+use App\Models\Payment\Order;
+use App\Models\User;
+use App\Models\UserPackage;
+use App\Models\VendorsCategory;
+use App\Models\Venue;
+use App\Models\WebsiteIdentity;
+use App\Support\MemberView;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
-
     public function index(Request $request)
     {
-        $rules = [
+        $validated = $request->validate([
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
-        ];
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $rules['end_date'][] = 'after_or_equal:start_date';
+        ]);
+
+        if (! empty($validated['start_date']) && ! empty($validated['end_date'])) {
+            $request->validate([
+                'end_date' => ['after_or_equal:start_date'],
+            ]);
         }
-        $request->validate($rules);
 
         $user = Auth::user();
         $isMember = $user->hasRole('user');
 
-        $startDate = $request->query('start_date');
-        $endDate = $request->query('end_date');
+        [$startDate, $endDate] = $this->resolveRange($validated);
+        $bounds = $this->periodBounds($startDate, $endDate);
+        $previousStart = $bounds['previousStart'];
+        $previousEnd = $bounds['previousEnd'];
 
-        $applyPeriod = function ($query, string $column = 'created_at') use ($startDate, $endDate) {
-            if ($startDate) {
-                $query->whereDate($column, '>=', $startDate);
-            }
-            if ($endDate) {
-                $query->whereDate($column, '<=', $endDate);
-            }
-            return $query;
+        $periodLabel = Carbon::parse($startDate)->translatedFormat('d M Y')
+            .' – '.Carbon::parse($endDate)->translatedFormat('d M Y');
+
+        $identity = WebsiteIdentity::singleton();
+
+        $countBetween = function ($query, string $column, string $from, string $to): int {
+            return (clone $query)
+                ->whereBetween($column, [$from.' 00:00:00', $to.' 23:59:59'])
+                ->count();
         };
 
-        // =========================
-        // DASHBOARD STATISTICS
-        // =========================
+        $sparkline = function ($query, string $column, string $from, string $to, int $points = 14): array {
+            return $this->sparkline($query, $column, $from, $to, $points);
+        };
 
-        $jumlahInstruktur = $applyPeriod(User::role('instruktur'))->count();
-        $jumlahMembers = $applyPeriod(User::role('user'))->count();
+        $makeStat = function (
+            string $label,
+            $query,
+            string $column,
+            string $icon,
+            string $class,
+            string $route
+        ) use ($countBetween, $sparkline, $startDate, $endDate, $previousStart, $previousEnd): array {
+            $current = $countBetween($query, $column, $startDate, $endDate);
+            $previous = $countBetween($query, $column, $previousStart, $previousEnd);
 
-        $totalClasses = $applyPeriod(ClassModel::query())->count();
-        $totalEvents = $applyPeriod(Event::query())->count();
+            return [
+                'label' => $label,
+                'value' => $current,
+                'previous' => $previous,
+                'change' => $this->percentageChange($current, $previous),
+                'spark' => $sparkline($query, $column, $startDate, $endDate),
+                'icon' => $icon,
+                'class' => $class,
+                'route' => route($route),
+            ];
+        };
+
+        $makeSnapshot = function (
+            string $label,
+            int $value,
+            string $icon,
+            string $class,
+            string $route
+        ): array {
+            return [
+                'label' => $label,
+                'value' => $value,
+                'previous' => null,
+                'change' => null,
+                'spark' => [],
+                'icon' => $icon,
+                'class' => $class,
+                'route' => route($route),
+            ];
+        };
 
         $data = [
             'user' => $user,
-            'jumlahInstruktur' => $jumlahInstruktur,
-            'jumlahMembers' => $jumlahMembers,
-            'totalClasses' => $totalClasses,
-            'totalEvents' => $totalEvents,
+            'brandName' => $identity->site_name ?: config('app.name', 'Sagita Wedding'),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'periodLabel' => $periodLabel,
             'unreadCount' => $user->unreadNotifications()->count(),
+            'jumlahMembers' => $countBetween(User::role('user'), 'created_at', $startDate, $endDate),
+            'jumlahVendor' => $countBetween(User::role('vendor'), 'created_at', $startDate, $endDate),
+            'totalClasses' => $countBetween(ClassModel::query(), 'created_at', $startDate, $endDate),
+            'totalEvents' => $countBetween(Event::query(), 'created_at', $startDate, $endDate),
         ];
 
-        // =========================
-        // ADMIN-ONLY STATISTICS
-        // =========================
-        // Member (role "user") tidak memakai data ini, jadi jangan dirender
-        // untuk role lain agar halaman member tidak menambah query sia-sia.
-
         if (! $isMember) {
-            $totalPackages = $applyPeriod(Package::query())->count();
-            $totalArticles = $applyPeriod(Article::query())->count();
-            $totalFaq = $applyPeriod(Faq::query())->count();
-            $totalPolling = $applyPeriod(Poll::query())->count();
-            $totalPesan = $applyPeriod(Kontak::query())->count();
-            $totalTestimonial = $applyPeriod(Testimonial::query())->count();
+            $charts = Cache::remember('dashboard.admin.charts.'.sha1($startDate.'|'.$endDate), 300, function () use ($startDate, $endDate) {
+                return [
+                    'revenueChart' => $this->revenueSeries($startDate, $endDate),
+                    'site' => $this->siteAnalytics($startDate, $endDate),
+                ];
+            });
 
-            // =========================
-            // ORDERS & MEMBERSHIP & REVENUE
-            // =========================
+            $newOrdersCount = $countBetween(Order::where('status', 'pending'), 'created_at', $startDate, $endDate);
+            $newMembershipCount = $countBetween(UserPackage::where('status', 'active'), 'started_at', $startDate, $endDate);
+            $revenueMonth = (float) Order::where('status', 'paid')
+                ->whereBetween('paid_at', [$startDate.' 00:00:00', $endDate.' 23:59:59'])
+                ->sum('amount');
 
-            $newOrdersCount = $applyPeriod(Order::where('status', 'pending'))->count();
-            $newMembershipCount = $applyPeriod(UserPackage::where('status', 'active'), 'started_at')->count();
+            $stats = [
+                $makeStat('Member baru', User::role('user'), 'created_at', 'bi bi-people', 'purple', 'pengguna.index'),
+                $makeStat('Vendor baru', User::role('vendor'), 'created_at', 'bi bi-person-badge', 'blue', 'vendor.index'),
+                $makeSnapshot('Venue aktif', (int) Venue::where('status', 'active')->count(), 'bi bi-geo-alt', 'green', 'venues.index'),
+                $makeSnapshot('Kategori vendor aktif', (int) VendorsCategory::where('is_active', 'active')->count(), 'bi bi-shop', 'cyan', 'vendors_categories.index'),
+                $makeStat('Pertanyaan masuk', Consultation::query(), 'created_at', 'bi bi-chat-left-text', 'turquoise', 'konsultasi.index'),
+                $makeStat('Pesanan baru', Order::query(), 'created_at', 'bi bi-bag-plus', 'yellow', 'orders.index'),
+                $makeStat('Paket', Package::query(), 'created_at', 'bi bi-box-seam', 'pink', 'packages.index'),
+                $makeStat('Kelas', ClassModel::query(), 'created_at', 'bi bi-book', 'red', 'classes.index'),
+                $makeStat('Event', Event::query(), 'created_at', 'bi bi-calendar-event', 'green', 'events.index'),
+                $makeStat('Artikel', Article::query(), 'created_at', 'bi bi-file-earmark-text', 'blue', 'articles.index'),
+            ];
 
-            $revenuePaid = $applyPeriod(Order::where('status', 'paid'), 'paid_at');
-            $revenueMonth = (clone $revenuePaid)->sum('amount');
-            $revenueTotal = Order::where('status', 'paid')->sum('amount');
+            $funnel = [
+                ['label' => 'Pertanyaan', 'value' => $countBetween(Kontak::query(), 'created_at', $startDate, $endDate)],
+                ['label' => 'Pesanan', 'value' => $countBetween(Order::query(), 'created_at', $startDate, $endDate)],
+                ['label' => 'Lunas', 'value' => $countBetween(Order::where('status', 'paid'), 'paid_at', $startDate, $endDate)],
+                ['label' => 'Keanggotaan aktif', 'value' => $newMembershipCount],
+            ];
 
-            $orderPaidByDay = Order::where('status', 'paid')
-                ->whereNotNull('paid_at')
-                ->selectRaw('DATE(paid_at) as day_date, SUM(amount) as total')
-                ->groupBy('day_date')
-                ->orderBy('day_date')
-                ->pluck('total', 'day_date');
-
-            $days = collect(range(0, 6))->map(fn ($i) => now()->subDays(6 - $i)->format('Y-m-d'));
-            $revenueDailyLabels = $days->map(fn ($d) => \Carbon\Carbon::parse($d)->format('d M'))->all();
-            $revenueDaily = $days->map(fn ($d) => (float) ($orderPaidByDay[$d] ?? 0))->all();
-
-            $monthStart = now()->startOfMonth();
-            $monthDays = collect(range(0, now()->daysInMonth - 1))->map(fn ($i) => $monthStart->copy()->addDays($i)->format('Y-m-d'));
-            $revenueMonthLabels = $monthDays->map(fn ($d) => \Carbon\Carbon::parse($d)->format('d'))->all();
-            $revenueMonthDaily = $monthDays->map(fn ($d) => (float) ($orderPaidByDay[$d] ?? 0))->all();
-
-            $orderPaidByMonth = Order::where('status', 'paid')
-                ->whereNotNull('paid_at')
-                ->whereYear('paid_at', now()->year)
-                ->selectRaw('MONTH(paid_at) as m, SUM(amount) as total')
-                ->groupBy('m')
-                ->pluck('total', 'm');
-            $revenueYearLabels = [];
-            $revenueYear = [];
-            for ($m = 1; $m <= 12; $m++) {
-                $revenueYearLabels[] = now()->startOfYear()->addMonths($m - 1)->format('M');
-                $revenueYear[] = (float) ($orderPaidByMonth[$m] ?? 0);
-            }
-
-            $revenueAllDaily = $orderPaidByDay->mapWithKeys(fn ($total, $day) => [$day => (float) $total]);
-
-            $recentOrders = $applyPeriod(Order::with('user', 'package')->latest())
-                ->take(5)
-                ->get();
-
-            $recentMemberships = $applyPeriod(UserPackage::with('user', 'package')->latest(), 'started_at')
-                ->take(5)
-                ->get();
-
-            $data += [
-                'totalPackages' => $totalPackages,
-                'totalArticles' => $totalArticles,
-                'totalFaq' => $totalFaq,
-                'totalPolling' => $totalPolling,
-                'totalPesan' => $totalPesan,
-                'totalTestimonial' => $totalTestimonial,
-
+            $data = array_merge($data, $charts, [
+                'stats' => $stats,
+                'funnel' => $funnel,
                 'newOrdersCount' => $newOrdersCount,
                 'newMembershipCount' => $newMembershipCount,
                 'revenueMonth' => $revenueMonth,
-                'revenueTotal' => $revenueTotal,
-                'recentOrders' => $recentOrders,
-                'recentMemberships' => $recentMemberships,
-
-                'revenueDailyLabels' => $revenueDailyLabels,
-                'revenueDaily' => $revenueDaily,
-                'revenueMonthLabels' => $revenueMonthLabels,
-                'revenueMonthDaily' => $revenueMonthDaily,
-                'revenueYearLabels' => $revenueYearLabels,
-                'revenueYear' => $revenueYear,
-                'revenueAllDaily' => $revenueAllDaily,
-            ] + $this->siteAnalytics();
+                'revenueTotal' => (float) Order::where('status', 'paid')->sum('amount'),
+                'security' => [
+                    'failedLogins' => (int) FailedLogin::where('created_at', '>=', now()->subDay())->count(),
+                    'lockouts' => (int) LoginLockout::active()->count(),
+                ],
+                'actionQueue' => $this->actionQueue(),
+                'recentOrders' => Order::with('user', 'package')->latest()->take(5)->get(),
+                'recentMemberships' => UserPackage::with('user', 'package')->latest('started_at')->take(5)->get(),
+            ]);
         }
-
-        // =========================
-        // ACTIVE MEMBERSHIP
-        // =========================
 
         $activePackage = $user->userPackages()
             ->with('package')
@@ -176,76 +182,27 @@ class DashboardController extends Controller
             ->first();
 
         $data['activePackage'] = $activePackage;
-
-        $attendedCount = ClassBooking::where('user_uuid', $user->uuid)
+        $data['attendedCount'] = ClassBooking::where('user_uuid', $user->uuid)
             ->where('status', 'attended')
             ->count();
-        $data['attendedCount'] = $attendedCount;
 
-        // =========================
-        // ACTIVE BANNER
-        // =========================
-
-        $banner = Banner::where('status', 'active')
-            ->where('posisi', 'slider')
-            ->first();
-
-
-        // =========================
-        // UPCOMING EVENTS
-        // =========================
-
-        $events = Event::where('status', 'published')
-            ->whereDate('tanggal', '>=', now())
-            ->orderBy('tanggal')
-            ->orderBy('waktu_mulai')
-            ->take(5)
-            ->get();
-
-        // =========================
-        // DAY CONFIGURATION
-        // =========================
-
-        $days = [
-            'monday',
-            'tuesday',
-            'wednesday',
-            'thursday',
-            'friday',
-            'saturday',
-            'sunday',
-        ];
-
-        $today = strtolower(now()->format('l'));
-        $currentDayIndex = array_search($today, $days);
-        $nextDay = $days[($currentDayIndex + 1) % count($days)];
-
-        // =========================
-        // TODAY'S SCHEDULE
-        // =========================
-
-        $todaySchedules = ClassSchedule::with([
-            'class.instructor'
-        ])
+        $todaySchedules = ClassSchedule::with('class.vendor')
             ->withCount([
                 'bookings as bookings_count' => function ($q) {
                     $q->whereIn('status', ['confirmed', 'attended']);
                 },
             ])
             ->where('status', 'active')
-            ->where('day', $today)
+            ->where('day', strtolower(now()->format('l')))
             ->orderBy('start_time')
             ->take(5)
             ->get();
 
+        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        $today = strtolower(now()->format('l'));
+        $nextDay = $days[((array_search($today, $days) + 1) % count($days))];
 
-        // =========================
-        // NEXT DAY SCHEDULE
-        // =========================
-
-        $upcomingClasses = ClassSchedule::with([
-            'class.instructor'
-        ])
+        $upcomingClasses = ClassSchedule::with('class.vendor')
             ->withCount([
                 'bookings as bookings_count' => function ($q) {
                     $q->whereIn('status', ['confirmed', 'attended']);
@@ -257,108 +214,245 @@ class DashboardController extends Controller
             ->take(3)
             ->get();
 
-
-        // =========================
-        // ART OF LIVING COURSES API
-        // =========================
-
-        $courses = $this->artOfLivingCourses();
-
         $data += [
-            'banner' => $banner,
-            'events' => $events,
+            'events' => Event::where('status', 'published')
+                ->whereDate('tanggal', '>=', now())
+                ->orderBy('tanggal')
+                ->orderBy('waktu_mulai')
+                ->take(5)
+                ->get(),
             'todaySchedules' => $todaySchedules,
             'upcomingClasses' => $upcomingClasses,
-            'courses' => $courses,
         ];
 
-        // =========================
-        // MEMBER: laptop/desktop = view desktop, HP = phone-frame mobile.
-        // Bisa dioverride manual via session `member_view`.
-        // =========================
+        if ($isMember) {
+            $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
+            $data['courses'] = $this->artOfLivingCourses();
 
-        if ($isMember && \App\Support\MemberView::isMobile()) {
+            if (MemberView::isMobile()) {
+                $scheduleUuids = $todaySchedules->pluck('uuid')->merge($upcomingClasses->pluck('uuid'));
 
-            $todayDate = now()->format('Y-m-d');
-            $tomorrowDate = now()->addDay()->format('Y-m-d');
-            $scheduleUuids = $todaySchedules->pluck('uuid')->merge($upcomingClasses->pluck('uuid'));
+                $myBookings = ClassBooking::where('user_uuid', $user->uuid)
+                    ->whereIn('class_schedule_uuid', $scheduleUuids)
+                    ->where('status', '!=', 'cancelled')
+                    ->get()
+                    ->keyBy(fn ($b) => $b->class_schedule_uuid.'|'.$b->booking_date?->format('Y-m-d'));
 
-            $myBookings = ClassBooking::where('user_uuid', $user->uuid)
-                ->whereIn('class_schedule_uuid', $scheduleUuids)
-                ->where('status', '!=', 'cancelled')
-                ->get()
-                ->keyBy(fn ($b) => $b->class_schedule_uuid . '|' . $b->booking_date?->format('Y-m-d'));
-
-            return view('pages.mobile.home', $data + [
-                'courses' => array_slice($courses, 0, 6),
-                'myBookings' => $myBookings,
-                'todayDate' => $todayDate,
-                'tomorrowDate' => $tomorrowDate,
-            ]);
+                return view('pages.mobile.home', $data + [
+                    'courses' => array_slice($data['courses'], 0, 6),
+                    'myBookings' => $myBookings,
+                    'todayDate' => now()->format('Y-m-d'),
+                    'tomorrowDate' => now()->addDay()->format('Y-m-d'),
+                ]);
+            }
         }
-
-
-        // =========================
-        // DESKTOP
-        // =========================
 
         return view('pages.dashboard.index', $data);
     }
 
-    /**
-     * Anonymous public-site traffic aggregates for the admin dashboard.
-     */
-    private function siteAnalytics(): array
+    private function resolveRange(array $validated): array
     {
-        $today = now()->startOfDay();
-        $dailyStart = $today->copy()->subDays(30);
-        $monthlyStart = now()->startOfMonth()->subMonths(11);
+        $end = $validated['end_date'] ?? now()->toDateString();
+        $start = $validated['start_date'] ?? Carbon::parse($end)->subDays(29)->toDateString();
+
+        return [$start, $end];
+    }
+
+    private function periodBounds(string $start, string $end): array
+    {
+        $startDate = Carbon::parse($start)->startOfDay();
+        $endDate = Carbon::parse($end)->startOfDay();
+        $days = $startDate->diffInDays($endDate) + 1;
+
+        return [
+            'previousStart' => $startDate->copy()->subDays($days)->toDateString(),
+            'previousEnd' => $startDate->copy()->subDay()->toDateString(),
+            'days' => $days,
+        ];
+    }
+
+    private function percentageChange(int $current, int $previous): ?int
+    {
+        if ($previous === 0) {
+            return $current > 0 ? 100 : null;
+        }
+
+        return (int) round((($current - $previous) / $previous) * 100);
+    }
+
+    private function sparkline($query, string $column, string $from, string $to, int $points = 14): array
+    {
+        $rows = (clone $query)
+            ->whereBetween($column, [$from.' 00:00:00', $to.' 23:59:59'])
+            ->selectRaw('DATE('.$column.') as day_key, COUNT(*) as total')
+            ->groupBy('day_key')
+            ->pluck('total', 'day_key');
+
+        $start = Carbon::parse($from)->startOfDay();
+        $end = Carbon::parse($to)->startOfDay();
+        $totalDays = $start->diffInDays($end) + 1;
+        $bucketSize = max(1, (int) ceil($totalDays / min($points, $totalDays)));
+
+        $result = [];
+        for ($offset = 0; $offset < $totalDays; $offset += $bucketSize) {
+            $sum = 0;
+            for ($day = $offset; $day < min($offset + $bucketSize, $totalDays); $day++) {
+                $sum += (int) ($rows[$start->copy()->addDays($day)->toDateString()] ?? 0);
+            }
+            $result[] = $sum;
+        }
+
+        return $result;
+    }
+
+    private function revenueSeries(string $from, string $to): array
+    {
+        $rows = Order::where('status', 'paid')
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$from.' 00:00:00', $to.' 23:59:59'])
+            ->select('paid_at', 'amount')
+            ->get();
+
+        $dailyRows = $rows->groupBy(fn ($row) => $row->paid_at->toDateString())
+            ->map(fn ($group) => (float) $group->sum('amount'));
+        $monthlyRows = $rows->groupBy(fn ($row) => $row->paid_at->format('Y-m'))
+            ->map(fn ($group) => (float) $group->sum('amount'));
+        $yearlyRows = $rows->groupBy(fn ($row) => $row->paid_at->format('Y'))
+            ->map(fn ($group) => (float) $group->sum('amount'));
+
+        $start = Carbon::parse($from)->startOfDay();
+        $end = Carbon::parse($to)->startOfDay();
+
+        $daily = [];
+        for ($date = $start->copy(); $date <= $end && count($daily) < 366; $date->addDay()) {
+            $key = $date->toDateString();
+            $daily['labels'][] = $date->translatedFormat('d M');
+            $daily['data'][] = (float) ($dailyRows[$key] ?? 0);
+        }
+
+        $monthly = [];
+        for ($month = $start->copy()->startOfMonth(); $month <= $end && count($monthly['labels'] ?? []) < 24; $month->addMonth()) {
+            $key = $month->format('Y-m');
+            $monthly['labels'][] = $month->translatedFormat('M Y');
+            $monthly['data'][] = (float) ($monthlyRows[$key] ?? 0);
+        }
+
+        $yearly = [];
+        for ($year = $start->copy()->startOfYear(); $year <= $end && count($yearly['labels'] ?? []) < 10; $year->addYear()) {
+            $key = $year->format('Y');
+            $yearly['labels'][] = $key;
+            $yearly['data'][] = (float) ($yearlyRows[$key] ?? 0);
+        }
+
+        return [
+            'daily' => $daily + ['labels' => [], 'data' => []],
+            'monthly' => $monthly + ['labels' => [], 'data' => []],
+            'yearly' => $yearly + ['labels' => [], 'data' => []],
+        ];
+    }
+
+    private function actionQueue(): array
+    {
+        $pendingOrders = Order::with('user', 'package')
+            ->where('status', 'pending')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $todayBookings = ClassBooking::with('user', 'schedule.class')
+            ->where('status', 'confirmed')
+            ->whereDate('booking_date', today())
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $openMessages = Kontak::whereIn('status', ['open', 'in_progress'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $expiring = UserPackage::with('user', 'package')
+            ->where('status', 'active')
+            ->whereBetween('expired_at', [now(), now()->addDays(7)])
+            ->orderBy('expired_at')
+            ->take(5)
+            ->get();
+
+        return [
+            'orders' => $pendingOrders,
+            'orderCount' => (int) Order::where('status', 'pending')->count(),
+            'bookings' => $todayBookings,
+            'bookingCount' => (int) ClassBooking::where('status', 'confirmed')
+                ->whereDate('booking_date', today())
+                ->count(),
+            'messages' => $openMessages,
+            'messageCount' => (int) Kontak::whereIn('status', ['open', 'in_progress'])->count(),
+            'expiring' => $expiring,
+            'expiringCount' => (int) UserPackage::where('status', 'active')
+                ->whereBetween('expired_at', [now(), now()->addDays(7)])
+                ->count(),
+        ];
+    }
+
+    private function siteAnalytics(string $from, string $to): array
+    {
+        $start = Carbon::parse($from)->startOfDay();
+        $end = Carbon::parse($to)->startOfDay();
+        $monthStart = $start->copy()->startOfMonth();
+        $monthEnd = $end->copy()->startOfMonth();
 
         $dailyRows = DB::table('site_visits')
-            ->where('visited_at', '>=', $dailyStart)
+            ->whereBetween('visited_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->selectRaw('DATE(visited_at) as visit_date, COUNT(*) as total, COUNT(DISTINCT visitor_hash) as unique_visitors')
             ->groupBy('visit_date')
-            ->orderBy('visit_date')
-            ->get()
-            ->keyBy('visit_date');
+            ->pluck('total', 'visit_date');
+
+        $dailyUniqueRows = DB::table('site_visits')
+            ->whereBetween('visited_at', [$from.' 00:00:00', $to.' 23:59:59'])
+            ->selectRaw('DATE(visited_at) as visit_date, COUNT(DISTINCT visitor_hash) as unique_visitors')
+            ->groupBy('visit_date')
+            ->pluck('unique_visitors', 'visit_date');
 
         $monthExpression = match (DB::connection()->getDriverName()) {
             'sqlite' => "strftime('%Y-%m', visited_at)",
             'pgsql' => "TO_CHAR(visited_at, 'YYYY-MM')",
             default => "DATE_FORMAT(visited_at, '%Y-%m')",
         };
+
         $monthlyRows = DB::table('site_visits')
-            ->where('visited_at', '>=', $monthlyStart)
+            ->whereBetween('visited_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->selectRaw("$monthExpression as visit_month, COUNT(*) as total, COUNT(DISTINCT visitor_hash) as unique_visitors")
             ->groupBy('visit_month')
-            ->orderBy('visit_month')
-            ->get()
-            ->keyBy('visit_month');
+            ->pluck('total', 'visit_month');
+
+        $monthlyUniqueRows = DB::table('site_visits')
+            ->whereBetween('visited_at', [$from.' 00:00:00', $to.' 23:59:59'])
+            ->selectRaw("$monthExpression as visit_month, COUNT(DISTINCT visitor_hash) as unique_visitors")
+            ->groupBy('visit_month')
+            ->pluck('unique_visitors', 'visit_month');
 
         $visitorDailyLabels = [];
         $visitorDailyTotal = [];
         $visitorDailyUnique = [];
-        for ($date = $dailyStart->copy(); $date <= $today; $date->addDay()) {
-            $key = $date->format('Y-m-d');
-            $row = $dailyRows->get($key);
+        for ($date = $start->copy(); $date <= $end && count($visitorDailyLabels) < 366; $date->addDay()) {
+            $key = $date->toDateString();
             $visitorDailyLabels[] = $date->translatedFormat('d M');
-            $visitorDailyTotal[] = (int) ($row->total ?? 0);
-            $visitorDailyUnique[] = (int) ($row->unique_visitors ?? 0);
+            $visitorDailyTotal[] = (int) ($dailyRows[$key] ?? 0);
+            $visitorDailyUnique[] = (int) ($dailyUniqueRows[$key] ?? 0);
         }
 
         $visitorMonthLabels = [];
         $visitorMonthTotal = [];
         $visitorMonthUnique = [];
-        for ($month = $monthlyStart->copy(); $month <= now()->startOfMonth(); $month->addMonth()) {
+        for ($month = $monthStart->copy(); $month <= $monthEnd && count($visitorMonthLabels) < 24; $month->addMonth()) {
             $key = $month->format('Y-m');
-            $row = $monthlyRows->get($key);
             $visitorMonthLabels[] = $month->translatedFormat('M Y');
-            $visitorMonthTotal[] = (int) ($row->total ?? 0);
-            $visitorMonthUnique[] = (int) ($row->unique_visitors ?? 0);
+            $visitorMonthTotal[] = (int) ($monthlyRows[$key] ?? 0);
+            $visitorMonthUnique[] = (int) ($monthlyUniqueRows[$key] ?? 0);
         }
 
         $contentRows = DB::table('site_visits')
-            ->where('visited_at', '>=', $dailyStart)
+            ->whereBetween('visited_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->select('path')
             ->selectRaw('COUNT(*) as total')
             ->groupBy('path')
@@ -367,12 +461,11 @@ class DashboardController extends Controller
             ->get();
 
         $deviceRows = DB::table('site_visits')
-            ->where('visited_at', '>=', $dailyStart)
+            ->whereBetween('visited_at', [$from.' 00:00:00', $to.' 23:59:59'])
             ->select('device')
             ->selectRaw('COUNT(*) as total')
             ->groupBy('device')
-            ->get()
-            ->keyBy('device');
+            ->pluck('total', 'device');
 
         return [
             'visitorDailyLabels' => $visitorDailyLabels,
@@ -381,8 +474,7 @@ class DashboardController extends Controller
             'visitorMonthLabels' => $visitorMonthLabels,
             'visitorMonthTotal' => $visitorMonthTotal,
             'visitorMonthUnique' => $visitorMonthUnique,
-            'visitorDateRangeLabel' => $dailyStart->translatedFormat('d M Y') . ' - ' . now()->translatedFormat('d M Y') . ' · 31 hari',
-            'activeVisitors' => DB::table('site_visits')
+            'activeVisitors' => (int) DB::table('site_visits')
                 ->where('visited_at', '>=', now()->subMinutes(5))
                 ->distinct()
                 ->count('visitor_hash'),
@@ -391,18 +483,15 @@ class DashboardController extends Controller
             'analyticsContentCounts' => $contentRows->pluck('total')->map(fn ($total) => (int) $total)->all(),
             'analyticsDeviceLabels' => ['Desktop', 'Ponsel', 'Tablet'],
             'analyticsDeviceCounts' => [
-                (int) ($deviceRows->get('desktop')->total ?? 0),
-                (int) ($deviceRows->get('mobile')->total ?? 0),
-                (int) ($deviceRows->get('tablet')->total ?? 0),
+                (int) ($deviceRows['desktop'] ?? 0),
+                (int) ($deviceRows['mobile'] ?? 0),
+                (int) ($deviceRows['tablet'] ?? 0),
             ],
         ];
     }
 
     /**
-     * Daftar course dari API Art of Living.
-     *
-     * Dipakai di dashboard (member & admin), jadi hasilnya di-cache agar
-     * tidak memanggil API pihak ketiga setiap kali halaman dibuka.
+     * Daftar course dari API Art of Living (hanya dipakai tampilan member).
      */
     protected function artOfLivingCourses(): array
     {
@@ -413,7 +502,6 @@ class DashboardController extends Controller
         }
 
         try {
-
             $response = Http::timeout(10)
                 ->withHeaders([
                     'Accept' => 'application/json',
@@ -429,30 +517,18 @@ class DashboardController extends Controller
                 ]);
 
             if ($response->successful()) {
-
                 $courses = $response->json('courses', []);
-
                 Cache::put($key, $courses, now()->addHours(6));
-
-                Log::info('Art of Living Courses synced', [
-                    'total' => count($courses),
-                ]);
+                Log::info('Art of Living Courses synced', ['total' => count($courses)]);
 
                 return $courses;
             }
 
-            Log::warning('Art of Living API Error', [
-                'status' => $response->status(),
-            ]);
+            Log::warning('Art of Living API Error', ['status' => $response->status()]);
         } catch (\Throwable $e) {
-
-            Log::error('Art of Living API Exception', [
-                'message' => $e->getMessage(),
-            ]);
+            Log::error('Art of Living API Exception', ['message' => $e->getMessage()]);
         }
 
-        // API sedang bermasalah: cache singkat supaya tidak mencoba terus
-        // di setiap request, lalu coba lagi beberapa menit kemudian.
         Cache::put($key, [], now()->addMinutes(5));
 
         return [];
@@ -464,39 +540,28 @@ class DashboardController extends Controller
             'no_hp' => [
                 'required',
                 'regex:/^[0-9]{8,15}$/',
-                'unique:users,no_hp,' . Auth::user()->uuid . ',uuid',
+                'unique:users,no_hp,'.Auth::user()->uuid.',uuid',
             ],
-            'sumber_informasi' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+            'sumber_informasi' => ['required', 'string', 'max:255'],
         ], [
-            'no_hp.required' => 'Phone number is required.',
-            'no_hp.regex'    => 'Invalid phone number format.',
-            'no_hp.unique'   => 'This phone number is already in use.',
-
-            'sumber_informasi.required' => 'Please select how you heard about us.',
-            'sumber_informasi.string'   => 'Invalid information source.',
-            'sumber_informasi.max'      => 'Information source is too long.',
+            'no_hp.required' => 'Nomor telepon wajib diisi.',
+            'no_hp.regex' => 'Format nomor telepon tidak valid.',
+            'no_hp.unique' => 'Nomor telepon sudah terdaftar.',
+            'sumber_informasi.required' => 'Pilih sumber informasi.',
+            'sumber_informasi.string' => 'Sumber informasi tidak valid.',
+            'sumber_informasi.max' => 'Sumber informasi terlalu panjang.',
         ]);
 
         $user = Auth::user();
-
-        $no_hp = trim($request->no_hp);
-
         $user->update([
-            'no_hp'             => $no_hp,
-            'sumber_informasi'  => $request->sumber_informasi,
+            'no_hp' => trim($request->no_hp),
+            'sumber_informasi' => $request->sumber_informasi,
         ]);
 
         Auth::setUser($user->fresh());
 
         return redirect()
             ->route('dashboard.index')
-            ->with(
-                'success',
-                __('flash.sumber_ok')
-            );
+            ->with('success', __('flash.sumber_ok'));
     }
 }

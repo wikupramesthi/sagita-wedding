@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Payment\Order;
+use App\Support\MemberView;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,8 +21,8 @@ class ProfileController extends Controller
         $user = $request->user();
 
         // Member: laptop/desktop = view desktop, HP = phone-frame mobile.
-        if ($user->hasRole('user') && \App\Support\MemberView::isMobile()) {
-            $orders = \App\Models\Payment\Order::where('user_uuid', $user->uuid)
+        if ($user->hasRole('user') && MemberView::isMobile()) {
+            $orders = Order::where('user_uuid', $user->uuid)
                 ->with(['package', 'packageOption'])
                 ->latest()
                 ->take(3)
@@ -60,6 +62,11 @@ class ProfileController extends Controller
     {
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
+        ], [
+            'password.required' => 'Password wajib diisi.',
+            'password.current_password' => 'Password yang Anda masukkan tidak sesuai.',
+        ], [
+            'password' => 'Password',
         ]);
 
         $user = $request->user();

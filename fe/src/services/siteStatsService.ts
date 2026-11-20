@@ -13,11 +13,11 @@ export async function getSiteStats(): Promise<SiteStats | null> {
 		const num = (v: unknown): number | null =>
 			Number.isInteger(v) && (v as number) >= 0 ? (v as number) : null;
 		const members = num(data.members);
-		const instructors = num(data.instructors);
+		const vendors = num(data.vendors);
 		const classes = num(data.classes);
-		if (members === null && instructors === null && classes === null)
+		if (members === null && vendors === null && classes === null)
 			return null;
-		return { members, instructors, classes };
+		return { members, vendors, classes };
 	} catch {
 		return null;
 	}

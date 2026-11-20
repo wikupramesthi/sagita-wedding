@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Consultation;
 use App\Models\Kontak;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ContactController extends Controller
 {
     private const CAPTCHA_TTL_MINUTES = 10;
+
     private const CAPTCHA_MAX_ATTEMPTS = 3;
 
     public function captcha()
@@ -22,7 +25,7 @@ class ContactController extends Controller
         $captchaId = Str::uuid()->toString();
 
         Cache::put(
-            'contact_captcha_' . $captchaId,
+            'contact_captcha_'.$captchaId,
             ['answer' => $a + $b, 'attempts' => 0],
             now()->addMinutes(self::CAPTCHA_TTL_MINUTES)
         );
@@ -31,8 +34,8 @@ class ContactController extends Controller
             'status' => 'success',
             'data' => [
                 'captcha_id' => $captchaId,
-                'question' => "How much is the result of {$a} + {$b}?"
-            ]
+                'question' => "Berapakah hasil dari {$a} + {$b}?",
+            ],
         ]);
     }
 
@@ -50,18 +53,18 @@ class ContactController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed.',
+                'message' => 'Validasi gagal.',
                 'errors' => $validator->errors(),
             ], 422);
         }
 
-        $cacheKey = 'contact_captcha_' . $request->input('captcha_id');
+        $cacheKey = 'contact_captcha_'.$request->input('captcha_id');
         $captcha = Cache::get($cacheKey);
 
         if (! is_array($captcha) || ! isset($captcha['answer'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'CAPTCHA has expired. Please reload the page.',
+                'message' => 'CAPTCHA sudah kedaluwarsa. Silakan muat ulang halaman.',
             ], 422);
         }
 
@@ -76,22 +79,37 @@ class ContactController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Incorrect CAPTCHA answer.',
+                'message' => 'Jawaban CAPTCHA salah.',
             ], 422);
         }
 
         Cache::forget($cacheKey);
 
-        Kontak::create([
-            'nama' => strip_tags((string) $request->input('nama')),
-            'email' => (string) $request->input('email'),
-            'no_telp' => (string) $request->input('no_telp'),
-            'isi' => strip_tags((string) $request->input('isi')),
-        ]);
+        $fullName = strip_tags((string) $request->input('nama'));
+        $whatsapp = (string) $request->input('no_telp');
+        $concept = strip_tags((string) $request->input('isi'));
+
+        DB::transaction(function () use ($request, $fullName, $whatsapp, $concept) {
+            Kontak::create([
+                'nama' => $fullName,
+                'email' => (string) $request->input('email'),
+                'no_telp' => $whatsapp,
+                'isi' => $concept,
+            ]);
+
+            Consultation::create([
+                'full_name' => $fullName,
+                'whatsapp' => $whatsapp,
+                'wedding_concept' => $concept,
+                'consultation_status' => 'Pending',
+                'lead_status' => 'New',
+                'source' => 'Website',
+            ]);
+        });
 
         return response()->json([
             'success' => true,
-            'message' => 'Message sent successfully. We will contact you shortly.',
+            'message' => 'Pesan berhasil dikirim. Kami akan segera menghubungi Anda.',
         ], 201);
     }
 }

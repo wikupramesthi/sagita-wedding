@@ -1,74 +1,64 @@
-<div id="modal-form-add-faq" class="modal fade modal-form-faq" tabindex="-1" aria-labelledby="modal-form-add-faq-label"
-    aria-hidden="true" style="display: none;">
-    <div class="modal-dialog modal-dialog-centered">
+<div id="modal-form-add-faq" class="modal fade" tabindex="-1" aria-labelledby="modal-form-add-faq-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <form id="modal-form" action="{{ route('faq.store') }}" method="post">
+            <form action="{{ route('faq.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modal-form-add-faq-label">Add New</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"> </button>
+                    <h5 class="modal-title" id="modal-form-add-faq-label">Tambah FAQ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="faq-pertanyaan-create" class="form-label mb-1">Pertanyaan <span class="text-danger">*</span></label>
+                            <input type="text" id="faq-pertanyaan-create" name="pertanyaan"
+                                class="form-control @error('pertanyaan') is-invalid @enderror"
+                                value="{{ old('pertanyaan') }}" placeholder="Contoh: Bagaimana cara memesan paket?"
+                                maxlength="255" required>
+                            @error('pertanyaan')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                    <div class="form-group mb-3">
-                        <label for="pertanyaan" class="mb-2">Question <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('pertanyaan') is-invalid @enderror"
-                            id="pertanyaan" placeholder="Question" name="pertanyaan" value="{{ old('pertanyaan') }}"
-                            required>
-                        @error('pertanyaan')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
+                        <div class="col-md-6">
+                            <label for="faq-kategori-create" class="form-label mb-1">Kategori <span class="text-danger">*</span></label>
+                            <select id="faq-kategori-create" name="kategori" class="form-select @error('kategori') is-invalid @enderror" required>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category }}" @selected(old('kategori', $defaultKategori) === $category)>{{ $category }}</option>
+                                @endforeach
+                            </select>
+                            @error('kategori')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="faq-urutan-create" class="form-label mb-1">Urutan <span class="text-danger">*</span></label>
+                            <input type="number" id="faq-urutan-create" name="urutan" min="1"
+                                class="form-control @error('urutan') is-invalid @enderror"
+                                value="{{ old('urutan', 1) }}" required>
+                            @error('urutan')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="faq-status-create" class="form-label mb-1">Status <span class="text-danger">*</span></label>
+                            <select id="faq-status-create" name="status" class="form-select @error('status') is-invalid @enderror" required>
+                                <option value="active" @selected(old('status', 'active') === 'active')>Aktif</option>
+                                <option value="inactive" @selected(old('status') === 'inactive')>Nonaktif</option>
+                            </select>
+                            @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="col-12">
+                            <label for="faq-jawaban-create" class="form-label mb-1">Jawaban <span class="text-danger">*</span></label>
+                            <textarea id="faq-jawaban-create" name="jawaban" rows="5"
+                                class="form-control @error('jawaban') is-invalid @enderror"
+                                placeholder="Tulis jawaban yang jelas dan singkat..." required>{{ old('jawaban') }}</textarea>
+                            @error('jawaban')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
                     </div>
-
-                    <div class="form-group mb-3">
-                        <label for="jawaban" class="mb-2">Answer <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('jawaban') is-invalid @enderror" id="jawaban" placeholder="Answer"
-                            name="jawaban" required>{{ old('jawaban') }}</textarea>
-                        @error('jawaban')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="urutan" class="mb-2">Order <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control @error('urutan') is-invalid @enderror" id="urutan"
-                            placeholder="Order" name="urutan" value="{{ old('urutan') }}">
-                        @error('urutan')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="status" class="mb-2">Status <span class="text-danger">*</span></label>
-                        <select name="status" id="status" class="form-control @error('status') is-invalid @enderror"
-                            required>
-                            <option value="">-- Select --</option>
-                            <option value="active"
-                                {{ old('status', $item->status ?? '') === 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive"
-                                {{ old('status', $item->status ?? '') === 'inactive' ? 'selected' : '' }} >Inactive
-                            </option>
-                        </select>
-                        @error('status')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
-
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary ">Save</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
-
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+        </div>
+    </div>
+</div>

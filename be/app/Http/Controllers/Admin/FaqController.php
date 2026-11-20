@@ -4,151 +4,161 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Faq;
-use App\Models\Kontak;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class FaqController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $items = Faq::orderBy('urutan', 'ASC')->get();
+        $search = trim((string) $request->query('q', ''));
+        $kategori = (string) $request->query('kategori', '');
+
+        if (! in_array($kategori, Faq::CATEGORIES, true)) {
+            $kategori = '';
+        }
+
+        $items = Faq::query()
+            ->when($kategori !== '', fn ($query) => $query->where('kategori', $kategori))
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('pertanyaan', 'like', "%{$search}%")
+                        ->orWhere('jawaban', 'like', "%{$search}%");
+                });
+            })
+            ->orderByKategori()
+            ->get();
+
+        $counts = Faq::query()
+            ->selectRaw('kategori, COUNT(*) as total')
+            ->groupBy('kategori')
+            ->pluck('total', 'kategori');
+
+        $statusCounts = Faq::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
         return view('pages.faq.index', [
-            'title' => 'FAQ & Answer',
-            'items' => $items
+            'title' => 'Master Data',
+            'items' => $items,
+            'categories' => Faq::CATEGORIES,
+            'defaultKategori' => Faq::KATEGORI_DEFAULT,
+            'kategori' => $kategori,
+            'search' => $search,
+            'counts' => $counts,
+            'statusCounts' => $statusCounts,
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('pages.faq.index', [
+            'title' => 'Master Data',
+            'items' => Faq::orderByKategori()->get(),
+            'categories' => Faq::CATEGORIES,
+            'defaultKategori' => Faq::KATEGORI_DEFAULT,
+            'kategori' => '',
+            'search' => '',
+            'counts' => collect(),
+            'statusCounts' => collect(),
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $request->validate([
-            'pertanyaan' => 'required|string|max:255',
-            'jawaban'    => 'required|string',
-            'status' => 'required|in:active,inactive',
-            'urutan' => 'required|integer|min:1|unique:faqs,urutan',
+        $validated = $this->validateFaq($request);
 
-        ]);
-
-        DB::beginTransaction();
         try {
-            Faq::create([
-                'uuid' => (string) Str::uuid(),
-                'pertanyaan'  => $request->pertanyaan,
-                'jawaban'     => $request->jawaban,
-                'status'      => $request->status,
-                'urutan'      => $request->urutan,
-            ]);
+            DB::transaction(fn () => Faq::create($validated));
 
-            DB::commit();
-            return redirect()->back()->with('success', 'FAQ and answer created successfully.');
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+            return redirect()->route('faq.index')->with('success', 'FAQ berhasil ditambahkan.');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()->with('error', 'Gagal menambahkan FAQ. Silakan coba lagi.')->withInput();
         }
     }
 
-
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update($uuid, Request $request)
     {
-        $request->validate([
-            'pertanyaan' => 'required|string|max:255',
-            'jawaban'    => 'required|string',
-            'urutan'     => 'required|integer|min:1',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $item = Faq::where('uuid', $uuid)->firstOrFail();
+        $validated = $this->validateFaq($request, $item);
 
-        DB::beginTransaction();
         try {
-            $item = Faq::where('uuid', $uuid)->firstOrFail();
+            DB::transaction(fn () => $item->update($validated));
 
-            $item->update([
-                'pertanyaan' => $request->pertanyaan,
-                'jawaban'    => $request->jawaban,
-                'urutan'     => $request->urutan,
-                'status'     => $request->status,
-            ]);
+            return redirect()->route('faq.index')->with('success', 'FAQ berhasil diperbarui.');
+        } catch (\Throwable $e) {
+            report($e);
 
-            DB::commit();
-            return redirect()->back()->with('success', 'FAQ and answer updated successfully.');
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+            return redirect()->back()->with('error', 'Gagal memperbarui FAQ. Silakan coba lagi.')->withInput();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($uuid)
     {
-        DB::beginTransaction();
         try {
-            $item = Faq::where('uuid', $uuid)->firstOrFail();
-            $item->delete();
+            DB::transaction(fn () => Faq::where('uuid', $uuid)->firstOrFail()->delete());
 
-            DB::commit();
-            return redirect()->back()->with('success', 'FAQ and answer deleted successfully.');
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            return redirect()->back()->with('error', $th->getMessage());
+            return redirect()->route('faq.index')->with('success', 'FAQ berhasil dihapus.');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()->with('error', 'Gagal menghapus FAQ. Silakan coba lagi.');
         }
     }
 
-    public function kontak()
+    private function validateFaq(Request $request, ?Faq $faq = null): array
     {
-        $kontaks = Kontak::latest()->get();
-        return view('pages.kontak.index', compact('kontaks'));
+        $urutanRule = Rule::unique('faqs', 'urutan')
+            ->where(fn ($query) => $query->where('kategori', $request->input('kategori')));
+
+        if ($faq) {
+            $urutanRule->ignore($faq->uuid, 'uuid');
+        }
+
+        return $request->validate([
+            'pertanyaan' => ['required', 'string', 'max:255'],
+            'kategori' => ['required', Rule::in(Faq::CATEGORIES)],
+            'jawaban' => ['required', 'string'],
+            'urutan' => ['required', 'integer', 'min:1', $urutanRule],
+            'status' => ['required', Rule::in(['active', 'inactive'])],
+        ], $this->validationMessages(), $this->validationAttributes());
     }
 
-    public function forceDelete($uuid)
+    private function validationMessages(): array
     {
-        try {
-            $item = Kontak::where('uuid', $uuid)->firstOrFail();
+        return [
+            'required' => 'Kolom :attribute wajib diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'max' => ':attribute tidak boleh lebih dari :max karakter.',
+            'integer' => ':attribute harus berupa angka.',
+            'min' => ':attribute minimal :min.',
+            'in' => 'Pilihan :attribute tidak valid.',
+            'unique' => ':attribute sudah digunakan.',
+        ];
+    }
 
-            $item->delete();
-
-            return redirect()
-                ->back()
-                ->with('success', 'Message permanently deleted successfully.');
-        } catch (\Throwable $th) {
-            return redirect()
-                ->back()
-                ->with('error', 'Failed to delete the incoming message.');
-        }
+    private function validationAttributes(): array
+    {
+        return [
+            'pertanyaan' => 'Pertanyaan',
+            'kategori' => 'Kategori',
+            'jawaban' => 'Jawaban',
+            'urutan' => 'Urutan',
+            'status' => 'Status',
+        ];
     }
 }

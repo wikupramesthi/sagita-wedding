@@ -8,28 +8,28 @@
         @method('PUT')
 
         <div class="modal-header">
-          <h5 class="modal-title" id="modal-form-edit-password-{{ auth()->user()->id }}-label">Change Password
+          <h5 class="modal-title" id="modal-form-edit-password-{{ auth()->user()->id }}-label">Ganti Password
           </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"> </button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"> </button>
         </div>
         <div class="modal-body">
           <div class="form-group my-2">
-            <label for="current_password" class="form-label">Current Password</label>
+            <label for="current_password" class="form-label">Password Saat Ini</label>
             <input type="password" name="current_password" id="current_password" class="form-control"
-              placeholder="Enter your current password">
+              placeholder="Masukkan password saat ini">
           </div>
           <div class="form-group my-2">
-            <label for="password" class="form-label">New Password</label>
-            <input type="password" name="password" id="password" class="form-control" placeholder="Enter new password">
+            <label for="password" class="form-label">Password Baru</label>
+            <input type="password" name="password" id="password" class="form-control" placeholder="Masukkan password baru">
           </div>
           <div class="form-group my-2">
-            <label for="password_confirmation" class="form-label">Confirm Password</label>
+            <label for="password_confirmation" class="form-label">Konfirmasi Password</label>
             <input type="password" name="password_confirmation" id="password_confirmation" class="form-control"
-              placeholder="Enter confirm password">
+              placeholder="Masukkan konfirmasi password baru">
           </div>
 
           <div class="form-group my-2 d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
           </div>
           {{-- <div class="mb-3">
             <label for="roles[]" class="form-label">Role Name</label>

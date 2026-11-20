@@ -46,9 +46,9 @@
         <img src="{{ asset('img/logo-yogaroots.png') }}" alt="YogaRoots" class="app-loader__logo app-loader__logo--light">
         <img src="{{ asset('img/logo-white.png') }}" alt="YogaRoots" class="app-loader__logo app-loader__logo--dark">
         <div class="app-loader__spinner" role="status">
-            <span class="visually-hidden">Loading...</span>
+            <span class="visually-hidden">Memuat...</span>
         </div>
-        <span class="app-loader__text">Loading page&hellip;</span>
+        <span class="app-loader__text">Memuat halaman&hellip;</span>
     </div>
     <div id="app">
         <x-menu />
@@ -109,7 +109,7 @@
                         placeholder="Search all modules (min. 2 characters)"
                         aria-label="Search all modules"
                         autocomplete="off">
-                    <button type="button" id="global-search-close" class="gs-esc" aria-label="Close">ESC</button>
+                    <button type="button" id="global-search-close" class="gs-esc" aria-label="Tutup">ESC</button>
                 </div>
                 <div id="global-search-results" class="gs-results">
                     <p class="gs-hint">Type to search across all modules.</p>
@@ -296,19 +296,19 @@
                 const updateText = () => {
                     const m = Math.floor(remaining / 60);
                     const s = String(remaining % 60).padStart(2, '0');
-                    const html = `Your session will expire in <b>${m}:${s}</b> due to inactivity.<br>Click <b>Stay signed in</b> to continue.`;
+                    const html = `Sesi Anda akan berakhir dalam <b>${m}:${s}</b> karena tidak ada aktivitas.<br>Klik <b>Tetap masuk</b> untuk melanjutkan.`;
                     const container = document.querySelector('.swal2-html-container');
                     if (container) container.innerHTML = html;
                 };
 
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
-                        title: 'Session expiring soon',
-                        html: `Your session will expire in <b>${WARNING_BEFORE_MIN}:00</b> due to inactivity.<br>Click <b>Stay signed in</b> to continue.`,
+                        title: 'Sesi segera berakhir',
+                        html: `Sesi Anda akan berakhir dalam <b>${WARNING_BEFORE_MIN}:00</b> karena tidak ada aktivitas.<br>Klik <b>Tetap masuk</b> untuk melanjutkan.`,
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: 'Stay signed in',
-                        cancelButtonText: 'Logout',
+                        confirmButtonText: 'Tetap masuk',
+                        cancelButtonText: 'Keluar',
                         confirmButtonColor: '#2f7d4f',
                         cancelButtonColor: '#d33',
                         allowOutsideClick: false,
@@ -353,7 +353,7 @@
                         }
                     });
                 } else {
-                    const ok = confirm(`Your session will expire in ${WARNING_BEFORE_MIN} minutes due to inactivity. Click OK to stay signed in.`);
+                    const ok = confirm(`Sesi Anda akan berakhir dalam ${WARNING_BEFORE_MIN} menit karena tidak ada aktivitas. Klik OK untuk tetap masuk.`);
                     if (ok) {
                         keepAlive().then((alive) => {
                             if (alive) {

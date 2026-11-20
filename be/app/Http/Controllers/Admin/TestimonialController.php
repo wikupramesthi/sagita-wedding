@@ -5,12 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Testimonial;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-
 
 class TestimonialController extends Controller
 {
@@ -20,9 +18,10 @@ class TestimonialController extends Controller
     public function index()
     {
         $items = Testimonial::orderBy('urutan', 'ASC')->get();
+
         return view('pages.testimonial.index', [
-            'title' => 'Testimonial',
-            'items' => $items
+            'title' => 'Testimoni',
+            'items' => $items,
         ]);
     }
 
@@ -40,14 +39,14 @@ class TestimonialController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama'          => 'required|string|max:255',
-            'jabatan'       => 'nullable|string|max:255',
+            'nama' => 'required|string|max:255',
+            'jabatan' => 'nullable|string|max:255',
             'isi_testimoni' => 'required|string',
-            'foto'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'urutan'        => 'required|integer|min:1|unique:testimonials,urutan',
-            'is_active'     => 'required|in:active,inactive',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'urutan' => 'required|integer|min:1|unique:testimonials,urutan',
+            'is_active' => 'required|in:active,inactive',
 
-        ]);
+        ], $this->validationMessages(), $this->validationAttributes());
 
         DB::beginTransaction();
         try {
@@ -57,20 +56,22 @@ class TestimonialController extends Controller
             }
 
             Testimonial::create([
-                'uuid'          => (string) Str::uuid(),
-                'nama'          => $data['nama'],
-                'jabatan'       => $data['jabatan'],
+                'uuid' => (string) Str::uuid(),
+                'nama' => $data['nama'],
+                'jabatan' => $data['jabatan'],
                 'isi_testimoni' => $data['isi_testimoni'],
-                'foto'          => $data['foto'],
-                'urutan'        => $data['urutan'],
-                'is_active'     => $data['is_active'],
+                'foto' => $data['foto'],
+                'urutan' => $data['urutan'],
+                'is_active' => $data['is_active'],
             ]);
 
             DB::commit();
-            return redirect()->back()->with('success', 'Testimonial added successfully.');
+
+            return redirect()->back()->with('success', 'Testimoni berhasil ditambahkan.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to add testimonial: ' . $th->getMessage());
+
+            return redirect()->back()->with('error', 'Gagal menambahkan testimoni: '.$th->getMessage());
         }
     }
 
@@ -98,18 +99,18 @@ class TestimonialController extends Controller
         $item = Testimonial::where('uuid', $uuid)->firstOrFail();
 
         $request->validate([
-            'nama'          => 'required|string|max:255',
-            'jabatan'       => 'nullable|string|max:255',
+            'nama' => 'required|string|max:255',
+            'jabatan' => 'nullable|string|max:255',
             'isi_testimoni' => 'required|string',
-            'foto'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'urutan'        => [
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'urutan' => [
                 'required',
                 'integer',
                 'min:1',
                 Rule::unique('testimonials', 'urutan')->ignore($item->id),
             ],
-            'is_active'     => 'required|in:active,inactive',
-        ]);
+            'is_active' => 'required|in:active,inactive',
+        ], $this->validationMessages(), $this->validationAttributes());
 
         DB::beginTransaction();
 
@@ -136,13 +137,13 @@ class TestimonialController extends Controller
 
             return redirect()
                 ->back()
-                ->with('success', 'Testimonial updated successfully.');
+                ->with('success', 'Testimoni berhasil diperbarui.');
         } catch (\Throwable $th) {
             DB::rollBack();
 
             return redirect()
                 ->back()
-                ->with('error', $th->getMessage());
+                ->with('error', 'Gagal memperbarui testimoni: '.$th->getMessage());
         }
     }
 
@@ -159,6 +160,33 @@ class TestimonialController extends Controller
 
         $item->delete();
 
-        return redirect()->back()->with('success', 'Testimonial deleted successfully.');
+        return redirect()->back()->with('success', 'Testimoni berhasil dihapus.');
+    }
+
+    private function validationMessages(): array
+    {
+        return [
+            'required' => 'Kolom :attribute wajib diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'max' => ':attribute tidak boleh lebih dari :max karakter.',
+            'integer' => ':attribute harus berupa angka.',
+            'min' => ':attribute minimal :min.',
+            'in' => 'Pilihan :attribute tidak valid.',
+            'unique' => ':attribute sudah digunakan.',
+            'image' => ':attribute harus berupa gambar.',
+            'mimes' => ':attribute harus berformat :values.',
+        ];
+    }
+
+    private function validationAttributes(): array
+    {
+        return [
+            'nama' => 'Nama',
+            'jabatan' => 'Jabatan',
+            'isi_testimoni' => 'Isi testimoni',
+            'foto' => 'Foto',
+            'urutan' => 'Urutan',
+            'is_active' => 'Status',
+        ];
     }
 }

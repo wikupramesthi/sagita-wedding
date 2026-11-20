@@ -16,6 +16,7 @@ class FileDownloadController extends Controller
     public function index()
     {
         $downloads = FileDownload::latest()->get();
+
         return view('pages.filedownload.index', compact('downloads'));
     }
 
@@ -50,10 +51,11 @@ class FileDownloadController extends Controller
             FileDownload::create($data);
             DB::commit();
 
-            return redirect()->route('filedownload.index')->with('success', 'School document added successfully.');
+            return redirect()->route('filedownload.index')->with('success', 'Dokumen sekolah berhasil ditambahkan.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'An error occurred: ' . $th->getMessage());
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
 
@@ -98,13 +100,13 @@ class FileDownloadController extends Controller
             $item->update($data);
             DB::commit();
 
-            return redirect()->back()->with('success', 'School document updated successfully.');
+            return redirect()->back()->with('success', 'Dokumen sekolah berhasil diperbarui.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'An error occurred: ' . $th->getMessage());
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$th->getMessage());
         }
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -120,10 +122,11 @@ class FileDownloadController extends Controller
             $item->delete();
             DB::commit();
 
-            return redirect()->route('filedownload.index')->with('success', 'School document deleted successfully.');
+            return redirect()->route('filedownload.index')->with('success', 'Dokumen sekolah berhasil dihapus.');
         } catch (\Throwable $th) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to delete file: ' . $th->getMessage());
+
+            return redirect()->back()->with('error', 'Gagal menghapus berkas: '.$th->getMessage());
         }
     }
 }

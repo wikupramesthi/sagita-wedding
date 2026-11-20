@@ -68,8 +68,8 @@ vi.mock("../src/services/eventService.js", () => ({
 	getEvent: async () => null,
 }));
 vi.mock("../src/services/faqService.js", () => ({ getFaqs: async () => [] }));
-vi.mock("../src/services/instructorService.js", () => ({
-	getInstructors: async () => [],
+vi.mock("../src/services/vendorService.js", () => ({
+	getVendors: async () => [],
 }));
 vi.mock("../src/services/packageService.js", () => ({
 	getPackages: async () => [],
@@ -175,14 +175,14 @@ describe("state login", () => {
 	});
 
 	it("semua halaman konsisten menampilkan login", async () => {
-		for (const p of ["/", "/classes", "/packages", "/contact", "/blog"]) {
+		for (const p of ["/", "/classes", "/packages", "/vendors", "/faq", "/contact", "/blog"]) {
 			const res = await request(app).get(p).set("Cookie", SESSION);
 			expect(res.text, p).toContain('id="userMenu"');
 		}
 	});
 
 	it("tanpa 'undefined' di halaman mana pun", async () => {
-		for (const p of ["/", "/classes", "/packages", "/contact", "/blog"]) {
+		for (const p of ["/", "/classes", "/packages", "/vendors", "/faq", "/contact", "/blog"]) {
 			const res = await request(app).get(p).set("Cookie", SESSION);
 			expect(res.text, p).not.toContain(">undefined<");
 		}

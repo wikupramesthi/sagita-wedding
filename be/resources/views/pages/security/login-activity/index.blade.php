@@ -13,14 +13,14 @@
     @if (session('success'))
         <div class="alert alert-success alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('success') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('error') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
@@ -252,12 +252,12 @@
     <script>
         function deleteLoginActivity(id) {
             Swal.fire({
-                title: 'Delete this login record?',
-                text: 'This record will be permanently deleted.',
+                title: 'Hapus catatan login ini?',
+                text: 'Catatan ini akan dihapus permanen.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Delete!',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
                 confirmButtonColor: '#f43f5e'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -268,12 +268,12 @@
 
         function clearLoginActivities() {
             Swal.fire({
-                title: 'Clear all records?',
-                text: 'All login history will be permanently deleted.',
+                title: 'Hapus semua catatan?',
+                text: 'Seluruh riwayat login akan dihapus permanen.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Clear!',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
                 confirmButtonColor: '#f43f5e'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -309,12 +309,12 @@
             const ids = Array.from(document.querySelectorAll('.login-activity-check:checked')).map(c => c.value);
             if (ids.length === 0) return;
             Swal.fire({
-                title: 'Delete ' + ids.length + ' selected records?',
-                text: 'Selected data will be permanently deleted.',
+                title: 'Hapus ' + ids.length + ' catatan terpilih?',
+                text: 'Data yang dipilih akan dihapus permanen.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Delete!',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
                 confirmButtonColor: '#f43f5e'
             }).then((result) => {
                 if (result.isConfirmed) {

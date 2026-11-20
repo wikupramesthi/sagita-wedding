@@ -2,89 +2,80 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\PenggunaExport;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\PenggunaExport;
 
 class PenggunaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        $users = User::role('user')
-            ->when($request->filled('tahun'), function ($query) use ($request) {
-                $query->whereYear('created_at', $request->tahun);
+        $q = trim((string) $request->query('q', ''));
+        $status = (string) $request->query('status', '');
+
+        if (! array_key_exists($status, User::PROSPECT_STATUS_LABELS)) {
+            $status = '';
+        }
+
+        $baseQuery = fn () => User::role('user');
+
+        $users = $baseQuery()
+            ->with('userPackages.package')
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($query) use ($q) {
+                    $query->where('name', 'like', "%{$q}%")
+                        ->orWhere('email', 'like', "%{$q}%")
+                        ->orWhere('no_hp', 'like', "%{$q}%");
+                });
             })
-            ->when($request->filled('start_date'), function ($query) use ($request) {
-                $query->whereDate('created_at', '>=', $request->start_date);
-            })
-            ->when($request->filled('end_date'), function ($query) use ($request) {
-                $query->whereDate('created_at', '<=', $request->end_date);
-            })
+            ->when($status !== '', fn ($query) => $query->where('prospect_status', $status))
+            ->when($request->filled('tahun'), fn ($query) => $query->whereYear('created_at', $request->tahun))
+            ->when($request->filled('start_date'), fn ($query) => $query->whereDate('created_at', '>=', $request->start_date))
+            ->when($request->filled('end_date'), fn ($query) => $query->whereDate('created_at', '<=', $request->end_date))
             ->latest()
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
-        return view(
-            'pages.dashboard.pengguna',
-            compact('users')
-        );
+        $stats = [
+            'total' => $baseQuery()->count(),
+        ];
+
+        foreach (User::PROSPECT_STATUS_LABELS as $key => $label) {
+            $stats[$key] = $baseQuery()->where('prospect_status', $key)->count();
+        }
+
+        return view('pages.dashboard.pengguna', compact('users', 'stats', 'q', 'status'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function updateStatus(Request $request, User $user)
     {
-        //
-    }
+        if (! $user->hasRole('user')) {
+            abort(404);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $validated = $request->validate([
+            'prospect_status' => ['required', Rule::in(array_keys(User::PROSPECT_STATUS_LABELS))],
+        ], [
+            'prospect_status.required' => 'Status calon pelanggan wajib dipilih.',
+            'prospect_status.in' => 'Status calon pelanggan tidak valid.',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $user->update([
+            'prospect_status' => $validated['prospect_status'],
+            'prospect_status_updated_at' => now(),
+        ]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update($id)
-    {
-        //
-    }
-
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
+        return back()->with('success', 'Status calon pelanggan berhasil diperbarui.');
     }
 
     public function export(Request $request)
     {
-        return Excel::download(new PenggunaExport($request), 'member_yogaroots.xlsx');
+        return Excel::download(
+            new PenggunaExport($request),
+            'calon-pelanggan-'.now()->format('Ymd-His').'.xlsx'
+        );
     }
 }

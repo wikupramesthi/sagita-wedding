@@ -24,7 +24,7 @@ class VendorsCategoryModuleTest extends TestCase
         config(['services.frontend_api.key' => self::API_KEY]);
     }
 
-    public function test_vendors_category_schema_routes_and_instructor_api_use_new_names(): void
+    public function test_vendors_category_schema_routes_and_vendor_api_use_new_names(): void
     {
         $this->assertTrue(Schema::hasTable('vendors_categories'));
         $this->assertFalse(Schema::hasTable('specializations'));
@@ -52,14 +52,14 @@ class VendorsCategoryModuleTest extends TestCase
             );
         }
 
-        Role::create(['name' => 'instruktur', 'guard_name' => 'web']);
+        Role::create(['name' => 'vendor', 'guard_name' => 'web']);
 
         $user = User::create([
-            'name' => 'Vendor Instructor',
-            'email' => 'vendor-instructor@example.com',
+            'name' => 'Vendor',
+            'email' => 'vendor@example.com',
             'password' => 'password',
         ]);
-        $user->assignRole('instruktur');
+        $user->assignRole('vendor');
 
         $category = VendorsCategory::create([
             'name' => 'Wedding Vendor',
@@ -69,7 +69,7 @@ class VendorsCategoryModuleTest extends TestCase
         $user->vendors_categories()->attach($category->uuid);
 
         $this->withHeader('X-Api-Key', self::API_KEY)
-            ->getJson('/api/instructors')
+            ->getJson('/api/vendors')
             ->assertOk()
             ->assertJsonPath('data.0.vendors_categories.0.uuid', $category->uuid)
             ->assertJsonPath('data.0.vendors_categories.0.name', 'Wedding Vendor');

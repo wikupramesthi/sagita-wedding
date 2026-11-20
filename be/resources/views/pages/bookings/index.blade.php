@@ -13,14 +13,14 @@
     @if (session('success'))
         <div class="alert alert-success alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('success') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('error') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
@@ -45,7 +45,7 @@
                         <tr>
                             <th>Date</th>
                             <th>Class</th>
-                            <th>Instructor</th>
+                            <th>Vendor</th>
                             <th>Time</th>
                             <th>Status</th>
                             <th class="text-end">Action</th>
@@ -75,7 +75,7 @@
                             <tr>
                                 <td class="fw-semibold text-nowrap">{{ $booking->booking_date?->format('d M Y') ?? '-' }}</td>
                                 <td>{{ $class?->name ?? 'Class unavailable' }}</td>
-                                <td>{{ $class?->instructor?->name ?? '-' }}</td>
+                                <td>{{ $class?->vendor?->name ?? '-' }}</td>
                                 <td class="text-nowrap">
                                     {{ $start?->format('H:i') ?? '-' }}–{{ $schedule ? \Carbon\Carbon::parse($schedule->end_time)->format('H:i') : '-' }}
                                 </td>
@@ -117,7 +117,7 @@
                                         @if (in_array($booking->status, ['confirmed', 'waiting_list']) && !$isPast)
                                             @if ($canCancel)
                                                 <form action="{{ route('class-bookings.cancel', $booking->uuid) }}" method="POST"
-                                                    onsubmit="return confirm('Cancel this booking?')">
+                                                    onsubmit="return confirm('Batalkan pemesanan ini?')">
                                                     @csrf
                                                     <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
                                                 </form>

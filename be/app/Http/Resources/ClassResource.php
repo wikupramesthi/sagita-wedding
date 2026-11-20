@@ -16,19 +16,19 @@ class ClassResource extends JsonResource
             'description' => $this->description,
 
             'image' => $this->image
-                ? asset('storage/' . $this->image)
+                ? asset('storage/'.$this->image)
                 : null,
 
             'price' => $this->price,
             'level' => $this->level,
 
-            'instructor' => [
-                'uuid' => $this->instructor?->uuid,
-                'name' => $this->instructor?->name,
-                'avatar' => $this->instructor?->avatar
+            'vendor' => [
+                'uuid' => $this->vendor?->uuid,
+                'name' => $this->vendor?->name,
+                'avatar' => $this->vendor?->avatar
                     ? asset(
-                        'storage/' .
-                        $this->instructor->avatar
+                        'storage/'.
+                        $this->vendor->avatar
                     )
                     : null,
             ],

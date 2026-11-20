@@ -13,14 +13,14 @@
     @if (session('success'))
         <div class="alert alert-success alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('success') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('error') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
@@ -116,7 +116,7 @@
             })
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
-                    if (!data.found) { showError('Booking not found.'); return; }
+                    if (!data.found) { showError('Pemesanan tidak ditemukan.'); return; }
                     emptyBox.classList.add('d-none');
                     resultBox.classList.remove('d-none');
                     document.getElementById('b-member').textContent = data.member + ' (' + data.email + ')';
@@ -133,13 +133,13 @@
                         ? 'Already checked in'
                         : (!data.is_today ? 'Check In (' + data.date + ')' : (ok ? 'Check In' : 'Cannot check in (' + data.status + ')'));
                 })
-                .catch(function () { showError('Lookup failed. Check connection.'); });
+                .catch(function () { showError('Gagal mencari data. Periksa koneksi.'); });
         }
 
         function onScan(raw) {
             if (raw === lastCode) return;
             var uuid = parseCode(raw);
-            if (!uuid) { showError('QR code not recognized.'); return; }
+            if (!uuid) { showError('Kode QR tidak dikenali.'); return; }
             lastCode = raw;
             lookup(uuid);
             setTimeout(function () { lastCode = ''; }, 5000);
@@ -147,7 +147,7 @@
 
         document.getElementById('manual-btn').addEventListener('click', function () {
             var uuid = parseCode(document.getElementById('manual-uuid').value);
-            if (!uuid) { showError('Invalid code. Expected BOOKING:uuid.'); return; }
+            if (!uuid) { showError('Kode tidak valid. Gunakan format BOOKING:uuid.'); return; }
             lookup(uuid);
         });
 
@@ -159,10 +159,10 @@
                 onScan,
                 function () {}
             ).catch(function () {
-                showError('Camera unavailable. Use manual entry.');
+                showError('Kamera tidak tersedia. Gunakan input manual.');
             });
         } catch (e) {
-            showError('Camera unavailable. Use manual entry.');
+            showError('Kamera tidak tersedia. Gunakan input manual.');
         }
     })();
 </script>

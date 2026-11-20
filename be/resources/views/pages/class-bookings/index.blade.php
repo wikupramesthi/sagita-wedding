@@ -13,14 +13,14 @@
     @if (session('success'))
         <div class="alert alert-success alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('success') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible mb-3 fade show" role="alert">
             <span class="alert-text text-white">{{ session('error') }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
@@ -230,7 +230,7 @@
                                         @if (in_array($booking->status, ['confirmed', 'waiting_list'], true))
                                             <form action="{{ route('class-bookings.cancel', $booking->uuid) }}"
                                                 method="POST" class="m-0"
-                                                onsubmit="return confirm('Cancel this booking?')">
+                                                onsubmit="return confirm('Batalkan pemesanan ini?')">
                                                 @csrf
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel">
                                                     <i class="bi bi-x-lg"></i>
@@ -273,7 +273,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Check-in Details</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body">
                         <dl class="row mb-0">

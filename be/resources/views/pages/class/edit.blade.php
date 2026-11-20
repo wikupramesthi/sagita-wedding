@@ -150,11 +150,11 @@
 
                 </div>
 
-                {{-- Instructor --}}
+                {{-- Vendor --}}
                 <div class="form-group mb-3">
 
-                    <label for="instructor_uuid" class="mb-2">
-                        Instructor <span class="text-danger">*</span>
+                    <label for="vendor_uuid" class="mb-2">
+                        Vendor <span class="text-danger">*</span>
                     </label>
 
                     @if(
@@ -163,24 +163,24 @@
                     )
 
                     <select
-                        name="instructor_uuid"
-                        id="instructor_uuid"
-                        class="form-control @error('instructor_uuid') is-invalid @enderror"
+                        name="vendor_uuid"
+                        id="vendor_uuid"
+                        class="form-control @error('vendor_uuid') is-invalid @enderror"
                         required>
 
-                        <option value="">-- Select Instructor --</option>
+                        <option value="">-- Select Vendor --</option>
 
-                        @foreach ($instructors as $instructor)
+                        @foreach ($vendors as $vendor)
                         <option
-                            value="{{ $instructor->uuid }}"
-                            {{ old('instructor_uuid', $class->instructor_uuid) == $instructor->uuid ? 'selected' : '' }}>
-                            {{ $instructor->name }}
+                            value="{{ $vendor->uuid }}"
+                            {{ old('vendor_uuid', $class->vendor_uuid) == $vendor->uuid ? 'selected' : '' }}>
+                            {{ $vendor->name }}
                         </option>
                         @endforeach
 
                     </select>
 
-                    @error('instructor_uuid')
+                    @error('vendor_uuid')
                     <div class="invalid-feedback">
                         {{ $message }}
                     </div>
@@ -196,11 +196,11 @@
 
                     <input
                         type="hidden"
-                        name="instructor_uuid"
+                        name="vendor_uuid"
                         value="{{ auth()->user()->uuid }}">
 
                     <small class="text-muted">
-                        You are automatically assigned as the instructor for this class.
+                        You are automatically assigned as the vendor for this class.
                     </small>
 
                     @endif

@@ -50,7 +50,7 @@ class AuditLogController extends Controller
             ->distinct()
             ->orderBy('user_name')
             ->get()
-            ->mapWithKeys(fn ($u) => [$u->user_uuid => $u->user_name . ' (' . $u->user_email . ')']);
+            ->mapWithKeys(fn ($u) => [$u->user_uuid => $u->user_name.' ('.$u->user_email.')']);
 
         return view('pages.security.audit-log.index', compact(
             'logs',
@@ -71,25 +71,26 @@ class AuditLogController extends Controller
     {
         $auditLog->delete();
 
-        return back()->with('success', 'Audit log deleted successfully.');
+        return back()->with('success', 'Log audit berhasil dihapus.');
     }
 
     public function bulkDestroy(Request $request)
     {
         $ids = $request->input('ids', []);
-        if (!is_array($ids) || empty($ids)) {
-            return back()->with('error', 'No data selected.');
+        if (! is_array($ids) || empty($ids)) {
+            return back()->with('error', 'Tidak ada data yang dipilih.');
         }
         $ids = array_map('intval', $ids);
         $count = AuditLog::whereIn('id', $ids)->delete();
-        return back()->with('success', $count . ' audit logs deleted successfully.');
+
+        return back()->with('success', $count.' log audit berhasil dihapus.');
     }
 
     public function clear()
     {
         AuditLog::query()->delete();
 
-        return back()->with('success', 'All audit logs cleared successfully.');
+        return back()->with('success', 'Seluruh log audit berhasil dihapus.');
     }
 
     public function exportPdf(Request $request)
@@ -101,11 +102,11 @@ class AuditLogController extends Controller
 
         $periode = '-';
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $periode = $request->input('start_date') . ' to ' . $request->input('end_date');
+            $periode = $request->input('start_date').' to '.$request->input('end_date');
         } elseif ($request->filled('start_date')) {
-            $periode = 'Since ' . $request->input('start_date');
+            $periode = 'Since '.$request->input('start_date');
         } elseif ($request->filled('end_date')) {
-            $periode = 'Until ' . $request->input('end_date');
+            $periode = 'Until '.$request->input('end_date');
         } else {
             $periode = 'All Periods';
         }
@@ -113,7 +114,7 @@ class AuditLogController extends Controller
         $filterUser = '-';
         if ($request->filled('user_uuid')) {
             $u = AuditLog::where('user_uuid', $request->input('user_uuid'))->first();
-            $filterUser = $u ? ($u->user_name . ' (' . $u->user_email . ')') : $request->input('user_uuid');
+            $filterUser = $u ? ($u->user_name.' ('.$u->user_email.')') : $request->input('user_uuid');
         }
 
         $pdf = Pdf::loadView('pages.security.audit-log.laporan', [
@@ -128,7 +129,7 @@ class AuditLogController extends Controller
             'search' => $request->input('search'),
         ])->setPaper('a4', 'landscape');
 
-        return $pdf->download('audit-log-' . now()->format('Ymd-His') . '.pdf');
+        return $pdf->download('audit-log-'.now()->format('Ymd-His').'.pdf');
     }
 
     private function filteredQuery(Request $request)

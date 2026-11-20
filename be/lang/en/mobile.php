@@ -32,7 +32,7 @@ return [
 
     // Home
     'greeting_hi' => 'Hi, :name',
-    'instructors' => 'Instructors',
+    'vendors' => 'Vendors',
     'classes' => 'Classes',
     'events' => 'Events',
     'book_your_class' => 'Book Your Class',
@@ -55,7 +55,7 @@ return [
     'my_bookings' => 'My Bookings',
     'my_orders' => 'My Orders',
     'no_classes_day' => 'No classes that day.',
-    'search_class_instructor' => 'Search class or instructor',
+    'search_class_vendor' => 'Search class or vendor',
     'all_venues' => 'All venues',
     'all_levels' => 'All levels',
 
@@ -216,13 +216,15 @@ return [
     'desktop_view' => 'Desktop view',
     'language' => 'Language',
 
-    // Teacher
+    // Vendor
     'our_team' => 'Our Team',
-    'meet_instructors' => 'Meet Our Instructors',
-    'find_instructor' => 'Find Your Instructor',
-    'teacher' => 'Teacher',
-    'meet_teachers' => 'Meet your teachers',
-    'meet_teachers_desc' => 'Instructors & vendor categories',
+    'vendor' => 'Vendor',
+    'vendor_list' => 'Vendor List',
+    'about' => 'About',
+    'meet_vendors' => 'Meet Our Vendors',
+    'find_vendor' => 'Find Your Vendor',
+    'meet_your_vendors' => 'Meet your vendors',
+    'meet_vendors_desc' => 'Vendors & vendor categories',
 
     // Events
     'events_workshops' => 'Events & Workshops',
@@ -268,12 +270,11 @@ return [
     'rated_of' => 'Rated :n of 5',
     'tap_upload_suffix' => '· upload proof available',
     'expiring_count' => ':count expiring soon',
-    'instructor' => 'Instructor',
-    'default_bio' => 'Yoga instructor at Yogaroots.',
-    'default_experience' => 'Experienced Yoga Instructor',
-    'no_instructors' => 'No Instructors Available',
-    'no_instructors_desc' => 'There are no instructors available at the moment.',
-    'no_instructors_found' => 'No Instructors Found',
+    'default_bio' => 'Vendor at Yogaroots.',
+    'default_experience' => 'Experienced Vendor',
+    'no_vendors' => 'No Vendors Available',
+    'no_vendors_desc' => 'There are no vendors available at the moment.',
+    'no_vendors_found' => 'No Vendors Found',
     'try_another' => 'Try another name or vendor category.',
     'view_profile' => 'View Profile',
     'minutes_short' => 'min',

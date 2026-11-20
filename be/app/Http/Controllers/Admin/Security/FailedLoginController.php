@@ -57,23 +57,24 @@ class FailedLoginController extends Controller
     {
         $failedLogin->delete();
 
-        return back()->with('success', 'Failed login record deleted successfully.');
+        return back()->with('success', 'Catatan login gagal berhasil dihapus.');
     }
 
     public function bulkDestroy(Request $request)
     {
         $ids = $request->input('ids', []);
-        if (!is_array($ids) || empty($ids)) {
-            return back()->with('error', 'No data selected.');
+        if (! is_array($ids) || empty($ids)) {
+            return back()->with('error', 'Tidak ada data yang dipilih.');
         }
         $count = FailedLogin::whereIn('id', array_map('intval', $ids))->delete();
-        return back()->with('success', $count . ' failed login records deleted successfully.');
+
+        return back()->with('success', $count.' catatan login gagal berhasil dihapus.');
     }
 
     public function clear()
     {
         FailedLogin::query()->delete();
 
-        return back()->with('success', 'All failed login records cleared successfully.');
+        return back()->with('success', 'Seluruh catatan login gagal berhasil dihapus.');
     }
 }

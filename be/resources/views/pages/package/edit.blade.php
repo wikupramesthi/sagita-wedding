@@ -36,7 +36,7 @@
     <div class="alert alert-danger border-0 shadow-sm mb-4">
 
         <div class="fw-semibold mb-2">
-            Please check the following:
+            Silakan periksa hal-hal berikut:
         </div>
 
         <ul class="mb-0 ps-3">

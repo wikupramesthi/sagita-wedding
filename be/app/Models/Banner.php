@@ -11,6 +11,7 @@ class Banner extends Model
     use HasFactory;
 
     protected $table = 'banner';
+
     protected $fillable = [
         'uuid',
         'tipe',
@@ -24,22 +25,24 @@ class Banner extends Model
     ];
 
     protected $primaryKey = 'uuid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     public const POSISI = [
-        'slider'      => ['label' => 'Banner / Slider', 'badge' => 'primary'],
-        'pengumuman'  => ['label' => 'Announcement',    'badge' => 'warning'],
-        'infografis'  => ['label' => 'Infographic',     'badge' => 'info'],
-        'galeri'      => ['label' => 'Photo Gallery',   'badge' => 'success'],
-        'popup'       => ['label' => 'Popup',           'badge' => 'danger'],
-        'mitra'       => ['label' => 'Partners',        'badge' => 'secondary'],
-        'lainnya'     => ['label' => 'Others',          'badge' => 'dark'],
+        'slider' => ['label' => 'Banner / Slider', 'badge' => 'primary'],
+        'pengumuman' => ['label' => 'Pengumuman',      'badge' => 'warning'],
+        'infografis' => ['label' => 'Infografis',      'badge' => 'info'],
+        'galeri' => ['label' => 'Galeri Foto',     'badge' => 'success'],
+        'popup' => ['label' => 'Popup',           'badge' => 'danger'],
+        'mitra' => ['label' => 'Mitra',           'badge' => 'secondary'],
+        'lainnya' => ['label' => 'Lainnya',         'badge' => 'dark'],
     ];
 
     public function gambar()
     {
-        return asset('storage/' . $this->gambar);
+        return asset('storage/'.$this->gambar);
     }
 
     public function albums()
@@ -97,10 +100,10 @@ class Banner extends Model
         }
 
         if ($v['provider'] === 'youtube') {
-            return 'https://img.youtube.com/vi/' . $v['id'] . '/hqdefault.jpg';
+            return 'https://img.youtube.com/vi/'.$v['id'].'/hqdefault.jpg';
         }
 
-        return 'https://i.vimeocdn.com/video/' . $v['id'] . '_640x360.jpg';
+        return 'https://i.vimeocdn.com/video/'.$v['id'].'_640x360.jpg';
     }
 
     public function videoEmbedUrl()
@@ -111,10 +114,10 @@ class Banner extends Model
         }
 
         if ($v['provider'] === 'youtube') {
-            return 'https://www.youtube.com/embed/' . $v['id'];
+            return 'https://www.youtube.com/embed/'.$v['id'];
         }
 
-        return 'https://player.vimeo.com/video/' . $v['id'];
+        return 'https://player.vimeo.com/video/'.$v['id'];
     }
 
     protected static function boot()

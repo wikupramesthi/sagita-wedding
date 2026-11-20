@@ -23,7 +23,7 @@
             $bankAccount = config('manual_payment.bank_account');
             $bankHolder = config('manual_payment.bank_holder');
             $waNumber = preg_replace('/\D/', '', (string) config('manual_payment.admin_whatsapp'));
-            $waText = 'Hello YogaRoots Admin, I have transferred Rp ' . number_format($order->amount, 0, ',', '.') . ' for order ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Thank you.';
+            $waText = 'Halo Admin YogaRoots, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
         @endphp
 
         {{-- STATUS --}}

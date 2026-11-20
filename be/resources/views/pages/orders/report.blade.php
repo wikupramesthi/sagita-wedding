@@ -130,7 +130,7 @@
                         @empty
                             <tr>
                                 <td colspan="{{ $isAdmin ? 8 : 7 }}" class="text-center text-muted py-5">
-                                    No data for the selected filters.
+                                    Tidak ada data untuk filter yang dipilih.
                                 </td>
                             </tr>
                         @endforelse

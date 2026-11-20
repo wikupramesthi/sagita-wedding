@@ -1,10 +1,10 @@
 @extends('layouts.mobile')
 
-@section('title', __('mobile.instructor'))
+@section('title', __('mobile.vendor'))
 
 @section('content')
 
-<section class="screen {{ request()->routeIs('instruktur.mobile') ? 'active' : '' }}" id="instructors">
+<section class="screen {{ request()->routeIs('vendor.mobile') ? 'active' : '' }}" id="vendors">
 
     <div class="px-4 pt-4">
 
@@ -18,7 +18,7 @@
         <p class="eyebrow mb-1">{{ __('mobile.our_team') }}</p>
 
         <h1 class="fw-semibold" style="font-size: 28px">
-            {{ __('mobile.meet_instructors') }}
+            {{ __('mobile.meet_vendors') }}
         </h1>
 
 
@@ -30,7 +30,7 @@
                 id="search"
                 class="border-0 bg-transparent w-100 small"
                 style="outline: none"
-                placeholder="{{ __('mobile.find_instructor') }}"
+                placeholder="{{ __('mobile.find_vendor') }}"
                 autocomplete="off">
         </div>
 
@@ -57,13 +57,13 @@
         </div>
 
 
-        {{-- Instructor List --}}
-        <div class="d-grid gap-3 mt-3" id="instructorList">
+        {{-- Vendor List --}}
+        <div class="d-grid gap-3 mt-3" id="vendorList">
 
-            @forelse ($instructors as $instructor)
+            @forelse ($vendors as $vendor)
 
             @php
-            $avatar = $instructor->avatar;
+            $avatar = $vendor->avatar;
 
             if ($avatar) {
             $avatar = Str::startsWith(
@@ -76,7 +76,7 @@
             $avatar = asset('dist/assets/images/avatar.jpg');
             }
 
-            $vendorsCategoryNames = $instructor
+            $vendorsCategoryNames = $vendor
             ->vendors_categories
             ->pluck('name')
             ->implode(',');
@@ -84,19 +84,19 @@
 
 
             <article
-                class="app-card overflow-hidden instructor-item"
-                data-uuid="{{ $instructor->uuid }}"
-                data-name="{{ strtolower($instructor->name) }}"
-                data-instructor-name="{{ $instructor->name }}"
+                class="app-card overflow-hidden vendor-item"
+                data-uuid="{{ $vendor->uuid }}"
+                data-name="{{ strtolower($vendor->name) }}"
+                data-vendor-name="{{ $vendor->name }}"
                 data-avatar="{{ $avatar }}"
-                data-bio="{{ $instructor->biografi ?? __('mobile.default_bio') }}"
-                data-experience="{{ $instructor->pengalaman ?? __('mobile.default_experience') }}"
+                data-bio="{{ $vendor->biografi ?? __('mobile.default_bio') }}"
+                data-experience="{{ $vendor->pengalaman ?? __('mobile.default_experience') }}"
                 data-vendors-categories="{{ strtolower($vendorsCategoryNames) }}">
 
                 <img
                     class="img-teacher"
                     src="{{ $avatar }}"
-                    alt="{{ $instructor->name }}"
+                    alt="{{ $vendor->name }}"
                     loading="lazy"
                     decoding="async">
 
@@ -106,7 +106,7 @@
                     {{-- Vendor Categories --}}
                     <div class="d-flex flex-wrap gap-2">
 
-                        @forelse ($instructor->vendors_categories as $vendors_category)
+                        @forelse ($vendor->vendors_categories as $vendors_category)
 
                         <span
                             class="chip bg-sage-soft text-sage m-micro">
@@ -117,7 +117,7 @@
 
                         <span
                             class="chip bg-sage-soft text-sage m-micro">
-                            Yoga Instructor
+                            {{ __('mobile.vendor') }}
                         </span>
 
                         @endforelse
@@ -127,14 +127,14 @@
 
                     {{-- Name --}}
                     <h2 class="h5 fw-semibold mt-2 mb-1">
-                        {{ $instructor->name }}
+                        {{ $vendor->name }}
                     </h2>
 
 
                     {{-- Bio --}}
-                    <p class="small text-muted2 mb-2 instructor-bio">
+                    <p class="small text-muted2 mb-2 vendor-bio">
                         {{ Str::limit(
-                                $instructor->biografi ?? __('mobile.default_bio'),
+                                $vendor->biografi ?? __('mobile.default_bio'),
                                 120
                             ) }}
                     </p>
@@ -146,7 +146,7 @@
 
                         <i class="bi bi-award"></i>
 
-                        {{ $instructor->pengalaman ?? __('mobile.default_experience') }}
+                        {{ $vendor->pengalaman ?? __('mobile.default_experience') }}
 
                     </p>
 
@@ -155,7 +155,7 @@
                     <button
                         type="button"
                         class="btn btn-warm w-100 py-2 mt-3"
-                        onclick="showInstructor('{{ $instructor->uuid }}')">
+                        onclick="showVendor('{{ $vendor->uuid }}')">
 
                         {{ __('mobile.view_profile') }}
 
@@ -170,11 +170,11 @@
             <div class="app-card p-4 text-center">
 
                 <p class="mb-1 fw-semibold">
-                    {{ __('mobile.no_instructors') }}
+                    {{ __('mobile.no_vendors') }}
                 </p>
 
                 <p class="small text-muted2 mb-0">
-                    {{ __('mobile.no_instructors_desc') }}
+                    {{ __('mobile.no_vendors_desc') }}
                 </p>
 
             </div>
@@ -183,16 +183,16 @@
 
 
             {{-- No Search Result --}}
-            @if($instructors->count())
+            @if($vendors->count())
 
             <div
-                id="noInstructorResult"
+                id="noVendorResult"
                 class="app-card p-4 text-center d-none">
 
                 <i class="bi bi-person-x fs-2 text-muted2"></i>
 
                 <p class="mb-1 mt-2 fw-semibold">
-                    {{ __('mobile.no_instructors_found') }}
+                    {{ __('mobile.no_vendors_found') }}
                 </p>
 
                 <p class="small text-muted2 mb-0">
@@ -211,7 +211,7 @@
 
 <div
     class="modal fade"
-    id="instructorModal"
+    id="vendorModal"
     tabindex="-1"
     aria-hidden="true">
 
@@ -223,7 +223,7 @@
             <div class="position-relative flex-shrink-0">
 
                 <img
-                    id="modalInstructorAvatar"
+                    id="modalVendorAvatar"
                     src=""
                     alt=""
                     class="w-100"
@@ -237,7 +237,7 @@
                     type="button"
                     class="btn-close position-absolute top-0 end-0 m-3 bg-white rounded-circle p-2"
                     data-bs-dismiss="modal"
-                    aria-label="Close">
+                    aria-label="Tutup">
                 </button>
 
             </div>
@@ -248,27 +248,27 @@
                 style="overflow-y:auto;">
 
                 <div
-                    id="modalInstructorVendorCategories"
+                    id="modalVendorCategories"
                     class="d-flex flex-wrap gap-2 mb-2">
                 </div>
 
                 <h2
-                    id="modalInstructorName"
+                    id="modalVendorName"
                     class="h4 fw-semibold mb-2">
                 </h2>
 
                 <p
-                    id="modalInstructorExperience"
+                    id="modalVendorExperience"
                     class="small text-muted2 mb-3">
                 </p>
 
                 <div>
                     <h6 class="fw-semibold mb-2">
-                        About
+                        {{ __('mobile.about') }}
                     </h6>
 
                     <p
-                        id="modalInstructorBio"
+                        id="modalVendorBio"
                         class="small text-muted2 mb-0"
                         style="line-height:1.8;">
                     </p>
@@ -298,11 +298,11 @@
         const filterButtons =
             document.querySelectorAll('#filters .filter');
 
-        const instructors =
-            document.querySelectorAll('.instructor-item');
+        const vendors =
+            document.querySelectorAll('.vendor-item');
 
         const noResult =
-            document.getElementById('noInstructorResult');
+            document.getElementById('noVendorResult');
 
         let activeFilter = 'Semua';
 
@@ -311,7 +311,7 @@
         // SEARCH + FILTER
         // =========================
 
-        function filterInstructors() {
+        function filterVendors() {
 
             const keyword =
                 searchInput.value
@@ -321,13 +321,13 @@
             let visibleCount = 0;
 
 
-            instructors.forEach(function(instructor) {
+            vendors.forEach(function(vendor) {
 
                 const name =
-                    instructor.dataset.name || '';
+                    vendor.dataset.name || '';
 
                 const vendors_categories =
-                    instructor.dataset.vendorsCategories || '';
+                    vendor.dataset.vendorsCategories || '';
 
 
                 // Search nama atau kategori vendor
@@ -350,13 +350,13 @@
 
                 if (searchMatch && filterMatch) {
 
-                    instructor.classList.remove('d-none');
+                    vendor.classList.remove('d-none');
 
                     visibleCount++;
 
                 } else {
 
-                    instructor.classList.add('d-none');
+                    vendor.classList.add('d-none');
 
                 }
 
@@ -382,7 +382,7 @@
 
             searchInput.addEventListener(
                 'input',
-                filterInstructors
+                filterVendors
             );
 
         }
@@ -402,7 +402,7 @@
                 activeFilter =
                     this.dataset.f;
 
-                filterInstructors();
+                filterVendors();
 
             });
 
@@ -412,44 +412,44 @@
 
 
     // =========================
-    // SHOW INSTRUCTOR MODAL
+    // TAMPILKAN MODAL VENDOR
     // =========================
 
-    function showInstructor(uuid) {
+    function showVendor(uuid) {
 
-        const instructor =
+        const vendor =
             document.querySelector(
-                '.instructor-item[data-uuid="' + uuid + '"]'
+                '.vendor-item[data-uuid="' + uuid + '"]'
             );
 
 
-        if (!instructor) {
+        if (!vendor) {
             return;
         }
 
 
         const name =
-            instructor.dataset.instructorName || '';
+            vendor.dataset.vendorName || '';
 
         const avatar =
-            instructor.dataset.avatar || '';
+            vendor.dataset.avatar || '';
 
         const bio =
-            instructor.dataset.bio ||
-            {{ __('mobile.default_bio') }};
+            vendor.dataset.bio ||
+            @json(__('mobile.default_bio'));
 
         const experience =
-            instructor.dataset.experience ||
-            {{ __('mobile.default_experience') }};
+            vendor.dataset.experience ||
+            @json(__('mobile.default_experience'));
 
         const vendors_categories =
-            instructor.dataset.vendorsCategories || '';
+            vendor.dataset.vendorsCategories || '';
 
 
         // Avatar
         const modalAvatar =
             document.getElementById(
-                'modalInstructorAvatar'
+                'modalVendorAvatar'
             );
 
         modalAvatar.src = avatar;
@@ -458,13 +458,13 @@
 
         // Name
         document.getElementById(
-            'modalInstructorName'
+            'modalVendorName'
         ).textContent = name;
 
 
         // Experience
         document.getElementById(
-                'modalInstructorExperience'
+                'modalVendorExperience'
             ).innerHTML =
             '<i class="bi bi-award me-1"></i>' +
             experience;
@@ -472,14 +472,14 @@
 
         // Bio
         document.getElementById(
-            'modalInstructorBio'
+            'modalVendorBio'
         ).textContent = bio;
 
 
         // Vendor Categories
         const vendorsCategoryContainer =
             document.getElementById(
-                'modalInstructorVendorCategories'
+                'modalVendorCategories'
             );
 
         vendorsCategoryContainer.innerHTML = '';
@@ -519,7 +519,7 @@
             vendorsCategoryContainer.innerHTML = `
             <span
                 class="chip bg-sage-soft text-sage m-micro">
-                Yoga Instructor
+                {{ __('mobile.vendor') }}
             </span>
         `;
 
@@ -529,7 +529,7 @@
         // Open modal
         const modalElement =
             document.getElementById(
-                'instructorModal'
+                'vendorModal'
             );
 
         const modal =

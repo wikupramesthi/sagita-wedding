@@ -10,16 +10,16 @@
         </a>
         <span class="media-badge media-badge--danger"><i class="bx bx-video"></i> Video</span>
         <span class="media-status {{ $item->status }}">
-            <i class="bi bi-circle-fill"></i> {{ ucfirst($item->status) }}
+            <i class="bi bi-circle-fill"></i> {{ $item->status === 'active' ? 'Aktif' : 'Nonaktif' }}
         </span>
         <div class="media-actions">
             @can('banner.update')
-            <button type="button" class="btn btn-edit js-edit-video" data-uuid="{{ $item->uuid }}" data-name="{{ $item->nama }}" title="Edit">
+            <button type="button" class="btn btn-edit js-edit-video" data-uuid="{{ $item->uuid }}" data-name="{{ $item->nama }}" title="Ubah">
                 <i class="bi bi-pencil"></i>
             </button>
             @endcan
             @can('banner.destroy')
-            <button type="button" class="btn btn-delete js-delete-foto" data-uuid="{{ $item->uuid }}" data-name="{{ $item->nama }}" title="Delete">
+            <button type="button" class="btn btn-delete js-delete-foto" data-uuid="{{ $item->uuid }}" data-name="{{ $item->nama }}" title="Hapus">
                 <i class="bi bi-trash"></i>
             </button>
             @endcan

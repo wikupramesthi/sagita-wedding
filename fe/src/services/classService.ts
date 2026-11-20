@@ -6,7 +6,7 @@ export async function getClasses(
 ): Promise<BackendPayload> {
 	const qs = buildQuery(params, [
 		"level",
-		"instructor_uuid",
+		"vendor_uuid",
 		"page",
 		"per_page",
 	]);

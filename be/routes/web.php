@@ -1,56 +1,53 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\ManagementAccess\RoleController;
-use App\Http\Controllers\ManagementAccess\UserController;
-use App\Http\Controllers\ManagementAccess\RouteController;
-use App\Http\Controllers\ManagementAccess\MenuItemController;
-use App\Http\Controllers\ManagementAccess\MenuGroupController;
-use App\Http\Controllers\ManagementAccess\PermissionController;
-
-use App\Http\Controllers\Admin\FaqController;
-use App\Http\Controllers\FeedController;
-use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\ArticleController;
+use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\VendorsCategoryController;
-use App\Http\Controllers\Admin\FileDownloadController;
-use App\Http\Controllers\Admin\InstrukturController;
-use App\Http\Controllers\Admin\VenueController;
-use App\Http\Controllers\Admin\PagesController;
-use App\Http\Controllers\Admin\PollController;
-use App\Http\Controllers\Admin\TestimonialController;
+use App\Http\Controllers\Admin\CheckoutController;
+use App\Http\Controllers\Admin\ClassBookingController;
+use App\Http\Controllers\Admin\ClassController;
+use App\Http\Controllers\Admin\ClassScheduleController;
+use App\Http\Controllers\Admin\ConsultationController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EventsController;
+use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\Admin\FileDownloadController;
+use App\Http\Controllers\Admin\GlobalSearchController;
+use App\Http\Controllers\Admin\MemberScheduleController;
+use App\Http\Controllers\Admin\MembershipController;
+use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PackageController;
+use App\Http\Controllers\Admin\PagesController;
 use App\Http\Controllers\Admin\PenggunaController;
+use App\Http\Controllers\Admin\PollController;
 use App\Http\Controllers\Admin\Security\AuditLogController;
 use App\Http\Controllers\Admin\Security\FailedLoginController;
 use App\Http\Controllers\Admin\Security\LoginActivityController;
 use App\Http\Controllers\Admin\Security\LoginLockoutController;
-
+use App\Http\Controllers\Admin\TestimonialController;
+use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Admin\VendorsCategoryController;
 // payment
-use App\Http\Controllers\Admin\PackageController;
-use App\Http\Controllers\Admin\ClassController;
-use App\Http\Controllers\Admin\ClassScheduleController;
-use App\Http\Controllers\Admin\OrderController;
-use App\Http\Controllers\Admin\NotificationController;
-use App\Http\Controllers\Admin\MembershipController;
-use App\Http\Controllers\Admin\ClassBookingController;
-use App\Http\Controllers\Admin\CheckoutController;
-use App\Http\Controllers\Admin\GlobalSearchController;
+use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\WebsiteIdentityController;
 use App\Http\Controllers\GoogleController;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ManagementAccess\MenuGroupController;
+use App\Http\Controllers\ManagementAccess\MenuItemController;
+use App\Http\Controllers\ManagementAccess\PermissionController;
+use App\Http\Controllers\ManagementAccess\RoleController;
+use App\Http\Controllers\ManagementAccess\RouteController;
+use App\Http\Controllers\ManagementAccess\UserController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Http\Middleware\MinifyHtml;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
 
 // Socialite Routes GOOGLE
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('googleAuth');
@@ -88,7 +85,7 @@ Route::get('/auth/me', function (Request $request) {
             'email' => $user->email,
             'avatar' => $avatarIsRemote
                 ? $avatar
-                : ($avatarExists ? asset('storage/' . $avatar) : null),
+                : ($avatarExists ? asset('storage/'.$avatar) : null),
             'roles' => $user->getRoleNames()->values()->all(),
         ],
     ]);
@@ -107,13 +104,18 @@ Route::post('/auth/me/logout', function (Request $request) {
     ]);
 })->name('auth.me.logout');
 
+Route::any('/backend/instruktur', fn () => redirect('/backend/vendor', 301)->withQueryString());
+Route::any('/backend/instruktur/{path}', fn (string $path) => redirect('/backend/vendor/'.$path, 301)->withQueryString())
+    ->where('path', '.*');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     // Keep-alive to reset the idle timer (called via JS when the user clicks "Stay signed in")
-    Route::post('/keep-alive', function (\Illuminate\Http\Request $request) {
+    Route::post('/keep-alive', function (Request $request) {
         $request->session()->put('last_activity', time());
+
         return response()->json(['ok' => true]);
     })->name('keep-alive');
 
@@ -122,6 +124,7 @@ Route::middleware('auth')->group(function () {
         if (in_array($mode, ['mobile', 'desktop'], true)) {
             session(['member_view' => $mode]);
         }
+
         return back();
     })->name('member-view');
 
@@ -130,6 +133,7 @@ Route::middleware('auth')->group(function () {
         if (in_array($locale, ['id', 'en'], true)) {
             session(['locale' => $locale]);
         }
+
         return back();
     })->name('locale');
 
@@ -137,7 +141,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
 });
-
 
 Route::group(['middleware' => ['web', 'auth', 'verified'], 'prefix' => 'backend'], function () {
     $superAdmin = 'role:super-admin';
@@ -177,15 +180,16 @@ Route::group(['middleware' => ['web', 'auth', 'verified'], 'prefix' => 'backend'
     Route::put('website-identity', [WebsiteIdentityController::class, 'update'])->name('website-identity.update');
     Route::get('pengguna', [PenggunaController::class, 'index'])->name('pengguna.index');
     Route::get('/pengguna/export', [PenggunaController::class, 'export'])->name('pengguna.export');
+    Route::put('/pengguna/{user}/status', [PenggunaController::class, 'updateStatus'])->name('pengguna.update-status');
 
-    //payment
+    // payment
     Route::get(
         '/packages/members',
         [PackageController::class, 'members']
     )->name('packages.member');
     Route::resource('packages', PackageController::class);
-Route::resource('venues', VenueController::class)->except(['show']);
-Route::resource('classes', ClassController::class)->except(['show']);
+    Route::resource('venues', VenueController::class)->except(['show']);
+    Route::resource('classes', ClassController::class)->except(['show']);
     Route::patch(
         '/classes/{uuid}/level',
         [ClassController::class, 'changeLevel']
@@ -196,15 +200,15 @@ Route::resource('classes', ClassController::class)->except(['show']);
     )->name('class-schedules.print');
     Route::get('/checkout/package/{packageUuid}', [
         CheckoutController::class,
-        'package'
+        'package',
     ])->name('checkout.package');
     Route::get('/schedules', [
-        \App\Http\Controllers\Admin\MemberScheduleController::class,
-        'index'
+        MemberScheduleController::class,
+        'index',
     ])->name('schedules.index');
     Route::get('/my-bookings', [
-        \App\Http\Controllers\Admin\MemberScheduleController::class,
-        'bookings'
+        MemberScheduleController::class,
+        'bookings',
     ])->name('bookings.my');
 
     Route::resource('class-schedules', ClassScheduleController::class);
@@ -234,15 +238,12 @@ Route::resource('classes', ClassController::class)->except(['show']);
     Route::post('class-bookings/direct-check-in', [ClassBookingController::class, 'directCheckin'])->name('class-bookings.directCheckin')->middleware('throttle:120,1');
     // end payment
 
-    Route::get('kontak', [FaqController::class, 'kontak'])->name('layanan.kontak');
-    Route::delete(
-        '/kontak/{uuid}',
-        [FaqController::class, 'forceDelete']
-    )->name('kontak.destroy');
-    Route::resource('instruktur', InstrukturController::class);
-    Route::post('instruktur/restore', [InstrukturController::class, 'restore'])->name('instruktur.restore');
-    Route::get('/mobile/instruktur', [InstrukturController::class, 'mobile'])
-        ->name('instruktur.mobile');
+    Route::resource('konsultasi', ConsultationController::class);
+    Route::get('vendor/arsip', [VendorController::class, 'archive'])->name('vendor.archive');
+    Route::post('vendor/restore', [VendorController::class, 'restore'])->name('vendor.restore');
+    Route::resource('vendor', VendorController::class);
+    Route::get('/mobile/vendor', [VendorController::class, 'mobile'])
+        ->name('vendor.mobile');
     Route::patch('/pages/{uuid}/sidebar', [PagesController::class, 'updateSidebar'])->name('pages.updateSidebar');
 
     // Security (audit log, login activity, lockout)
@@ -271,4 +272,4 @@ Route::resource('classes', ClassController::class)->except(['show']);
     // Route::get('list-menu', [MenuGroupController::class, 'listMenu'])->name('list-menu');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
