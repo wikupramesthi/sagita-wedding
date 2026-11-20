@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Listeners\RecordFailedLogin;
 use App\Listeners\RecordLoginActivity;
 use App\Observers\AuditObserver;
+use App\Services\EmailSettingService;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -30,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        EmailSettingService::apply();
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(300)->by($request->ip());
         });
@@ -40,8 +43,8 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('api-contact', function (Request $request) {
             return [
-                Limit::perMinute(10)->by('ip:' . $request->ip()),
-                Limit::perHour(5)->by('email:' . strtolower((string) $request->input('email'))),
+                Limit::perMinute(10)->by('ip:'.$request->ip()),
+                Limit::perHour(5)->by('email:'.strtolower((string) $request->input('email'))),
             ];
         });
 

@@ -7,10 +7,17 @@ import type {
 import { logger } from "../utils/logger.js";
 
 /** Render halaman 404 standar (noindex). Dipakai route & handler error. */
-export function renderNotFound(res: Response, title = "Page Not Found — 404") {
+export function renderNotFound(res: Response, title?: string) {
+	const pageTitle =
+		title ||
+		`${res.locals.t?.notFoundTitle || "Page Not Found"} — 404`;
 	return res
 		.status(404)
-		.render("pages/404", { title, robots: "noindex, nofollow", heroNav: true });
+		.render("pages/404", {
+			title: pageTitle,
+			robots: "noindex, nofollow",
+			heroNav: true,
+		});
 }
 
 /** True bila error = resource tidak ada / input slug tidak valid. */
@@ -51,7 +58,7 @@ export function errorHandler(
 	}
 	if (status === 404) return renderNotFound(res);
 	return res.status(status).render("pages/404", {
-		title: "Something Went Wrong — YogaRoots",
+		title: res.locals.t?.internalErrorTitle || "Something went wrong",
 		robots: "noindex, nofollow",
 		heroNav: true,
 	});

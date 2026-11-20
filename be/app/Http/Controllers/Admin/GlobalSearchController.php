@@ -78,8 +78,12 @@ class GlobalSearchController extends Controller
             $push('Pengguna', $u->name, $u->email, route('pengguna.index'));
         }
 
-        if (mb_stripos('identitas website website identity site identity pengaturan', $q) !== false) {
-            $push('Pengaturan', 'Identitas Website', 'Nama, logo, kontak, dan media sosial', route('website-identity.index'));
+        if (mb_stripos('identitas website website identity site identity pengaturan sistem', $q) !== false) {
+            $push('Pengaturan Sistem', 'Identitas Website', 'Nama, logo, kontak, dan media sosial', route('website-identity.index'));
+        }
+
+        if (mb_stripos('pengaturan email email smtp mail pengirim', $q) !== false) {
+            $push('Pengaturan Sistem', 'Pengaturan Email', 'SMTP, identitas pengirim, dan email uji', route('email-setting.index'));
         }
 
         return response()->json(['results' => $results]);

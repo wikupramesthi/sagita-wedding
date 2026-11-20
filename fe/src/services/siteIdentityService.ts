@@ -20,7 +20,9 @@ const FALLBACK: SiteIdentity = {
 	email: sagitaData.site.email,
 	address: sagitaData.site.address,
 	instagramHandle: sagitaData.site.instagram,
-	instagramHref: `https://www.instagram.com/${sagitaData.site.instagram}/`,
+	instagramHref: sagitaData.site.instagram
+		? `https://www.instagram.com/${sagitaData.site.instagram}/`
+		: "",
 	facebookHref: "",
 	youtubeHref: "",
 	tiktokHref: "",
@@ -32,7 +34,7 @@ const FALLBACK: SiteIdentity = {
 	logoUrl: "/img/logo.WebP",
 	logoWhiteUrl: "/img/logo.WebP",
 	faviconUrl: "/img/fav.png",
-	ogImage: "/img/yogaroots_about1.jpg",
+	ogImage: "/img/logo.WebP",
 	year: new Date().getFullYear(),
 };
 
@@ -46,6 +48,10 @@ let inflight: Promise<SiteIdentity> | null = null;
 function text(value: unknown, fallback = ""): string {
 	const s = String(value ?? "").trim();
 	return s || fallback;
+}
+
+function legacyYogaCopy(value: string): boolean {
+	return /yogaroots|yoga|serene yoga|meditation|wellness/i.test(value);
 }
 
 /** Ambil handle @user dari URL instagram penuh untuk tampilan "@user". */
@@ -63,6 +69,11 @@ export function normalizeIdentity(
 	const apiName = text(api.site_name);
 	const apiTitle = text(api.site_title);
 	const apiTagline = text(api.tagline);
+	const apiDescription = text(api.short_description, fallback.description);
+	const apiMetaTitle = text(api.meta_title);
+	const apiMetaDescription = text(api.meta_description);
+	const apiEmail = text(api.email);
+	const apiAddress = text(api.address);
 	const legacyNames = new Set([
 		"Laravel",
 		"YogaRoots",
@@ -79,22 +90,34 @@ export function normalizeIdentity(
 		tagline: legacyNames.has(apiTagline)
 			? fallback.tagline
 			: text(apiTagline, fallback.tagline),
-		description: text(api.short_description, fallback.description),
+		description: legacyYogaCopy(apiDescription)
+			? fallback.description
+			: apiDescription,
 		phone: text(api.phone, fallback.phone),
 		phoneTel:
 			text(api.phone, fallback.phoneTel).replace(/[^\d+]/g, "") ||
 			fallback.phoneTel,
-		email: text(api.email, fallback.email),
-		address: text(api.address, fallback.address),
+		email: legacyYogaCopy(apiEmail)
+			? fallback.email
+			: text(apiEmail, fallback.email),
+		address: legacyYogaCopy(apiAddress)
+			? fallback.address
+			: text(apiAddress, fallback.address),
 		instagramHandle: instagramHref
-			? instagramHandleFrom(instagramHref, fallback.instagramHandle)
+			? legacyYogaCopy(instagramHref)
+				? fallback.instagramHandle
+				: instagramHandleFrom(instagramHref, fallback.instagramHandle)
 			: fallback.instagramHandle,
-		instagramHref: instagramHref || fallback.instagramHref,
+		instagramHref: legacyYogaCopy(instagramHref)
+			? fallback.instagramHref
+			: instagramHref || fallback.instagramHref,
 		facebookHref: text(api.facebook_url),
 		youtubeHref: text(api.youtube_url),
 		tiktokHref: text(api.tiktok_url),
-		metaTitle: text(api.meta_title),
-		metaDescription: text(api.meta_description),
+		metaTitle: legacyYogaCopy(apiMetaTitle) ? "" : apiMetaTitle,
+		metaDescription: legacyYogaCopy(apiMetaDescription)
+			? ""
+			: apiMetaDescription,
 		metaKeywords: text(api.meta_keywords),
 		gaId: text(api.google_analytics_id),
 		siteVerification: text(api.google_site_verification),

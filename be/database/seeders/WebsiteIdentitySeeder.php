@@ -29,15 +29,15 @@ class WebsiteIdentitySeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Attach to "Pengaturan" group if it exists, otherwise create it.
-        $menuGroup = MenuGroup::where('name', 'Pengaturan')->first()
+        // Attach to "Pengaturan Sistem" group if it exists, otherwise create it.
+        $menuGroup = MenuGroup::where('name', 'Pengaturan Sistem')->first()
             ?? MenuGroup::firstOrCreate(
                 ['permission_name' => 'menu.pengaturan'],
                 [
-                    'name' => 'Pengaturan',
+                    'name' => 'Pengaturan Sistem',
                     'icon' => 'bx-cog',
                     'status' => true,
-                    'position' => 90,
+                    'position' => 12,
                 ]
             );
 
@@ -50,7 +50,7 @@ class WebsiteIdentitySeeder extends Seeder
                 'name' => 'Identitas Website',
                 'status' => true,
                 'permission_name' => 'website-identity.index',
-                'position' => 99,
+                'position' => 2,
             ]
         );
 

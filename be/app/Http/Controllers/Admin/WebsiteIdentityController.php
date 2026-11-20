@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmailSetting;
 use App\Models\WebsiteIdentity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -58,6 +59,8 @@ class WebsiteIdentityController extends Controller
         DB::beginTransaction();
         try {
             $identitas = WebsiteIdentity::singleton();
+            $previousEmail = $identitas->email;
+            $previousName = $identitas->site_name;
 
             $data = $request->only([
                 'site_name',
@@ -95,6 +98,7 @@ class WebsiteIdentityController extends Controller
             }
 
             $identitas->update($data);
+            EmailSetting::syncFromWebsiteIdentity($identitas, $previousEmail, $previousName);
 
             DB::commit();
 

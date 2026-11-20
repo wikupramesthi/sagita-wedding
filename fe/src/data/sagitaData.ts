@@ -8,15 +8,15 @@ export const sagitaData = {
 		name: "Sagita Wedding",
 		tagline: "Wedding Planner",
 		description:
-			"Through our guidance, you will not only gain a deeper understanding of the postures but also learn to cultivate mental clarity and inner peace.",
+			"Thoughtful wedding planning, vendor coordination, and on-the-day support to help you celebrate with confidence.",
 		phone: "+62 813 2122 1270",
-		email: "halo@serene.yoga",
-		address:
-			"Roots Prasasta Building, Jl. Kawi Raya No.37, RT.6/RW.2, Guntur, Setiabudi, South Jakarta City, Jakarta 12980",
-		instagram: "yogaroot.id",
+		email: "",
+		address: "",
+		instagram: "",
 		year: new Date().getFullYear(),
 	},
 	nav: [
+		{ key: "home", label: "Home", href: "/" },
 		{ key: "classes", label: "Classes", href: "/classes" },
 		{ key: "schedules", label: "Schedules", href: "/schedules" },
 		{ key: "packages", label: "Packages", href: "/packages" },

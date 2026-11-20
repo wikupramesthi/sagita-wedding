@@ -197,6 +197,22 @@ class RouteSeeder extends Seeder
                 'permission_name' => 'permission.destroy',
             ],
         ]);
+
+        // Email Setting
+        $this->upsertRoutes([
+            [
+                'route' => 'email-setting.index',
+                'permission_name' => 'email-setting.index',
+            ],
+            [
+                'route' => 'email-setting.update',
+                'permission_name' => 'email-setting.update',
+            ],
+            [
+                'route' => 'email-setting.test',
+                'permission_name' => 'email-setting.test',
+            ],
+        ]);
     }
 
     private function upsertRoutes(array $routes): void

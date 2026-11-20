@@ -9,12 +9,12 @@
 const _site = typeof site !== "undefined" && site ? site : {};
 const _seo = typeof seo !== "undefined" && seo ? seo : {};
 const _siteUrl = typeof siteUrl !== "undefined" ? siteUrl : "";
-const _pageTitle = typeof title !== "undefined" && title ? title : ((_site.metaTitle || _site.name || "YogaRoots") + " — " + (_site.tagline || "Yoga, Meditation & Wellness"));
-const _description = (typeof metaDescription !== "undefined" && metaDescription ? metaDescription : (_seo.description || _site.metaDescription || _site.description || "")).toString().slice(0, 160);
+const _pageTitle = typeof title !== "undefined" && title ? title : ((_site.metaTitle || _site.name || "Sagita Wedding") + " — " + (_site.tagline || "Wedding Planner"));
+const _description = (typeof metaDescription !== "undefined" && metaDescription ? metaDescription : (_seo.description || _site.metaDescription || _site.description || t.siteDesc)).toString().slice(0, 160);
 const _keywords = typeof metaKeywords !== "undefined" && metaKeywords ? metaKeywords : (_seo.keywords || _site.metaKeywords || "");
 const _robots = typeof robots !== "undefined" && robots ? robots : (_seo.robots || "index, follow");
 const _canonical = typeof currentUrl !== "undefined" ? currentUrl : _siteUrl;
-const _ogImageRaw = _seo.ogImage || _site.ogImage || "/img/yogaroots_about1.jpg";
+const _ogImageRaw = _seo.ogImage || _site.ogImage || "/img/logo.WebP";
 const _ogImage = /^https?:\/\//i.test(_ogImageRaw) ? _ogImageRaw : (_siteUrl + _ogImageRaw);
 const _faviconRaw = _site.faviconUrl || "/img/fav.png";
 const _favicon = /^https?:\/\//i.test(_faviconRaw) ? _faviconRaw : (_siteUrl + _faviconRaw);
@@ -26,10 +26,10 @@ const _jsonLd = {
     {
       "@type": "Organization",
       "@id": _siteUrl + "/#organization",
-      "name": _site.name || "YogaRoots",
+      "name": _site.name || "Sagita Wedding",
       "url": _siteUrl,
       "slogan": _site.tagline || "",
-      "description": _site.description || "",
+      "description": _site.description || t.siteDesc,
       "logo": /^https?:\/\//i.test(_site.logoUrl || "") ? _site.logoUrl : (_siteUrl + (_site.logoUrl || "/img/logo.WebP")),
       "image": _ogImage,
       "email": _site.email || undefined,
@@ -41,7 +41,7 @@ const _jsonLd = {
       "@type": "WebSite",
       "@id": _siteUrl + "/#website",
       "url": _siteUrl,
-      "name": _site.name || "YogaRoots",
+      "name": _site.name || "Sagita Wedding",
       "inLanguage": _langCodes
     }
   ]
@@ -56,7 +56,7 @@ const _jsonLd = {
 <meta name="keywords" content="<%= _keywords %>" />
 <% } %>
 <meta name="robots" content="<%= _robots %>" />
-<meta name="author" content="<%= _site.name || "YogaRoots" %>" />
+<meta name="author" content="<%= _site.name || "Sagita Wedding" %>" />
 <meta name="theme-color" content="#fffefd" />
 
 <link rel="canonical" href="<%= _canonical %>" />
@@ -70,7 +70,7 @@ const _jsonLd = {
 <!-- Open Graph -->
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="<%= _lang %>" />
-<meta property="og:site_name" content="<%= _site.name || "YogaRoots" %>" />
+<meta property="og:site_name" content="<%= _site.name || "Sagita Wedding" %>" />
 <meta property="og:title" content="<%= _pageTitle %>" />
 <meta property="og:description" content="<%= _description %>" />
 <meta property="og:url" content="<%= _canonical %>" />

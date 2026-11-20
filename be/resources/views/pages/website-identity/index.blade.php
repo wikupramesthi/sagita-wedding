@@ -2,7 +2,7 @@
 @section('title', 'Identitas Website')
 
 @section('breadcrumb')
-<x-breadcrumb title="Identitas Website" page="Pengaturan" active="Identitas Website" route="{{ route('website-identity.index') }}" />
+<x-breadcrumb title="Identitas Website" page="Pengaturan Sistem" active="Identitas Website" route="{{ route('website-identity.index') }}" />
 @endsection
 
 @section('content')

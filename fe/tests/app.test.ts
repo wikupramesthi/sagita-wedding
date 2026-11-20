@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../src/services/siteIdentityService.js", () => ({
 	resolveSite: () => ({
-		name: "YogaRoots",
-		tagline: "Yoga, Meditation & Wellness",
+		name: "Sagita Wedding",
+		tagline: "Wedding Planner",
 		description: "Deskripsi uji.",
 		address: "Jl. Uji",
 		phone: "0812",
@@ -413,6 +413,20 @@ describe("not found", () => {
 	it("halaman tak dikenal merender 404", async () => {
 		const res = await request(app).get("/halaman-yang-tidak-ada-xyz");
 		expect(res.status).toBe(404);
+	});
+
+	it("404 berbahasa Indonesia menampilkan CTA konsultasi dan footer yang sesuai", async () => {
+		const res = await request(app)
+			.get("/vendorsdasd")
+			.set("Cookie", "locale=id");
+
+		expect(res.status).toBe(404);
+		expect(res.text).toContain("Mencari halaman yang tepat?");
+		expect(res.text).toContain("Mulai Konsultasi");
+		expect(res.text).toContain('href="/formulir-konsultasi"');
+		expect(res.text).toContain("Perencanaan pernikahan, koordinasi vendor");
+		expect(res.text).not.toContain("YogaRoots");
+		expect(res.text).not.toContain("Serene Yoga");
 	});
 
 	it("API tak dikenal membalas JSON 404", async () => {

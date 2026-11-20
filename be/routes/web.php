@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ClassController;
 use App\Http\Controllers\Admin\ClassScheduleController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EmailSettingController;
 use App\Http\Controllers\Admin\EventsController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\FileDownloadController;
@@ -28,8 +29,8 @@ use App\Http\Controllers\Admin\Security\LoginActivityController;
 use App\Http\Controllers\Admin\Security\LoginLockoutController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\VendorController;
-use App\Http\Controllers\Admin\VendorsCategoryController;
 // payment
+use App\Http\Controllers\Admin\VendorsCategoryController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\WebsiteIdentityController;
 use App\Http\Controllers\GoogleController;
@@ -182,6 +183,9 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     // Website Identity (singleton: single form, no table CRUD)
     Route::get('website-identity', [WebsiteIdentityController::class, 'index'])->name('website-identity.index');
     Route::put('website-identity', [WebsiteIdentityController::class, 'update'])->name('website-identity.update');
+    Route::get('email-setting', [EmailSettingController::class, 'index'])->name('email-setting.index');
+    Route::put('email-setting', [EmailSettingController::class, 'update'])->name('email-setting.update');
+    Route::post('email-setting/test', [EmailSettingController::class, 'test'])->name('email-setting.test');
     Route::get('pengguna', [PenggunaController::class, 'index'])->name('pengguna.index');
     Route::get('/pengguna/export', [PenggunaController::class, 'export'])->name('pengguna.export');
     Route::put('/pengguna/{user}/status', [PenggunaController::class, 'updateStatus'])->name('pengguna.update-status');

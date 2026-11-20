@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\ManagementAccess;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ManagementAccess\StoreRoleRequest;
+use App\Http\Requests\ManagementAccess\UpdateRoleRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
-use App\Http\Controllers\Controller;
 use Spatie\Permission\Models\Permission;
-use App\Http\Requests\ManagementAccess\StoreRoleRequest;
-use App\Http\Requests\ManagementAccess\UpdateRoleRequest;
+use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
@@ -20,7 +20,7 @@ class RoleController extends Controller
     {
         $roles = Role::query()
             ->when(! blank($request->search), function ($query) use ($request) {
-                $term = '%' . $request->search . '%';
+                $term = '%'.$request->search.'%';
 
                 return $query->where(function ($query) use ($term) {
                     $query->where('name', 'like', $term)
@@ -35,7 +35,7 @@ class RoleController extends Controller
 
         $users = User::query()
             ->when(! blank($request->search), function ($query) use ($request) {
-                $term = '%' . $request->search . '%';
+                $term = '%'.$request->search.'%';
 
                 return $query->where(function ($query) use ($term) {
                     $query->where('name', 'like', $term)
@@ -60,6 +60,7 @@ class RoleController extends Controller
             'class' => 'Kelas',
             'class-bookings' => 'Pemesanan Kelas',
             'dashboard' => 'Dasbor',
+            'email-setting' => 'Pengaturan Email',
             'event' => 'Acara',
             'failed-login' => 'Login Gagal',
             'faq' => 'FAQ',
@@ -107,6 +108,7 @@ class RoleController extends Controller
             'role-permission' => 'Izin Role',
             'show' => 'Detail',
             'store' => 'Tambah',
+            'test' => 'Uji',
             'update' => 'Ubah',
         ];
 
@@ -122,9 +124,7 @@ class RoleController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-    }
+    public function create() {}
 
     /**
      * Store a newly created resource in storage.
@@ -140,16 +140,12 @@ class RoleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
-    {
-    }
+    public function show(string $id) {}
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
-    {
-    }
+    public function edit(string $id) {}
 
     /**
      * Update the specified resource in storage.

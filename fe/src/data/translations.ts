@@ -404,6 +404,7 @@ const rawTranslations = {
       "The page you're looking for may have moved or the address may be incorrect. Return to our home page or talk with our team about your wedding plans.",
     notFoundBack: "Back to Home →",
     notFoundConsultation: "Start a Consultation",
+    internalErrorTitle: "Something went wrong",
     // About page
     about: {
       eyebrow: "Our Story",
@@ -506,7 +507,7 @@ const rawTranslations = {
     footerExplore: "Explore",
     footerAbout: "About Us",
     footerOurClasses: "Our Classes",
-    footervendors: "Vendors",
+    footerVendors: "Vendors",
     footerPackages: "Packages",
     footerSupport: "Support",
     footerFAQs: "FAQs",
@@ -516,12 +517,12 @@ const rawTranslations = {
     footerGetInTouch: "Get in Touch",
     footerCommunity: "Our Partners",
     siteDesc:
-      "Through our guidance, you will not only gain a deeper understanding of the postures but also learn to cultivate mental clarity and inner peace.",
+      "Thoughtful wedding planning, vendor coordination, and on-the-day support to help you celebrate with confidence.",
     ctaHelpTitle: "Not sure where to start planning your wedding?",
     ctaHelpDesc:
       "Talk with the Sagita Wedding Planner team about your wedding plans. We're here to help bring your special day to life.",
     ctaHelpBtn: "Chat on WhatsApp →",
-    whatsappAdmin: "WhatsApp Admin",
+    whatsappAdmin: "Chat with Sagita Wedding Planner on WhatsApp",
     copyright: "All rights reserved.",
     privacyPolicy: "Privacy Policy",
     termsConditions: "Terms & Conditions",
@@ -686,7 +687,7 @@ const rawTranslations = {
     readyTitle: "Siap Mewujudkan",
     readyTitleItalic: "Pernikahan Impian Anda",
     ctaDesc:
-      "Mulailah perjalanan menuju hari bahagia bersama Sagita Wedding Planner. Hubungi kami melalui WhatsApp untuk berkonsultasi, mengenal pilihan paket Wedding Organizer, dan menemukan layanan yang sesuai dengan kebutuhan pernikahan Anda.",
+      "Mulailah perjalanan menuju hari bahagia bersama Sagita Wedding Planner. Tim kami siap membantu Anda memilih paket dan layanan yang paling sesuai untuk hari istimewa.",
     chatWhatsApp: "Chat via WhatsApp",
     consultationCta: "Mulai Konsultasi",
 
@@ -750,6 +751,7 @@ const rawTranslations = {
       "Halaman yang Anda cari tidak ditemukan atau alamatnya mungkin sudah berubah. Silakan kembali ke beranda atau konsultasikan rencana pernikahan Anda bersama tim Sagita Wedding Planner.",
     notFoundBack: "Kembali ke Beranda →",
     notFoundConsultation: "Mulai Konsultasi",
+    internalErrorTitle: "Terjadi kesalahan",
 
     // About page
     about: {
@@ -853,7 +855,7 @@ const rawTranslations = {
     footerExplore: "Eksplorasi",
     footerAbout: "Tentang Kami",
     footerOurClasses: "Kelas Kami",
-    footervendors: "Vendor",
+    footerVendors: "Vendor",
     footerPackages: "Paket",
     footerSupport: "Dukungan",
     footerFAQs: "FAQ",
@@ -863,12 +865,12 @@ const rawTranslations = {
     footerGetInTouch: "Hubungi Kami",
     footerCommunity: "Mitra Kami",
     siteDesc:
-      "Melalui bimbingan kami, Anda tidak hanya memahami postur secara lebih dalam, tetapi juga belajar menumbuhkan kejernihan pikiran dan kedamaian batin.",
+      "Perencanaan pernikahan, koordinasi vendor, dan pendampingan pada hari acara agar Anda dapat merayakan momen istimewa dengan tenang.",
     ctaHelpTitle: "Bingung Memulai Persiapan Pernikahan?",
     ctaHelpDesc:
       "Konsultasikan kebutuhan pernikahan Anda bersama tim Sagita Wedding Planner. Kami siap membantu mewujudkan hari bahagia Anda.",
     ctaHelpBtn: "Chat via WhatsApp →",
-    whatsappAdmin: "Admin WhatsApp",
+    whatsappAdmin: "Chat dengan Sagita Wedding Planner melalui WhatsApp",
     copyright: "Hak cipta dilindungi.",
     privacyPolicy: "Kebijakan Privasi",
     termsConditions: "Syarat & Ketentuan",
