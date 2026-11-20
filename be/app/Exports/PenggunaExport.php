@@ -21,13 +21,17 @@ class PenggunaExport implements FromView, ShouldAutoSize, WithTitle
     {
         $q = trim((string) $this->request->query('q', ''));
         $status = (string) $this->request->query('status', '');
+        $sumber = (string) $this->request->query('sumber', '');
 
         if (! array_key_exists($status, User::PROSPECT_STATUS_LABELS)) {
             $status = '';
         }
 
-        $query = User::with('userPackages.package')
-            ->role('user')
+        if ($sumber !== User::SOURCE_UNKNOWN_KEY && ! array_key_exists($sumber, User::SOURCE_LABELS)) {
+            $sumber = '';
+        }
+
+        $baseQuery = fn () => User::role('user')
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($query) use ($q) {
                     $query->where('name', 'like', "%{$q}%")
@@ -40,11 +44,29 @@ class PenggunaExport implements FromView, ShouldAutoSize, WithTitle
             ->when($this->request->filled('start_date'), fn ($query) => $query->whereDate('created_at', '>=', $this->request->start_date))
             ->when($this->request->filled('end_date'), fn ($query) => $query->whereDate('created_at', '<=', $this->request->end_date));
 
+        $query = $baseQuery()
+            ->with(['userPackages.package', 'latestOrder.package'])
+            ->when($sumber !== '', function ($query) use ($sumber) {
+                if ($sumber === User::SOURCE_UNKNOWN_KEY) {
+                    $query->where(function ($query) {
+                        $query->whereNull('sumber_informasi')
+                            ->orWhereNotIn('sumber_informasi', array_keys(User::SOURCE_LABELS));
+                    });
+
+                    return;
+                }
+
+                $query->where('sumber_informasi', $sumber);
+            });
+
         return view('pages.dashboard.exports', [
             'pengguna' => $query->orderBy('created_at', 'desc')->get(),
+            'sourceStats' => User::sourceStats($baseQuery),
+            'sourceOptions' => User::sourceFilterOptions(),
             'filters' => [
                 'q' => $q,
                 'status' => $status,
+                'sumber' => $sumber,
                 'tahun' => $this->request->tahun,
                 'start_date' => $this->request->start_date,
                 'end_date' => $this->request->end_date,

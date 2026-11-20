@@ -3361,6 +3361,79 @@ html[data-bs-theme="dark"] .app-loader__text {
     color: var(--modern-muted);
 }
 
+.ml-source-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    height: 100%;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--modern-border);
+    border-radius: 0.9rem;
+    background: var(--modern-surface, #fff);
+    box-shadow: var(--modern-shadow-sm);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.ml-source-chip:hover {
+    transform: translateY(-2px);
+    border-color: rgba(79, 70, 229, 0.35);
+    box-shadow: var(--modern-shadow);
+}
+
+.ml-source-chip.active {
+    background: var(--brand-gradient, var(--modern-brand));
+    border-color: transparent;
+    box-shadow: 0 10px 24px rgba(79, 70, 229, 0.25);
+}
+
+.ml-source-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    background: var(--modern-primary-soft);
+    color: var(--modern-brand);
+}
+
+.ml-source-label {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--modern-heading);
+}
+
+.ml-source-count {
+    flex-shrink: 0;
+    min-width: 2.25rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    background: var(--modern-primary-soft);
+    color: var(--modern-brand);
+}
+
+.ml-source-chip.active .ml-source-icon,
+.ml-source-chip.active .ml-source-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.ml-source-chip.active .ml-source-label {
+    color: #fff;
+}
+
 .ml-toolbar.card {
     border: 1px solid var(--modern-border);
     border-radius: var(--modern-radius-sm);
@@ -4463,6 +4536,26 @@ html[data-bs-theme="dark"] .media-status {
         width: 34px;
         height: 34px;
         font-size: 1rem;
+    }
+
+    .ml-source-chip {
+        gap: 0.5rem;
+        padding: 0.65rem 0.7rem;
+        border-radius: 0.8rem;
+    }
+    .ml-source-icon {
+        width: 1.9rem;
+        height: 1.9rem;
+        border-radius: 0.6rem;
+        font-size: 0.95rem;
+    }
+    .ml-source-label {
+        font-size: 0.72rem;
+    }
+    .ml-source-count {
+        min-width: 1.9rem;
+        padding: 0.25rem 0.4rem;
+        font-size: 0.78rem;
     }
 
     /* Kartu statistik member (ikon gradient besar) */

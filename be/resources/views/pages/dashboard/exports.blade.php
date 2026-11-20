@@ -45,7 +45,7 @@
     <h3 style="text-align: center;">Laporan Data Calon Pelanggan</h3>
     <p style="text-align: center;">Dicetak pada {{ now()->translatedFormat('d F Y H:i') }}</p>
 
-    @if (! empty($filters['q']) || ! empty($filters['status']) || ! empty($filters['tahun']) || ! empty($filters['start_date']) || ! empty($filters['end_date']))
+    @if (! empty($filters['q']) || ! empty($filters['status']) || ! empty($filters['sumber']) || ! empty($filters['tahun']) || ! empty($filters['start_date']) || ! empty($filters['end_date']))
         <p style="margin-top: 12px;">
             <strong>Filter:</strong>
             @if (! empty($filters['q']))
@@ -53,6 +53,9 @@
             @endif
             @if (! empty($filters['status']))
                 | Status <u>{{ App\Models\User::PROSPECT_STATUS_LABELS[$filters['status']] ?? '-' }}</u>
+            @endif
+            @if (! empty($filters['sumber']))
+                | Sumber <u>{{ $sourceOptions[$filters['sumber']] ?? '-' }}</u>
             @endif
             @if (! empty($filters['tahun']))
                 | Tahun <u>{{ $filters['tahun'] }}</u>
@@ -69,13 +72,35 @@
     <table>
         <thead>
             <tr>
+                <th>Sumber Informasi</th>
+                <th>Jumlah Calon Pelanggan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($sourceOptions as $key => $label)
+                <tr>
+                    <td>{{ $label }}</td>
+                    <td style="text-align: right;">{{ number_format($sourceStats[$key]) }}</td>
+                </tr>
+            @endforeach
+            <tr>
+                <td><strong>Total</strong></td>
+                <td style="text-align: right;"><strong>{{ number_format(array_sum($sourceStats)) }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table>
+        <thead>
+            <tr>
                 <th>No</th>
                 <th>Nama Calon Pelanggan</th>
                 <th>Email</th>
                 <th>No. WhatsApp</th>
                 <th>Tanggal Daftar</th>
                 <th>Status Calon Pelanggan</th>
-                <th>Paket Member</th>
+                <th>Lead dari Mana</th>
+                <th>Paket Pemesanan</th>
             </tr>
         </thead>
         <tbody>
@@ -87,11 +112,12 @@
                     <td>{{ $user->no_hp ?? '-' }}</td>
                     <td>{{ $user->created_at?->format('d-m-Y') ?? '-' }}</td>
                     <td>{{ $user->prospect_status_label }}</td>
-                    <td>{{ $user->userPackages->isNotEmpty() ? 'Aktif' : 'Belum ada' }}</td>
+                    <td>{{ $user->sumber_informasi_label }}</td>
+                    <td>{{ $user->latestOrder?->package?->name ?? 'Belum ada' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align: center;">Tidak ada data yang cocok dengan filter.</td>
+                    <td colspan="8" style="text-align: center;">Tidak ada data yang cocok dengan filter.</td>
                 </tr>
             @endforelse
         </tbody>

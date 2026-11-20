@@ -15,15 +15,20 @@ class PenggunaController extends Controller
     {
         $q = trim((string) $request->query('q', ''));
         $status = (string) $request->query('status', '');
+        $sumber = (string) $request->query('sumber', '');
 
         if (! array_key_exists($status, User::PROSPECT_STATUS_LABELS)) {
             $status = '';
         }
 
+        if ($sumber !== User::SOURCE_UNKNOWN_KEY && ! array_key_exists($sumber, User::SOURCE_LABELS)) {
+            $sumber = '';
+        }
+
         $baseQuery = fn () => User::role('user');
 
         $users = $baseQuery()
-            ->with('userPackages.package')
+            ->with(['userPackages.package', 'latestOrder.package'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($query) use ($q) {
                     $query->where('name', 'like', "%{$q}%")
@@ -32,6 +37,18 @@ class PenggunaController extends Controller
                 });
             })
             ->when($status !== '', fn ($query) => $query->where('prospect_status', $status))
+            ->when($sumber !== '', function ($query) use ($sumber) {
+                if ($sumber === User::SOURCE_UNKNOWN_KEY) {
+                    $query->where(function ($query) {
+                        $query->whereNull('sumber_informasi')
+                            ->orWhereNotIn('sumber_informasi', array_keys(User::SOURCE_LABELS));
+                    });
+
+                    return;
+                }
+
+                $query->where('sumber_informasi', $sumber);
+            })
             ->when($request->filled('tahun'), fn ($query) => $query->whereYear('created_at', $request->tahun))
             ->when($request->filled('start_date'), fn ($query) => $query->whereDate('created_at', '>=', $request->start_date))
             ->when($request->filled('end_date'), fn ($query) => $query->whereDate('created_at', '<=', $request->end_date))
@@ -41,13 +58,16 @@ class PenggunaController extends Controller
 
         $stats = [
             'total' => $baseQuery()->count(),
+            'sources' => User::sourceStats($baseQuery),
         ];
 
         foreach (User::PROSPECT_STATUS_LABELS as $key => $label) {
             $stats[$key] = $baseQuery()->where('prospect_status', $key)->count();
         }
 
-        return view('pages.dashboard.pengguna', compact('users', 'stats', 'q', 'status'));
+        $sourceOptions = User::sourceFilterOptions();
+
+        return view('pages.dashboard.pengguna', compact('users', 'stats', 'q', 'status', 'sumber', 'sourceOptions'));
     }
 
     public function updateStatus(Request $request, User $user)

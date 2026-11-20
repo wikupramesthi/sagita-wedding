@@ -43,6 +43,55 @@ class User extends Authenticatable implements MustVerifyEmail
         'inactive' => 'Tidak ada tindak lanjut atau tidak menunjukkan aktivitas.',
     ];
 
+    public const SOURCE_LABELS = [
+        'google' => 'Google',
+        'sosmed' => 'Media Sosial',
+        'friend' => 'Rekomendasi Teman',
+        'community' => 'Komunitas',
+        'event' => 'Acara / Pameran',
+        'website' => 'Website Sagita',
+        'other' => 'Lainnya',
+    ];
+
+    public const SOURCE_UNKNOWN_KEY = 'unknown';
+
+    public const SOURCE_UNKNOWN_LABEL = 'Tanpa keterangan';
+
+    public const SOURCE_ICONS = [
+        'google' => 'bxl-google',
+        'sosmed' => 'bx-share-alt',
+        'friend' => 'bx-user-check',
+        'community' => 'bx-group',
+        'event' => 'bx-calendar-event',
+        'website' => 'bx-globe',
+        'other' => 'bx-dots-horizontal-rounded',
+        'unknown' => 'bx-help-circle',
+    ];
+
+    public static function sourceFilterOptions(): array
+    {
+        return self::SOURCE_LABELS + [self::SOURCE_UNKNOWN_KEY => self::SOURCE_UNKNOWN_LABEL];
+    }
+
+    public static function sourceStats(callable $baseQuery): array
+    {
+        $keys = array_keys(self::SOURCE_LABELS);
+        $stats = [];
+
+        foreach ($keys as $key) {
+            $stats[$key] = $baseQuery()->where('sumber_informasi', $key)->count();
+        }
+
+        $stats[self::SOURCE_UNKNOWN_KEY] = $baseQuery()
+            ->where(function ($query) use ($keys) {
+                $query->whereNull('sumber_informasi')
+                    ->orWhereNotIn('sumber_informasi', $keys);
+            })
+            ->count();
+
+        return $stats;
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -143,6 +192,16 @@ class User extends Authenticatable implements MustVerifyEmail
             'inactive' => 'bg-danger',
             default => 'bg-secondary',
         };
+    }
+
+    public function getSumberInformasiLabelAttribute(): string
+    {
+        return self::SOURCE_LABELS[$this->sumber_informasi] ?? '-';
+    }
+
+    public function latestOrder()
+    {
+        return $this->hasOne(Order::class, 'user_uuid', 'uuid')->latestOfMany('created_at');
     }
 
     public function userPackages()
