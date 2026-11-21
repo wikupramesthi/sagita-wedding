@@ -205,15 +205,14 @@
                 <div class="badge bg-white bg-opacity-25 mb-2 px-3 py-2 rounded-pill">
                     {{ now()->translatedFormat('l, j F Y') }}
                 </div>
-                <h3 class="fw-bold text-white mb-1">Hi, {{ auth()->user()->name }} 🌸</h3>
+                <h3 class="fw-bold text-white mb-1">Halo, {{ auth()->user()->name }}</h3>
                 <p class="text-white-50 mb-0">
-                    Discover useful tips and interesting information today. There are plenty of new things to learn and
-                    explore.
+                    Kelola pesanan, pantau status pembayaran, dan temukan paket wedding terbaik untuk acara Anda.
                 </p>
             </div>
             <div class="col-lg-3 text-lg-end mt-3 mt-lg-0" style="position: relative;z-index: 1;">
                 <a href="{{ route('packages.member') }}" class="btn btn-light fw-bold px-4"><i
-                        class="bi bi-calendar-check me-1"></i> Select Your Plan</a>
+                        class="bi bi-box-seam me-1"></i> Lihat Paket</a>
             </div>
         </div>
     </div>
@@ -292,7 +291,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0" style="color:var(--bs-heading-color);">
-                            Upcoming Events
+                            Event Mendatang
                         </h6>
                     </div>
 
@@ -308,7 +307,7 @@
                                 {{ \Carbon\Carbon::parse($event->tanggal)->format('d F Y') }}
 
                                 @if ($event->waktu_mulai)
-                                · {{ \Carbon\Carbon::parse($event->waktu_mulai)->format('H:i') }}
+                                Â· {{ \Carbon\Carbon::parse($event->waktu_mulai)->format('H:i') }}
                                 @endif
                             </small>
                         </div>
@@ -345,12 +344,12 @@
                             <div class="modal-body">
 
                                 <p class="mb-2">
-                                    <strong>Date:</strong>
+                                    <strong>Tanggal:</strong>
                                     {{ \Carbon\Carbon::parse($event->tanggal)->format('d F Y') }}
                                 </p>
 
                                 <p class="mb-2">
-                                    <strong>Time:</strong>
+                                    <strong>Waktu:</strong>
 
                                     @if ($event->waktu_mulai)
                                     {{ \Carbon\Carbon::parse($event->waktu_mulai)->format('H:i') }}
@@ -364,14 +363,14 @@
                                 </p>
 
                                 <p class="mb-2">
-                                    <strong>Location:</strong>
+                                    <strong>Lokasi:</strong>
                                     {{ $event->lokasi ?? '-' }}
                                 </p>
 
                                 @if ($event->kapasitas)
                                 <p class="mb-2">
-                                    <strong>Capacity:</strong>
-                                    {{ $event->kapasitas }} Members
+                                    <strong>Kapasitas:</strong>
+                                    {{ $event->kapasitas }} orang
                                 </p>
                                 @endif
 
@@ -414,11 +413,11 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <h6 class="fw-bold mb-1" style="color:var(--bs-heading-color);">
-                                Upcoming Courses
+                                Kursus Mendatang
                             </h6>
 
                             <small class="text-secondary">
-                                Art of Living programs
+                                Program Art of Living
                             </small>
                         </div>
 
@@ -465,7 +464,7 @@
                     if ($timing) {
                     $timing = str_ireplace(
                     ['<br>', '<br />', '<br />'],
-                    ' • ',
+                    ' â€¢ ',
                     $timing
                     );
 
@@ -506,7 +505,7 @@
                                     {{ $city }}
 
                                     @if ($teacher)
-                                    &nbsp;•&nbsp;
+                                    &nbsp;â€¢&nbsp;
 
                                     <i class="bi bi-person me-1"></i>
                                     {{ $teacher }}
@@ -533,7 +532,7 @@
                                     @endif
 
                                     @if ($timing)
-                                    &nbsp;•&nbsp;
+                                    &nbsp;â€¢&nbsp;
                                     <i class="bi bi-clock me-1"></i>
                                     {{ $timing }}
                                     @endif
@@ -619,11 +618,11 @@
                         <h6
                             class="fw-semibold mb-1"
                             style="color:var(--bs-heading-color);">
-                            No Upcoming Courses
+                            No Kursus Mendatang
                         </h6>
 
                         <p class="small text-secondary mb-0">
-                            There are no upcoming Art of Living courses.
+                            Belum ada kursus Art of Living mendatang.
                         </p>
 
                     </div>
@@ -657,20 +656,20 @@
 
                 <div class="modal-header">
                     <h5 class="modal-title" id="completeProfileModalLabel">
-                        Complete Your Information
+                        Lengkapi Informasi Anda
                     </h5>
                 </div>
 
                 <div class="modal-body">
 
                     <p class="text-secondary">
-                        Please complete the following information
-                        before continuing.
+                        Mohon lengkapi informasi berikut
+                        sebelum melanjutkan.
                     </p>
 
                     <div class="mb-3">
                         <label for="no_hp" class="form-label">
-                            WhatsApp Number
+                            Nomor WhatsApp
                         </label>
 
                         <input type="text"
@@ -690,21 +689,21 @@
 
                     <div class="mb-3">
                         <label for="sumber_informasi" class="form-label">
-                            How did you hear about us?
+                            Dari mana Anda mengetahui kami?
                         </label>
 
                         <select name="sumber_informasi"
                             id="sumber_informasi"
                             class="form-select @error('sumber_informasi') is-invalid @enderror"
                             required>
-                            <option value="">Select an option</option>
-                            <option value="google">Google Search</option>
-                            <option value="sosmed">Social Media</option>
-                            <option value="friend">Friend / Family</option>
-                            <option value="community">Yoga Community</option>
-                            <option value="event">Yoga Event / Workshop</option>
+                            <option value="">Pilih salah satu</option>
+                            <option value="google">Pencarian Google</option>
+                            <option value="sosmed">Media Sosial</option>
+                            <option value="friend">Teman / Keluarga</option>
+                            <option value="community">Komunitas</option>
+                            <option value="event">Event / Workshop</option>
                             <option value="website">Website</option>
-                            <option value="other">Other</option>
+                            <option value="other">Lainnya</option>
 
                         </select>
 
@@ -719,7 +718,7 @@
 
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary w-100">
-                        Save Information
+                        Simpan Informasi
                     </button>
                 </div>
 

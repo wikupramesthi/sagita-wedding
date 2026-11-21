@@ -38,8 +38,7 @@ class PaymentFlowFeatureTest extends TestCase
         }
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
-        $adminRole = Role::findByName('admin', 'web');
-        $adminRole->syncPermissions(Permission::all());
+        Role::findByName('admin', 'web')->syncPermissions(Permission::all());
         $this->member = User::factory()->create();
         $this->package = Package::create([
             'name' => 'Paket Test',
@@ -116,6 +115,7 @@ class PaymentFlowFeatureTest extends TestCase
         Payment::create([
             'order_uuid' => $order->uuid,
             'payment_type' => 'manual_transfer',
+            'payment_gateway' => 'manual_transfer',
             'kind' => 'dp',
             'status' => 'pending',
             'verification_status' => 'pending',
@@ -132,11 +132,11 @@ class PaymentFlowFeatureTest extends TestCase
 
         $this->actingAs($this->member)
             ->post(route('orders.payments.store', $order->uuid), [
-                'payment_choice' => 'installment20',
+                'amount' => 2000000,
                 'proof' => UploadedFile::fake()->image('i.jpg'),
             ])->assertRedirect();
 
-        $inst = Payment::where('order_uuid', $order->uuid)->where('kind', 'installment')->latest()->firstOrFail();
+        $inst = Payment::where('order_uuid', $order->uuid)->whereIn('verification_status', ['pending'])->latest()->firstOrFail();
         $this->actingAs($this->admin)->post(route('orders.payments.approve', [$order->uuid, $inst->uuid]), ['admin_note' => 'ok'])->assertRedirect();
         $order->refresh();
         $this->assertSame('partially_paid', $order->status);
@@ -144,11 +144,11 @@ class PaymentFlowFeatureTest extends TestCase
 
         $this->actingAs($this->member)
             ->post(route('orders.payments.store', $order->uuid), [
-                'payment_choice' => 'full',
+                'amount' => 5000000,
                 'proof' => UploadedFile::fake()->image('f.jpg'),
             ])->assertRedirect();
 
-        $bal = Payment::where('order_uuid', $order->uuid)->where('kind', 'balance')->latest()->firstOrFail();
+        $bal = Payment::where('order_uuid', $order->uuid)->where('verification_status', 'pending')->latest()->firstOrFail();
         $this->actingAs($this->admin)->post(route('orders.payments.approve', [$order->uuid, $bal->uuid]), ['admin_note' => 'ok'])->assertRedirect();
         $order->refresh();
         $this->assertSame('paid', $order->status);

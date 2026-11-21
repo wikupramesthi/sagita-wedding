@@ -464,53 +464,59 @@ class OrderController extends Controller
         $idempotencyKey = $this->idempotencyKey($request, 'approve', (string) $order);
 
         if ($cachedOrder = $this->cachedIdempotencyResult($idempotencyKey)) {
-            return redirect()
-                ->route('orders.show', $cachedOrder)
-                ->with('success', __('flash.order_approve_ok'));
+            return redirect()->route('orders.show', $cachedOrder)->with('success', __('flash.order_approve_ok'));
         }
-
         if (! $this->beginIdempotency($idempotencyKey)) {
             return back()->with('error', __('flash.order_action_in_progress'));
         }
 
         try {
-            [$order, $userPackage, $stage] = $this->activatePendingOrder(
-                $order,
-                $validated['admin_note'] ?? null
-            );
+            $record = Order::packageOnly()->where('uuid', $order)->firstOrFail();
+            $pendingPayment = Payment::where('order_uuid', $record->uuid)
+                ->where(function ($q) { $q->where('verification_status', 'pending')->orWhere('status', 'pending'); })
+                ->oldest()->first();
+
+            if ($pendingPayment) {
+                [$order] = $this->verifyPendingPayment($record, $pendingPayment, $validated['admin_note'] ?? null);
+            } else {
+                $remaining = (float) $record->remaining_amount_value;
+                if ($remaining <= 0.01) {
+                    $this->finishIdempotency($idempotencyKey, $record->uuid);
+                    return redirect()->route('orders.show', $record->uuid)->with('success', __('flash.order_approve_ok'));
+                }
+                $payment = DB::transaction(function () use ($record, $remaining, $validated) {
+                    $locked = Order::packageOnly()->where('uuid', $record->uuid)->lockForUpdate()->firstOrFail();
+                    $amount = min($remaining, (float) $locked->remaining_amount_value);
+                    $p = Payment::create([
+                        'order_uuid' => $locked->uuid,
+                        'kind' => ((float) $locked->amount_paid_value > 0) ? 'installment' : 'dp',
+                        'payment_gateway' => 'manual_transfer',
+                        'payment_type' => 'Pencatatan Admin',
+                        'amount' => $amount,
+                        'gross_amount' => $amount,
+                        'status' => 'paid',
+                        'verification_status' => 'approved',
+                        'verified_by' => Auth::id(),
+                        'verified_at' => now(),
+                        'paid_at' => now(),
+                        'note' => $validated['admin_note'] ?? 'Dicatat langsung oleh admin.',
+                    ]);
+                    $this->logOrderAction($locked, 'payment_recorded', ['payment_uuid' => $p->uuid, 'amount' => $amount]);
+                    return $p;
+                });
+                [$order] = $this->verifyPendingPayment($record->fresh(), $payment, $validated['admin_note'] ?? null);
+            }
         } catch (ValidationException $e) {
             $this->forgetIdempotency($idempotencyKey);
-
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', collect($e->errors())->flatten()->first() ?: $e->getMessage());
         } catch (Throwable $e) {
             $this->forgetIdempotency($idempotencyKey);
-
             throw $e;
         }
 
         $this->finishIdempotency($idempotencyKey, $order->uuid);
-
-        try {
-            if (in_array($stage, ['dp', 'installment'], true)) {
-                $label = $stage === 'dp' ? 'DP diterima.' : 'Cicilan diterima.';
-                $order->user?->notify(new \App\Notifications\OrderPaymentVerifiedNotification(
-                    $order->uuid, $order->order_number,
-                    $label . ' Sisa pembayaran: Rp ' . number_format((float) $order->remaining_amount_value, 0, ',', '.'),
-                    'bi-cash-coin'
-                ));
-            } elseif ($userPackage) {
-                $order->user?->notify(new MemberActiveNotification($order->uuid, $order->order_number, $userPackage->expired_at));
-            }
-        } catch (Throwable $e) {
-            Log::error('Membership activation notification failed: '.$e->getMessage());
-        }
-
-        $success = match ($stage) {
-            'dp' => 'DP berhasil diverifikasi. Menunggu pelunasan.',
-            'installment' => 'Cicilan berhasil diverifikasi. Menunggu sisa pembayaran.',
-            default => __('flash.order_approve_ok'),
-        };
-        return redirect()->route('orders.show', $order->uuid)->with('success', $success)->with('payment_module_focus', true);
+        $msg = $order->isFullyPaid() ? 'Pembayaran berhasil diterima. Pesanan lunas.' : 'Pembayaran berhasil diterima. Sisa pembayaran: Rp '.number_format((float) $order->remaining_amount_value, 0, ',', '.');
+        return redirect()->route('orders.show', $order->uuid)->with('success', $msg)->with('payment_module_focus', true);
     }
 
     /**
@@ -1006,28 +1012,35 @@ public function rejectPayment(Request $request, string $order, string $payment)
                 $before = Order::packageOnly()->where('uuid', $orderUuid)->first()?->getAttributes() ?? [];
 
                 if ($validated['action'] === 'approve') {
-                    [$order, $userPackage, $stage, $payment] = $this->activatePendingOrder(
-                        $orderUuid,
-                        $validated['admin_note'] ?? null
-                    );
-
-                    try {
-                        if (in_array($stage, ['dp','installment'], true)) {
-                            $msg = $stage === 'dp'
-                                ? 'DP diterima. Sisa pembayaran: Rp ' . number_format((float) $order->remaining_amount_value, 0, ',', '.')
-                                : 'Cicilan diterima. Sisa pembayaran: Rp ' . number_format((float) $order->remaining_amount_value, 0, ',', '.');
-                            $order->user?->notify(new \App\Notifications\OrderPaymentVerifiedNotification($order->uuid, $order->order_number, $msg, 'bi-cash-coin'));
-                        } elseif ($userPackage) {
-                            $order->user?->notify(new MemberActiveNotification($order->uuid, $order->order_number, $userPackage->expired_at));
-                        }
-                    } catch (Throwable $e) {
-                        Log::error('Membership activation notification failed: '.$e->getMessage());
+                    $record = Order::packageOnly()->where('uuid', $orderUuid)->firstOrFail();
+                    $beforeApproval = $record->approval_snapshot;
+                    $pendingPayment = Payment::where('order_uuid', $record->uuid)
+                        ->where(function ($q) { $q->where('verification_status', 'pending')->orWhere('status', 'pending'); })
+                        ->oldest()->first();
+                    if ($pendingPayment) {
+                        [$order] = $this->verifyPendingPayment($record, $pendingPayment, $validated['admin_note'] ?? null);
+                    } else {
+                        $remaining = (float) $record->remaining_amount_value;
+                        if ($remaining <= 0.01) { $berhasil++; continue; }
+                        $payment = DB::transaction(function () use ($record, $remaining, $validated) {
+                            $locked = Order::packageOnly()->where('uuid', $record->uuid)->lockForUpdate()->firstOrFail();
+                            $amount = min($remaining, (float) $locked->remaining_amount_value);
+                            $p = Payment::create([
+                                'order_uuid' => $locked->uuid, 'kind' => ((float)$locked->amount_paid_value>0)?'installment':'dp',
+                                'payment_gateway' => 'manual_transfer', 'payment_type' => 'Pencatatan Admin',
+                                'amount' => $amount, 'gross_amount' => $amount, 'status' => 'paid',
+                                'verification_status' => 'approved', 'verified_by' => Auth::id(), 'verified_at' => now(), 'paid_at' => now(),
+                                'note' => $validated['admin_note'] ?? 'Dicatat langsung oleh admin.',
+                            ]);
+                            $this->logOrderAction($locked, 'payment_recorded', ['payment_uuid' => $p->uuid, 'amount' => $amount]);
+                            return $p;
+                        });
+                        [$order] = $this->verifyPendingPayment($record->fresh(), $payment, $validated['admin_note'] ?? null);
                     }
-
                     $undoSnapshot[] = [
                         'type' => 'approve',
                         'uuid' => $order->uuid,
-                        'snapshot' => $order->approval_snapshot,
+                        'snapshot' => $order->approval_snapshot ?: $beforeApproval,
                     ];
                 } else {
                     $paymentBefore = Payment::where('order_uuid', $orderUuid)
@@ -1952,7 +1965,9 @@ public function rejectPayment(Request $request, string $order, string $payment)
                 $eventDate,
                 $paymentScheme,
                 $schemeLabel,
-                $fullAmount
+                $fullAmount,
+                $bookingFee,
+                $netAmount
             ) {
                 if ($promo) {
                     $claimed = PackagePromo::where('uuid', $promo->uuid)
@@ -1966,52 +1981,32 @@ public function rejectPayment(Request $request, string $order, string $payment)
                     }
                 }
 
-                $bookingFeeAmount = $bookingFee;
-                $dueNow = $bookingFeeAmount + $amount;
+                $bookingFeeAmount = min((int) $bookingFee, (int) $fullAmount);
+                $dueNow = min((int) $fullAmount, $bookingFeeAmount + (int) $amount);
                 $amountPaid = 0;
                 $remainingAmount = max(0, (int) $fullAmount - $amountPaid);
-                $status = $remainingAmount <= 0 ? 'paid' : ($amountPaid > 0 ? 'partially_paid' : 'pending');
+                $status = $remainingAmount <= 0 ? 'paid' : 'pending';
 
                 return Order::create([
-
                     'uuid' => (string) Str::uuid(),
-
                     'user_uuid' => $user->uuid,
-
                     'order_number' => 'ORD-'.strtoupper(Str::random(10)),
-
                     'type' => 'package',
-
                     'package_uuid' => $option->package_uuid,
-
                     'package_option_uuid' => $option->uuid,
-
                     'event_date' => $eventDate->toDateString(),
-
                     'amount' => $dueNow,
-
                     'payment_scheme' => $paymentScheme,
-
                     'total_amount' => $fullAmount,
-
                     'amount_paid' => $amountPaid,
-
                     'remaining_amount' => $remainingAmount,
-
                     'balance_due_at' => $remainingAmount > 0 ? $eventDate->copy()->subDays(30)->startOfDay() : null,
-
                     'status' => $status,
-
                     'expired_at' => now()->addHours(24),
-
                     'paid_at' => null,
-
                     'addons' => $addonSnapshot,
-
                     'promo_code' => $promo?->code,
-
                     'promo_discount' => $discount,
-
                     'promo_snapshot' => [
                         'code' => $promo?->code,
                         'type' => $promo?->type,
@@ -2022,11 +2017,13 @@ public function rejectPayment(Request $request, string $order, string $payment)
                         'full_amount' => $fullAmount,
                         'booking_fee' => $bookingFeeAmount,
                         'net_amount' => $netAmount,
-                        'scheme_due' => $amount,
-                        'due_amount' => $dueNow,
+                        'scheme_due' => (int) $amount,
+                        'due_now' => $dueNow,
                     ],
                 ]);
             });
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (QueryException $e) {
             return back()->with('error', __('flash.order_pending_exists'));
         }

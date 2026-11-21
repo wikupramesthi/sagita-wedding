@@ -76,9 +76,9 @@
                         @if($order->status === 'partially_paid')
                             Verifikasi cicilan/pelunasan untuk <strong>{{ $order->order_number }}</strong>. Sisa saat ini: <strong>Rp {{ number_format((float)$remainingAmount, 0, ',', '.') }}</strong>.
                         @elseif($isDp)
-                            Verifikasi pembayaran <strong>DP</strong> untuk <strong>{{ $order->order_number }}</strong>. Pembayaran yang diterima akan masuk ke modul pembayaran dan riwayat. Keanggotaan aktif otomatis setelah pesanan lunas.
+                            Verifikasi pembayaran <strong>DP</strong> untuk <strong>{{ $order->order_number }}</strong>. Pembayaran yang diterima akan masuk ke modul pembayaran dan riwayat. Pesanan akan diproses otomatis setelah lunas.
                         @else
-                            Verifikasi transfer untuk <strong>{{ $order->order_number }}</strong>. Pembayaran yang diterima akan masuk ke modul pembayaran dan riwayat. Keanggotaan aktif otomatis setelah pesanan lunas.
+                            Verifikasi transfer untuk <strong>{{ $order->order_number }}</strong>. Pembayaran yang diterima akan masuk ke modul pembayaran dan riwayat. Pesanan akan diproses otomatis setelah lunas.
                         @endif
                     </p>
                     <div class="row g-3">
@@ -116,7 +116,7 @@
         @if ($userPackage)
             <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
                 <i class="bi bi-check-circle-fill"></i>
-                <div>Keanggotaan aktif @if ($userPackage->quota === null)(tanpa batas)@else(sisa {{ $userPackage->quota }} kelas)@endif sampai {{ $userPackage->expired_at?->translatedFormat('d F Y') ?? '-' }}.</div>
+                <div>Layanan aktif @if ($userPackage->quota === null)(tanpa batas)@else(sisa {{ $userPackage->quota }} sesi)@endif sampai {{ $userPackage->expired_at?->translatedFormat('d F Y') ?? '-' }}.</div>
             </div>
         @endif
 
@@ -131,13 +131,13 @@
         @if ($order->status === 'pending')
             <div class="card border-primary mb-4 order-detail-payment">
                 <div class="card-header bg-primary bg-opacity-10 fw-bold">
-                    <i class="bi bi-bank me-1"></i> Selesaikan Pembayaran â€” Transfer Manual
+                    <i class="bi bi-bank me-1"></i> Instruksi Pembayaran: Transfer Manual
                 </div>
                 <div class="card-body">
                     <ol class="small mb-3 ps-3">
                         <li>Transfer jumlah yang tertera ke rekening bank kami.</li>
                         <li>Unggah bukti transfer (atau konfirmasi melalui WhatsApp).</li>
-                        <li>Admin akan memverifikasi â€” keanggotaan aktif otomatis setelah disetujui.</li>
+                        <li>Admin akan memverifikasi pembayaran. Pesanan diproses setelah pembayaran disetujui.</li>
                     </ol>
 
                     <div class="alert border small mb-3 bg-white text-dark">
@@ -168,7 +168,7 @@
                                     <i class="bi bi-check-circle me-1"></i>Bukti diunggah
                                 </div>
                                 <div class="text-muted">
-                                    {{ $order->proof_uploaded_at?->translatedFormat('d F Y H:i') ?? '' }} â€” menunggu verifikasi admin.
+                                    {{ $order->proof_uploaded_at?->translatedFormat('d F Y H:i') ?? '' }}. Menunggu verifikasi admin.
                                 </div>
                                 @if ($isOwner)
                                     <div class="text-muted">Unggah ulang di bawah untuk menggantinya.</div>
@@ -370,7 +370,7 @@
                 <div class="receipt-block">
 
                     <div class="receipt-label">
-                        KEANGGOTAAN
+                        LAYANAN
                     </div>
 
                     <div class="membership-row">
@@ -552,7 +552,7 @@
 
                     <span>
                         Terima kasih telah memilih Sagita Wedding Organizer.
-                        Keanggotaan Anda siap dinikmati.
+                        Pesanan Anda siap diproses.
                     </span>
 
                 </div>
@@ -564,20 +564,32 @@
                     <i class="bi bi-info-circle"></i>
 
                     <span>
-                        Pembayaran masih menunggu. Selesaikan pembayaran untuk mengaktifkan keanggotaan Anda.
+                        Pembayaran masih menunggu. Selesaikan pembayaran untuk memulai pemrosesan pesanan Anda.
                     </span>
 
                 </div>
 
                 @endif
+            </div>
+
+        </div>
+    </div>
             <aside class="order-detail-side">
                 <div class="card">
                     <div class="card-header bg-white fw-semibold">Ringkasan Pembayaran</div>
                     <div class="card-body">
+                        @php $paymentPercent = $fullAmount > 0 ? min(100, round(($amountPaid / $fullAmount) * 100)) : 0; @endphp
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted small">Progres pembayaran</span>
+                            <span class="small fw-bold">{{ $paymentPercent }}%</span>
+                        </div>
+                        <div class="progress mb-3" role="progressbar" aria-label="Progres pembayaran" style="height:7px">
+                            <div class="progress-bar {{ $remainingAmount > 0 ? 'bg-primary' : 'bg-success' }}" style="width:{{ $paymentPercent }}%"></div>
+                        </div>
                         <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Skema</span><span class="small fw-semibold">{{ $order->scheme_label ?? $schemeLabel }}</span></div>
                         <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Total paket</span><span class="small fw-semibold">Rp {{ number_format($fullAmount,0,',','.') }}</span></div>
                         <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Sudah dibayar</span><span class="small fw-semibold text-success">Rp {{ number_format($amountPaid,0,',','.') }}</span></div>
-                        <div class="d-flex justify-content-between"><span class="text-muted small">Sisa</span><span class="small fw-semibold {{ $remainingAmount>0?'text-danger':'text-success' }}">Rp {{ number_format($remainingAmount,0,',','.') }}</span></div>
+                        <div class="d-flex justify-content-between pt-2 border-top"><span class="small fw-semibold">Sisa</span><span class="small fw-bold {{ $remainingAmount>0?'text-danger':'text-success' }}">Rp {{ number_format($remainingAmount,0,',','.') }}</span></div>
                         @if($order->balance_due_at)
                         <div class="small text-muted mt-2">Batas pelunasan: {{ $order->balance_due_at->translatedFormat('d M Y') }}</div>
                         @endif
@@ -586,10 +598,10 @@
                 <div class="card">
                     <div class="card-header bg-white fw-semibold">Info Pesanan</div>
                     <div class="card-body small">
-                        <div class="mb-2"><div class="text-muted">Pelanggan</div><div class="fw-semibold">{{ $order->user?->name ?? '-' }}</div></div>
-                        <div class="mb-2"><div class="text-muted">Paket</div><div class="fw-semibold">{{ $order->package?->name ?? '-' }}</div></div>
-                        <div class="mb-2"><div class="text-muted">Tanggal acara</div><div class="fw-semibold">{{ $order->event_date?->translatedFormat('d M Y') ?? '-' }}</div></div>
-                        <div><div class="text-muted">Status</div><span class="badge {{ $order->status==='paid'?'bg-success':($order->status==='partially_paid'?'bg-primary':($order->status==='pending'?'bg-warning text-dark':'bg-secondary')) }}">{{ $statusLabels[$order->status] ?? $order->status }}</span></div>
+                        <div class="d-flex justify-content-between align-items-start mb-3"><span class="text-muted">Pelanggan</span><span class="fw-semibold text-end ms-3">{{ $order->user?->name ?? '-' }}</span></div>
+                        <div class="d-flex justify-content-between align-items-start mb-3"><span class="text-muted">Paket</span><span class="fw-semibold text-end ms-3">{{ $order->package?->name ?? '-' }}</span></div>
+                        <div class="d-flex justify-content-between align-items-start mb-3"><span class="text-muted">Tanggal acara</span><span class="fw-semibold text-end ms-3">{{ $order->event_date?->translatedFormat('d M Y') ?? '-' }}</span></div>
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top"><span class="text-muted">Status</span><span class="badge {{ $order->status==='paid'?'bg-success':($order->status==='partially_paid'?'bg-primary':($order->status==='pending'?'bg-warning text-dark':'bg-secondary')) }}">{{ $statusLabels[$order->status] ?? $order->status }}</span></div>
                     </div>
                 </div>
                 @if($isAdmin)
@@ -615,7 +627,7 @@
 
     .receipt-page {
         min-height: calc(100vh - 100px);
-        padding: 30px 20px 60px;
+        padding: 24px 20px 48px;
         background: var(--bs-body-bg);
     }
 
@@ -627,8 +639,8 @@
 
     .order-detail-layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
-        gap: 22px;
+        grid-template-columns: minmax(0, 1fr) 350px;
+        gap: 24px;
         align-items: start;
     }
 
@@ -636,23 +648,54 @@
         min-width: 0;
     }
 
+    .order-detail-main > .card,
+    .order-detail-main > .alert,
+    .order-detail-main > .receipt-card {
+        margin-bottom: 16px !important;
+    }
+
     .order-detail-side {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
+        position: sticky;
+        top: 24px;
     }
 
     .order-detail-side .card {
         border: 1px solid var(--bs-border-color);
         border-radius: 14px;
-        box-shadow: 0 8px 24px rgba(16,24,40,.05);
+        box-shadow: 0 10px 28px rgba(16,24,40,.06);
         overflow: hidden;
+        margin-bottom: 0 !important;
     }
 
     .order-detail-side .card-header {
         border-bottom: 1px solid var(--bs-border-color);
+        padding: 15px 18px;
         font-size: 13px;
         letter-spacing: .01em;
+    }
+
+    .order-detail-side .card-body {
+        padding: 16px 18px;
+    }
+
+    .order-detail-main > .card {
+        border-radius: 16px;
+        border: 1px solid var(--bs-border-color);
+        box-shadow: 0 10px 28px rgba(16,24,40,.05);
+        overflow: hidden;
+    }
+
+    .order-detail-main > .card > .card-header {
+        min-height: 58px;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .order-detail-main > .card > .card-body {
+        padding: 20px;
     }
 
     .order-detail-eyebrow {
@@ -689,14 +732,73 @@
     .order-status-pill.status-cancelled { background: #fef3f2; color: #b42318; }
 
     .print-button-primary {
-        background: var(--bs-primary);
-        border-color: var(--bs-primary);
-        color: #fff;
+        background: #2563eb !important;
+        border-color: #2563eb !important;
+        color: #fff !important;
     }
 
     .print-button-primary:hover {
         color: #fff;
-        filter: brightness(.95);
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+        filter: none;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, .22);
+    }
+
+    .order-detail-main .btn-success,
+    .order-detail-side .btn-outline-success,
+    .receipt-topbar a[href*="whatsapp"] {
+        background: #16a34a;
+        border-color: #16a34a;
+        color: #fff;
+    }
+
+    .order-detail-main .btn-success:hover,
+    .order-detail-side .btn-outline-success:hover,
+    .receipt-topbar a[href*="whatsapp"]:hover {
+        background: #15803d;
+        border-color: #15803d;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(22, 163, 74, .18);
+    }
+
+    .order-detail-main .btn-primary,
+    .order-detail-main button[type="submit"].btn-primary {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: #fff;
+    }
+
+    .order-detail-main .btn-primary:hover,
+    .order-detail-main button[type="submit"].btn-primary:hover {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, .20);
+    }
+
+    .order-detail-main .btn-outline-danger {
+        border-width: 1.5px;
+        border-color: #dc2626;
+        color: #dc2626;
+    }
+
+    .order-detail-main .btn-outline-danger:hover {
+        background: #dc2626;
+        border-color: #dc2626;
+        color: #fff;
+    }
+
+    .order-detail-side .btn-outline-primary {
+        border-width: 1.5px;
+        border-color: #2563eb;
+        color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .order-detail-side .btn-outline-primary:hover {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: #fff;
     }
 
     .proof-thumb {
@@ -716,7 +818,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 18px;
+        margin-bottom: 16px;
+        padding: 12px 14px;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 14px;
+        background: var(--bs-body-bg);
+        box-shadow: 0 8px 24px rgba(16,24,40,.04);
     }
 
     .back-link {
@@ -1198,6 +1305,12 @@
 
         .order-detail-side {
             order: 2;
+            position: static;
+        }
+
+        .receipt-topbar {
+            align-items: flex-start;
+            gap: 12px;
         }
     }
 
