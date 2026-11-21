@@ -100,6 +100,7 @@ class PackageWeddingFeatureTest extends TestCase
             'name' => $name,
             'slug' => $slug,
             'description' => 'Paket layanan wedding organizer.',
+            'price' => $price,
             'guest_capacity' => $guestCapacity,
             'event_duration_hours' => 6,
             'venue_note' => 'Jakarta Selatan dan sekitarnya',

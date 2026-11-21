@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Class\ClassModel;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
@@ -22,7 +21,6 @@ class SiteStatsController extends Controller
                 return [
                     'members' => User::role('user')->count(),
                     'vendors' => User::role('vendor')->count(),
-                    'classes' => ClassModel::query()->where('is_active', 'active')->count(),
                 ];
             });
 

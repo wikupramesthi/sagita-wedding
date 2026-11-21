@@ -5,9 +5,6 @@ use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CheckoutController;
-use App\Http\Controllers\Admin\ClassBookingController;
-use App\Http\Controllers\Admin\ClassController;
-use App\Http\Controllers\Admin\ClassScheduleController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmailSettingController;
@@ -15,7 +12,6 @@ use App\Http\Controllers\Admin\EventsController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\FileDownloadController;
 use App\Http\Controllers\Admin\GlobalSearchController;
-use App\Http\Controllers\Admin\MemberScheduleController;
 use App\Http\Controllers\Admin\MembershipController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderController;
@@ -240,29 +236,10 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::get('/packages/{package}/preview', [PackageController::class, 'preview'])->name('packages.preview');
     Route::resource('packages', PackageController::class);
     Route::resource('venues', VenueController::class)->except(['show']);
-    Route::resource('classes', ClassController::class)->except(['show']);
-    Route::patch(
-        '/classes/{uuid}/level',
-        [ClassController::class, 'changeLevel']
-    )->name('classes.change-level');
-    Route::get(
-        '/class-schedules/print',
-        [ClassScheduleController::class, 'print']
-    )->name('class-schedules.print');
-    Route::get('/checkout/package/{packageUuid}', [
+Route::get('/checkout/package/{packageUuid}', [
         CheckoutController::class,
         'package',
     ])->name('checkout.package');
-    Route::get('/schedules', [
-        MemberScheduleController::class,
-        'index',
-    ])->name('schedules.index');
-    Route::get('/my-bookings', [
-        MemberScheduleController::class,
-        'bookings',
-    ])->name('bookings.my');
-
-    Route::resource('class-schedules', ClassScheduleController::class);
     Route::get('orders/report', [OrderController::class, 'report'])->name('orders.report');
     Route::get('orders/export-pdf', [OrderController::class, 'exportPdf'])->name('orders.exportPdf');
     Route::get('orders/export-csv', [OrderController::class, 'exportCsv'])->name('orders.exportCsv');
@@ -283,6 +260,9 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::get('orders/{order}/whatsapp', [OrderController::class, 'whatsapp'])->name('orders.whatsapp');
     Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
     Route::post('orders/{order}/reject', [OrderController::class, 'reject'])->name('orders.reject');
+    Route::post('orders/{order}/payments', [OrderController::class, 'submitPayment'])->name('orders.payments.store')->middleware('throttle:10,1');
+    Route::post('orders/{order}/payments/{payment}/approve', [OrderController::class, 'approvePayment'])->name('orders.payments.approve');
+    Route::post('orders/{order}/payments/{payment}/reject', [OrderController::class, 'rejectPayment'])->name('orders.payments.reject');
     Route::get('orders/{order}/proof', [OrderController::class, 'showProof'])->name('orders.proof.show');
     Route::post('orders/{order}/proof', [OrderController::class, 'uploadProof'])->name('orders.proof')->middleware('throttle:10,1');
     Route::resource('orders', OrderController::class)
@@ -293,16 +273,6 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
         ->name('orders.reorder')->middleware('throttle:10,1');
     Route::resource('memberships', MembershipController::class)
         ->only(['index', 'show']);
-    Route::resource('class-bookings', ClassBookingController::class)
-        ->only(['index']);
-    Route::get('class-bookings/scan', [ClassBookingController::class, 'scan'])->name('class-bookings.scan');
-    Route::get('class-bookings/lookup', [ClassBookingController::class, 'lookup'])->name('class-bookings.lookup');
-    Route::post('class-bookings', [ClassBookingController::class, 'store'])
-        ->name('class-bookings.store')->middleware('throttle:120,1');
-    Route::post('class-bookings/{booking}/check-in', [ClassBookingController::class, 'checkin'])->name('class-bookings.checkin')->middleware('throttle:120,1');
-    Route::post('class-bookings/{booking}/cancel', [ClassBookingController::class, 'cancel'])->name('class-bookings.cancel')->middleware('throttle:120,1');
-    Route::post('class-bookings/{booking}/rate', [ClassBookingController::class, 'rate'])->name('class-bookings.rate')->middleware('throttle:30,1');
-    Route::post('class-bookings/direct-check-in', [ClassBookingController::class, 'directCheckin'])->name('class-bookings.directCheckin')->middleware('throttle:120,1');
     // end payment
 
     Route::get('konsultasi/pdf/preview', [ConsultationController::class, 'pdfPreview'])->name('konsultasi.pdf-preview');

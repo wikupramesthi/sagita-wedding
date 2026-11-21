@@ -31,7 +31,6 @@
                 <a href="{{ route('articles.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-file-earmark-plus me-1"></i> Tambah artikel</a>
                 <a href="{{ route('banner.create') }}" class="btn btn-sm btn-info"><i class="bi bi-image me-1"></i> Upload banner</a>
                 <a href="{{ route('events.create') }}" class="btn btn-sm btn-success"><i class="bi bi-calendar-plus me-1"></i> Buat event</a>
-                <a href="{{ route('class-bookings.scan') }}" class="btn btn-sm btn-warning"><i class="bi bi-qr-code-scan me-1"></i> Scan QR</a>
                 @if ($canViewConsultations)
                     <a href="{{ route('konsultasi.index') }}" class="btn btn-sm btn-primary"><i class="bi bi-diagram-3 me-1"></i> Konsultasi</a>
                 @endif
@@ -473,53 +472,34 @@
             @endif
         </div>
 
-        <div class="row g-4">
+                <div class="row g-4">
             <div class="col-lg-8">
                 <div class="card h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                        <h5 class="card-title h6 mb-0">Jadwal hari ini</h5>
-                        <a href="{{ route('class-bookings.index', ['status' => 'confirmed', 'date' => now()->toDateString()]) }}" class="small text-decoration-none text-primary fw-semibold">Check-in booking</a>
+                        <h5 class="card-title h6 mb-0">Pesanan terbaru</h5>
+                        <a href="{{ route('orders.index') }}" class="small text-decoration-none text-primary fw-semibold">Lihat semua</a>
                     </div>
                     <div class="card-body table-responsive">
-                        @if ($todaySchedules->count())
+                        @if (($recentOrders ?? collect())->count())
                             <table class="table align-middle mb-0">
-                                <thead>
-                                    <tr><th>Kelas</th><th>Waktu</th><th>Vendor</th><th>Level</th><th>Peserta</th><th>Aksi</th></tr>
-                                </thead>
+                                <thead><tr><th>Pesanan</th><th>Pelanggan</th><th>Status</th><th>Total</th></tr></thead>
                                 <tbody>
-                                    @foreach ($todaySchedules as $schedule)
+                                    @foreach ($recentOrders as $ro)
                                         <tr>
-                                            <td class="fw-semibold">{{ $schedule->class->name ?? '-' }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }}</td>
-                                            <td>{{ $schedule->class->vendor->name ?? '-' }}</td>
-                                            <td><span class="badge bg-light-secondary">{{ $schedule->class->level ?? '-' }}</span></td>
-                                            <td>
-                                                @if (($schedule->bookings_count ?? 0) >= ($schedule->capacity ?? PHP_INT_MAX))
-                                                    <span class="badge bg-light-danger">Penuh</span>
-                                                @else
-                                                    <span class="badge bg-light-success">{{ $schedule->bookings_count ?? 0 }} / {{ $schedule->capacity ?? '∞' }}</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <a href="{{ route('class-bookings.index', ['status' => 'confirmed', 'date' => now()->toDateString()]) }}" class="btn btn-sm btn-outline-primary" title="Check-in peserta">
-                                                    <i class="bi bi-qr-code-scan"></i>
-                                                </a>
-                                            </td>
+                                            <td class="fw-semibold"><a href="{{ route('orders.show', $ro->uuid) }}" class="text-decoration-none">{{ $ro->order_number }}</a></td>
+                                            <td>{{ $ro->user->name ?? '-' }}</td>
+                                            <td><span class="badge bg-light-secondary">{{ $ro->status }}</span></td>
+                                            <td>Rp {{ number_format((float)($ro->total_amount ?: $ro->amount),0,',','.') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         @else
-                            <div class="text-center text-muted py-4">
-                                <i class="bi bi-calendar-x fs-2 d-block mb-2 opacity-50"></i>
-                                <p class="mb-0 fw-semibold">Tidak ada kelas hari ini</p>
-                                <p class="small mb-0"><a href="{{ route('class-schedules.create') }}">Buat jadwal baru</a></p>
-                            </div>
+                            <div class="text-center text-muted py-4"><i class="bi bi-receipt fs-2 d-block mb-2 opacity-50"></i><p class="mb-0 fw-semibold">Belum ada pesanan</p></div>
                         @endif
                     </div>
                 </div>
             </div>
-
             <div class="col-lg-4">
                 <div class="card h-100">
                     <div class="card-header bg-transparent"><h5 class="card-title h6 mb-0">Acara mendatang</h5></div>

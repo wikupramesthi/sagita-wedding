@@ -2,8 +2,6 @@
 
 namespace App\Models\Payment;
 
-use App\Models\Class\ClassBooking;
-use App\Models\Class\ClassSchedule;
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
 use App\Models\User;
@@ -32,13 +30,13 @@ class Order extends Model
         'package_uuid',
         'package_option_uuid',
         'event_date',
-        'class_schedule_uuid',
         'amount',
         'payment_scheme',
         'total_amount',
         'amount_paid',
         'remaining_amount',
         'balance_due_at',
+        'balance_reminder_sent_at',
         'status',
         'expired_at',
         'paid_at',
@@ -61,6 +59,7 @@ class Order extends Model
         'amount_paid' => 'decimal:2',
         'remaining_amount' => 'decimal:2',
         'balance_due_at' => 'datetime',
+        'balance_reminder_sent_at' => 'datetime',
         'event_date' => 'date',
         'expired_at' => 'datetime',
         'paid_at' => 'datetime',
@@ -143,11 +142,6 @@ class Order extends Model
         return $this->belongsTo(PackageOption::class, 'package_option_uuid', 'uuid');
     }
 
-    public function schedule(): BelongsTo
-    {
-        return $this->belongsTo(ClassSchedule::class, 'class_schedule_uuid', 'uuid');
-    }
-
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class, 'order_uuid', 'uuid')->latestOfMany('created_at');
@@ -156,11 +150,6 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'order_uuid', 'uuid');
-    }
-
-    public function booking(): HasOne
-    {
-        return $this->hasOne(ClassBooking::class, 'order_uuid', 'uuid');
     }
 
     public function proofUrl(): ?string
@@ -224,6 +213,22 @@ class Order extends Model
 
     public function hasOutstandingBalance(): bool
     {
-        return $this->remaining_amount_value > 0.01 && in_array($this->status, ['pending', 'partially_paid', 'paid'], true);
+        return $this->remaining_amount_value > 0.01 && in_array($this->status, ['pending', 'partially_paid'], true);
+    }
+
+    public function pendingVerificationPayment()
+    {
+        return $this->hasOne(Payment::class, 'order_uuid', 'uuid')
+            ->where(function ($q) {
+                $q->where('verification_status', 'pending')->orWhere('status', 'pending');
+            })->latestOfMany('created_at');
+    }
+
+    public function verifiedPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'order_uuid', 'uuid')
+            ->where(function ($q) {
+                $q->where('verification_status', 'verified')->orWhere('status', 'paid');
+            })->orderBy('paid_at')->orderBy('created_at');
     }
 }

@@ -61,15 +61,24 @@
             <aside class="order-detail-side">
 
         {{-- Admin verification (manual transfer) --}}
-        @if ($isAdmin && $order->status === 'pending')
+        @php
+            $pendingPayment = $order->payments->firstWhere('verification_status', 'pending') ?? $order->payments->firstWhere('status', 'pending');
+            $hasPendingVerification = $pendingPayment || ($order->proof_image_path && in_array($order->status, ['pending','partially_paid'], true));
+        @endphp
+        @if ($isAdmin && $hasPendingVerification && in_array($order->status, ['pending','partially_paid']))
             <div class="card border-warning mb-4">
                 <div class="card-header bg-warning bg-opacity-10 fw-bold">
                     <i class="bi bi-shield-check me-1"></i> Verifikasi Admin
                 </div>
                 <div class="card-body">
                     <p class="text-muted small">
-                        Verifikasi transfer bank manual untuk <strong>{{ $order->order_number }}</strong>.
-                        Menyetujui akan menandai pesanan lunas dan mengaktifkan keanggotaan secara otomatis.
+                        @if($order->status === 'partially_paid')
+                            Verifikasi pembayaran cicilan/pelunasan untuk <strong>{{ $order->order_number }}</strong>. Sisa saat ini: <strong>Rp {{ number_format((float)$remainingAmount, 0, ',', '.') }}</strong>.
+                        @elseif($isDp)
+                            Verifikasi pembayaran <strong>DP</strong> untuk <strong>{{ $order->order_number }}</strong>. Menyetujui DP akan mencatat pembayaran dan <strong>belum</strong> mengaktifkan keanggotaan sampai lunas.
+                        @else
+                            Verifikasi transfer untuk <strong>{{ $order->order_number }}</strong>. Menyetujui akan mencatat pembayaran dan mengaktifkan keanggotaan jika sudah lunas.
+                        @endif
                     </p>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -80,11 +89,12 @@
                                 <textarea name="admin_note" id="approveNote" rows="2" class="form-control mb-2"
                                     placeholder="mis. Transfer terverifikasi, BCA ...1234"></textarea>
                                 <button type="submit" class="btn btn-success w-100">
-                                    <i class="bi bi-check-lg me-1"></i> Setujui — Tandai Lunas
+                                    <i class="bi bi-check-lg me-1"></i> Setujui
                                 </button>
                             </form>
                         </div>
                         <div class="col-md-6">
+                            @if($order->status === 'pending')
                             <form action="{{ route('orders.reject', $order->uuid) }}" method="POST" data-orders-decision>
                                 @csrf
                                 <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
@@ -96,6 +106,9 @@
                                     <i class="bi bi-x-lg me-1"></i> Tolak Pesanan
                                 </button>
                             </form>
+                            @else
+                            <div class="alert alert-info small mb-0"><i class="bi bi-info-circle me-1"></i>Pesanan sudah memiliki pembayaran terverifikasi. Tolak otomatis dinonaktifkan; gunakan penyesuaian manual bila diperlukan.</div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -342,6 +355,69 @@
             </div>
         @endif
 
+
+        {{-- Payment module --}}
+        <div class="card border-0 shadow-sm mb-4" id="payment-module">
+            <div class="card-header bg-transparent fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-cash-stack me-1"></i> Modul Pembayaran</span>
+                <span class="badge bg-light text-dark">{{ $schemeLabel }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4"><div class="p-3 rounded-3 bg-light"><div class="small text-muted">Total Paket</div><div class="fw-bold">Rp {{ number_format($fullAmount,0,',','.') }}</div></div></div>
+                    <div class="col-md-4"><div class="p-3 rounded-3 bg-light"><div class="small text-muted">Sudah Dibayar</div><div class="fw-bold text-success">Rp {{ number_format($amountPaid,0,',','.') }}</div></div></div>
+                    <div class="col-md-4"><div class="p-3 rounded-3 bg-light"><div class="small text-muted">Sisa</div><div class="fw-bold {{ $remainingAmount>0?'text-danger':'text-success' }}">Rp {{ number_format($remainingAmount,0,',','.') }}</div>@if($order->balance_due_at)<div class="small text-muted">Batas pelunasan: {{ $order->balance_due_at->translatedFormat('d M Y') }}</div>@endif</div></div>
+                </div>
+
+                @if($isOwner && $order->status === 'partially_paid')
+                    @php $pendingPayment = $order->payments->firstWhere('verification_status', 'pending') ?? $order->payments->firstWhere('status', 'pending'); $hasPendingPayment = (bool)$pendingPayment; $minInstallment = min($remainingAmount, round($fullAmount * 0.20, 2)); @endphp
+                    @if($hasPendingPayment)
+                        <div class="alert alert-warning small">Bukti pembayaran Rp {{ number_format((float)($pendingPayment->amount ?? $pendingPayment->gross_amount),0,',','.') }} sedang menunggu verifikasi admin.</div>
+                    @else
+                        <form action="{{ route('orders.payments.store', $order->uuid) }}" method="POST" enctype="multipart/form-data" class="border rounded-3 p-3 mb-3">
+                            @csrf
+                            <div class="fw-semibold mb-2">Bayar Cicilan / Pelunasan</div>
+                            <div class="d-flex flex-wrap gap-3 mb-2 small">
+                                <label class="form-check"><input class="form-check-input" type="radio" name="payment_choice" value="installment20" checked> <span class="form-check-label">Bayar 20% (Rp {{ number_format($minInstallment,0,',','.') }})</span></label>
+                                <label class="form-check"><input class="form-check-input" type="radio" name="payment_choice" value="full"> <span class="form-check-label">Lunas sisa (Rp {{ number_format($remainingAmount,0,',','.') }})</span></label>
+                            </div>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-8"><input type="file" name="proof" class="form-control" accept="image/jpeg,image/png,image/webp" required></div>
+                                <div class="col-md-4"><button class="btn btn-primary w-100"><i class="bi bi-upload me-1"></i>Kirim Bukti</button></div>
+                            </div>
+                        </form>
+                    @endif
+                @endif
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Tanggal</th><th>Jenis</th><th>Nominal</th><th>Status</th><th>Bukti</th><th>Aksi</th></tr></thead>
+                        <tbody>
+                        @forelse($order->payments->sortByDesc('created_at') as $p)
+                            @php $pStatus = $p->verification_status ?: $p->status; @endphp
+                            <tr>
+                                <td>{{ ($p->paid_at ?: $p->created_at)?->format('d/m/Y H:i') }}</td>
+                                <td>{{ ucfirst($p->kind ?: 'payment') }}</td>
+                                <td>Rp {{ number_format((float)($p->amount ?? $p->gross_amount),0,',','.') }}</td>
+                                <td><span class="badge {{ $pStatus==='verified'||$p->status==='paid'?'bg-success':($pStatus==='pending'?'bg-warning text-dark':'bg-danger') }}">{{ $pStatus }}</span></td>
+                                <td>@if($p->proof_image_path)<a href="{{ asset('storage/'.$p->proof_image_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Lihat</a>@endif</td>
+                                <td>
+                                    @if($isAdmin && $pStatus === 'pending')
+                                        <form action="{{ route('orders.payments.approve', [$order->uuid, $p->uuid]) }}" method="POST" class="d-inline">@csrf<button class="btn btn-sm btn-success">Setujui</button></form>
+                                        <form action="{{ route('orders.payments.reject', [$order->uuid, $p->uuid]) }}" method="POST" class="d-inline">@csrf<input type="hidden" name="admin_note" value="Bukti tidak valid"><button class="btn btn-sm btn-outline-danger" onclick="return confirm('Tolak pembayaran ini?')">Tolak</button></form>
+                                    @elseif($p->note)
+                                        <span class="small text-muted">{{ $p->note }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="text-center text-muted small">Belum ada riwayat pembayaran.</td></tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
         {{-- Receipt --}}
         <div class="receipt-card">

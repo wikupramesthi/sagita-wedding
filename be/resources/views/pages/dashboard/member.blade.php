@@ -240,8 +240,8 @@
         </div>
         <div class="col-6 col-lg-3 col-md-6">
             <div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat">
-                <div class="ml-stat-icon ic-violet"><i class="bx bx-dumbbell"></i></div>
-                <div><div class="ml-stat-value">{{ $totalClasses }}</div><div class="ml-stat-label">Total Classes</div></div>
+                <div class="ml-stat-icon ic-violet"><i class="bx bx-package"></i></div>
+                <div><div class="ml-stat-value">{{ $totalPackages ?? 0 }}</div><div class="ml-stat-label">Total Packages</div></div>
             </div></div></div>
         </div>
     </div>
@@ -254,93 +254,26 @@
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0" style="color:var(--bs-heading-color);">
-                            Upcoming Classes
+                            Paket Rekomendasi
                         </h6>
                     </div>
-
-                    @forelse($upcomingClasses as $schedule)
-                    @php
-                    $class = $schedule->class;
-                    $vendor = $class?->vendor;
-                    @endphp
-
-                    <div class="py-3 border-bottom">
-                        <div class="d-flex align-items-center gap-3">
-
-                            {{-- Vendor Photo --}}
-                            <div class="avatar avatar-md flex-shrink-0">
-                                <img src="{{ $vendor?->avatar
-                                            ? (Str::startsWith($vendor->avatar, 'http')
-                                                ? $vendor->avatar
-                                                : asset('storage/' . $vendor->avatar))
-                                            : asset('dist/assets/images/avatar.jpg') }}"
-                                    alt="{{ $vendor?->name ?? 'Vendor' }}"
-                                    class="img-thumbnail rounded-circle">
-                            </div>
-
-                            {{-- Class Information --}}
-                            <div class="flex-grow-1">
-
-                                <div class="fw-bold" style="color:var(--bs-heading-color);">
-                                    {{ $class?->name ?? 'Class unavailable' }}
-
-                                    @if ($class?->level)
-                                    — Level {{ ucfirst($class->level) }}
-                                    @endif
-                                </div>
-
-                                <div class="small text-secondary mt-1">
-                                    <i class="bi bi-person me-1"></i>
-                                    {{ $vendor?->name ?? 'No Vendor' }}
-                                </div>
-
-                                <div class="small text-secondary mt-1">
-                                    <i class="bi bi-calendar3 me-1"></i>
-                                    {{ ucfirst($schedule->day) }}
-
-                                    &nbsp;•&nbsp;
-
-                                    <i class="bi bi-clock me-1"></i>
-                                    {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }}
-                                    –
-                                    {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}
-                                </div>
-
-                            </div>
-
-                            <a href="#" class="btn btn-primary d-none d-md-inline-block">
-                                View Class
-                            </a>
-
-                        </div>
-
-                        <a href="#" class="btn btn-primary w-100 d-md-none mt-3">
-                            View Class
-                        </a>
-                    </div>
-
-                    @empty
 
                     <div class="text-center py-5">
                         <div class="mb-3">
-                            <i class="bi bi-calendar2-week"
+                            <i class="bi bi-box-seam"
                                 style="font-size: 2rem; color: var(--bs-secondary-color);"></i>
                         </div>
-
                         <h6 class="fw-semibold mb-1" style="color: var(--bs-heading-color);">
-                            No Upcoming Classes
+                            Temukan Paket Wedding
                         </h6>
-
                         <p class="small text-secondary mb-3">
-                            You don't have any upcoming classes yet.
+                            Jelajahi paket yang sesuai kebutuhan acara Anda.
                         </p>
-
-                        <a href="{{ route('schedules.index') }}" class="btn btn-sm btn-dark rounded-3 px-3">
+                        <a href="{{ route('packages.member') }}" class="btn btn-sm btn-dark rounded-3 px-3">
                             <i class="bi bi-search me-1"></i>
-                            Browse Classes
+                            Lihat Paket
                         </a>
                     </div>
-                    @endforelse
 
                 </div>
             </div>

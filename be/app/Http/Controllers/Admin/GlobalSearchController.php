@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
-use App\Models\Class\ClassModel;
 use App\Models\Event;
 use App\Models\Faq;
 use App\Models\Package\Package;
@@ -52,10 +51,6 @@ class GlobalSearchController extends Controller
 
         foreach (Event::where('judul', 'like', $like)->limit(self::PER_GROUP)->get(['uuid', 'judul', 'tanggal']) as $e) {
             $push('Event', $e->judul, $e->tanggal, route('events.edit', $e->uuid));
-        }
-
-        foreach (ClassModel::where('name', 'like', $like)->limit(self::PER_GROUP)->get(['uuid', 'name']) as $c) {
-            $push('Kelas', $c->name, null, route('classes.edit', $c->uuid));
         }
 
         foreach (Package::where('name', 'like', $like)->limit(self::PER_GROUP)->get(['uuid', 'name']) as $p) {

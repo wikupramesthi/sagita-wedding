@@ -74,8 +74,8 @@
             </div>
             <div class=" col-4">
                 <div class="app-card py-3">
-                    <p class="mb-0 fw-semibold text-sage">{{ $totalClasses }}</p>
-                    <p class="mb-0 text-muted2 text-small">{{ __('mobile.classes') }}</p>
+                    <p class="mb-0 fw-semibold text-sage">{{ $totalPackages ?? 0 }}</p>
+                    <p class="mb-0 text-muted2 text-small">Paket</p>
                 </div>
             </div>
             <div class="col-4">
@@ -256,26 +256,7 @@
 
                             @php $myBooking = ($myBookings ?? collect())->get($schedule->uuid . '|' . ($todayDate ?? now()->format('Y-m-d'))); @endphp
 
-                            @if ($myBooking && $myBooking->status === 'attended')
-                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis">{{ __('mobile.done') }}</span>
-                            @elseif ($myBooking && $myBooking->status === 'waiting_list')
-                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">{{ __('mobile.waiting') }}</span>
-                            @elseif ($myBooking && $myBooking->status === 'confirmed')
-                            <form action="{{ route('class-bookings.checkin', $myBooking->uuid) }}" method="POST" class="m-0">
-                                @csrf
-                                <button type="submit" class="btn btn-warm btn-sm text-nowrap">{{ __('mobile.check_in') }}</button>
-                            </form>
-                            @elseif (!empty($activePackage))
-                            <form action="{{ route('class-bookings.store') }}" method="POST" class="m-0">
-                                @csrf
-                                <input type="hidden" name="class_schedule_uuid" value="{{ $schedule->uuid }}">
-                                <input type="hidden" name="booking_date" value="{{ $todayDate ?? now()->format('Y-m-d') }}">
-                                <input type="hidden" name="checkin" value="1">
-                                <button type="submit" class="btn btn-warm btn-sm text-nowrap">{{ $remaining <= 0 ? __('mobile.waitlist') : __('mobile.book_and_in') }}</button>
-                            </form>
-                            @else
-                            <a href="{{ route('packages.member') }}" class="btn btn-sm btn-outline-secondary text-nowrap">{{ __('mobile.join') }}</a>
-                            @endif
+
                 </div>
 
             </div>
@@ -365,22 +346,7 @@
                     </div>
                     @php $upBooking = ($myBookings ?? collect())->get($schedule->uuid . '|' . ($tomorrowDate ?? now()->addDay()->format('Y-m-d'))); @endphp
 
-                    @if ($upBooking && $upBooking->status === 'attended')
-                    <span class="badge rounded-pill bg-success-subtle text-success-emphasis flex-shrink-0">{{ __('mobile.done') }}</span>
-                    @elseif ($upBooking && $upBooking->status === 'waiting_list')
-                    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis flex-shrink-0">{{ __('mobile.waiting') }}</span>
-                    @elseif ($upBooking && $upBooking->status === 'confirmed')
-                    <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis flex-shrink-0">{{ __('mobile.booked') }}</span>
-                    @elseif (!empty($activePackage))
-                    <form action="{{ route('class-bookings.store') }}" method="POST" class="m-0 flex-shrink-0">
-                        @csrf
-                        <input type="hidden" name="class_schedule_uuid" value="{{ $schedule->uuid }}">
-                        <input type="hidden" name="booking_date" value="{{ $tomorrowDate ?? now()->addDay()->format('Y-m-d') }}">
-                        <button type="submit" class="btn-pill flex-shrink-0">{{ __('mobile.join') }}</button>
-                    </form>
-                    @else
-                    <a href="{{ route('packages.member') }}" class="btn-pill flex-shrink-0 text-decoration-none text-center">{{ __('mobile.join') }}</a>
-                    @endif
+
 
                 </div>
 

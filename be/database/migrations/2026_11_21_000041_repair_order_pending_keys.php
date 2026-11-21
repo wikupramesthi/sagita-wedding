@@ -20,6 +20,11 @@ return new class extends Migration
             })
             ->update(['pending_key' => null]);
 
+        DB::table('orders')
+            ->where('type', 'package')
+            ->where('status', 'pending')
+            ->update(['pending_key' => null]);
+
         $pendingOrders = DB::table('orders')
             ->where('type', 'package')
             ->where('status', 'pending')
@@ -34,12 +39,10 @@ return new class extends Migration
             $key = $order->user_uuid . '|' . $order->package_option_uuid;
 
             if (isset($seenKeys[$key])) {
-                DB::table('orders')->where('uuid', $order->uuid)->update(['pending_key' => null]);
-
                 continue;
             }
 
-            $seenKeys[$key] = $order->uuid;
+            $seenKeys[$key] = true;
             DB::table('orders')->where('uuid', $order->uuid)->update(['pending_key' => $key]);
         }
 

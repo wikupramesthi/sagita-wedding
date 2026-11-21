@@ -24,10 +24,6 @@ class MembershipSeeder extends Seeder
         $adminPermissions = [
             'memberships.index',
             'memberships.show',
-            'class-bookings.index',
-            'class-bookings.store',
-            'class-bookings.checkin',
-            'class-bookings.cancel',
             'orders.approve',
             'orders.reject',
             'orders.proof',
@@ -44,10 +40,6 @@ class MembershipSeeder extends Seeder
         $memberPermissions = [
             'memberships.index',
             'memberships.show',
-            'class-bookings.index',
-            'class-bookings.store',
-            'class-bookings.checkin',
-            'class-bookings.cancel',
             'orders.proof',
         ];
 
@@ -67,7 +59,6 @@ class MembershipSeeder extends Seeder
 
         $items = [
             ['name' => 'All Members', 'route' => 'memberships.index', 'permission_name' => 'memberships.index', 'position' => 1],
-            ['name' => 'Bookings', 'route' => 'class-bookings.index', 'permission_name' => 'class-bookings.index', 'position' => 2],
         ];
 
         foreach ($items as $item) {
@@ -88,11 +79,6 @@ class MembershipSeeder extends Seeder
         $routes = [
             'memberships.index' => 'memberships.index',
             'memberships.show' => 'memberships.show',
-            'class-bookings.index' => 'class-bookings.index',
-            'class-bookings.store' => 'class-bookings.store',
-            'class-bookings.checkin' => 'class-bookings.checkin',
-            'class-bookings.cancel' => 'class-bookings.cancel',
-            'class-bookings.directCheckin' => 'class-bookings.checkin',
             'orders.approve' => 'orders.approve',
             'orders.reject' => 'orders.reject',
             'orders.proof' => 'orders.proof',

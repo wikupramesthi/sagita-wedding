@@ -1,7 +1,6 @@
 <?php
 
 use App\Notifications\BookingMissedNotification;
-use App\Notifications\BookingReminderNotification;
 use App\Notifications\LoginAnehNotification;
 use App\Notifications\MemberActiveNotification;
 use App\Notifications\MemberCheckedInNotification;
@@ -24,7 +23,6 @@ return new class extends Migration
 
         $titles = [
             BookingMissedNotification::class => 'Kelas terlewat',
-            BookingReminderNotification::class => 'Pengingat kelas',
             LoginAnehNotification::class => 'Login tidak biasa terdeteksi',
             MemberActiveNotification::class => 'Membership diaktifkan',
             MemberCheckedInNotification::class => 'Check-in berhasil',

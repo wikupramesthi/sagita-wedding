@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Class\ClassBooking;
 use App\Models\UserPackage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -95,11 +94,7 @@ class MembershipController extends Controller
             abort(403);
         }
 
-        $bookings = ClassBooking::with(['schedule.class', 'schedule.venue'])
-            ->where('user_uuid', $membership->user_uuid)
-            ->latest('booked_at')
-            ->limit(20)
-            ->get();
+        $bookings = collect();
 
         if (! $isAdmin && \App\Support\MemberView::isMobile()) {
             return view('pages.mobile.membership-show', compact('membership', 'bookings', 'isAdmin'));

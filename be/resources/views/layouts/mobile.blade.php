@@ -41,7 +41,7 @@
             @yield('content')
         </main>
 
-        <nav class="tabbar d-flex {{ request()->routeIs('checkout.package', 'login', 'class-bookings.scan') ? 'd-none' : '' }}">
+        <nav class="tabbar d-flex {{ request()->routeIs('checkout.package', 'login',) ? 'd-none' : '' }}">
 
             <button type="button"
                 class="tab-item {{ request()->routeIs('dashboard.index') ? 'active' : '' }}"
@@ -58,8 +58,8 @@
             </button>
 
             <button type="button"
-                class="tab-item tab-booking {{ request()->routeIs('schedules.index') ? 'active' : '' }}"
-                onclick="window.location.href='{{ route('schedules.index') }}'">
+                class="tab-item tab-booking "
+                onclick="window.location.href='{{ route('home') }}'">
                 <span class="ico"><i class="bi bi-calendar-plus"></i></span>
                 <span>{{ __('mobile.book') }}</span>
             </button>
@@ -72,7 +72,7 @@
             </button>
 
             <button type="button"
-                class="tab-item {{ request()->routeIs('profile.edit', 'account.*', 'bookings.my', 'memberships.*', 'vendor.mobile') ? 'active' : '' }}"
+                class="tab-item {{ request()->routeIs('profile.edit', 'account.*', 'memberships.*', 'vendor.mobile') ? 'active' : '' }}"
                 onclick="window.location.href='{{ route('profile.edit') }}'">
                 <span class="ico"><i class="bi bi-person-circle"></i></span>
                 <span>{{ __('mobile.profile') }}</span>

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Class\ClassSchedule;
 use App\Models\Venue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +42,7 @@ class VenueController extends Controller
             'total' => (clone $query)->count(),
             'active' => (clone $query)->where('status', 'active')->count(),
             'inactive' => (clone $query)->where('status', 'inactive')->count(),
-            'schedules' => ClassSchedule::whereIn('venue_uuid', (clone $query)->select('venues.uuid'))->count(),
+            'schedules' => 0,
         ];
 
         return view(

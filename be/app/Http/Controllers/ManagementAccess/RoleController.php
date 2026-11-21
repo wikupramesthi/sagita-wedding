@@ -58,7 +58,6 @@ class RoleController extends Controller
             'banner' => 'Media',
             'category' => 'Kategori',
             'class' => 'Kelas',
-            'class-bookings' => 'Pemesanan Kelas',
             'dashboard' => 'Dasbor',
             'email-setting' => 'Pengaturan Email',
             'event' => 'Acara',

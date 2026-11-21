@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Class\ClassBooking;
-use App\Models\Class\ClassModel;
 use App\Models\Package\Package;
 use App\Models\Payment\Order;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -329,7 +327,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function classes()
     {
         return $this->hasMany(
-            ClassModel::class,
             'vendor_uuid',
             'uuid'
         );
@@ -347,7 +344,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function bookings()
     {
         return $this->hasMany(
-            ClassBooking::class,
             'user_uuid',
             'uuid'
         );

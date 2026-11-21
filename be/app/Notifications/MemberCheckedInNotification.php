@@ -46,7 +46,7 @@ class MemberCheckedInNotification extends Notification
         return [
             'judul_kegiatan' => 'Pencatatan kehadiran berhasil',
             'message' => $message,
-            'path' => route('class-bookings.index', [], false),
+            'path' => route('orders.index', [], false),
             'icon' => 'bi-check2-circle',
         ];
     }

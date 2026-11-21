@@ -3,8 +3,6 @@
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\BatchController;
-use App\Http\Controllers\Api\ClassController;
-use App\Http\Controllers\Api\ClassScheduleController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FaqController;
@@ -71,28 +69,6 @@ Route::get('/pages/{slug}', [PageController::class, 'show']);
 // Events page
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{slug}', [EventController::class, 'show']);
-
-// classes
-Route::get('/classes', [
-    ClassController::class,
-    'index',
-]);
-
-Route::get('/classes/{slug}', [
-    ClassController::class,
-    'show',
-]);
-
-// class schedules
-Route::get('/class-schedules', [
-    ClassScheduleController::class,
-    'index',
-]);
-
-Route::get('/class-schedules/{uuid}', [
-    ClassScheduleController::class,
-    'show',
-]);
 
 // vendors
 Route::get('/vendors', [

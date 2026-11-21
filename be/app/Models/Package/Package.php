@@ -24,6 +24,7 @@ class Package extends Model
         'name',
         'slug',
         'description',
+        'price',
         'guest_capacity',
         'event_duration_hours',
         'venue_note',

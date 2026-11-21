@@ -22,17 +22,24 @@ class Payment extends Model
         'payment_gateway',
         'transaction_id',
         'payment_type',
+        'amount',
         'gross_amount',
         'status',
+        'verification_status',
+        'verified_by',
+        'verified_at',
         'paid_at',
         'raw_response',
         'proof_image_path',
         'proof_uploaded_at',
+        'note',
     ];
 
     protected $casts = [
+        'amount' => 'decimal:2',
         'gross_amount' => 'decimal:2',
         'paid_at' => 'datetime',
+        'verified_at' => 'datetime',
         'proof_uploaded_at' => 'datetime',
         'raw_response' => 'array',
     ];

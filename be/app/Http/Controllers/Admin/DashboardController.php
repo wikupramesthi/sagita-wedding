@@ -6,9 +6,6 @@ use App\Exports\DashboardExport;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Banner;
-use App\Models\Class\ClassBooking;
-use App\Models\Class\ClassModel;
-use App\Models\Class\ClassSchedule;
 use App\Models\Consultation;
 use App\Models\Event;
 use App\Models\FailedLogin;
@@ -120,8 +117,8 @@ class DashboardController extends Controller
             'unreadCount' => $user->unreadNotifications()->count(),
             'jumlahMembers' => $countBetween(User::role('user'), 'created_at', $startDate, $endDate),
             'jumlahVendor' => $countBetween(User::role('vendor'), 'created_at', $startDate, $endDate),
-            'totalClasses' => $countBetween(ClassModel::query(), 'created_at', $startDate, $endDate),
             'totalEvents' => $countBetween(Event::query(), 'created_at', $startDate, $endDate),
+            'totalPackages' => $countBetween(\App\Models\Package\Package::query(), 'created_at', $startDate, $endDate),
         ];
 
         if (! $isMember) {
@@ -163,22 +160,9 @@ class DashboardController extends Controller
             ->first();
 
         $data['activePackage'] = $activePackage;
-        $data['attendedCount'] = ClassBooking::where('user_uuid', $user->uuid)
-            ->where('status', 'attended')
-            ->count();
-
-        $todaySchedules = ClassSchedule::with('class.vendor')
-            ->withCount([
-                'bookings as bookings_count' => function ($q) {
-                    $q->whereIn('status', ['confirmed', 'attended']);
-                },
-            ])
-            ->where('status', 'active')
-            ->where('day', strtolower(now()->format('l')))
-            ->orderBy('start_time')
-            ->take(5)
-            ->get();
-
+        $data['attendedCount'] = 0;
+        $data['totalClasses'] = 0;
+        $data['upcomingClasses'] = collect();
         $data += [
             'events' => Event::where('status', 'published')
                 ->whereDate('tanggal', '>=', now())
@@ -186,46 +170,23 @@ class DashboardController extends Controller
                 ->orderBy('waktu_mulai')
                 ->take(5)
                 ->get(),
-            'todaySchedules' => $todaySchedules,
+            'todaySchedules' => collect(),
         ];
 
         if ($isMember) {
-            $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-            $today = strtolower(now()->format('l'));
-            $nextDay = $days[((array_search($today, $days) + 1) % count($days))];
-
-            $data['upcomingClasses'] = ClassSchedule::with('class.vendor')
-                ->withCount([
-                    'bookings as bookings_count' => function ($q) {
-                        $q->whereIn('status', ['confirmed', 'attended']);
-                    },
-                ])
-                ->where('status', 'active')
-                ->where('day', $nextDay)
-                ->orderBy('start_time')
-                ->take(3)
-                ->get();
-
-            $upcomingClasses = $data['upcomingClasses'];
             $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
             $data['courses'] = $this->artOfLivingCourses();
 
             if (MemberView::isMobile()) {
-                $scheduleUuids = $todaySchedules->pluck('uuid')->merge($upcomingClasses->pluck('uuid'));
-
-                $myBookings = ClassBooking::where('user_uuid', $user->uuid)
-                    ->whereIn('class_schedule_uuid', $scheduleUuids)
-                    ->where('status', '!=', 'cancelled')
-                    ->get()
-                    ->keyBy(fn ($b) => $b->class_schedule_uuid.'|'.$b->booking_date?->format('Y-m-d'));
-
                 return view('pages.mobile.home', $data + [
                     'courses' => array_slice($data['courses'], 0, 6),
-                    'myBookings' => $myBookings,
+                    'myBookings' => collect(),
                     'todayDate' => now()->format('Y-m-d'),
                     'tomorrowDate' => now()->addDay()->format('Y-m-d'),
                 ]);
             }
+
+            return view('pages.dashboard.member', $data);
         }
 
         return view('pages.dashboard.index', $data);
@@ -438,7 +399,6 @@ class DashboardController extends Controller
         $stats = array_merge($stats, [
             $makeStat('Pesanan baru', Order::query(), 'created_at', 'bi bi-bag-plus', 'yellow', 'orders.index'),
             $makeStat('Paket', Package::query(), 'created_at', 'bi bi-box-seam', 'pink', 'packages.index'),
-            $makeStat('Kelas', ClassModel::query(), 'created_at', 'bi bi-book', 'red', 'classes.index'),
             $makeStat('Event', Event::query(), 'created_at', 'bi bi-calendar-event', 'green', 'events.index'),
             $makeStat('Artikel', Article::query(), 'created_at', 'bi bi-file-earmark-text', 'blue', 'articles.index'),
         ]);
@@ -458,7 +418,7 @@ class DashboardController extends Controller
             'newOrdersCount' => $newOrdersCount,
             'newMembershipCount' => $newMembershipCount,
             'revenueMonth' => $revenueMonth,
-            'revenueTotal' => (float) Order::where('status', 'paid')->sum('amount'),
+            'revenueTotal' => (float) Order::where('status', 'paid')->get(['amount','total_amount'])->sum(fn($o)=>(float)($o->total_amount?:$o->amount)),
             'security' => [
                 'failedLogins' => (int) FailedLogin::where('created_at', '>=', now()->subDay())->count(),
                 'lockouts' => (int) LoginLockout::active()->count(),
@@ -615,7 +575,8 @@ class DashboardController extends Controller
     private function actionQueue(bool $includeConsultations): array
     {
         $pendingOrders = Order::with('user', 'package')
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending','partially_paid'])
+            ->where(function($q){ $q->whereNotNull('proof_image_path')->orWhereHas('payments', fn($p)=>$p->where('verification_status','pending')->orWhere('status','pending')); })
             ->latest()
             ->take(5)
             ->get();
@@ -637,7 +598,7 @@ class DashboardController extends Controller
 
         return [
             'orders' => $pendingOrders,
-            'orderCount' => (int) Order::where('status', 'pending')->count(),
+            'orderCount' => (int) Order::whereIn('status', ['pending','partially_paid'])->where(function($q){ $q->whereNotNull('proof_image_path')->orWhereHas('payments', fn($p)=>$p->where('verification_status','pending')->orWhere('status','pending')); })->count(),
             'messages' => $overdueFollowUps,
             'messageCount' => $overdueFollowUpCount,
         ];

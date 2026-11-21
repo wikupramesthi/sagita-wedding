@@ -91,7 +91,6 @@ class RouteMiddleware
             'vendor.mobile',
             'orders.*',
             'memberships.*',
-            'class-bookings.*',
             'events.index',
             'events.show',
             'password.*',

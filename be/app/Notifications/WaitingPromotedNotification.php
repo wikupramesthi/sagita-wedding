@@ -39,7 +39,7 @@ class WaitingPromotedNotification extends Notification
             'judul_kegiatan' => 'Kursi tersedia — pesanan dikonfirmasi',
             'message' => 'Ada kursi kosong: statusmu berubah dari daftar tunggu menjadi terkonfirmasi untuk '
                 .$this->className.' ('.$this->scheduleLabel.', '.$this->dateLabel.').',
-            'path' => route('bookings.my', [], false),
+            'path' => route('orders.index', [], false),
             'icon' => 'bi-calendar-check',
         ];
     }

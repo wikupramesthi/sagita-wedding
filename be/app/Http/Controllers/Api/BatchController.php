@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Class\ClassModel;
 use App\Models\User;
 use App\Models\Venue;
 use Illuminate\Http\JsonResponse;
@@ -33,8 +32,6 @@ class BatchController extends Controller
                 'home' => $this->home(),
                 'venues' => $this->venues(),
                 'about' => $this->about(),
-                'classes' => $this->classesPage(),
-                'class-detail' => $this->classDetail($request),
                 'blog' => $this->blog(),
                 'blog-detail' => $this->blogDetail($request),
                 'packages' => $this->packagesPage($request),
@@ -45,7 +42,6 @@ class BatchController extends Controller
                 'contact' => $this->contactPage(),
                 'faq' => $this->faqPage(),
                 'page-detail' => $this->pageDetail($request),
-                'schedules' => $this->schedules($request),
                 default => null,
             };
         } catch (ValidationException $e) {
@@ -166,26 +162,8 @@ class BatchController extends Controller
             'stats' => [
                 'members' => User::role('user')->count(),
                 'vendors' => User::role('vendor')->count(),
-                'classes' => ClassModel::query()->where('is_active', 'active')->count(),
             ],
             'articles' => array_slice($this->articles(), 0, 3),
-        ];
-    }
-
-    private function classesPage(): array
-    {
-        return ['classes' => $this->classes(50)];
-    }
-
-    private function classDetail(Request $request): array
-    {
-        $slug = $this->slug($request);
-
-        return [
-            'class' => $this->requiredData(
-                app(ClassController::class)->show($slug),
-                'Class',
-            ),
         ];
     }
 
@@ -225,7 +203,6 @@ class BatchController extends Controller
         return [
             'post' => $post,
             'related' => array_slice(array_merge($sameCategory, $rest), 0, 3),
-            'latest_classes' => array_slice($this->classes(3), 0, 3),
         ];
     }
 
@@ -311,57 +288,6 @@ class BatchController extends Controller
                 'Page',
             ),
         ];
-    }
-
-    private function schedules(Request $request): array
-    {
-        $date = (string) ($request->input('date') ?: now()->toDateString());
-
-        // Daftar venue diambil tanpa filter venue/level/time agar
-        // pilihan filter tidak saling menghilang saat user memilih salah satu.
-        $allRequest = Request::create('/api/class-schedules', 'GET', [
-            'date' => $date,
-            'per_page' => 50,
-        ]);
-        $all = $this->data(
-            app(ClassScheduleController::class)->index($allRequest),
-            'schedules',
-        ) ?? [];
-
-        $venues = collect($all)
-            ->pluck('venue')
-            ->filter(fn ($venue) => is_array($venue) && ! empty($venue['uuid']))
-            ->unique('uuid')
-            ->values()
-            ->all();
-
-        $filteredRequest = Request::create('/api/class-schedules', 'GET', [
-            'date' => $date,
-            'per_page' => 50,
-        ] + $request->only(['level', 'time', 'venue_uuid']));
-        $filtered = $this->paginated(
-            app(ClassScheduleController::class)->index($filteredRequest),
-            'schedules',
-        );
-
-        return [
-            'date' => $date,
-            'schedules' => $filtered['schedules'] ?? [],
-            'venues' => $venues,
-            'meta' => $filtered['meta'] ?? [],
-        ];
-    }
-
-    private function classes(int $perPage): array
-    {
-        $request = Request::create('/api/classes', 'GET', [
-            'per_page' => $perPage,
-        ]);
-
-        return $this->data(
-            app(ClassController::class)->index($request),
-            'classes',
-        ) ?? [];
     }
 
     private function articles(): array

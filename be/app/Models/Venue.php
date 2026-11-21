@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Class\ClassModel;
-use App\Models\Class\ClassSchedule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Str;
@@ -57,7 +55,6 @@ class Venue extends Model
     public function schedules()
     {
         return $this->hasMany(
-            ClassSchedule::class,
             'venue_uuid',
             'uuid'
         );
@@ -69,8 +66,6 @@ class Venue extends Model
     public function classes()
     {
         return $this->belongsToMany(
-            ClassModel::class,
-            'class_schedules',
             'venue_uuid',
             'class_uuid',
             'uuid',

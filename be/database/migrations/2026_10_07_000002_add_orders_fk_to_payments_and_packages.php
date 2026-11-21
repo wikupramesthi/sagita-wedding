@@ -33,14 +33,6 @@ return new class extends Migration
             });
         }
 
-        if ($this->missingFk('class_bookings', 'class_bookings_order_uuid_foreign')) {
-            Schema::table('class_bookings', function (Blueprint $table) {
-                $table->foreign('order_uuid', 'class_bookings_order_uuid_foreign')
-                    ->references('uuid')
-                    ->on('orders')
-                    ->nullOnDelete();
-            });
-        }
     }
 
     public function down(): void
@@ -50,9 +42,6 @@ return new class extends Migration
         });
         Schema::table('user_packages', function (Blueprint $table) {
             $table->dropForeign('user_packages_order_uuid_foreign');
-        });
-        Schema::table('class_bookings', function (Blueprint $table) {
-            $table->dropForeign('class_bookings_order_uuid_foreign');
         });
     }
 

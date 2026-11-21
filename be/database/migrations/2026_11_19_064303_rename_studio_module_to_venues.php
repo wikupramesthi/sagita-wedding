@@ -44,24 +44,8 @@ return new class extends Migration
             $this->renameVenueIndex($newTable, $oldTable.'_slug_unique', $newTable.'_slug_unique');
         }
 
-        if (! Schema::hasTable('class_schedules')) {
-            throw new RuntimeException('The class_schedules table does not exist.');
-        }
+        // class module removed; no class_schedules column rename needed
 
-        $hasOldColumn = Schema::hasColumn('class_schedules', $oldColumn);
-        $hasNewColumn = Schema::hasColumn('class_schedules', $newColumn);
-
-        if ($hasOldColumn && $hasNewColumn) {
-            throw new RuntimeException("Both {$oldColumn} and {$newColumn} columns exist.");
-        }
-
-        if ($hasOldColumn) {
-            Schema::table('class_schedules', function (Blueprint $table) use ($oldColumn, $newColumn) {
-                $table->renameColumn($oldColumn, $newColumn);
-            });
-        } elseif (! $hasNewColumn) {
-            throw new RuntimeException("Neither {$oldColumn} nor {$newColumn} column exists.");
-        }
     }
 
     private function renameDatabaseReferences(string $from, string $to): void

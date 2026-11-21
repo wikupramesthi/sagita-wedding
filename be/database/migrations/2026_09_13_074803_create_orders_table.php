@@ -67,10 +67,7 @@ return new class extends Migration
                 ->on('package_options')
                 ->nullOnDelete();
 
-            $table->foreign('class_schedule_uuid')
-                ->references('uuid')
-                ->on('class_schedules')
-                ->nullOnDelete();
+            // class module removed
 
             /*
              * Indexes
@@ -83,7 +80,6 @@ return new class extends Migration
 
             $table->index('package_uuid');
             $table->index('package_option_uuid');
-            $table->index('class_schedule_uuid');
             $table->index('status');
         });
     }

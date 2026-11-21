@@ -340,6 +340,8 @@ class PackageController extends Controller
         |--------------------------------------------------------------------------
         */
 
+            $firstOption = collect($validated['options'])->sortBy('sort_order')->first();
+            $basePrice = (float) ($firstOption['price'] ?? 0);
             $package = Package::create([
 
                 'uuid' => (string) Str::uuid(),
@@ -349,6 +351,8 @@ class PackageController extends Controller
                 'slug' => $slug,
 
                 'description' => $validated['description'] ?? null,
+
+                'price' => $basePrice,
 
                 'guest_capacity' => $validated['guest_capacity'] ?? null,
 
