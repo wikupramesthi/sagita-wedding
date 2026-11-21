@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="<%= lang || 'en' %>">
+  <head><%- include('../partials/head') %></head>
+  <body class="min-h-screen bg-sand-50 antialiased">
+    <%- include('../partials/navbar') %>
+
+    <main>
+      <section class="relative overflow-hidden text-sage-900">
+        <div class="absolute inset-0" style="background:
+          radial-gradient(ellipse 58% 48% at 12% 10%, rgba(183, 159, 128, 0.14) 0%, transparent 68%),
+          radial-gradient(ellipse 52% 48% at 88% 88%, rgba(183, 159, 128, 0.08) 0%, transparent 70%),
+          radial-gradient(ellipse 36% 38% at 72% 26%, rgba(250, 248, 244, 0.88) 0%, transparent 74%),
+          linear-gradient(135deg, #fffefd 0%, #faf8f5 52%, #f5f2ee 100%)"></div>
+        <div class="absolute inset-0 opacity-[0.06] mix-blend-overlay pointer-events-none" style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;)"></div>
+        <div class="hero-shimmer"></div>
+
+        <div class="site-container relative pb-16 pt-28 sm:pb-20 sm:pt-32">
+          <span class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white/70 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-sand-700 backdrop-blur-sm anim-fade-in">
+            <span class="h-1.5 w-1.5 rounded-full bg-terracotta-600"></span>
+            <%= t.venuesEyebrow %>
+          </span>
+          <h1 class="mt-7 max-w-4xl font-display text-4xl leading-[1.08] tracking-tight anim-slide-up sm:text-5xl lg:text-6xl">
+            <span><%= t.venuesTitle %> </span><span class="font-light italic text-sand-700"><%= t.venuesTitleItalic %></span>
+          </h1>
+          <p class="mt-5 max-w-2xl text-sm leading-relaxed text-sand-700 anim-fade-in sm:text-base"><%= t.venuesDescription %></p>
+        </div>
+        <div class="absolute inset-x-0 bottom-0 h-14" style="background:linear-gradient(to top, #fffefd, transparent)"></div>
+      </section>
+
+      <section class="site-container pt-8 pb-12 sm:pt-10 sm:pb-16" aria-label="<%= t.nav.venues %>">
+        <% if (venues.length) { %>
+          <div class="mb-6 flex flex-col gap-5 rounded-2xl border border-sand-200 bg-white p-4 shadow-[0_8px_28px_rgba(74,62,47,0.05)] sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:px-6 sm:py-5">
+            <div class="flex shrink-0 items-center gap-3">
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-sage-800 font-display text-lg text-sand-50 shadow-sm">
+                <span id="venueResultCount" aria-live="polite"><%= venues.length %></span>
+              </span>
+              <p id="venueCountLabel" class="whitespace-nowrap text-sm font-medium text-sage-800 sm:text-base" data-singular="<%= t.venueCountSingularLabel %>" data-plural="<%= t.venueCountLabel %>"><%= venues.length === 1 ? t.venueCountSingularLabel : t.venueCountLabel %></p>
+            </div>
+            <div class="w-full sm:max-w-lg">
+              <label for="venueSearch" class="mb-2 block text-xs font-semibold tracking-wide text-sage-800"><%= t.venueSearchLabel %></label>
+              <div class="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone-warm" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                <input id="venueSearch" type="search" autocomplete="off" class="h-12 w-full rounded-full border border-sand-300 bg-white pl-11 pr-12 text-sm text-sage-900 shadow-sm outline-none transition placeholder:text-stone-warm/70 focus:border-sage-700 focus:ring-4 focus:ring-sage-700/10" placeholder="<%= t.venueSearchPlaceholder %>" aria-controls="venueList" aria-describedby="venueResultCount">
+                <button type="button" class="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-stone-warm transition hover:bg-sand-100 hover:text-sage-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sage-700" id="venueSearchClear" aria-label="<%= t.venueSearchClear %>" hidden>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="venueList" class="overflow-hidden rounded-2xl border border-sand-200 bg-white shadow-[0_12px_42px_rgba(74,62,47,0.06)]">
+            <% venues.forEach((venue, index) => {
+              const mapQuery = [venue.name, venue.address].filter(Boolean).join(" ");
+              const mapHref = venue.google_maps_url && /^https?:\/\//i.test(venue.google_maps_url)
+                ? venue.google_maps_url
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
+            %>
+              <article id="venue-<%= venue.slug || venue.uuid %>" data-venue-item data-search="<%= [venue.name, venue.excerpt, venue.address].filter(Boolean).join(' ') %>" class="group relative grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-3 gap-y-3 border-b border-sand-200/80 px-4 py-5 transition-colors last:border-b-0 hover:bg-sand-50/80 sm:grid-cols-[2.5rem_8rem_minmax(0,1fr)_auto] sm:items-center sm:gap-6 sm:px-6 sm:py-6">
+                <span class="row-span-2 pt-1 font-display text-lg italic tabular-nums text-clay-600/80 sm:row-span-1 sm:pt-0 sm:text-xl" aria-hidden="true"><%= String(index + 1).padStart(2, '0') %></span>
+                <div class="col-start-2 hidden self-center sm:col-start-2 sm:block">
+                  <div class="relative grid aspect-[4/3] w-full place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-sand-100 via-sand-50 to-clay-50">
+                    <% if (venue.image) { %>
+                      <img src="<%= venue.image %>" alt="" loading="lazy" decoding="async" data-img-error="remove" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                    <% } else { %>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" class="text-sage-700/45" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01M9 12h.01M15 12h.01"/></svg>
+                    <% } %>
+                  </div>
+                </div>
+                <div class="col-start-2 row-start-1 min-w-0 sm:col-start-3 sm:row-start-auto">
+                  <h2 class="font-display text-xl leading-snug text-sage-900 transition-colors group-hover:text-sage-700 sm:text-2xl"><%= venue.name %></h2>
+                  <% if (venue.excerpt) { %>
+                    <p class="mt-2 text-sm leading-relaxed text-stone-warm line-clamp-2"><%= venue.excerpt %></p>
+                  <% } %>
+                  <% if (venue.address) { %>
+                    <p class="mt-3 flex min-w-0 items-center gap-2 text-xs leading-relaxed text-sage-800 sm:text-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="shrink-0 text-terracotta-600" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                      <span class="truncate"><span class="sr-only"><%= t.venueLocationLabel %>: </span><%= venue.address %></span>
+                    </p>
+                  <% } %>
+                </div>
+                <a href="<%= mapHref %>" target="_blank" rel="noopener noreferrer" class="col-start-2 row-start-2 inline-flex min-h-10 w-fit items-center gap-2 rounded-full border border-sage-200 px-4 text-xs font-semibold text-sage-800 transition hover:border-sage-800 hover:bg-sage-800 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sage-700 focus-visible:outline-offset-2 sm:col-start-4 sm:row-start-auto sm:mt-0 sm:min-h-11 sm:px-5 sm:text-sm">
+                  <%= t.venueMapCta %>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+                </a>
+              </article>
+            <% }) %>
+          </div>
+          <div id="venueNoResults" class="mt-6 rounded-2xl border border-sand-200 bg-white px-6 py-10 text-center" hidden>
+            <h2 class="font-display text-xl text-sage-900"><%= t.venueNoResults %></h2>
+            <p class="mt-2 text-sm text-stone-warm"><%= t.venueNoResultsDescription %></p>
+          </div>
+        <% } else { %>
+          <div class="mx-auto max-w-2xl rounded-[1.75rem] border border-sand-200 bg-white px-7 py-12 text-center shadow-sm sm:px-12">
+            <h2 class="font-display text-2xl text-sage-900"><%= t.venueEmptyTitle %></h2>
+            <p class="mt-3 leading-relaxed text-stone-warm"><%= t.venueEmptyDescription %></p>
+            <a href="/formulir-konsultasi" class="mt-7 inline-flex min-h-12 items-center rounded-full bg-sage-800 px-6 text-sm font-semibold text-white transition hover:bg-sage-900"><%= t.consultationCta %></a>
+          </div>
+        <% } %>
+      </section>
+
+      <section class="bg-sand-100/70 px-6 py-14 text-center sm:py-16">
+        <h2 class="font-display text-2xl text-sage-900"><%= t.venueClosingTitle %></h2>
+        <p class="mx-auto mt-3 max-w-2xl text-stone-warm"><%= t.venueClosingDescription %></p>
+        <a href="/formulir-konsultasi" class="mt-6 inline-flex min-h-12 items-center rounded-full bg-sage-800 px-7 text-sm font-semibold text-white transition hover:bg-sage-900"><%= t.consultationCta %></a>
+      </section>
+    </main>
+
+    <%- include('../partials/footer') %>
+  </body>
+</html>

@@ -230,6 +230,16 @@
     'expired' => 'Kedaluwarsa',
     'cancelled' => 'Dibatalkan',
     ];
+    $hasColumn = fn (string $key): bool => in_array($key, $columns, true);
+    $visibleColumns = array_values(array_filter(
+    ['date', 'order', 'customer', 'package', 'amount', 'status', 'proof'],
+    function (string $key) use ($hasColumn, $isAdmin): bool {
+    if ($key === 'customer') {
+    return $isAdmin && $hasColumn('customer');
+    }
+    return $hasColumn($key);
+    }
+    ));
     @endphp
     <div class="footer">
         <table style="width:100%; border-collapse:collapse;">
@@ -318,44 +328,65 @@
         <thead>
             <tr>
                 <th style="width:4%;">No</th>
+                @if ($hasColumn('date'))
                 <th style="width:11%;">Tanggal</th>
+                @endif
+                @if ($hasColumn('order'))
                 <th style="width:12%;">No. Pesanan</th>
-                @if ($isAdmin)
+                @endif
+                @if ($hasColumn('customer') && $isAdmin)
                 <th style="width:15%;">Pelanggan</th>
                 @endif
+                @if ($hasColumn('package'))
                 <th style="width:18%;">Paket</th>
+                @endif
+                @if ($hasColumn('amount'))
                 <th style="width:12%; text-align:right;">Jumlah</th>
+                @endif
+                @if ($hasColumn('status'))
                 <th style="width:9%;">Status</th>
+                @endif
+                @if ($hasColumn('proof'))
                 <th style="width:9%;">Bukti</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             @forelse ($orders as $i => $order)
             <tr>
                 <td>{{ $i + 1 }}</td>
+                @if ($hasColumn('date'))
                 <td>{{ $order->created_at?->translatedFormat('d F Y H:i') ?? '-' }}</td>
+                @endif
+                @if ($hasColumn('order'))
                 <td>{{ $order->order_number }}</td>
-                @if ($isAdmin)
+                @endif
+                @if ($hasColumn('customer') && $isAdmin)
                 <td>{{ $order->user?->name ?? '-' }}<br><small style="color:#6b7280;">{{ $order->user?->email ?? '-' }}</small></td>
                 @endif
+                @if ($hasColumn('package'))
                 <td>{{ $order->package?->name ?? '-' }}<br><small style="color:#6b7280;">{{ $order->packageOption?->name ?? '' }}</small></td>
+                @endif
+                @if ($hasColumn('amount'))
                 <td style="text-align:right;">Rp {{ number_format($order->amount, 0, ',', '.') }}</td>
+                @endif
+                @if ($hasColumn('status'))
                 <td><span class="badge badge-{{ $order->status }}">{{ $statusLabels[$order->status] ?? ucfirst($order->status) }}</span></td>
+                @endif
+                @if ($hasColumn('proof'))
                 <td>{{ $order->proof_image_path ? 'Diunggah' : '-' }}</td>
+                @endif
             </tr>
             @empty
             <tr>
-                <td colspan="{{ $isAdmin ? 8 : 7 }}" style="text-align:center; color:#6b7280;">Tidak ada data untuk filter yang dipilih.</td>
+                <td colspan="{{ count($visibleColumns) + 1 }}" style="text-align:center; color:#6b7280;">Tidak ada data untuk filter yang dipilih.</td>
             </tr>
             @endforelse
         </tbody>
         @if ($orders->isNotEmpty())
         <tfoot>
             <tr>
-                <td colspan="{{ $isAdmin ? 6 : 5 }}" style="text-align:right;">Total Pendapatan (Lunas)</td>
-                <td style="text-align:right;">Rp {{ number_format($revenue, 0, ',', '.') }}</td>
-                <td></td>
-                <td></td>
+                <td colspan="{{ count($visibleColumns) + 1 }}" style="text-align:right;">Total Pendapatan (Lunas): Rp {{ number_format($revenue, 0, ',', '.') }}</td>
             </tr>
         </tfoot>
         @endif

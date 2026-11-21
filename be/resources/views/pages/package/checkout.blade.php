@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Checkout')
+@section('title', 'Pemesanan Paket')
 @section('content')
 
 <div class="container-fluid package-checkout">
@@ -8,16 +8,16 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
             <h4 class="mb-1 fw-bold">
-                Complete your membership
+                Lengkapi Pemesanan Paket
             </h4>
             <p class="text-muted mb-0">
-                Choose the option that works best for your practice.
+                Pilih opsi paket yang paling sesuai dengan kebutuhan pernikahan Anda.
             </p>
         </div>
 
         <a href="{{ route('packages.member') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left me-1"></i>
-            Back
+            Kembali ke Daftar Paket
         </a>
     </div>
 
@@ -48,7 +48,7 @@
                                 </h5>
 
                                 <p class="text-muted small mb-0">
-                                    Membership Package
+                                    Paket Wedding Organizer
                                 </p>
                             </div>
 
@@ -57,7 +57,7 @@
                         @if ($package->is_popular)
                         <span class="popular-label">
                             <i class="bi bi-star-fill me-1"></i>
-                            Popular
+                            Paling Dipilih
                         </span>
                         @endif
 
@@ -69,9 +69,25 @@
                 <div class="card-body px-4 pb-4">
 
                     @if ($package->description)
-                    <p class="text-muted mb-0 package-description">
+                    <p class="text-muted mb-3 package-description">
                         {{ $package->description }}
                     </p>
+                    @endif
+
+                    @if ($package->guest_capacity || $package->event_duration_hours || $package->venue_note)
+                    <div class="checkout-event-meta">
+                        @if ($package->guest_capacity)
+                        <span><i class="bi bi-people me-1"></i>Kapasitas Tamu: <strong>{{ number_format($package->guest_capacity, 0, ',', '.') }} tamu</strong></span>
+                        @endif
+
+                        @if ($package->event_duration_hours)
+                        <span><i class="bi bi-clock me-1"></i>Durasi Acara: <strong>{{ $package->event_duration_hours }} jam</strong></span>
+                        @endif
+
+                        @if ($package->venue_note)
+                        <span><i class="bi bi-geo-alt me-1"></i>Lokasi Acara: <strong>{{ $package->venue_note }}</strong></span>
+                        @endif
+                    </div>
                     @endif
 
                 </div>
@@ -92,11 +108,11 @@
 
                         <div>
                             <h5 class="fw-bold mb-1">
-                                Choose your option
+                                Pilih Opsi Paket
                             </h5>
 
                             <p class="text-muted small mb-0">
-                                Select your preferred duration and class quota.
+                                Pilih durasi dan kuota yang diinginkan.
                             </p>
                         </div>
 
@@ -107,7 +123,7 @@
 
                 <div class="card-body p-4">
 
-                    <div class="membership-options">
+                    <div class="package-options">
 
                         @foreach ($package->options as $index => $option)
 
@@ -123,7 +139,7 @@
 
                             <button
                                 type="button"
-                                class="membership-option {{ $index === 0 ? 'selected' : '' }}"
+                                class="package-option-choice {{ $index === 0 ? 'selected' : '' }}"
                                 data-option-uuid="{{ $option->uuid }}"
                                 data-option-name="{{ $option->name }}"
                                 data-option-price="{{ $finalPrice }}"
@@ -159,9 +175,9 @@
                                                     <i class="bi bi-person-check"></i>
 
                                                     @if ($option->quota === null)
-                                                    Unlimited Classes
+                                                    Kuota tanpa batas
                                                     @else
-                                                    {{ $option->quota }} Classes
+                                                    Kuota {{ $option->quota }}
                                                     @endif
                                                 </span>
 
@@ -204,6 +220,69 @@
             </div>
 
 
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div class="package-section-icon">
+                            <i class="bi bi-plus-square"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                Layanan Tambahan (Opsional)
+                            </h5>
+
+                            <p class="text-muted small mb-0">
+                                Pilih layanan tambahan yang ingin disertakan dalam pesanan.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body p-4">
+
+                    @forelse ($package->addons ?? [] as $addon)
+                    <label class="addon-option-item">
+                        <input
+                            type="checkbox"
+                            class="addon-option form-check-input"
+                            data-addon-uuid="{{ $addon->uuid }}"
+                            data-addon-name="{{ $addon->name }}"
+                            data-addon-price="{{ (int) $addon->final_price }}">
+
+                        <span class="addon-option-body">
+                            <span class="fw-semibold d-block">
+                                {{ $addon->name }}
+                            </span>
+
+                            @if ($addon->description)
+                            <span class="text-muted small d-block">
+                                {{ $addon->description }}
+                            </span>
+                            @endif
+                        </span>
+
+                        <span class="addon-option-price">
+                            Rp {{ number_format($addon->final_price, 0, ',', '.') }}
+                        </span>
+                    </label>
+                    @empty
+                    <p class="text-muted small mb-0">
+                        Belum ada layanan tambahan untuk paket ini.
+                    </p>
+                    @endforelse
+
+                </div>
+
+            </div>
+
+
             {{-- Features --}}
             @if ($package->features->count())
 
@@ -219,11 +298,11 @@
 
                         <div>
                             <h5 class="fw-bold mb-1">
-                                What's included
+                                Yang Termasuk
                             </h5>
 
                             <p class="text-muted small mb-0">
-                                Everything included in your membership.
+                                Semua layanan yang termasuk dalam paket ini.
                             </p>
                         </div>
 
@@ -276,11 +355,11 @@
 
                         <div>
                             <h5 class="fw-bold mb-1">
-                                Refund Policy
+                                Kebijakan Pengembalian Dana
                             </h5>
 
                             <p class="text-muted small mb-0">
-                                Please review before payment
+                                Harap baca sebelum melakukan pembayaran
                             </p>
                         </div>
 
@@ -291,18 +370,18 @@
                 <div class="card-body px-4 pb-4">
 
                     <p class="text-muted mb-3">
-                        All payments are
-                        <strong class="text-dark">final and non-refundable</strong>
-                        once your purchase has been completed.
+                        Semua pembayaran bersifat
+                        <strong class="text-dark">final dan tidak dapat dikembalikan</strong>
+                        setelah pemesanan selesai.
                     </p>
 
                     <div class="d-flex align-items-start gap-3">
                         <i class="bi bi-check-circle-fill text-success mt-1"></i>
 
                         <p class="text-muted mb-0">
-                            Class credits are
+                            Kuota paket
                             <strong class="text-dark">
-                                non-transferable, non-extendable, and non-exchangeable.
+                                tidak dapat dialihkan, diperpanjang, maupun ditukar.
                             </strong>
                         </p>
                     </div>
@@ -331,11 +410,11 @@
 
                         <div>
                             <h5 class="fw-bold mb-1">
-                                Order Summary
+                                Ringkasan Pesanan
                             </h5>
 
                             <p class="text-muted small mb-0">
-                                Review your membership
+                                Periksa Pesanan Paket Anda
                             </p>
                         </div>
 
@@ -350,7 +429,7 @@
                     <div class="summary-package">
 
                         <div class="summary-label">
-                            MEMBERSHIP
+                            PAKET
                         </div>
 
                         <div class="summary-package-name">
@@ -364,7 +443,7 @@
                     <div class="summary-selected">
 
                         <div class="summary-label mb-1">
-                            SELECTED OPTION
+                            OPSI TERPILIH
                         </div>
 
                         <div
@@ -380,7 +459,7 @@
 
                                 <span>
                                     <i class="bi bi-calendar3"></i>
-                                    Duration
+                                    Durasi
                                 </span>
 
                                 <strong id="summaryDuration">
@@ -399,7 +478,7 @@
 
                                 <span>
                                     <i class="bi bi-person-check"></i>
-                                    Class Quota
+                                    Kuota
                                 </span>
 
                                 <strong id="summaryQuota">
@@ -407,9 +486,9 @@
                                     @if ($package->options->first())
 
                                     @if ($package->options->first()->quota === null)
-                                    Unlimited
+                                    Tanpa batas
                                     @else
-                                    {{ $package->options->first()->quota }} Classes
+                                    Kuota {{ $package->options->first()->quota }}
                                     @endif
 
                                     @else
@@ -425,13 +504,24 @@
                     </div>
 
 
+                    <div class="summary-addons d-none" id="summaryAddonsBlock">
+
+                        <div class="summary-label mb-1">
+                            LAYANAN TAMBAHAN
+                        </div>
+
+                        <div id="summaryAddonsList" class="small text-muted"></div>
+
+                    </div>
+
+
                     {{-- Price --}}
                     <div class="summary-pricing">
 
                         <div class="d-flex justify-content-between align-items-end">
 
                             <span class="text-muted small">
-                                Membership
+                                Paket
                             </span>
 
                             <div class="text-end">
@@ -465,6 +555,21 @@
                                         @endif
                                 </div>
 
+                            </div>
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-between align-items-end summary-addon-row d-none" id="summaryAddonRow">
+
+                            <span class="text-muted small">
+                                Layanan tambahan
+                            </span>
+
+                            <div class="text-end">
+                                <div id="summaryAddonTotal" class="summary-price">
+                                    Rp 0
+                                </div>
                             </div>
 
                         </div>
@@ -514,17 +619,19 @@
                             name="package_option_uuid"
                             id="packageOptionUuid">
 
+                        <div id="addonUuidInputs"></div>
+
                         <button
                             type="submit"
                             id="continuePayment"
                             class="btn btn-primary w-100 continue-payment">
-                            Continue to Payment
+                            Lanjutkan ke Pembayaran
                             <i class="bi bi-arrow-right ms-1"></i>
                         </button>
                     </form>
 
                     <p class="text-muted text-center small mb-0 mt-3">
-                        You will review your order before payment.
+                        Anda akan meninjau pesanan sebelum melakukan pembayaran.
                     </p>
 
                 </div>
@@ -541,11 +648,11 @@
 
                 <div>
                     <div class="fw-semibold small">
-                        Secure checkout
+                        Pemesanan Aman
                     </div>
 
                     <div class="text-muted">
-                        Your payment information is handled securely.
+                        Informasi pembayaran Anda ditangani dengan aman.
                     </div>
                 </div>
 
@@ -600,6 +707,22 @@
     }
 
 
+    .checkout-event-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+
+        color: var(--bs-secondary-color);
+        font-size: 12px;
+    }
+
+
+    .checkout-event-meta span {
+        display: inline-flex;
+        align-items: center;
+    }
+
+
     .popular-label {
         display: inline-flex;
         align-items: center;
@@ -622,14 +745,14 @@
    OPTIONS
 ========================================================= */
 
-    .membership-options {
+    .package-options {
         display: flex;
         flex-direction: column;
         gap: 12px;
     }
 
 
-    .membership-option {
+    .package-option-choice {
         width: 100%;
 
         position: relative;
@@ -659,13 +782,13 @@
     }
 
 
-    .membership-option:hover {
+    .package-option-choice:hover {
         border-color: rgba(75, 107, 82, .45);
         transform: translateY(-1px);
     }
 
 
-    .membership-option.selected {
+    .package-option-choice.selected {
         border-color: var(--bs-primary);
         background: rgba(75, 107, 82, .035);
         box-shadow: 0 0 0 3px rgba(75, 107, 82, .07);
@@ -687,7 +810,7 @@
     }
 
 
-    .membership-option.selected .option-radio {
+    .package-option-choice.selected .option-radio {
         border-color: var(--bs-primary);
     }
 
@@ -697,7 +820,7 @@
     }
 
 
-    .membership-option.selected .option-radio span {
+    .package-option-choice.selected .option-radio span {
         width: 10px;
         height: 10px;
 
@@ -779,8 +902,77 @@
     }
 
 
-    .membership-option.selected .option-check {
+    .package-option-choice.selected .option-check {
         display: flex;
+    }
+
+
+    .addon-option-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+
+        padding: 14px;
+
+        border: 1px solid var(--bs-border-color);
+        border-radius: 12px;
+
+        cursor: pointer;
+
+        transition:
+            border-color .2s ease,
+            background .2s ease;
+    }
+
+
+    .addon-option-item + .addon-option-item {
+        margin-top: 10px;
+    }
+
+
+    .addon-option-item:hover {
+        border-color: rgba(75, 107, 82, .45);
+    }
+
+
+    .addon-option-item:has(.addon-option:checked) {
+        border-color: var(--bs-primary);
+        background: rgba(75, 107, 82, .035);
+    }
+
+
+    .addon-option {
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+
+    .addon-option-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+
+    .addon-option-price {
+        color: #c4703c;
+        font-size: 14px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+
+    .summary-addons {
+        margin-top: 18px;
+        padding: 15px;
+
+        border-radius: 11px;
+
+        background: var(--bs-tertiary-bg);
+    }
+
+
+    .summary-addon-row {
+        margin-top: 12px;
     }
 
 
@@ -832,6 +1024,10 @@
     .checkout-summary {
         position: sticky;
         top: 20px;
+        align-self: start;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+        z-index: 2;
     }
 
 
@@ -1026,7 +1222,7 @@
 
     @media (max-width: 767.98px) {
 
-        .membership-option {
+        .package-option-choice {
             align-items: flex-start;
         }
 
@@ -1050,7 +1246,7 @@
     document.addEventListener('DOMContentLoaded', function() {
 
         const options =
-            document.querySelectorAll('.membership-option');
+            document.querySelectorAll('.package-option-choice');
 
         const packageOptionUuid =
             document.getElementById('packageOptionUuid');
@@ -1076,6 +1272,24 @@
         const checkoutForm =
             document.getElementById('checkoutForm');
 
+        const addonOptions =
+            document.querySelectorAll('.addon-option');
+
+        const summaryAddonsBlock =
+            document.getElementById('summaryAddonsBlock');
+
+        const summaryAddonsList =
+            document.getElementById('summaryAddonsList');
+
+        const summaryAddonRow =
+            document.getElementById('summaryAddonRow');
+
+        const summaryAddonTotal =
+            document.getElementById('summaryAddonTotal');
+
+        const addonUuidInputs =
+            document.getElementById('addonUuidInputs');
+
 
         /*
         |--------------------------------------------------------------------------
@@ -1090,11 +1304,15 @@
 
         /*
         |--------------------------------------------------------------------------
-        | Select Package Option
+        | Perbarui Ringkasan
         |--------------------------------------------------------------------------
         */
 
-        function selectOption(option) {
+        function updateSummary(option) {
+
+            if (!option) {
+                return;
+            }
 
             /*
             |--------------------------------------------------------------------------
@@ -1173,14 +1391,14 @@
 
             /*
             |--------------------------------------------------------------------------
-            | Update Class Quota
+            | Perbarui Kuota
             |--------------------------------------------------------------------------
             */
 
             summaryQuota.textContent =
                 quota === '' ?
-                'Unlimited' :
-                `${quota} Classes`;
+                'Tanpa batas' :
+                `Kuota ${quota}`;
 
 
             /*
@@ -1190,16 +1408,6 @@
             */
 
             summaryPrice.textContent =
-                formatRupiah(price);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Update Total
-            |--------------------------------------------------------------------------
-            */
-
-            summaryTotal.textContent =
                 formatRupiah(price);
 
 
@@ -1220,6 +1428,105 @@
                     '';
 
             }
+
+
+            const selectedAddons =
+                Array.from(addonOptions).filter(
+                    item => item.checked
+                );
+
+
+            const addonTotal = selectedAddons.reduce(
+                (total, item) =>
+                total + Number(item.dataset.addonPrice || 0),
+                0
+            );
+
+
+            if (summaryAddonsList) {
+
+                summaryAddonsList.textContent = '';
+
+                selectedAddons.forEach(item => {
+
+                    const line =
+                        document.createElement('div');
+
+                    line.className =
+                        'd-flex justify-content-between gap-3 mb-1';
+
+                    const label =
+                        document.createElement('span');
+
+                    label.textContent =
+                        item.dataset.addonName;
+
+                    const value =
+                        document.createElement('strong');
+
+                    value.textContent =
+                        formatRupiah(item.dataset.addonPrice);
+
+                    line.appendChild(label);
+                    line.appendChild(value);
+
+                    summaryAddonsList.appendChild(line);
+
+                });
+
+            }
+
+
+            if (summaryAddonsBlock) {
+
+                summaryAddonsBlock.classList.toggle(
+                    'd-none',
+                    selectedAddons.length === 0
+                );
+
+            }
+
+
+            if (summaryAddonRow) {
+
+                summaryAddonRow.classList.toggle(
+                    'd-none',
+                    selectedAddons.length === 0
+                );
+
+            }
+
+
+            if (summaryAddonTotal) {
+
+                summaryAddonTotal.textContent =
+                    formatRupiah(addonTotal);
+
+            }
+
+
+            summaryTotal.textContent =
+                formatRupiah(price + addonTotal);
+
+
+            if (addonUuidInputs) {
+
+                addonUuidInputs.textContent = '';
+
+                selectedAddons.forEach(item => {
+
+                    const input =
+                        document.createElement('input');
+
+                    input.type = 'hidden';
+                    input.name = 'addon_uuids[]';
+                    input.value = item.dataset.addonUuid;
+
+                    addonUuidInputs.appendChild(input);
+
+                });
+
+            }
         }
 
 
@@ -1233,7 +1540,7 @@
 
             option.addEventListener('click', function() {
 
-                selectOption(this);
+                updateSummary(this);
 
             });
 
@@ -1250,11 +1557,27 @@
 
             const defaultOption =
                 document.querySelector(
-                    '.membership-option.selected'
+                    '.package-option-choice.selected'
                 ) || options[0];
 
-            selectOption(defaultOption);
+            updateSummary(defaultOption);
         }
+
+
+        addonOptions.forEach(addon => {
+
+            addon.addEventListener('change', function() {
+
+                const selected =
+                    document.querySelector(
+                        '.package-option-choice.selected'
+                    ) || options[0];
+
+                updateSummary(selected);
+
+            });
+
+        });
 
 
         /*
@@ -1271,7 +1594,7 @@
 
                     const selected =
                         document.querySelector(
-                            '.membership-option.selected'
+                            '.package-option-choice.selected'
                         );
 
 

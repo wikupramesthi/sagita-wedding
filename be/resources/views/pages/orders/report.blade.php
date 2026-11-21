@@ -12,6 +12,17 @@
         'expired' => 'Kedaluwarsa',
         'cancelled' => 'Dibatalkan',
     ];
+    $hasColumn = fn (string $key): bool => in_array($key, $columns, true);
+    $visibleColumns = array_values(array_filter(
+        ['date', 'order', 'customer', 'package', 'amount', 'status', 'proof'],
+        function (string $key) use ($hasColumn, $isAdmin): bool {
+            if ($key === 'customer') {
+                return $isAdmin && $hasColumn('customer');
+            }
+
+            return $hasColumn($key);
+        }
+    ));
 @endphp
 
 <div class="container-fluid">
@@ -126,58 +137,82 @@
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4" style="width:40px;">No</th>
-                            <th>Tanggal</th>
-                            <th>No. Pesanan</th>
-                            @if ($isAdmin)
+                            @if ($hasColumn('date'))
+                                <th>Tanggal</th>
+                            @endif
+                            @if ($hasColumn('order'))
+                                <th>No. Pesanan</th>
+                            @endif
+                            @if ($hasColumn('customer') && $isAdmin)
                                 <th>Pelanggan</th>
                             @endif
-                            <th>Paket</th>
-                            <th class="text-end">Jumlah</th>
-                            <th>Status</th>
-                            <th>Bukti</th>
+                            @if ($hasColumn('package'))
+                                <th>Paket</th>
+                            @endif
+                            @if ($hasColumn('amount'))
+                                <th class="text-end">Jumlah</th>
+                            @endif
+                            @if ($hasColumn('status'))
+                                <th>Status</th>
+                            @endif
+                            @if ($hasColumn('proof'))
+                                <th>Bukti</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($orders as $i => $order)
                             <tr>
                                 <td class="ps-4 text-muted">{{ $i + 1 }}</td>
-                                <td><small>{{ $order->created_at?->translatedFormat('d F Y H:i') ?? '-' }}</small></td>
-                                <td class="fw-semibold">{{ $order->order_number }}</td>
-                                @if ($isAdmin)
+                                @if ($hasColumn('date'))
+                                    <td><small>{{ $order->created_at?->translatedFormat('d F Y H:i') ?? '-' }}</small></td>
+                                @endif
+                                @if ($hasColumn('order'))
+                                    <td class="fw-semibold">{{ $order->order_number }}</td>
+                                @endif
+                                @if ($hasColumn('customer') && $isAdmin)
                                     <td>
                                         <span class="d-block">{{ $order->user?->name ?? '-' }}</span>
                                         <small class="text-muted">{{ $order->user?->email ?? '-' }}</small>
                                     </td>
                                 @endif
-                                <td>
-                                    <span class="d-block">{{ $order->package?->name ?? '-' }}</span>
-                                    <small class="text-muted">{{ $order->packageOption?->name ?? '' }}</small>
-                                </td>
-                                <td class="text-end">Rp {{ number_format($order->amount, 0, ',', '.') }}</td>
-                                <td>
-                                    @if ($order->status === 'paid')
-                                        <span class="badge bg-success">Lunas</span>
-                                    @elseif ($order->status === 'pending')
-                                        <span class="badge bg-warning text-dark">Menunggu</span>
-                                    @elseif ($order->status === 'failed')
-                                        <span class="badge bg-danger">Gagal</span>
-                                    @elseif ($order->status === 'expired')
-                                        <span class="badge bg-secondary">Kedaluwarsa</span>
-                                    @else
-                                        <span class="badge bg-secondary">Dibatalkan</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($order->proof_image_path)
-                                        <span class="badge bg-info">Diunggah</span>
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
-                                </td>
+                                @if ($hasColumn('package'))
+                                    <td>
+                                        <span class="d-block">{{ $order->package?->name ?? '-' }}</span>
+                                        <small class="text-muted">{{ $order->packageOption?->name ?? '' }}</small>
+                                    </td>
+                                @endif
+                                @if ($hasColumn('amount'))
+                                    <td class="text-end">Rp {{ number_format($order->amount, 0, ',', '.') }}</td>
+                                @endif
+                                @if ($hasColumn('status'))
+                                    <td>
+                                        @if ($order->status === 'paid')
+                                            <span class="badge bg-success">Lunas</span>
+                                        @elseif ($order->status === 'pending')
+                                            <span class="badge bg-warning text-dark">Menunggu</span>
+                                        @elseif ($order->status === 'failed')
+                                            <span class="badge bg-danger">Gagal</span>
+                                        @elseif ($order->status === 'expired')
+                                            <span class="badge bg-secondary">Kedaluwarsa</span>
+                                        @else
+                                            <span class="badge bg-secondary">Dibatalkan</span>
+                                        @endif
+                                    </td>
+                                @endif
+                                @if ($hasColumn('proof'))
+                                    <td>
+                                        @if ($order->proof_image_path)
+                                            <span class="badge bg-info">Diunggah</span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                @endif
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $isAdmin ? 8 : 7 }}" class="text-center text-muted py-5">
+                                <td colspan="{{ count($visibleColumns) + 1 }}" class="text-center text-muted py-5">
                                     Tidak ada data untuk filter yang dipilih.
                                 </td>
                             </tr>
@@ -186,10 +221,9 @@
                     @if ($orders->isNotEmpty())
                         <tfoot class="table-light">
                             <tr>
-                                <td colspan="{{ $isAdmin ? 6 : 5 }}" class="ps-4 fw-bold text-end">Total Pendapatan (Lunas)</td>
-                                <td class="text-end fw-bold">Rp {{ number_format($revenue, 0, ',', '.') }}</td>
-                                <td></td>
-                                <td></td>
+                                <td colspan="{{ count($visibleColumns) + 1 }}" class="ps-4 fw-bold text-end">
+                                    Total Pendapatan (Lunas): Rp {{ number_format($revenue, 0, ',', '.') }}
+                                </td>
                             </tr>
                         </tfoot>
                     @endif

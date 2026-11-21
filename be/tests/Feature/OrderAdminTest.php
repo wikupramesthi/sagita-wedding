@@ -152,6 +152,37 @@ class OrderAdminTest extends TestCase
         $this->assertStringContainsString($this->member->name, $csv);
     }
 
+    public function test_admin_can_limit_export_columns_to_visible_columns(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->get(route('orders.exportCsv', [
+                'status' => 'pending',
+                'columns' => 'order,status,invalid-column',
+            ]));
+
+        $response->assertOk();
+
+        $csv = $response->streamedContent();
+
+        $this->assertStringContainsString('No. Pesanan', $csv);
+        $this->assertStringContainsString('Status', $csv);
+        $this->assertStringContainsString('Menunggu', $csv);
+        $this->assertStringNotContainsString('Pelanggan', $csv);
+        $this->assertStringNotContainsString('Paket Wedding', $csv);
+        $this->assertStringNotContainsString('invalid-column', $csv);
+    }
+
+    public function test_report_hides_columns_not_requested(): void
+    {
+        $this->actingAs($this->admin)
+            ->get(route('orders.report', ['columns' => 'order,status']))
+            ->assertOk()
+            ->assertSee('No. Pesanan')
+            ->assertSee('Status')
+            ->assertDontSee('<th>Pelanggan</th>', false)
+            ->assertDontSee('<th>Paket</th>', false);
+    }
+
     public function test_admin_can_bulk_approve_pending_orders(): void
     {
         $this->actingAs($this->admin)
@@ -226,7 +257,52 @@ class OrderAdminTest extends TestCase
             ->assertOk()
             ->assertSee('Menampilkan 1–10 dari')
             ->assertSee('Halaman 1 dari')
+            ->assertSee('ordersPerPageQuick')
+            ->assertSee('ordersPageJump')
             ->assertViewHas('orders', fn ($orders) => $orders->total() === 14 && $orders->perPage() === 10);
+
+        $this->actingAs($this->admin)
+            ->get(route('orders.index', ['per_page' => 100]))
+            ->assertOk()
+            ->assertViewHas('filters', fn (array $filters) => $filters['per_page'] === 100);
+    }
+
+    public function test_index_explains_short_search_keyword(): void
+    {
+        $this->actingAs($this->admin)
+            ->get(route('orders.index', ['search' => 'A']))
+            ->assertOk()
+            ->assertSee('Kata kunci pencarian minimal 2 karakter')
+            ->assertViewHas('orders', fn ($orders) => $orders->total() === 0);
+    }
+
+    public function test_index_shows_sla_claim_presets_and_card_view(): void
+    {
+        Order::where('uuid', $this->orderUuids[0])->update(['created_at' => now()->subHours(30)]);
+        Order::where('uuid', $this->orderUuids[1])->update(['assigned_admin_uuid' => $this->admin->uuid]);
+
+        $this->actingAs($this->admin)
+            ->get(route('orders.index'))
+            ->assertOk()
+            ->assertSee('Periode cepat')
+            ->assertSee('SLA &gt;24 jam', false)
+            ->assertSee('Diklaim')
+            ->assertSee('Langkah: minta bukti transfer')
+            ->assertSee('Tekan')
+            ->assertSee('id="orderStickyBar"', false)
+            ->assertViewHas('queueCounts', fn ($counts) => $counts['sla'] === 1 && $counts['claimed'] === 1);
+
+        $this->actingAs($this->admin)
+            ->get(route('orders.index', ['search' => 'TIDAKADAHASIL']))
+            ->assertOk()
+            ->assertSee('Tidak ada hasil untuk filter ini')
+            ->assertSee('Lihat Antrean');
+
+        $this->actingAs($this->admin)
+            ->get(route('orders.index', ['view' => 'cards']))
+            ->assertOk()
+            ->assertSee('view-cards', false)
+            ->assertSee('Kartu');
     }
 
     public function test_admin_can_bulk_reject_pending_orders(): void
@@ -392,6 +468,51 @@ class OrderAdminTest extends TestCase
                 'per_page' => 25,
                 'sort' => 'amount_desc',
             ]));
+    }
+
+    public function test_admin_can_pin_reorder_and_unset_saved_filter_default(): void
+    {
+        $this->actingAs($this->admin)
+            ->post(route('orders.saved-filters.store'), [
+                'name' => 'Filter A',
+                'filters' => json_encode(['status' => 'pending']),
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.saved-filters.store'), [
+                'name' => 'Filter B',
+                'filters' => json_encode(['status' => 'paid']),
+                'is_default' => true,
+            ])
+            ->assertRedirect();
+
+        $first = OrderSavedFilter::where('name', 'Filter A')->firstOrFail();
+        $second = OrderSavedFilter::where('name', 'Filter B')->firstOrFail();
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.saved-filters.pin', $second))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+        $this->assertNotNull($second->fresh()->pinned_at);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.saved-filters.pin', $first))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+        $this->assertNotNull($first->fresh()->pinned_at);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.saved-filters.move', $first), ['direction' => 'down'])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+        $this->assertTrue($first->fresh()->sort_order > $second->fresh()->sort_order);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.saved-filters.default', $second), ['is_default' => 0])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+        $this->assertFalse((bool) $second->fresh()->is_default);
     }
 
     public function test_admin_can_undo_bulk_rejection(): void

@@ -92,6 +92,17 @@
                 <span class="text-muted2 text-small">{{ __('mobile.date') }}</span>
                 <span class="small fw-semibold">{{ $order->created_at?->format('d M Y') ?? '-' }}</span>
             </div>
+            @if (!empty($order->addons))
+                <div class="py-2 border-bottom">
+                    <div class="text-muted2 text-small mb-1">{{ __('mobile.layanan_tambahan') }}</div>
+                    @foreach ($order->addons as $addon)
+                        <div class="d-flex justify-content-between gap-3 py-1">
+                            <span class="small">{{ $addon['name'] ?? '-' }}</span>
+                            <span class="small fw-semibold">Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
             <div class="d-flex justify-content-between align-items-center py-2">
                 <span class="text-muted2 text-small">{{ __('mobile.amount') }}</span>
                 <span class="small fw-semibold">Rp {{ number_format($order->amount, 0, ',', '.') }}</span>

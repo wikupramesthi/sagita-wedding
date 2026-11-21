@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\Venue;
 use Tests\TestCase;
 
 class BatchApiTest extends TestCase
@@ -48,7 +49,7 @@ class BatchApiTest extends TestCase
             ->assertJsonStructure([
                 'data' => [
                     'testimonials',
-                    'classes',
+                    'venues',
                     'packages',
                     'events',
                 ],
@@ -59,6 +60,28 @@ class BatchApiTest extends TestCase
             (string) $response->headers->get('Cache-Control'),
         );
         $this->assertNotEmpty($response->headers->get('ETag'));
+    }
+
+    public function test_venues_batch_returns_active_venue_directory(): void
+    {
+        Venue::query()->create([
+            'name' => 'Garden Hall',
+            'address' => 'Jl. Garden 1',
+            'status' => 'active',
+        ]);
+        Venue::query()->create([
+            'name' => 'Private Hall',
+            'address' => 'Jl. Private 2',
+            'status' => 'inactive',
+        ]);
+
+        $this->api()
+            ->getJson('/api/batch/venues')
+            ->assertOk()
+            ->assertJsonPath('page', 'venues')
+            ->assertJsonCount(1, 'data.venues')
+            ->assertJsonPath('data.venues.0.name', 'Garden Hall')
+            ->assertJsonPath('data.venues.0.address', 'Jl. Garden 1');
     }
 
     public function test_detail_batch_requires_slug(): void

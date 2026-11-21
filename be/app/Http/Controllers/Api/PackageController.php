@@ -61,7 +61,6 @@ class PackageController extends Controller
                 ],
             ]);
 
-
             /*
              * BASE QUERY
              */
@@ -74,11 +73,16 @@ class PackageController extends Controller
                             ->orderBy('sort_order');
                     },
 
+                    'addons' => function ($query) {
+                        $query
+                            ->where('is_active', true)
+                            ->orderBy('sort_order');
+                    },
+
                     'features' => function ($query) {
                         $query->orderBy('sort_order');
                     },
                 ]);
-
 
             /*
              * SEARCH
@@ -94,16 +98,15 @@ class PackageController extends Controller
                     $q->where(
                         'name',
                         'like',
-                        '%' . $search . '%'
+                        '%'.$search.'%'
                     )
                         ->orWhere(
                             'description',
                             'like',
-                            '%' . $search . '%'
+                            '%'.$search.'%'
                         );
                 });
             }
-
 
             /*
              * FILTER
@@ -116,7 +119,6 @@ class PackageController extends Controller
                 );
             }
 
-
             if ($request->input('filter') === 'unlimited') {
 
                 $query->whereHas(
@@ -127,7 +129,6 @@ class PackageController extends Controller
                 );
             }
 
-
             /*
              * SORT
              *
@@ -136,7 +137,7 @@ class PackageController extends Controller
              * discount_price if smaller than price,
              * otherwise uses price.
              */
-            $priceSubquery = "
+            $priceSubquery = '
                 (
                     SELECT MIN(
                         CASE
@@ -150,8 +151,7 @@ class PackageController extends Controller
                     WHERE package_options.package_uuid = packages.uuid
                     AND package_options.is_active = 1
                 )
-            ";
-
+            ';
 
             switch ($request->input('sort')) {
 
@@ -166,43 +166,40 @@ class PackageController extends Controller
 
                     $query
                         ->orderByDesc('is_popular')
-                        ->orderByRaw($priceSubquery . ' ASC')
+                        ->orderByRaw($priceSubquery.' ASC')
                         ->orderBy('name');
 
                     break;
 
-
-                /*
-                 * LOWEST PRICE
-                 */
+                    /*
+                     * LOWEST PRICE
+                     */
                 case 'lowest_price':
 
                     $query
                         ->orderByRaw(
-                            $priceSubquery . ' ASC'
+                            $priceSubquery.' ASC'
                         )
                         ->orderByDesc('is_popular')
                         ->orderBy('name');
 
                     break;
 
-
-                /*
-                 * DEFAULT
-                 *
-                 * Popular first,
-                 * then lowest price.
-                 */
+                    /*
+                     * DEFAULT
+                     *
+                     * Popular first,
+                     * then lowest price.
+                     */
                 default:
 
                     $query
                         ->orderByDesc('is_popular')
-                        ->orderByRaw($priceSubquery . ' ASC')
+                        ->orderByRaw($priceSubquery.' ASC')
                         ->orderBy('name');
 
                     break;
             }
-
 
             /*
              * PAGINATION
@@ -215,7 +212,6 @@ class PackageController extends Controller
             $packages = $query->paginate(
                 $perPage
             );
-
 
             /*
              * RESPONSE
@@ -234,23 +230,17 @@ class PackageController extends Controller
 
                 'meta' => [
 
-                    'current_page' =>
-                    $packages->currentPage(),
+                    'current_page' => $packages->currentPage(),
 
-                    'per_page' =>
-                    $packages->perPage(),
+                    'per_page' => $packages->perPage(),
 
-                    'total' =>
-                    $packages->total(),
+                    'total' => $packages->total(),
 
-                    'last_page' =>
-                    $packages->lastPage(),
+                    'last_page' => $packages->lastPage(),
 
-                    'from' =>
-                    $packages->firstItem(),
+                    'from' => $packages->firstItem(),
 
-                    'to' =>
-                    $packages->lastItem(),
+                    'to' => $packages->lastItem(),
 
                 ],
 
@@ -261,8 +251,7 @@ class PackageController extends Controller
 
                 'status' => 'error',
 
-                'message' =>
-                'Invalid request parameters',
+                'message' => 'Invalid request parameters',
 
                 'errors' => $e->errors(),
 
@@ -272,13 +261,11 @@ class PackageController extends Controller
         } catch (\Throwable $e) {
 
             Log::error(
-                'Package index error: ' . $e->getMessage(),
+                'Package index error: '.$e->getMessage(),
                 [
-                    'request' =>
-                    $request->only(['search', 'filter', 'sort', 'page', 'per_page']),
+                    'request' => $request->only(['search', 'filter', 'sort', 'page', 'per_page']),
 
-                    'trace' =>
-                    $e->getTraceAsString(),
+                    'trace' => $e->getTraceAsString(),
                 ]
             );
 
@@ -286,15 +273,13 @@ class PackageController extends Controller
 
                 'status' => 'error',
 
-                'message' =>
-                'Failed to fetch package data',
+                'message' => 'Failed to fetch package data',
 
                 'data' => [],
 
             ], 500);
         }
     }
-
 
     /**
      * Package details by slug.
@@ -324,6 +309,17 @@ class PackageController extends Controller
                             );
                     },
 
+                    'addons' => function ($query) {
+                        $query
+                            ->where(
+                                'is_active',
+                                true
+                            )
+                            ->orderBy(
+                                'sort_order'
+                            );
+                    },
+
                     'features' => function ($query) {
                         $query->orderBy(
                             'sort_order'
@@ -332,16 +328,13 @@ class PackageController extends Controller
                 ])
                 ->firstOrFail();
 
-
             return response()->json([
 
                 'status' => 'success',
 
-                'message' =>
-                'Package details retrieved successfully',
+                'message' => 'Package details retrieved successfully',
 
-                'data' =>
-                new PackageResource($package),
+                'data' => new PackageResource($package),
 
             ], 200);
         } catch (ModelNotFoundException $e) {
@@ -350,8 +343,7 @@ class PackageController extends Controller
 
                 'status' => 'error',
 
-                'message' =>
-                'Package not found',
+                'message' => 'Package not found',
 
                 'data' => null,
 
@@ -359,12 +351,11 @@ class PackageController extends Controller
         } catch (\Throwable $e) {
 
             Log::error(
-                'Package show error: ' . $e->getMessage(),
+                'Package show error: '.$e->getMessage(),
                 [
                     'slug' => $slug,
 
-                    'trace' =>
-                    $e->getTraceAsString(),
+                    'trace' => $e->getTraceAsString(),
                 ]
             );
 
@@ -372,8 +363,7 @@ class PackageController extends Controller
 
                 'status' => 'error',
 
-                'message' =>
-                'An error occurred while fetching package details',
+                'message' => 'An error occurred while fetching package details',
 
                 'data' => null,
 

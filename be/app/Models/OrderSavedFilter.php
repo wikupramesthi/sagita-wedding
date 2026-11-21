@@ -17,11 +17,15 @@ class OrderSavedFilter extends Model
         'name',
         'filters',
         'is_default',
+        'pinned_at',
+        'sort_order',
     ];
 
     protected $casts = [
         'filters' => 'array',
         'is_default' => 'boolean',
+        'pinned_at' => 'datetime',
+        'sort_order' => 'integer',
     ];
 
     public function user(): BelongsTo

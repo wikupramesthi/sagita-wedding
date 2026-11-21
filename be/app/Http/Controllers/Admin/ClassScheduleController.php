@@ -224,7 +224,7 @@ class ClassScheduleController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -329,7 +329,7 @@ class ClassScheduleController extends Controller
                 ->withInput()
                 ->with(
                     'error',
-                    'Terjadi kesalahan: '.$th->getMessage()
+                    $this->safeErrorMessage($th)
                 );
         }
     }

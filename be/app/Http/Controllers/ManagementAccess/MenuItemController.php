@@ -50,7 +50,7 @@ class MenuItemController extends Controller
                 'position' => $menu->items()->max('position') + 1
             )
         ));
-        return back()->with('success', 'Menu Item has been created successfully!');
+        return back()->with('success', 'Item menu berhasil ditambahkan!');
     }
 
     /**
@@ -84,7 +84,7 @@ class MenuItemController extends Controller
             )
         ));
 
-        return back()->with('success', 'Menu Item has been updated successfully!');
+        return back()->with('success', 'Item menu berhasil diperbarui!');
     }
 
     /**
@@ -94,6 +94,6 @@ class MenuItemController extends Controller
     {
         $item->delete();
 
-        return back()->with('success', 'Menu Item has been deleted successfully!');
+        return back()->with('success', 'Item menu berhasil dihapus!');
     }
 }

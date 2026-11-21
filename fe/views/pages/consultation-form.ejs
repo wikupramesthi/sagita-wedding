@@ -10,10 +10,10 @@
         eyebrow: "A thoughtful beginning",
         title: "Let’s plan a day",
         titleAccent: "that feels like you.",
-        intro: "Tell us a little about the celebration you have in mind. Our wedding planner will help you explore the right services, package, and next steps.",
+        intro: "Tell us a little about the celebration you have in mind. Our team will help you explore the services, packages, and next steps that best fit your plans.",
         detailsTitle: "Wedding planning shaped around your celebration",
         detailsText: "Discuss full-service planning, wedding-day coordination, vendor recommendations, and package or budget options with Sagita Wedding Planner.",
-        private: "Your details are only used to respond to this consultation.",
+        private: "We’ll use your information only to follow up on this consultation.",
         stepOne: "About you",
         stepTwo: "Your celebration",
         name: "Full name",
@@ -42,10 +42,10 @@
         captchaRetry: "Reload verification",
         submit: "Send consultation request",
         sending: "Sending your request…",
-        successTitle: "Your story starts here.",
-        successText: "Your form has been received. Our team will contact you soon with more information and help bring your dream wedding to life.",
+        successTitle: "Thank you for reaching out.",
+        successText: "We’ve received your consultation request. Our team will be in touch soon to learn more about your plans and discuss the next steps.",
         successTagline: "Weaving Moments, Realizing Dreams.",
-        whatsappConfirm: "Okay",
+        whatsappConfirm: "Got it",
         errorFallback: "We couldn’t send your request. Please try again.",
         footer: "A warm conversation is the first step to a meaningful celebration.",
         back: "Back to website",
@@ -54,8 +54,8 @@
         eyebrow: "Awal yang penuh makna",
         title: "Mari rencanakan hari",
         titleAccent: "yang terasa seperti Anda.",
-        intro: "Ceritakan sedikit tentang pernikahan yang Anda impikan. Wedding planner kami akan membantu memilih layanan, paket, dan langkah berikutnya yang paling sesuai.",
-        detailsTitle: "Konsultasi Wedding Organizer sesuai rencana Anda",
+        intro: "Ceritakan sedikit tentang pernikahan yang Anda impikan. Tim kami akan membantu menjajaki layanan, paket, dan langkah berikutnya yang paling sesuai dengan rencana Anda.",
+        detailsTitle: "Rencana pernikahan, dibahas bersama",
         detailsText: "Diskusikan perencanaan pernikahan, koordinasi di hari pernikahan, rekomendasi vendor, serta pilihan paket dan anggaran bersama Sagita Wedding Planner.",
         private: "Informasi Anda hanya digunakan untuk menindaklanjuti konsultasi ini.",
         stepOne: "Tentang Anda",
@@ -70,15 +70,15 @@
         dateHint: "Tidak masalah jika tanggalnya belum ditentukan.",
         city: "Kota pernikahan",
         cityPlaceholder: "Contoh: Jakarta",
-        venue: "Venue (jika sudah ada)",
+        venue: "Lokasi atau venue (jika sudah ada)",
         venuePlaceholder: "Nama venue atau area",
         guests: "Perkiraan jumlah tamu",
         choose: "Pilih perkiraan",
         guestsOptions: ["Di bawah 100 tamu", "100–300 tamu", "300–500 tamu", "Lebih dari 500 tamu", "Belum tahu"],
         budget: "Kisaran anggaran",
         budgetOptions: ["Di bawah Rp100 juta", "Rp100–250 juta", "Rp250–500 juta", "Di atas Rp500 juta", "Masih mencari gambaran"],
-        service: "Apa yang ingin Anda konsultasikan?",
-        serviceOptions: ["Perencanaan pernikahan menyeluruh", "Koordinasi di hari pernikahan", "Rekomendasi venue & vendor", "Konsultasi anggaran & paket"],
+        service: "Layanan apa yang ingin Anda diskusikan?",
+        serviceOptions: ["Perencanaan pernikahan menyeluruh", "Koordinasi di hari pernikahan", "Rekomendasi venue dan vendor", "Konsultasi anggaran dan paket"],
         message: "Hal lain yang ingin kami ketahui?",
         messagePlaceholder: "Ceritakan ide, prioritas, atau pertanyaan Anda…",
         captcha: "Verifikasi singkat",
@@ -86,10 +86,10 @@
         captchaRetry: "Muat ulang verifikasi",
         submit: "Kirim permintaan konsultasi",
         sending: "Mengirim permintaan…",
-        successTitle: "Terima kasih telah mempercayakan langkah awal perencanaan pernikahan Anda kepada",
-        successText: "Formulir Anda telah berhasil kami terima. Tim kami akan segera menghubungi Anda untuk informasi lebih lanjut dan membantu mewujudkan pernikahan impian Anda.",
+        successTitle: "Terima kasih telah menghubungi kami.",
+        successText: "Permintaan konsultasi Anda telah kami terima. Tim kami akan segera menghubungi Anda untuk membicarakan rencana dan langkah berikutnya.",
         successTagline: "Merangkai Momen, Mewujudkan Impian.",
-        whatsappConfirm: "Oke",
+        whatsappConfirm: "Baik",
         errorFallback: "Permintaan belum terkirim. Silakan coba kembali.",
         footer: "Percakapan hangat adalah awal dari perayaan yang bermakna.",
         back: "Kembali ke website",
@@ -222,7 +222,7 @@
                 <p id="consultationCaptchaQuestion"><%= copy.captchaLoading %></p>
               </div>
               <img id="consultationCaptchaCode" class="consultation-captcha-code" alt="<%= copy.captcha %>" width="160" height="48">
-              <input id="consultationCaptchaAnswer" name="captcha_answer" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" aria-label="<%= copy.captcha %>" placeholder="Ketik di sini" required>
+              <input id="consultationCaptchaAnswer" name="captcha_answer" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" aria-label="<%= copy.captcha %>" placeholder="<%= lang === 'en' ? 'Enter code' : 'Ketik di sini' %>" required>
               <input id="consultationCaptchaId" name="captcha_id" type="hidden">
               <button id="consultationCaptchaReload" type="button" aria-label="<%= copy.captchaRetry %>" title="<%= copy.captchaRetry %>">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 7v5h-5M4.6 9a7.5 7.5 0 0 1 12.7-2L20 12M4 17v-5h5m6.8 2a7.5 7.5 0 0 1-12.7 2L4 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -249,14 +249,16 @@
         <span class="consultation-success-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4.5 4.5L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
-        <h2 id="consultationSuccessTitle"><%= copy.successTitle %> <strong>Sagita Wedding Planner</strong></h2>
+        <h2 id="consultationSuccessTitle"><%= copy.successTitle %></h2>
         <p id="consultationSuccessText"><%= copy.successText %></p>
         <p class="consultation-success-tagline"><strong>Sagita Wedding Planner – <%= copy.successTagline %></strong></p>
-        <a id="consultationWhatsappConfirm" class="consultation-success-confirm" href="<%= contactLinks.whatsappShortLink %>" data-whatsapp-message="Halo, admin aku sudah mengisi formulir konsultasi ya, mohon responnya. Terimakasih"><%= copy.whatsappConfirm %></a>
+        <a id="consultationWhatsappConfirm" class="consultation-success-confirm" href="<%= contactLinks.whatsappShortLink %>" data-whatsapp-message="<%= lang === 'en' ? 'Hello, I’ve submitted the wedding consultation form. I look forward to hearing from your team. Thank you.' : 'Halo, saya sudah mengirim formulir konsultasi pernikahan. Mohon kabari saya jika ada informasi lebih lanjut. Terima kasih.' %>"><%= copy.whatsappConfirm %></a>
       </div>
     </dialog>
 
+    <%- include('../partials/accessibility-widget') %>
     <script src="/js/main.js?v=<%= assetV %>" defer></script>
+    <script src="/js/accessibility.js?v=<%= assetV %>-a11y1" defer></script>
     <script src="/js/pages/consultation-form.js?v=<%= assetV %>" defer></script>
   </body>
 </html>

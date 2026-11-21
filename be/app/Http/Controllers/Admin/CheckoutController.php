@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Package\Package;
+use App\Support\MemberView;
 use Illuminate\Http\Request;
 
 class CheckoutController extends Controller
@@ -12,6 +13,10 @@ class CheckoutController extends Controller
     {
         $package = Package::with([
             'options' => function ($query) {
+                $query->where('is_active', true)
+                    ->orderBy('sort_order');
+            },
+            'addons' => function ($query) {
                 $query->where('is_active', true)
                     ->orderBy('sort_order');
             },
@@ -26,7 +31,7 @@ class CheckoutController extends Controller
         | Member: laptop/desktop = view desktop, HP = phone-frame mobile.
         |--------------------------------------------------------------------------
         */
-        if (auth()->check() && auth()->user()->hasRole('user') && \App\Support\MemberView::isMobile()) {
+        if (auth()->check() && auth()->user()->hasRole('user') && MemberView::isMobile()) {
             return view(
                 'pages.mobile.checkout',
                 compact('package')

@@ -4,6 +4,7 @@ import apiRequest, { buildQuery } from "./apiClient.js";
 
 export type BatchPage =
 	| "home"
+	| "venues"
 	| "about"
 	| "classes"
 	| "class-detail"

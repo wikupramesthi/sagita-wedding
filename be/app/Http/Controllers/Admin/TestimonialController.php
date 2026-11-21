@@ -71,7 +71,7 @@ class TestimonialController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Gagal menambahkan testimoni: '.$th->getMessage());
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -143,7 +143,7 @@ class TestimonialController extends Controller
 
             return redirect()
                 ->back()
-                ->with('error', 'Gagal memperbarui testimoni: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 

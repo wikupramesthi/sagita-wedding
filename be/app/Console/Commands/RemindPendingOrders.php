@@ -7,6 +7,7 @@ use App\Models\Payment\Order;
 use App\Models\User;
 use App\Notifications\OrderSlaReminderNotification;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
@@ -23,17 +24,20 @@ class RemindPendingOrders extends Command
         $now = now();
         $sent = 0;
 
-        $orders = Order::packageOnly()
-            ->where('status', 'pending')
-            ->whereNotNull('created_at')
-            ->where('created_at', '<=', $now->copy()->subHours($hoursThreshold))
-            ->where(function ($query) use ($now, $hoursThreshold) {
-                $query->whereNull('sla_reminded_at')
-                    ->orWhere('sla_reminded_at', '<=', $now->copy()->subHours($hoursThreshold));
-            })
-            ->with(['user', 'assignedAdmin'])
-            ->limit(500)
-            ->get();
+        $orders = DB::transaction(function () use ($now, $hoursThreshold) {
+            return Order::packageOnly()
+                ->where('status', 'pending')
+                ->whereNotNull('created_at')
+                ->where('created_at', '<=', $now->copy()->subHours($hoursThreshold))
+                ->where(function ($query) use ($now, $hoursThreshold) {
+                    $query->whereNull('sla_reminded_at')
+                        ->orWhere('sla_reminded_at', '<=', $now->copy()->subHours($hoursThreshold));
+                })
+                ->with(['user', 'assignedAdmin'])
+                ->lockForUpdate()
+                ->limit(500)
+                ->get();
+        });
 
         $roles = Role::whereIn('name', ['super-admin', 'admin'])->pluck('name');
         $fallbackRecipients = $roles->isNotEmpty() ? User::role($roles->all())->get() : collect();
@@ -81,6 +85,16 @@ class RemindPendingOrders extends Command
             }
 
             if ($delivered === 0) {
+                continue;
+            }
+
+            if ($delivered < $recipients->count()) {
+                Log::warning('orders.sla.partial', [
+                    'order' => $order->uuid,
+                    'delivered' => $delivered,
+                    'recipients' => $recipients->count(),
+                ]);
+
                 continue;
             }
 

@@ -6,8 +6,8 @@ import { cleanSlugLoose } from "../utils/validate.js";
 
 /**
  * Sitemap XML dinamis + robots.txt.
- * - URL statis (10 halaman) + slug dinamis dari backend
- *   (classes, packages, articles->/blog, pages->/pages/:slug).
+ * - URL statis + slug dinamis dari backend
+ *   (packages, articles->/blog, pages->/pages/:slug).
  * - Cache in-memory 1 jam agar tidak memukul backend tiap crawl.
  * - Fail-open: backend mati -> sajikan cache basi, atau minimal URL statis
  *   (tidak pernah 500 agar Google tidak menghapus sitemap).
@@ -18,8 +18,7 @@ const router = Router();
 const STATIC_URLS = [
 	{ path: "/", changefreq: "daily", priority: "1.0" },
 	{ path: "/about", changefreq: "monthly", priority: "0.8" },
-	{ path: "/classes", changefreq: "weekly", priority: "0.9" },
-	{ path: "/schedules", changefreq: "daily", priority: "0.9" },
+	{ path: "/venues", changefreq: "weekly", priority: "0.9" },
 	{ path: "/vendors", changefreq: "weekly", priority: "0.7" },
 	{ path: "/blog", changefreq: "weekly", priority: "0.8" },
 	{ path: "/packages", changefreq: "weekly", priority: "0.8" },
@@ -31,12 +30,6 @@ const STATIC_URLS = [
 
 // FE base path + endpoint backend (per_page mentok 50 sesuai validasi BE).
 const DYNAMIC_SOURCES = [
-	{
-		base: "/classes",
-		endpoint: "/classes?per_page=50",
-		changefreq: "weekly",
-		priority: "0.7",
-	},
 	{
 		base: "/packages",
 		endpoint: "/packages?per_page=50",

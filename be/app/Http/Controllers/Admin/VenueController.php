@@ -120,7 +120,7 @@ class VenueController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', $th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -202,7 +202,7 @@ class VenueController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', $th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -245,7 +245,7 @@ class VenueController extends Controller
                 ->route('venues.index')
                 ->with(
                     'error',
-                    'Gagal menghapus venue: '.$th->getMessage()
+                    $this->safeErrorMessage($th)
                 );
         }
     }

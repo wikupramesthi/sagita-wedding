@@ -233,10 +233,10 @@
         async function runSearch(query) {
             if (query.length < 2) {
                 render([]);
-                results.innerHTML = '<p class="gs-hint">Type at least 2 characters to search.</p>';
+                results.innerHTML = '<p class="gs-hint">Ketik minimal 2 karakter untuk mencari.</p>';
                 return;
             }
-            results.innerHTML = '<p class="gs-hint">Searching...</p>';
+            results.innerHTML = '<p class="gs-hint">Mencari...</p>';
             const menuHits = collectMenuItems(query);
             try {
                 const res = await fetch(SEARCH_URL + '?q=' + encodeURIComponent(query), {
@@ -256,7 +256,7 @@
             else { modalEl.style.display = 'block'; modalEl.classList.add('show'); document.body.classList.add('modal-open'); }
             document.body.classList.add('gs-open');
             input.value = '';
-            results.innerHTML = '<p class="gs-hint">Type to search across all modules.</p>';
+            results.innerHTML = '<p class="gs-hint">Ketik untuk mencari di semua modul.</p>';
             setTimeout(() => input.focus(), 60);
         }
 

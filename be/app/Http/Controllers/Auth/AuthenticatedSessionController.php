@@ -47,8 +47,8 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $welcome = $request->user()->hasRole('user')
-            ? 'Welcome back! Happy practicing.'
-            : 'Welcome to the admin page!';
+            ? 'Selamat datang kembali! Selamat berlatih.'
+            : 'Selamat datang di halaman admin!';
 
         return redirect()
             ->intended(route('dashboard.index', absolute: false))

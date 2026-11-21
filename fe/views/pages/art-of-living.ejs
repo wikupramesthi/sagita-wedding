@@ -99,13 +99,13 @@
     <div class="absolute inset-0 opacity-[0.08] mix-blend-overlay pointer-events-none" style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;)"></div>
     <div class="hero-shimmer"></div>
 
-    <div class="relative max-w-6xl mx-auto px-6 pt-36 pb-20 lg:pt-48 lg:pb-28 grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+    <div class="site-container relative mx-auto pt-36 pb-20 lg:pt-48 lg:pb-28 grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
       <div class="text-center lg:text-left">
         <span class="inline-flex items-center gap-2 rounded-full border border-sand-100/25 bg-white/5 backdrop-blur-sm px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-sand-100 anim-fade-in">
           <span class="w-1.5 h-1.5 rounded-full bg-gold-light"></span>
           <%= L.badge %>
         </span>
-        <h1 class="mt-8 font-display tracking-tight anim-slide-up" style="font-size:clamp(2.5rem, min(8vw, 10vh), 4.25rem); line-height:1.06">
+        <h1 class="mt-8 font-display tracking-tight anim-slide-up">
           <%= L.titleA %>
           <span class="italic font-light text-gold-light"><%= L.titleB %></span>
         </h1>
@@ -156,8 +156,8 @@
   </section>
 
   <!-- ======================= ABOUT ======================= -->
-  <section id="founder" class="py-20 lg:py-28 px-6 scroll-mt-24">
-    <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+  <section id="founder" class="py-20 lg:py-28 scroll-mt-24">
+    <div class="site-container mx-auto grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
       <div class="reveal order-2 lg:order-1">
         <div class="grid grid-cols-2 gap-5">
           <img src="/img/art-of-living/gurudev-1.webp" alt="Gurudev Sri Sri Ravi Shankar" loading="lazy" decoding="async" class="w-full aspect-[3/2] object-cover rounded-2xl shadow-md ring-1 ring-sand-900/5">
@@ -184,10 +184,6 @@
           <div>
             <h3 class="font-semibold text-sage-900"><%= L.kriyaTitle %></h3>
             <p class="text-sm text-stone-warm leading-relaxed mt-1"><%= L.kriyaDesc %></p>
-            <a href="/classes" class="inline-flex items-center gap-1.5 text-sm font-medium text-terracotta-600 hover:text-terracotta-700 mt-2">
-              <%= isID ? 'Lihat kelas YogaRoots' : 'Explore YogaRoots classes' %>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-            </a>
           </div>
         </div>
       </div>
@@ -195,8 +191,8 @@
   </section>
 
   <!-- ======================= HONORS ======================= -->
-  <section class="py-20 lg:py-28 px-6 bg-sand-100/60">
-    <div class="max-w-6xl mx-auto">
+  <section class="py-20 lg:py-28 bg-sand-100/60">
+    <div class="site-container mx-auto">
       <div class="reveal text-center mb-14 lg:mb-16">
         <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-4"><%= L.honorsEyebrow %></p>
         <h2 class="font-display text-3xl sm:text-4xl text-sage-900 leading-tight"><%= L.honorsTitle %> <span class="italic text-terracotta-600"><%= L.honorsTitleItalic %></span></h2>
@@ -217,8 +213,8 @@
   </section>
 
   <!-- ======================= BIOGRAPHY / TIMELINE ======================= -->
-  <section class="pt-20 lg:pt-28 pb-14 lg:pb-16 px-6">
-    <div class="max-w-6xl mx-auto">
+  <section class="pt-20 lg:pt-28 pb-14 lg:pb-16">
+    <div class="site-container mx-auto">
       <div class="reveal text-center mb-16">
         <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-4"><%= L.bioEyebrow %></p>
         <h2 class="font-display text-3xl sm:text-4xl text-sage-900 leading-tight"><%= L.bioTitle %> <span class="italic text-terracotta-600"><%= L.bioTitleItalic %></span></h2>
@@ -276,8 +272,8 @@
   <!-- Gambar panoramagurudev-hero.webp sengaja menyisakan ruang kosong di
        sisi kiri (~55%); teks misi ditumpuk di area itu. object-right
        menjaga wajah Gurudev tetap terlihat di kanan. -->
-  <section class="px-6 pb-20 lg:pb-28">
-    <div class="reveal relative max-w-6xl mx-auto overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-sand-900/10">
+  <section class="pb-20 lg:pb-28">
+    <div class="site-container reveal relative mx-auto overflow-hidden rounded-[2rem] shadow-xl ring-1 ring-sand-900/10">
       <img
         src="/img/art-of-living/gurudev-hero.webp"
         alt="Gurudev Sri Sri Ravi Shankar"
@@ -294,7 +290,7 @@
             <%= t.artOfLiving.mission %>
           </p>
           <a href="#founder" class="group mt-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-sage-700 hover:text-sage-900 transition-colors">
-            <span class="border-b border-sage-700/30 group-hover:border-sage-900 pb-px"><%= t.artOfLiving.exploreClasses %></span>
+            <span class="border-b border-sage-700/30 group-hover:border-sage-900 pb-px"><%= t.learnMore %></span>
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:translate-x-0.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
           </a>
         </div>

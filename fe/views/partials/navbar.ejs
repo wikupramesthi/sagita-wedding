@@ -60,7 +60,7 @@
                 <p class="text-sm font-semibold text-sage-900 truncate"><%= user.name || user.email %></p>
                 <% if (user.email) { %><p class="text-xs text-stone-warm truncate"><%= user.email %></p><% } %>
               </div>
-              <a href="/schedules"><%= t.viewSchedule %></a>
+              <a href="/venues"><%= t.nav.venues %></a>
               <a href="/packages"><%= t.footerPackagesPricing %></a>
               <button type="button" data-action="logout" class="w-full text-left"><%= t.signOut %></button>
             </div>
@@ -91,7 +91,7 @@
           <a href="?lang=<%= item.code %>" class="text-sm <%= lang === item.code ? 'font-bold' : '' %>"><%= item.flag %> <%= item.label %></a>
         <% }) %>
       </div>
-      <button type="button" data-action="open-booking" class="block w-full text-center bg-lotus-600 text-white px-4 py-3 rounded-xl font-semibold mt-2"><%= t.bookClassBtn %></button>
+      <a href="/formulir-konsultasi" class="block w-full text-center bg-lotus-600 text-white px-4 py-3 rounded-xl font-semibold mt-2"><%= t.consultationCta %></a>
     </div>
   </div>
 </header>

@@ -228,11 +228,15 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::post('orders/saved-filters', [OrderController::class, 'storeSavedFilter'])->name('orders.saved-filters.store');
     Route::get('orders/saved-filters/{savedFilter}/apply', [OrderController::class, 'applySavedFilter'])->name('orders.saved-filters.apply');
     Route::post('orders/saved-filters/{savedFilter}/default', [OrderController::class, 'setDefaultSavedFilter'])->name('orders.saved-filters.default');
+    Route::post('orders/saved-filters/{savedFilter}/pin', [OrderController::class, 'togglePinSavedFilter'])->name('orders.saved-filters.pin');
+    Route::post('orders/saved-filters/{savedFilter}/move', [OrderController::class, 'moveSavedFilter'])->name('orders.saved-filters.move');
     Route::delete('orders/saved-filters/{savedFilter}', [OrderController::class, 'deleteSavedFilter'])->name('orders.saved-filters.destroy');
     Route::post('orders/bulk', [OrderController::class, 'bulkAction'])->name('orders.bulk');
+Route::post('orders/remind-sla', [OrderController::class, 'remindSla'])->name('orders.remind-sla');
 Route::post('orders/bulk/undo', [OrderController::class, 'bulkUndo'])->name('orders.bulk-undo');
 Route::post('orders/{order}/claim', [OrderController::class, 'claim'])->name('orders.claim');
 Route::get('orders/{order}/quick-view', [OrderController::class, 'quickView'])->name('orders.quick-view');
+Route::get('orders/{order}/activity', [OrderController::class, 'activity'])->name('orders.activity');
 Route::get('orders/{order}/whatsapp', [OrderController::class, 'whatsapp'])->name('orders.whatsapp');
     Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
     Route::post('orders/{order}/reject', [OrderController::class, 'reject'])->name('orders.reject');

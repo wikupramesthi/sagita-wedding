@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Class\ClassModel;
 use App\Models\User;
+use App\Models\Venue;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
@@ -29,6 +31,7 @@ class BatchController extends Controller
         try {
             $data = match ($page) {
                 'home' => $this->home(),
+                'venues' => $this->venues(),
                 'about' => $this->about(),
                 'classes' => $this->classesPage(),
                 'class-detail' => $this->classDetail($request),
@@ -102,10 +105,33 @@ class BatchController extends Controller
                 app(TestimonialController::class)->index(),
                 'testimonials',
             ) ?? [], 0, 3),
-            'classes' => $this->classes(4),
+            'venues' => array_slice($this->venueRecords(), 0, 4),
             'packages' => $this->packages(['per_page' => 3])['packages'] ?? [],
             'events' => $this->events(['per_page' => 3])['events'] ?? [],
         ];
+    }
+
+    private function venues(): array
+    {
+        return ['venues' => $this->venueRecords()];
+    }
+
+    private function venueRecords(): array
+    {
+        return Venue::query()
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Venue $venue) => [
+                'uuid' => $venue->uuid,
+                'name' => $venue->name,
+                'slug' => $venue->slug,
+                'excerpt' => $venue->excerpt ?: Str::limit(strip_tags($venue->description ?? ''), 180),
+                'address' => $venue->address,
+                'google_maps_url' => $venue->google_maps_url,
+                'image' => $venue->image ? asset('storage/'.$venue->image) : null,
+            ])
+            ->all();
     }
 
     private function about(): array

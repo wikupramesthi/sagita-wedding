@@ -269,7 +269,7 @@ class ClassBookingController extends Controller
                 return ['status' => $wantCheckin ? 'attended' : $status, 'remaining' => $remaining, 'booking' => $booking];
             });
         } catch (ValidationException $e) {
-            return back()->with('error', $e->getMessage())->withInput();
+            return back()->with('error', $this->safeErrorMessage($e))->withInput();
         }
 
         if ($result['status'] === 'attended') {
@@ -371,7 +371,7 @@ class ClassBookingController extends Controller
                 return $package->quota;
             });
         } catch (ValidationException $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', $this->safeErrorMessage($e));
         }
 
         try {
@@ -542,7 +542,7 @@ class ClassBookingController extends Controller
         try {
             $this->assertDateMatchesSchedule($date, $schedule);
         } catch (ValidationException $e) {
-            return back()->with('error', $e->getMessage())->withInput();
+            return back()->with('error', $this->safeErrorMessage($e))->withInput();
         }
 
         try {
@@ -599,7 +599,7 @@ class ClassBookingController extends Controller
                 return $package->quota;
             });
         } catch (ValidationException $e) {
-            return back()->with('error', $e->getMessage())->withInput();
+            return back()->with('error', $this->safeErrorMessage($e))->withInput();
         }
 
         try {

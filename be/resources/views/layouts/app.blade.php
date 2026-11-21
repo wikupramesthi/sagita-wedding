@@ -40,6 +40,68 @@
 
 
     @stack('after-style')
+    <style>
+        .global-toast-stack {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1080;
+            display: flex;
+            flex-direction: column;
+            gap: .55rem;
+            width: min(370px, calc(100vw - 2rem));
+            pointer-events: none;
+        }
+
+        .global-toast {
+            pointer-events: auto;
+            display: flex;
+            align-items: flex-start;
+            gap: .65rem;
+            padding: .8rem .9rem;
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-left: 4px solid #0d6efd;
+            border-radius: .75rem;
+            background: #1f2937;
+            color: #fff;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, .28);
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity .2s ease, transform .2s ease;
+        }
+
+        .global-toast.is-success { border-left-color: #198754; }
+        .global-toast.is-error { border-left-color: #dc3545; }
+        .global-toast.is-undo { border-left-color: #0dcaf0; }
+        .global-toast.is-leaving { opacity: 0; transform: translateY(-8px); }
+        .global-toast-icon { font-size: 1rem; line-height: 1.3; }
+        .global-toast-body { flex: 1; min-width: 0; font-size: .875rem; line-height: 1.45; }
+        .global-toast-close {
+            border: 0;
+            background: transparent;
+            color: rgba(255, 255, 255, .72);
+            font-size: 1.1rem;
+            line-height: 1;
+            padding: 0 .1rem;
+        }
+        .global-toast-close:hover { color: #fff; }
+        .global-toast-undo {
+            margin-top: .5rem;
+            border: 0;
+            border-radius: .45rem;
+            background: rgba(255, 255, 255, .14);
+            color: #fff;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .35rem .6rem;
+        }
+        .global-toast-undo:hover { background: rgba(255, 255, 255, .24); }
+        .global-toast-undo:disabled { opacity: .6; cursor: wait; }
+
+        @media (max-width: 575.98px) {
+            .global-toast-stack { top: .6rem; right: .6rem; width: calc(100vw - 1.2rem); }
+        }
+    </style>
     <!-- /Style -->
 
 </head>
@@ -103,6 +165,37 @@
         </div>
     </div>
 
+    @auth
+    <div id="global-toast-stack" class="global-toast-stack" aria-live="polite" aria-atomic="false">
+        @if (session('success'))
+        <div class="global-toast is-success" data-global-toast data-toast-life="6000">
+            <i class="bi bi-check-circle-fill global-toast-icon"></i>
+            <div class="global-toast-body">{{ session('success') }}</div>
+            <button type="button" class="global-toast-close" data-toast-close aria-label="Tutup">&times;</button>
+        </div>
+        @endif
+        @if (session('error'))
+        <div class="global-toast is-error" data-global-toast data-toast-life="7000">
+            <i class="bi bi-exclamation-triangle-fill global-toast-icon"></i>
+            <div class="global-toast-body">{{ session('error') }}</div>
+            <button type="button" class="global-toast-close" data-toast-close aria-label="Tutup">&times;</button>
+        </div>
+        @endif
+        @if (session('undo_token'))
+        <div class="global-toast is-undo" data-global-toast data-toast-life="0">
+            <i class="bi bi-arrow-counterclockwise global-toast-icon"></i>
+            <div class="global-toast-body">
+                <div>{{ session('undo_message') ?: 'Tindakan massal dapat dibatalkan.' }}</div>
+                <button type="button" class="global-toast-undo" data-undo-token="{{ session('undo_token') }}">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Batalkan sekarang
+                </button>
+            </div>
+            <button type="button" class="global-toast-close" data-toast-close aria-label="Tutup">&times;</button>
+        </div>
+        @endif
+    </div>
+    @endauth
+
     <!-- Script -->
     @stack('before-script')
     {{-- @include('components.includes.script') --}}
@@ -119,6 +212,122 @@
     <script src="{{ asset('js/sagita-confirm.js') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('js/sagita-confirm.js')) ? filemtime(public_path('js/sagita-confirm.js')) : '1' }}"></script>
 
     @stack('after-script')
+
+    <script>
+        (function () {
+            var stack = document.getElementById('global-toast-stack');
+            if (!stack) return;
+
+            var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            var csrf = csrfMeta ? csrfMeta.getAttribute('content') : '';
+            var undoUrl = "{{ route('orders.bulk-undo') }}";
+
+            function dismissToast(toast) {
+                if (!toast) return;
+                toast.classList.add('is-leaving');
+                window.setTimeout(function () {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 220);
+            }
+
+            function makeToast(message, type, life) {
+                var toast = document.createElement('div');
+                toast.className = 'global-toast ' + (type === 'error' ? 'is-error' : 'is-success');
+                toast.setAttribute('data-global-toast', '');
+                toast.setAttribute('data-toast-life', String(life || 5000));
+
+                var icon = document.createElement('i');
+                icon.className = 'bi ' + (type === 'error' ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill') + ' global-toast-icon';
+
+                var body = document.createElement('div');
+                body.className = 'global-toast-body';
+                body.textContent = message || 'Tindakan berhasil.';
+
+                var close = document.createElement('button');
+                close.type = 'button';
+                close.className = 'global-toast-close';
+                close.setAttribute('data-toast-close', '');
+                close.setAttribute('aria-label', 'Tutup');
+                close.innerHTML = '&times;';
+
+                toast.appendChild(icon);
+                toast.appendChild(body);
+                toast.appendChild(close);
+                stack.appendChild(toast);
+
+                close.addEventListener('click', function () {
+                    dismissToast(toast);
+                });
+                window.setTimeout(function () {
+                    dismissToast(toast);
+                }, life || 5000);
+            }
+
+            Array.prototype.forEach.call(stack.querySelectorAll('[data-global-toast]'), function (toast) {
+                var life = parseInt(toast.getAttribute('data-toast-life') || '6000', 10);
+
+                var close = toast.querySelector('[data-toast-close]');
+                if (close) {
+                    close.addEventListener('click', function () {
+                        dismissToast(toast);
+                    });
+                }
+
+                if (life > 0) {
+                    window.setTimeout(function () {
+                        dismissToast(toast);
+                    }, life);
+                }
+            });
+
+            stack.addEventListener('click', function (event) {
+                var target = event.target;
+                var button = target && target.closest ? target.closest('[data-undo-token]') : null;
+                if (!button) return;
+
+                event.preventDefault();
+
+                var toast = button.closest('[data-global-toast]');
+                button.disabled = true;
+
+                fetch(undoUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrf,
+                    },
+                    body: JSON.stringify({
+                        undo_token: button.getAttribute('data-undo-token'),
+                    }),
+                })
+                    .then(function (response) {
+                        return response.json().catch(function () {
+                            return {};
+                        }).then(function (data) {
+                            return { ok: response.ok, data: data };
+                        });
+                    })
+                    .then(function (result) {
+                        if (!result.ok || result.data.success === false) {
+                            throw new Error(result.data.message || 'Pembatalan gagal.');
+                        }
+
+                        dismissToast(toast);
+                        makeToast(result.data.message || 'Tindakan berhasil dibatalkan.', 'success', 4500);
+                        window.dispatchEvent(new CustomEvent('orders:changed'));
+                        window.setTimeout(function () {
+                            window.location.reload();
+                        }, 900);
+                    })
+                    .catch(function (error) {
+                        button.disabled = false;
+                        makeToast(error && error.message ? error.message : 'Pembatalan gagal.', 'error', 6000);
+                    });
+            });
+        })();
+    </script>
     <!-- /Script -->
 
     <!-- include summernote css/js -->
@@ -176,7 +385,7 @@
     <script>
         $(document).ready(function() {
             $('#vendors_categories').select2({
-                placeholder: 'Select vendor category',
+                placeholder: 'Pilih kategori vendor',
                 width: '100%',
                 closeOnSelect: false
             });

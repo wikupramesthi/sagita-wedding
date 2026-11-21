@@ -61,7 +61,7 @@ class EmailSettingController extends Controller
         } catch (Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan pengaturan email: '.$th->getMessage());
+            return redirect()->back()->withInput()->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -81,7 +81,7 @@ class EmailSettingController extends Controller
         } catch (Throwable $th) {
             report($th);
 
-            return redirect()->back()->withInput()->with('error', 'Gagal mengirim email uji: '.$th->getMessage());
+            return redirect()->back()->withInput()->with('error', $this->safeErrorMessage($th));
         }
     }
 }

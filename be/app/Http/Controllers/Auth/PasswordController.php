@@ -24,17 +24,17 @@ class PasswordController extends Controller
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],
         ], [
-            'current_password.required' => 'The current password is required.',
-            'current_password.current_password' => 'The current password is incorrect.',
-            'password.required' => 'Please enter a new password.',
-            'password.confirmed' => 'The password confirmation does not match.',
-            'password.min' => 'The password must be at least :min characters long.',
+            'current_password.required' => 'Kata sandi saat ini wajib diisi.',
+            'current_password.current_password' => 'Kata sandi saat ini tidak benar.',
+            'password.required' => 'Silakan masukkan kata sandi baru.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'password.min' => 'Kata sandi minimal :min karakter.',
         ]);
 
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
 
-        return back()->with('success', 'Password has been successfully updated!');
+        return back()->with('success', 'Kata sandi berhasil diperbarui!');
     }
 }

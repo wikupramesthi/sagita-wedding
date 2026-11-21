@@ -55,7 +55,7 @@ class FileDownloadController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -104,7 +104,7 @@ class FileDownloadController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -126,7 +126,7 @@ class FileDownloadController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Gagal menghapus berkas: '.$th->getMessage());
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
     }
 }

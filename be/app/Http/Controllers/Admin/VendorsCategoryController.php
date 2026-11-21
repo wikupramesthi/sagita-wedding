@@ -50,7 +50,7 @@ class VendorsCategoryController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Gagal menambahkan kategori vendor: '.$th->getMessage());
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -80,7 +80,7 @@ class VendorsCategoryController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Gagal memperbarui kategori vendor: '.$th->getMessage());
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -100,7 +100,7 @@ class VendorsCategoryController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Gagal menghapus kategori vendor: '.$th->getMessage());
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
     }
 }

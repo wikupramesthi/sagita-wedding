@@ -19,6 +19,14 @@ class PackageResource extends JsonResource
 
             'description' => $this->description,
 
+            'guest_capacity' => $this->guest_capacity,
+
+            'event_duration_hours' => $this->event_duration_hours,
+
+            'venue_note' => $this->venue_note,
+
+            'cover_url' => $this->cover_url,
+
             'is_popular' => (bool) $this->is_popular,
 
             'options' => $this->options->map(function ($option) {
@@ -49,6 +57,34 @@ class PackageResource extends JsonResource
                     'duration_unit' => $option->duration_unit,
 
                     'sort_order' => $option->sort_order,
+
+                ];
+            }),
+
+            'addons' => $this->addons->map(function ($addon) {
+
+                $finalPrice = (
+                    $addon->discount_price !== null &&
+                    $addon->discount_price < $addon->price
+                )
+                    ? $addon->discount_price
+                    : $addon->price;
+
+                return [
+
+                    'uuid' => $addon->uuid,
+
+                    'name' => $addon->name,
+
+                    'description' => $addon->description,
+
+                    'price' => $addon->price,
+
+                    'discount_price' => $addon->discount_price,
+
+                    'final_price' => $finalPrice,
+
+                    'sort_order' => $addon->sort_order,
 
                 ];
             }),

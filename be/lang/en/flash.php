@@ -26,6 +26,10 @@ return [
     'member_already_in' => ':name is already checked in.',
     'member_checked_in' => ':name checked in successfully.',
     'member_checked_in_remain' => ':name checked in successfully. Remaining quota: :count.',
+    'package_created' => 'Package created successfully.',
+    'package_updated' => 'Package updated successfully.',
+    'package_deleted' => 'Package deleted successfully.',
+    'package_discount_price_higher' => 'Discounted price must be lower than the regular price.',
 
     // Orders
     'order_approve_ok' => 'Order marked as paid. Membership activated.',

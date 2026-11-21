@@ -30,7 +30,7 @@ class GoogleController extends Controller
 
             if (! $googleUser->getEmail()) {
                 return redirect()->route('login')
-                    ->with('error', 'Login Google gagal: email tidak diberikan oleh Google.');
+                    ->with('error', 'Login Google gagal. Google tidak memberikan alamat email. Silakan coba lagi.');
             }
 
             // Cek user berdasarkan email
@@ -94,7 +94,7 @@ class GoogleController extends Controller
             ]);
 
             return redirect()->route('login')
-                ->with('error', 'Login Google gagal. Pastikan redirect URI terdaftar di Google Console, lalu coba lagi.');
+                ->with('error', 'Login Google gagal. Pastikan alamat pengalihan sudah terdaftar di Google Console, lalu coba lagi.');
         }
     }
 

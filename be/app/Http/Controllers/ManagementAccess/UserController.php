@@ -55,7 +55,7 @@ class UserController extends Controller
             )
         ))?->assignRole(! blank($request->role) ? $request->role : array());
 
-        return back()->with('success', 'User has been created successfully!');
+        return back()->with('success', 'Pengguna berhasil ditambahkan!');
     }
 
     /**
@@ -93,7 +93,7 @@ class UserController extends Controller
             ] + $request->except('email'));
         }
 
-        return back()->with('success', 'User has been updated successfully!');
+        return back()->with('success', 'Pengguna berhasil diperbarui!');
     }
 
     /**
@@ -103,6 +103,6 @@ class UserController extends Controller
     {
         $user->delete();
 
-        return back()->with('success', 'User has been deleted successfully!');
+        return back()->with('success', 'Pengguna berhasil dihapus!');
     }
 }

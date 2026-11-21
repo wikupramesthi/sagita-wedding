@@ -193,7 +193,7 @@ class VendorController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -321,7 +321,7 @@ class VendorController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -339,7 +339,7 @@ class VendorController extends Controller
         } catch (\Throwable $th) {
             return redirect()
                 ->route('vendor.index')
-                ->with('error', 'Gagal menghapus data: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -401,7 +401,7 @@ class VendorController extends Controller
         } catch (\Throwable $th) {
             return redirect()
                 ->route('vendor.archive')
-                ->with('error', 'Gagal memulihkan data: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 

@@ -2,10 +2,10 @@
 
 namespace App\Models\Package;
 
-use App\Models\User;
 use App\Models\Payment\Order;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Package extends Model
@@ -13,21 +13,29 @@ class Package extends Model
     use HasUuids;
 
     protected $table = 'packages';
+
     protected $primaryKey = 'uuid';
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
         'name',
         'slug',
         'description',
+        'guest_capacity',
+        'event_duration_hours',
+        'venue_note',
+        'cover_url',
         'is_popular',
         'is_active',
     ];
 
     protected $casts = [
         'is_popular' => 'boolean',
+        'guest_capacity' => 'integer',
+        'event_duration_hours' => 'integer',
     ];
 
     public function options(): HasMany
@@ -43,6 +51,15 @@ class Package extends Model
     {
         return $this->hasMany(
             PackageFeature::class,
+            'package_uuid',
+            'uuid'
+        )->orderBy('sort_order');
+    }
+
+    public function addons(): HasMany
+    {
+        return $this->hasMany(
+            PackageAddon::class,
             'package_uuid',
             'uuid'
         )->orderBy('sort_order');

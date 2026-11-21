@@ -151,7 +151,7 @@ class EventsController extends Controller
 
             return redirect()
                 ->back()
-                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -238,7 +238,7 @@ class EventsController extends Controller
 
             return redirect()
                 ->back()
-                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -271,7 +271,7 @@ class EventsController extends Controller
 
             return redirect()
                 ->back()
-                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 

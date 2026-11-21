@@ -67,8 +67,9 @@
                     </p>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <form action="{{ route('orders.approve', $order->uuid) }}" method="POST">
+                            <form action="{{ route('orders.approve', $order->uuid) }}" method="POST" data-orders-decision>
                                 @csrf
+                                <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
                                 <label class="form-label small fw-semibold" for="approveNote">Catatan (opsional)</label>
                                 <textarea name="admin_note" id="approveNote" rows="2" class="form-control mb-2"
                                     placeholder="mis. Transfer terverifikasi, BCA ...1234"></textarea>
@@ -78,8 +79,9 @@
                             </form>
                         </div>
                         <div class="col-md-6">
-                            <form action="{{ route('orders.reject', $order->uuid) }}" method="POST">
+                            <form action="{{ route('orders.reject', $order->uuid) }}" method="POST" data-orders-decision>
                                 @csrf
+                                <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
                                 <label class="form-label small fw-semibold" for="rejectNote">Alasan penolakan <span class="text-danger">*</span></label>
                                 <textarea name="admin_note" id="rejectNote" rows="2" class="form-control mb-2" required
                                     placeholder="mis. Transfer tidak diterima"></textarea>
@@ -140,6 +142,17 @@
                             <div class="col-md-4">
                                 <div class="text-muted">Kontak pelanggan</div>
                                 <div class="fw-semibold">{{ $order->user->phone ?? $order->user->whatsapp }}</div>
+                            </div>
+                        @endif
+                        @if (!empty($order->addons))
+                            <div class="col-12">
+                                <div class="text-muted mb-1">Layanan tambahan</div>
+                                @foreach ($order->addons as $addon)
+                                    <div class="d-flex justify-content-between gap-3 border-bottom py-1">
+                                        <span class="fw-semibold">{{ $addon['name'] ?? '-' }}</span>
+                                        <span>Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         @endif
                         @if ($userPackage)
@@ -1302,12 +1315,13 @@
 @push('after-script')
 <script>
     (function() {
+        var bs = window.bootstrap;
         var lightboxEl = document.getElementById('proofLightbox');
         var lightboxImage = document.getElementById('proofLightboxImage');
         var proofButtons = document.querySelectorAll('.js-proof-lightbox');
 
-        if (lightboxEl && lightboxImage && proofButtons.length && window.bootstrap) {
-            var lightbox = new bootstrap.Modal(lightboxEl);
+        if (lightboxEl && lightboxImage && proofButtons.length && bs) {
+            var lightbox = new bs.Modal(lightboxEl);
 
             proofButtons.forEach(function(button) {
                 button.addEventListener('click', function() {
@@ -1323,8 +1337,22 @@
 
         document.querySelectorAll('.js-copy-order').forEach(function(button) {
             button.addEventListener('click', async function() {
+                var text = button.getAttribute('data-copy') || '';
                 try {
-                    await navigator.clipboard.writeText(button.getAttribute('data-copy') || '');
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(text);
+                    } else {
+                        var input = document.createElement('textarea');
+                        input.value = text;
+                        input.style.position = 'fixed';
+                        input.style.opacity = '0';
+                        document.body.appendChild(input);
+                        input.select();
+                        try {
+                            document.execCommand('copy');
+                        } catch (e) {}
+                        document.body.removeChild(input);
+                    }
                     var label = button.querySelector('span');
 
                     if (label) {

@@ -18,7 +18,7 @@
                 <span class="ms-2 small fw-semibold">{{ __('mobile.back') }}</span>
             </a>
 
-            <p class="eyebrow mb-1">{{ __('mobile.membership') }}</p>
+            <p class="eyebrow mb-1">{{ __('mobile.packages') }}</p>
 
             <h1
                 class="fw-semibold"
@@ -60,6 +60,33 @@
                 </div>
 
             </div>
+
+            @if (!empty($package->guest_capacity) || !empty($package->event_duration_hours) || !empty($package->venue_note))
+            <div class="package-wo-meta">
+
+                @if (!empty($package->guest_capacity))
+                <span>
+                    <i class="bi bi-people"></i>
+                    {{ __('mobile.kapasitas_tamu', ['count' => $package->guest_capacity]) }}
+                </span>
+                @endif
+
+                @if (!empty($package->event_duration_hours))
+                <span>
+                    <i class="bi bi-clock-history"></i>
+                    {{ __('mobile.durasi_acara', ['count' => $package->event_duration_hours]) }}
+                </span>
+                @endif
+
+                @if (!empty($package->venue_note))
+                <span>
+                    <i class="bi bi-geo-alt"></i>
+                    {{ __('mobile.lokasi_acara', ['location' => $package->venue_note]) }}
+                </span>
+                @endif
+
+            </div>
+            @endif
 
         </div>
 
@@ -137,9 +164,9 @@
                                             <i class="bi bi-person-check"></i>
 
                                             @if($option->quota === null)
-                                            Unlimited
+                                            {{ __('mobile.unlimited') }}
                                             @else
-                                            {{ $option->quota }} Classes
+                                            {{ __('mobile.quota') }} {{ $option->quota }}
                                             @endif
                                         </span>
 
@@ -177,6 +204,82 @@
         </div>
 
 
+        @if($package->addons->count())
+
+        <div class="mt-4 mb-2">
+
+            <h3 class="h5 fw-semibold mb-1">{{ __('mobile.layanan_tambahan') }}</h3>
+
+            <p class="small text-muted2 mb-0">
+                {{ __('mobile.layanan_tambahan_desc') }}
+            </p>
+
+        </div>
+
+
+        <div class="app-card overflow-hidden mt-3 mb-4">
+
+            @foreach($package->addons as $addon)
+
+            @php
+            $addonHasDiscount =
+            $addon->discount_price !== null &&
+            $addon->discount_price < $addon->price;
+
+            $addonFinalPrice = $addon->final_price;
+            @endphp
+
+            <label class="addon-item d-flex align-items-start gap-3 px-4 py-3 {{ !$loop->last ? 'border-bottom' : '' }}">
+
+                <input
+                    type="checkbox"
+                    class="addon-checkbox mt-1 flex-shrink-0"
+                    name="addon_uuids[]"
+                    form="checkoutForm"
+                    value="{{ $addon->uuid }}"
+                    data-addon-price="{{ $addonFinalPrice }}">
+
+                <span class="flex-fill">
+
+                    <span class="d-flex justify-content-between align-items-start gap-2">
+
+                        <span class="small fw-semibold">
+                            {{ $addon->name }}
+                        </span>
+
+                        <span class="text-end flex-shrink-0">
+
+                            @if($addonHasDiscount)
+                            <span class="option-old-price d-block">
+                                Rp {{ number_format($addon->price, 0, ',', '.') }}
+                            </span>
+                            @endif
+
+                            <span class="option-price">
+                                Rp {{ number_format($addonFinalPrice, 0, ',', '.') }}
+                            </span>
+
+                        </span>
+
+                    </span>
+
+                    @if($addon->description)
+                    <span class="small text-muted2 d-block mt-1" style="line-height:1.5">
+                        {{ $addon->description }}
+                    </span>
+                    @endif
+
+                </span>
+
+            </label>
+
+            @endforeach
+
+        </div>
+
+        @endif
+
+
         {{-- =====================================================
              INCLUDED
         ====================================================== --}}
@@ -189,7 +292,7 @@
                 <h3 class="h5 fw-semibold mb-1">{{ __('mobile.whats_included') }}</h3>
 
                 <p class="small text-muted2 mb-0">
-                    {{ __('mobile.membership_benefits') }}
+                    {{ __('mobile.package_benefits') }}
                 </p>
             </div>
 
@@ -232,18 +335,11 @@
         <div class="app-card p-4 mb-4">
 
             <p class="small text-muted2 mb-3">
-                All payments are
-                <strong class="text-dark">
-                    final and non-refundable
-                </strong>
-                once your purchase is completed.
+                {{ __('mobile.refund_final') }}
             </p>
 
             <p class="small text-muted2 mb-0">
-                Class credits are
-                <strong class="text-dark">
-                    non-transferable, non-extendable, and non-exchangeable.
-                </strong>
+                {{ __('mobile.refund_credits') }}
             </p>
 
         </div>
@@ -505,6 +601,70 @@
     }
 
 
+    .package-wo-meta {
+
+        display: flex;
+
+        flex-wrap: wrap;
+
+        gap: 7px;
+
+        margin-top: 14px;
+
+    }
+
+
+    .package-wo-meta span {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 5px;
+
+        padding: 5px 9px;
+
+        border-radius: 8px;
+
+        background: rgba(75, 107, 82, .07);
+
+        color: #4b6b52;
+
+        font-size: 9px;
+
+        font-weight: 700;
+
+        line-height: 1.4;
+
+    }
+
+
+    .package-wo-meta i {
+
+        font-size: 11px;
+
+    }
+
+
+    .addon-item {
+
+        cursor: pointer;
+
+    }
+
+
+    .addon-checkbox {
+
+        width: 17px;
+        height: 17px;
+
+        accent-color: #4b6b52;
+
+        cursor: pointer;
+
+    }
+
+
     /* =========================================================
    CHECK ICON
 ========================================================= */
@@ -682,6 +842,9 @@
         const options =
             document.querySelectorAll('.package-option');
 
+        const addons =
+            document.querySelectorAll('.addon-checkbox');
+
         const summaryPrice =
             document.getElementById('summaryPrice');
 
@@ -706,6 +869,53 @@
         }
 
 
+        function selectedOption() {
+
+            return document.querySelector('.package-option.selected');
+
+        }
+
+
+        function addonTotal() {
+
+            let total = 0;
+
+            addons.forEach(addon => {
+
+                if (addon.checked) {
+                    total += Number(addon.dataset.addonPrice || 0);
+                }
+
+            });
+
+            return total;
+
+        }
+
+
+        function updateSummary(option) {
+
+            const selected = option || selectedOption();
+
+            if (!selected) {
+                return;
+            }
+
+            const price =
+                Number(selected.dataset.optionPrice) + addonTotal();
+
+            summaryPrice.textContent =
+                formatRupiah(price);
+
+            summaryOption.textContent =
+                selected.dataset.optionName;
+
+            packageOptionUuid.value =
+                selected.dataset.optionUuid;
+
+        }
+
+
         function selectOption(option) {
 
             options.forEach(item => {
@@ -717,22 +927,7 @@
 
             option.classList.add('selected');
 
-
-            const price =
-                Number(option.dataset.optionPrice);
-
-            const name =
-                option.dataset.optionName;
-
-
-            summaryPrice.textContent =
-                formatRupiah(price);
-
-            summaryOption.textContent =
-                name;
-
-            packageOptionUuid.value =
-                option.dataset.optionUuid;
+            updateSummary(option);
 
         }
 
@@ -742,6 +937,17 @@
             option.addEventListener('click', function() {
 
                 selectOption(this);
+
+            });
+
+        });
+
+
+        addons.forEach(addon => {
+
+            addon.addEventListener('change', function() {
+
+                updateSummary();
 
             });
 
@@ -760,8 +966,7 @@
 
         checkoutForm.addEventListener('submit', function(event) {
 
-            const selected =
-                document.querySelector('.package-option.selected');
+            const selected = selectedOption();
 
             if (!selected) {
                 event.preventDefault();

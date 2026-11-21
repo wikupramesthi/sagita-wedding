@@ -11,7 +11,7 @@ const pageEntries = existsSync(pagesDir)
 	: [];
 
 const options = {
-	entryPoints: ["src/browser/main.ts", ...pageEntries],
+	entryPoints: ["src/browser/main.ts", "src/browser/accessibility.ts", ...pageEntries],
 	outbase: "src/browser",
 	outdir: "public/js",
 	bundle: true,

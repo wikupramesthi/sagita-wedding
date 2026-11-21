@@ -54,11 +54,11 @@ class RecordLoginActivity
             }
 
             if (in_array($ip, $detector->suspiciousIps(), true)) {
-                $alasan[] = 'IP berisiko';
+                $alasan[] = 'alamat IP berisiko';
             }
 
             if (in_array($user->getAuthIdentifier(), $detector->suspiciousUserUuids(), true)) {
-                $alasan[] = 'login dari beberapa alamat IP';
+                $alasan[] = 'masuk dari beberapa alamat IP';
             }
 
             if (empty($alasan)) {

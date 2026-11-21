@@ -36,8 +36,7 @@
         <h4 class="font-sans text-xs uppercase tracking-[0.15em] text-sand-500 mb-4"><%= t.footerExplore %></h4>
         <div class="flex flex-col gap-2.5">
           <a href="/about" class="text-sm hover:text-sand-100 transition-colors"><%= (t.nav && t.nav.about) || 'About' %></a>
-          <a href="/classes" class="text-sm hover:text-sand-100 transition-colors"><%= t.footerOurClasses %></a>
-          <a href="/schedules" class="text-sm hover:text-sand-100 transition-colors"><%= (t.nav && t.nav.schedules) || 'Schedules' %></a>
+          <a href="/venues" class="text-sm hover:text-sand-100 transition-colors"><%= (t.nav && t.nav.venues) || 'Venues' %></a>
           <a href="/vendors" class="text-sm hover:text-sand-100 transition-colors"><%= t.footerVendors %></a>
           <a href="/packages" class="text-sm hover:text-sand-100 transition-colors"><%= t.footerPackages %></a>
           <a href="/faq" class="text-sm hover:text-sand-100 transition-colors"><%= t.footerFAQs %></a>
@@ -94,6 +93,8 @@
 </footer>
 
 <%- include('./whatsapp-float') %>
+<%- include('./accessibility-widget') %>
 <%- include('./booking-modal') %>
 <script src="/js/main.js?v=<%= assetV %>" defer></script>
+<script src="/js/accessibility.js?v=<%= assetV %>-a11y1" defer></script>
 <% if (typeof pageScript !== 'undefined' && pageScript) { %><script nonce="<%= nonce %>">import("/js/pages/<%= pageScript %>.js?v=<%= assetV %>");</script><% } %>

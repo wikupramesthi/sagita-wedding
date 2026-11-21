@@ -1,30 +1,27 @@
 @extends('layouts.app')
 
-@section('title', 'Add Package')
+@section('title', 'Tambah Paket')
 
 @section('content')
 
 <div class="container-fluid">
 
-  {{-- Page Header --}}
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div>
       <h4 class="mb-1 fw-bold">
-        Add Package
+        Tambah Paket
       </h4>
       <p class="text-muted mb-0">
-        Create a new membership package.
+        Buat paket layanan wedding organizer baru.
       </p>
     </div>
 
     <a href="{{ route('packages.index') }}" class="btn btn-secondary">
       <i class="bi bi-arrow-left me-1"></i>
-      Back
+      Kembali
     </a>
   </div>
 
-
-  {{-- Validation Error --}}
   @if ($errors->any())
   <div class="alert alert-danger border-0 mb-4">
     <div class="d-flex align-items-start gap-2">
@@ -43,48 +40,35 @@
   </div>
   @endif
 
-
   <form action="{{ route('packages.store') }}" method="POST">
     @csrf
 
     <div class="row g-4">
 
-      {{-- =========================================================
-                MAIN CONTENT
-            ========================================================== --}}
       <div class="col-lg-8">
 
-        {{-- Package Information --}}
-        <div class="card border-0 shadow-sm">
-
-          <div class="card-header bg-transparent border-0 pt-4 px-4">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 p-4 pb-2">
             <div class="d-flex align-items-center gap-2">
-
               <div class="package-section-icon">
                 <i class="bi bi-box-seam"></i>
               </div>
 
               <div>
                 <h5 class="mb-1 fw-semibold">
-                  Package Information
+                  Informasi Paket
                 </h5>
-
                 <p class="text-muted small mb-0">
-                  Basic information about the membership package.
+                  Nama dan deskripsi yang tampil kepada klien.
                 </p>
               </div>
-
             </div>
           </div>
 
-
-          <div class="card-body p-4">
-
-            {{-- Package Name --}}
+          <div class="card-body p-4 pt-2">
             <div class="mb-4">
-
               <label for="name" class="form-label fw-semibold">
-                Package Name
+                Nama Paket
                 <span class="text-danger">*</span>
               </label>
 
@@ -94,7 +78,7 @@
                 name="name"
                 class="form-control @error('name') is-invalid @enderror"
                 value="{{ old('name') }}"
-                placeholder="Example: Silver"
+                placeholder="Contoh: Paket Silver"
                 required>
 
               @error('name')
@@ -102,15 +86,11 @@
                 {{ $message }}
               </div>
               @enderror
-
             </div>
 
-
-            {{-- Description --}}
-            <div class="mb-0">
-
+            <div>
               <label for="description" class="form-label fw-semibold">
-                Description
+                Deskripsi
               </label>
 
               <textarea
@@ -118,77 +98,159 @@
                 name="description"
                 rows="4"
                 class="form-control @error('description') is-invalid @enderror"
-                placeholder="Describe what this package offers...">{{ old('description') }}</textarea>
+                placeholder="Jelaskan layanan dalam paket ini, misalnya dekorasi, dokumentasi, dan rias pengantin...">{{ old('description') }}</textarea>
 
               @error('description')
               <div class="invalid-feedback">
                 {{ $message }}
               </div>
               @enderror
-
             </div>
-
           </div>
         </div>
 
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 p-4 pb-2">
+            <div class="d-flex align-items-center gap-2">
+              <div class="package-section-icon">
+                <i class="bi bi-calendar2-event"></i>
+              </div>
 
-        {{-- Package Options --}}
-        <div class="card border-0 shadow-sm mt-4">
+              <div>
+                <h5 class="mb-1 fw-semibold">
+                  Detail Acara
+                </h5>
+                <p class="text-muted small mb-0">
+                  Kapasitas, durasi, lokasi, dan foto untuk kebutuhan acara.
+                </p>
+              </div>
+            </div>
+          </div>
 
-          <div class="card-header bg-transparent border-0 pt-4 px-4">
+          <div class="card-body p-4 pt-2">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="guest_capacity" class="form-label fw-semibold">
+                  Kapasitas Tamu
+                </label>
 
-            <div class="d-flex justify-content-between align-items-start gap-3">
+                <input
+                  type="number"
+                  id="guest_capacity"
+                  name="guest_capacity"
+                  class="form-control @error('guest_capacity') is-invalid @enderror"
+                  value="{{ old('guest_capacity') }}"
+                  min="1"
+                  placeholder="Contoh: 100 orang">
 
+                @error('guest_capacity')
+                <div class="invalid-feedback">
+                  {{ $message }}
+                </div>
+                @enderror
+              </div>
+
+              <div class="col-md-6">
+                <label for="event_duration_hours" class="form-label fw-semibold">
+                  Durasi Acara (jam)
+                </label>
+
+                <input
+                  type="number"
+                  id="event_duration_hours"
+                  name="event_duration_hours"
+                  class="form-control @error('event_duration_hours') is-invalid @enderror"
+                  value="{{ old('event_duration_hours') }}"
+                  min="1"
+                  placeholder="Contoh: 6">
+
+                @error('event_duration_hours')
+                <div class="invalid-feedback">
+                  {{ $message }}
+                </div>
+                @enderror
+              </div>
+
+              <div class="col-12">
+                <label for="venue_note" class="form-label fw-semibold">
+                  Lokasi Acara
+                </label>
+
+                <textarea
+                  id="venue_note"
+                  name="venue_note"
+                  rows="3"
+                  class="form-control @error('venue_note') is-invalid @enderror"
+                  placeholder="Contoh: Jakarta Selatan dan sekitarnya">{{ old('venue_note') }}</textarea>
+
+                @error('venue_note')
+                <div class="invalid-feedback">
+                  {{ $message }}
+                </div>
+                @enderror
+              </div>
+
+              <div class="col-12">
+                <label for="cover_url" class="form-label fw-semibold">
+                  Foto Paket (URL)
+                </label>
+
+                <input
+                  type="url"
+                  id="cover_url"
+                  name="cover_url"
+                  class="form-control @error('cover_url') is-invalid @enderror"
+                  value="{{ old('cover_url') }}"
+                  placeholder="https://...">
+
+                @error('cover_url')
+                <div class="invalid-feedback">
+                  {{ $message }}
+                </div>
+                @enderror
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 p-4 pb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
               <div class="d-flex align-items-center gap-2">
-
                 <div class="package-section-icon">
                   <i class="bi bi-tags"></i>
                 </div>
 
                 <div>
                   <h5 class="mb-1 fw-semibold">
-                    Package Options
+                    Pilihan Paket
                   </h5>
-
                   <p class="text-muted small mb-0">
-                    Set class quota, pricing, and validity for each option.
+                    Atur harga, masa berlaku, dan kuota untuk setiap pilihan.
                   </p>
                 </div>
-
               </div>
-
 
               <button
                 type="button"
                 class="btn btn-sm btn-outline-primary"
                 onclick="addPackageOption()">
-
                 <i class="bi bi-plus-lg me-1"></i>
-                Add Option
-
+                Tambah Opsi
               </button>
-
             </div>
-
           </div>
 
-
-          <div class="card-body p-4">
-
+          <div class="card-body p-4 pt-2">
             <div id="package-options-container">
-
-              {{-- First Option --}}
               <div class="package-option-item border rounded-3 p-3 mb-3">
-
                 <div class="d-flex justify-content-between align-items-center mb-3">
-
                   <div>
                     <span class="fw-semibold package-option-title">
-                      Option 1
+                      Opsi 1
                     </span>
-
                     <span class="text-muted small ms-1">
-                      Pricing option
+                      Pilihan harga
                     </span>
                   </div>
 
@@ -196,19 +258,13 @@
                     type="button"
                     class="btn btn-sm btn-outline-danger package-remove-option"
                     onclick="removePackageOption(this)">
-
                     <i class="bi bi-trash3"></i>
-
                   </button>
-
                 </div>
 
-
-                {{-- Option Name --}}
                 <div class="mb-3">
-
                   <label class="form-label">
-                    Option Name
+                    Nama Opsi
                     <span class="text-danger">*</span>
                   </label>
 
@@ -217,7 +273,7 @@
                     name="options[0][name]"
                     class="form-control @error('options.0.name') is-invalid @enderror"
                     value="{{ old('options.0.name') }}"
-                    placeholder="Example: 4 Classes"
+                    placeholder="Contoh: Silver"
                     required>
 
                   @error('options.0.name')
@@ -225,17 +281,12 @@
                     {{ $message }}
                   </div>
                   @enderror
-
                 </div>
 
-
                 <div class="row g-3">
-
-                  {{-- Class Quota --}}
                   <div class="col-md-4">
-
                     <label class="form-label">
-                      Class Quota
+                      Kuota
                       <span class="text-danger">*</span>
                     </label>
 
@@ -245,26 +296,21 @@
                       class="form-control"
                       value="{{ old('options.0.quota') }}"
                       min="1"
-                      placeholder="Example: 4"
+                      placeholder="Contoh: 1"
                       required>
 
                     <small class="text-muted">
-                      Classes included.
+                      Jumlah yang disertakan pada opsi ini.
                     </small>
-
                   </div>
 
-
-                  {{-- Regular Price --}}
                   <div class="col-md-4">
-
                     <label class="form-label">
-                      Regular Price
+                      Harga Reguler
                       <span class="text-danger">*</span>
                     </label>
 
                     <div class="input-group">
-
                       <span class="input-group-text">
                         Rp
                       </span>
@@ -277,21 +323,15 @@
                         min="0"
                         placeholder="0"
                         required>
-
                     </div>
-
                   </div>
 
-
-                  {{-- Discounted Price --}}
                   <div class="col-md-4">
-
                     <label class="form-label">
-                      Discounted Price
+                      Harga Diskon
                     </label>
 
                     <div class="input-group">
-
                       <span class="input-group-text">
                         Rp
                       </span>
@@ -302,18 +342,13 @@
                         class="form-control"
                         value="{{ old('options.0.discount_price') }}"
                         min="0"
-                        placeholder="Optional">
-
+                        placeholder="Opsional">
                     </div>
-
                   </div>
 
-
-                  {{-- Duration --}}
                   <div class="col-md-6">
-
                     <label class="form-label">
-                      Duration
+                      Durasi
                       <span class="text-danger">*</span>
                     </label>
 
@@ -323,17 +358,13 @@
                       class="form-control"
                       value="{{ old('options.0.duration', 1) }}"
                       min="1"
-                      placeholder="Example: 1"
+                      placeholder="Contoh: 1"
                       required>
-
                   </div>
 
-
-                  {{-- Duration Unit --}}
                   <div class="col-md-6">
-
                     <label class="form-label">
-                      Duration Unit
+                      Satuan Durasi
                       <span class="text-danger">*</span>
                     </label>
 
@@ -343,100 +374,205 @@
                       required>
 
                       <option value="">
-                        -- Select --
+                        -- Pilih --
                       </option>
 
                       <option
                         value="day"
                         {{ old('options.0.duration_unit', 'month') === 'day' ? 'selected' : '' }}>
-                        Days
+                        Hari
                       </option>
 
                       <option
                         value="week"
                         {{ old('options.0.duration_unit', 'month') === 'week' ? 'selected' : '' }}>
-                        Weeks
+                        Minggu
                       </option>
 
                       <option
                         value="month"
                         {{ old('options.0.duration_unit', 'month') === 'month' ? 'selected' : '' }}>
-                        Months
+                        Bulan
                       </option>
 
                       <option
                         value="year"
                         {{ old('options.0.duration_unit', 'month') === 'year' ? 'selected' : '' }}>
-                        Years
+                        Tahun
                       </option>
 
                     </select>
-
                   </div>
-
                 </div>
-
               </div>
-
             </div>
 
-
-            <div class="package-option-info">
+            <div class="package-option-info mt-3">
               <i class="bi bi-info-circle me-1"></i>
-              Each option can have its own price, class quota, and validity period.
+              Setiap opsi dapat memiliki harga, kuota, dan masa berlaku tersendiri.
             </div>
-
           </div>
         </div>
 
-
-        {{-- Package Features --}}
-        <div class="card border-0 shadow-sm mt-4">
-
-          <div class="card-header bg-transparent border-0 pt-4 px-4">
-
-            <div class="d-flex justify-content-between align-items-start gap-3">
-
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 p-4 pb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
               <div class="d-flex align-items-center gap-2">
+                <div class="package-section-icon">
+                  <i class="bi bi-plus-square"></i>
+                </div>
 
+                <div>
+                  <h5 class="mb-1 fw-semibold">
+                    Layanan Tambahan (Opsional)
+                  </h5>
+                  <p class="text-muted small mb-0">
+                    Tawarkan layanan tambahan di luar paket utama.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                onclick="addPackageAddon()">
+                <i class="bi bi-plus-lg me-1"></i>
+                Tambah Layanan
+              </button>
+            </div>
+          </div>
+
+          <div class="card-body p-4 pt-2">
+            <div id="package-addons-container">
+              <div class="package-addon-item border rounded-3 p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="fw-semibold package-addon-title">
+                    Layanan 1
+                  </span>
+
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger package-remove-addon"
+                    onclick="removePackageAddon(this)">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">
+                    Nama Layanan
+                    <span class="text-danger">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    name="addons[0][name]"
+                    class="form-control @error('addons.0.name') is-invalid @enderror"
+                    value="{{ old('addons.0.name') }}"
+                    placeholder="Contoh: Dekorasi tambahan">
+
+                  @error('addons.0.name')
+                  <div class="invalid-feedback">
+                    {{ $message }}
+                  </div>
+                  @enderror
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">
+                    Deskripsi
+                  </label>
+
+                  <textarea
+                    name="addons[0][description]"
+                    rows="2"
+                    class="form-control"
+                    placeholder="Contoh: Pelaminan bunga segar untuk area pagar">{{ old('addons.0.description') }}</textarea>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">
+                      Harga Reguler
+                    </label>
+
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        Rp
+                      </span>
+
+                      <input
+                        type="number"
+                        name="addons[0][price]"
+                        class="form-control"
+                        value="{{ old('addons.0.price') }}"
+                        min="0"
+                        placeholder="0">
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">
+                      Harga Diskon
+                    </label>
+
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        Rp
+                      </span>
+
+                      <input
+                        type="number"
+                        name="addons[0][discount_price]"
+                        class="form-control"
+                        value="{{ old('addons.0.discount_price') }}"
+                        min="0"
+                        placeholder="Opsional">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            @error('addons.*')
+            <div class="text-danger small mt-2">
+              {{ $message }}
+            </div>
+            @enderror
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent border-0 p-4 pb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+              <div class="d-flex align-items-center gap-2">
                 <div class="package-section-icon">
                   <i class="bi bi-list-check"></i>
                 </div>
 
                 <div>
                   <h5 class="mb-1 fw-semibold">
-                    Package Features
+                    Manfaat Paket
                   </h5>
-
                   <p class="text-muted small mb-0">
-                    Add benefits included in this package.
+                    Tampilkan layanan yang termasuk dalam paket ini.
                   </p>
                 </div>
-
               </div>
-
 
               <button
                 type="button"
                 class="btn btn-sm btn-outline-primary"
                 onclick="addPackageFeature()">
-
                 <i class="bi bi-plus-lg me-1"></i>
-                Add Feature
-
+                Tambah Manfaat
               </button>
-
             </div>
-
           </div>
 
-
-          <div class="card-body p-4">
-
+          <div class="card-body p-4 pt-2">
             <div id="package-features-container">
-
               <div class="input-group mb-2 package-feature-item">
-
                 <span class="input-group-text bg-transparent">
                   <i class="bi bi-check2"></i>
                 </span>
@@ -445,60 +581,44 @@
                   type="text"
                   name="features[]"
                   class="form-control"
-                  placeholder="Example: Free Mat Rental">
+                  placeholder="Contoh: Dekorasi pelaminan">
 
                 <button
                   type="button"
                   class="btn btn-outline-danger"
                   onclick="removePackageFeature(this)">
-
                   <i class="bi bi-x-lg"></i>
-
                 </button>
-
               </div>
-
             </div>
 
+            <small class="text-muted d-block mt-2">
+              Contoh: Dokumentasi foto dan video
+            </small>
 
             @error('features.*')
             <div class="text-danger small mt-2">
               {{ $message }}
             </div>
             @enderror
-
           </div>
         </div>
 
       </div>
 
-
-      {{-- =========================================================
-                SIDEBAR
-            ========================================================== --}}
-      <div class="col-lg-4">
-
-        {{-- Package Settings --}}
-        <div class="card border-0 shadow-sm">
-
-          <div class="card-header bg-transparent border-0 pt-4 px-4">
-
+      <div class="col-lg-4 package-sidebar">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-transparent border-0 p-4 pb-2">
             <h5 class="mb-1 fw-semibold">
-              Package Settings
+              Pengaturan Paket
             </h5>
-
             <p class="text-muted small mb-0">
-              Manage package visibility and popularity.
+              Atur status tampil dan penanda paket.
             </p>
-
           </div>
 
-
-          <div class="card-body p-4">
-
-            {{-- Status --}}
+          <div class="card-body p-4 pt-2">
             <div class="mb-4">
-
               <label for="is_active" class="form-label fw-semibold">
                 Status
                 <span class="text-danger">*</span>
@@ -511,19 +631,19 @@
                 required>
 
                 <option value="">
-                  -- Select Status --
+                  -- Pilih Status --
                 </option>
 
                 <option
                   value="active"
                   {{ old('is_active', 'active') === 'active' ? 'selected' : '' }}>
-                  Active
+                  Aktif
                 </option>
 
                 <option
                   value="inactive"
                   {{ old('is_active') === 'inactive' ? 'selected' : '' }}>
-                  Inactive
+                  Nonaktif
                 </option>
 
               </select>
@@ -533,15 +653,10 @@
                 {{ $message }}
               </div>
               @enderror
-
             </div>
 
-
-            {{-- Popular --}}
             <div class="package-popular-box">
-
               <div class="form-check">
-
                 <input
                   type="checkbox"
                   class="form-check-input"
@@ -553,88 +668,59 @@
                 <label
                   class="form-check-label fw-semibold"
                   for="is_popular">
-
-                  Mark as Popular
-
+                  Tandai sebagai Paling Dipilih
                 </label>
-
               </div>
 
               <small class="text-muted d-block mt-1">
-                Popular packages can be highlighted
-                on the membership page.
+                Paket paling dipilih akan ditonjolkan pada halaman paket.
               </small>
-
             </div>
-
           </div>
         </div>
 
-
-        {{-- Package Tips --}}
-        <div class="card border-0 shadow-sm mt-4">
-
+        <div class="card border-0 shadow-sm mb-4">
           <div class="card-body p-4">
-
             <div class="d-flex align-items-center gap-2 mb-3">
-
               <i class="bi bi-lightbulb text-warning"></i>
-
               <h6 class="fw-semibold mb-0">
-                Package Tips
+                Tips Paket
               </h6>
-
             </div>
 
             <ul class="text-muted small mb-0 ps-3">
-
               <li class="mb-2">
-                Add at least one package option.
+                Gunakan nama paket yang mudah dikenali, misalnya Silver, Gold, atau Platinum.
               </li>
 
               <li class="mb-2">
-                Use clear option names such as 1 Class or 8 Classes.
-              </li>
-
-              <li class="mb-2">
-                Discounted price should be lower than regular price.
+                Rincikan manfaat utama seperti dekorasi, dokumentasi, rias pengantin, dan MC.
               </li>
 
               <li>
-                Add useful benefits to the feature list.
+                Pastikan harga diskon lebih rendah daripada harga reguler.
               </li>
-
             </ul>
-
           </div>
         </div>
 
-        {{-- Form Actions --}}
-        <div class="d-flex gap-2 mt-4 w-100">
-
+        <div class="d-flex gap-2 w-100">
           <a
             href="{{ route('packages.index') }}"
             class="btn btn-light flex-fill">
-
-            Cancel
-
+            Batal
           </a>
 
           <button
             type="submit"
             class="btn btn-primary flex-fill">
-
             <i class="bi bi-check-lg me-1"></i>
-            Save Package
-
+            Simpan Paket
           </button>
-
         </div>
-
       </div>
 
     </div>
-
   </form>
 
 </div>
@@ -653,8 +739,13 @@
     flex-shrink: 0;
   }
 
-  .package-option-item {
+  .package-option-item,
+  .package-addon-item {
     background: var(--bs-body-bg);
+  }
+
+  .package-addon-item .form-control {
+    min-height: 42px;
   }
 
   .package-option-info {
@@ -681,14 +772,29 @@
     min-height: 42px;
   }
 
+  @media (min-width: 992px) {
+
+    .package-sidebar {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+    }
+
+  }
+
   @media (max-width: 767.98px) {
 
     .package-option-item {
       padding: 14px !important;
     }
 
-    .package-option-item .row>div {
+    .package-option-item .row>div,
+    .package-addon-item .row>div {
       margin-bottom: 12px;
+    }
+
+    .package-addon-item {
+      padding: 14px !important;
     }
 
   }
@@ -698,12 +804,10 @@
 <script>
   let packageOptionIndex = 1;
 
+  let packageAddonIndex =
+    document.querySelectorAll('#package-addons-container .package-addon-item')
+      .length || 1;
 
-  /*
-  |--------------------------------------------------------------------------
-  | Package Options
-  |--------------------------------------------------------------------------
-  */
 
   function addPackageOption() {
 
@@ -720,11 +824,11 @@
 
                     <div>
                         <span class="fw-semibold package-option-title">
-                            Option ${index + 1}
+                            Opsi ${index + 1}
                         </span>
 
                         <span class="text-muted small ms-1">
-                            Pricing option
+                            Pilihan harga
                         </span>
                     </div>
 
@@ -743,7 +847,7 @@
                 <div class="mb-3">
 
                     <label class="form-label">
-                        Option Name
+                        Nama Opsi
                         <span class="text-danger">*</span>
                     </label>
 
@@ -751,7 +855,7 @@
                         type="text"
                         name="options[${index}][name]"
                         class="form-control"
-                        placeholder="Example: 8 Classes"
+                        placeholder="Contoh: Platinum"
                         required>
 
                 </div>
@@ -762,7 +866,7 @@
                     <div class="col-md-4">
 
                         <label class="form-label">
-                            Class Quota
+                            Kuota
                             <span class="text-danger">*</span>
                         </label>
 
@@ -770,12 +874,12 @@
                             type="number"
                             name="options[${index}][quota]"
                             class="form-control"
-                            placeholder="Example: 8"
+                            placeholder="Contoh: 1"
                             min="1"
                             required>
 
                         <small class="text-muted">
-                            Classes included.
+                            Jumlah yang disertakan pada opsi ini.
                         </small>
 
                     </div>
@@ -784,7 +888,7 @@
                     <div class="col-md-4">
 
                         <label class="form-label">
-                            Regular Price
+                            Harga Reguler
                             <span class="text-danger">*</span>
                         </label>
 
@@ -810,7 +914,7 @@
                     <div class="col-md-4">
 
                         <label class="form-label">
-                            Discounted Price
+                            Harga Diskon
                         </label>
 
                         <div class="input-group">
@@ -823,7 +927,7 @@
                                 type="number"
                                 name="options[${index}][discount_price]"
                                 class="form-control"
-                                placeholder="Optional"
+                                placeholder="Opsional"
                                 min="0">
 
                         </div>
@@ -834,7 +938,7 @@
                     <div class="col-md-6">
 
                         <label class="form-label">
-                            Duration
+                            Durasi
                             <span class="text-danger">*</span>
                         </label>
 
@@ -844,7 +948,7 @@
                             class="form-control"
                             value="1"
                             min="1"
-                            placeholder="Example: 1"
+                            placeholder="Contoh: 1"
                             required>
 
                     </div>
@@ -853,7 +957,7 @@
                     <div class="col-md-6">
 
                         <label class="form-label">
-                            Duration Unit
+                            Satuan Durasi
                             <span class="text-danger">*</span>
                         </label>
 
@@ -863,23 +967,23 @@
                             required>
 
                             <option value="">
-                                -- Select --
+                                -- Pilih --
                             </option>
 
                             <option value="day">
-                                Days
+                                Hari
                             </option>
 
                             <option value="week">
-                                Weeks
+                                Minggu
                             </option>
 
                             <option value="month" selected>
-                                Months
+                                Bulan
                             </option>
 
                             <option value="year">
-                                Years
+                                Tahun
                             </option>
 
                         </select>
@@ -918,6 +1022,159 @@
   }
 
 
+  function addPackageAddon() {
+
+    const container = document.getElementById(
+      'package-addons-container'
+    );
+
+    const index = packageAddonIndex++;
+
+    const html = `
+            <div class="package-addon-item border rounded-3 p-3 mb-3">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <span class="fw-semibold package-addon-title">
+                        Layanan ${index + 1}
+                    </span>
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger package-remove-addon"
+                        onclick="removePackageAddon(this)">
+
+                        <i class="bi bi-trash3"></i>
+
+                    </button>
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Nama Layanan
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        name="addons[${index}][name]"
+                        class="form-control"
+                        placeholder="Contoh: Dokumentasi tambahan">
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Deskripsi
+                    </label>
+
+                    <textarea
+                        name="addons[${index}][description]"
+                        rows="2"
+                        class="form-control"
+                        placeholder="Contoh: Foto close-up momen akad"></textarea>
+
+                </div>
+
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Harga Reguler
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                Rp
+                            </span>
+
+                            <input
+                                type="number"
+                                name="addons[${index}][price]"
+                                class="form-control"
+                                placeholder="0"
+                                min="0">
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Harga Diskon
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                Rp
+                            </span>
+
+                            <input
+                                type="number"
+                                name="addons[${index}][discount_price]"
+                                class="form-control"
+                                placeholder="Opsional"
+                                min="0">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+    container.insertAdjacentHTML(
+      'beforeend',
+      html
+    );
+
+    updatePackageAddonTitles();
+  }
+
+
+  function removePackageAddon(button) {
+
+    button
+      .closest('.package-addon-item')
+      .remove();
+
+    updatePackageAddonTitles();
+  }
+
+
+  function updatePackageAddonTitles() {
+
+    const items = document.querySelectorAll(
+      '#package-addons-container .package-addon-item'
+    );
+
+    items.forEach((item, index) => {
+
+      const title = item.querySelector(
+        '.package-addon-title'
+      );
+
+      if (title) {
+        title.textContent = `Layanan ${index + 1}`;
+      }
+
+    });
+  }
+
+
   function updatePackageOptionTitles() {
 
     const items = document.querySelectorAll(
@@ -931,18 +1188,12 @@
       );
 
       if (title) {
-        title.textContent = `Option ${index + 1}`;
+        title.textContent = `Opsi ${index + 1}`;
       }
 
     });
   }
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | Package Features
-  |--------------------------------------------------------------------------
-  */
 
   function addPackageFeature() {
 
@@ -951,26 +1202,34 @@
     );
 
     const html = `
-            <div class="input-group mb-2 package-feature-item">
+            <div class="package-feature-item mb-2">
 
-                <span class="input-group-text bg-transparent">
-                    <i class="bi bi-check2"></i>
-                </span>
+                <div class="input-group">
 
-                <input
-                    type="text"
-                    name="features[]"
-                    class="form-control"
-                    placeholder="Example: Priority Booking">
+                    <span class="input-group-text bg-transparent">
+                        <i class="bi bi-check2"></i>
+                    </span>
 
-                <button
-                    type="button"
-                    class="btn btn-outline-danger"
-                    onclick="removePackageFeature(this)">
+                    <input
+                        type="text"
+                        name="features[]"
+                        class="form-control"
+                        placeholder="Contoh: Rias pengantin">
 
-                    <i class="bi bi-x-lg"></i>
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger"
+                        onclick="removePackageFeature(this)">
 
-                </button>
+                        <i class="bi bi-x-lg"></i>
+
+                    </button>
+
+                </div>
+
+                <small class="text-muted d-block mt-1">
+                    Contoh: Dekorasi pelaminan
+                </small>
 
             </div>
         `;

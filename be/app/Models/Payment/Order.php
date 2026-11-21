@@ -40,6 +40,7 @@ class Order extends Model
         'sla_reminded_at',
         'approval_snapshot',
         'pending_key',
+        'addons',
     ];
 
     protected $casts = [
@@ -49,6 +50,7 @@ class Order extends Model
         'sla_reminded_at' => 'datetime',
         'proof_uploaded_at' => 'datetime',
         'approval_snapshot' => 'array',
+        'addons' => 'array',
     ];
 
     protected static function booted(): void

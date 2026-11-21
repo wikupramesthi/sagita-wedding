@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Package\Package;
+use App\Models\Package\PackageAddon;
 use App\Models\Package\PackageFeature;
 use App\Models\Package\PackageOption;
 use App\Support\MemberView;
@@ -25,10 +26,15 @@ class PackageController extends Controller
         $is_popular = in_array($is_popular, ['0', '1'], true) ? $is_popular : '';
         $quota_type = $request->get('quota_type', '');
         $quota_type = in_array($quota_type, ['limited', 'unlimited'], true) ? $quota_type : '';
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 10;
+        $searchTooShort = $search !== '' && mb_strlen($search) < 2;
 
         $query = Package::query();
 
-        if ($search !== '') {
+        if ($searchTooShort) {
+            $query->whereRaw('1 = 0');
+        } elseif ($search !== '') {
             $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
             $query->where('name', 'like', $like);
         }
@@ -53,9 +59,10 @@ class PackageController extends Controller
         }
 
         $packages = (clone $query)
-            ->with(['features', 'options'])
+            ->with(['features', 'options', 'addons'])
             ->latest()
-            ->get();
+            ->paginate($perPage)
+            ->withQueryString();
 
         // Stats follow the active filter so numbers stay in sync with the data.
         $stats = [
@@ -71,7 +78,9 @@ class PackageController extends Controller
             'search',
             'is_active',
             'is_popular',
-            'quota_type'
+            'quota_type',
+            'perPage',
+            'searchTooShort'
         ));
     }
 
@@ -98,6 +107,30 @@ class PackageController extends Controller
             'description' => [
                 'nullable',
                 'string',
+            ],
+
+            'guest_capacity' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
+            'event_duration_hours' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
+            'venue_note' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'cover_url' => [
+                'nullable',
+                'url',
+                'max:2048',
             ],
 
             'is_active' => [
@@ -151,6 +184,35 @@ class PackageController extends Controller
                 'in:day,week,month,year',
             ],
 
+            'addons' => [
+                'nullable',
+                'array',
+            ],
+
+            'addons.*.name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'addons.*.description' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'addons.*.price' => [
+                'required',
+                'integer',
+                'min:0',
+            ],
+
+            'addons.*.discount_price' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+
             'features' => [
                 'nullable',
                 'array',
@@ -179,7 +241,23 @@ class PackageController extends Controller
 
                 return back()
                     ->withErrors([
-                        "options.$index.discount_price" => 'Discounted price must be lower than regular price.',
+                        "options.$index.discount_price" => __('flash.package_discount_price_higher'),
+                    ])
+                    ->withInput();
+            }
+        }
+
+        foreach ($validated['addons'] ?? [] as $index => $addon) {
+
+            if (
+                isset($addon['discount_price']) &&
+                $addon['discount_price'] !== null &&
+                $addon['discount_price'] >= $addon['price']
+            ) {
+
+                return back()
+                    ->withErrors([
+                        "addons.$index.discount_price" => __('flash.package_discount_price_higher'),
                     ])
                     ->withInput();
             }
@@ -232,6 +310,14 @@ class PackageController extends Controller
 
                 'description' => $validated['description'] ?? null,
 
+                'guest_capacity' => $validated['guest_capacity'] ?? null,
+
+                'event_duration_hours' => $validated['event_duration_hours'] ?? null,
+
+                'venue_note' => $validated['venue_note'] ?? null,
+
+                'cover_url' => $validated['cover_url'] ?? null,
+
                 'is_popular' => $validated['is_popular'] ?? false,
 
                 'is_active' => $validated['is_active'],
@@ -265,6 +351,41 @@ class PackageController extends Controller
                     'duration' => $option['duration'],
 
                     'duration_unit' => $option['duration_unit'],
+
+                    'sort_order' => $index,
+
+                    'is_active' => true,
+
+                ]);
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | Create Package Addons
+        |--------------------------------------------------------------------------
+        */
+
+            foreach (
+                $validated['addons'] ?? [] as $index => $addon
+            ) {
+
+                if (blank($addon['name'] ?? null)) {
+                    continue;
+                }
+
+                PackageAddon::create([
+
+                    'uuid' => (string) Str::uuid(),
+
+                    'package_uuid' => $package->uuid,
+
+                    'name' => $addon['name'],
+
+                    'description' => $addon['description'] ?? null,
+
+                    'price' => $addon['price'],
+
+                    'discount_price' => $addon['discount_price'] ?? null,
 
                     'sort_order' => $index,
 
@@ -311,7 +432,7 @@ class PackageController extends Controller
             ->route('packages.index')
             ->with(
                 'success',
-                'Paket berhasil dibuat.'
+                __('flash.package_created')
             );
     }
 
@@ -367,6 +488,30 @@ class PackageController extends Controller
                 'string',
             ],
 
+            'guest_capacity' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
+            'event_duration_hours' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
+            'venue_note' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'cover_url' => [
+                'nullable',
+                'url',
+                'max:2048',
+            ],
+
             'is_active' => [
                 'required',
                 'in:active,inactive',
@@ -418,6 +563,35 @@ class PackageController extends Controller
                 'in:day,week,month,year',
             ],
 
+            'addons' => [
+                'nullable',
+                'array',
+            ],
+
+            'addons.*.name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'addons.*.description' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'addons.*.price' => [
+                'required',
+                'integer',
+                'min:0',
+            ],
+
+            'addons.*.discount_price' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+
             'features' => [
                 'nullable',
                 'array',
@@ -447,7 +621,23 @@ class PackageController extends Controller
 
                 return back()
                     ->withErrors([
-                        "options.$index.discount_price" => 'Discounted price must be lower than regular price.',
+                        "options.$index.discount_price" => __('flash.package_discount_price_higher'),
+                    ])
+                    ->withInput();
+            }
+        }
+
+        foreach ($validated['addons'] ?? [] as $index => $addon) {
+
+            if (
+                isset($addon['discount_price']) &&
+                $addon['discount_price'] !== null &&
+                $addon['discount_price'] >= $addon['price']
+            ) {
+
+                return back()
+                    ->withErrors([
+                        "addons.$index.discount_price" => __('flash.package_discount_price_higher'),
                     ])
                     ->withInput();
             }
@@ -507,6 +697,14 @@ class PackageController extends Controller
 
                 'description' => $validated['description'] ?? null,
 
+                'guest_capacity' => $validated['guest_capacity'] ?? null,
+
+                'event_duration_hours' => $validated['event_duration_hours'] ?? null,
+
+                'venue_note' => $validated['venue_note'] ?? null,
+
+                'cover_url' => $validated['cover_url'] ?? null,
+
                 'is_popular' => $validated['is_popular'] ?? false,
 
                 'is_active' => $validated['is_active'],
@@ -542,6 +740,43 @@ class PackageController extends Controller
                     'duration' => $option['duration'],
 
                     'duration_unit' => $option['duration_unit'],
+
+                    'sort_order' => $index,
+
+                    'is_active' => true,
+
+                ]);
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | Replace Package Addons
+        |--------------------------------------------------------------------------
+        */
+
+            $package->addons()->delete();
+
+            foreach (
+                $validated['addons'] ?? [] as $index => $addon
+            ) {
+
+                if (blank($addon['name'] ?? null)) {
+                    continue;
+                }
+
+                PackageAddon::create([
+
+                    'uuid' => (string) Str::uuid(),
+
+                    'package_uuid' => $package->uuid,
+
+                    'name' => $addon['name'],
+
+                    'description' => $addon['description'] ?? null,
+
+                    'price' => $addon['price'],
+
+                    'discount_price' => $addon['discount_price'] ?? null,
 
                     'sort_order' => $index,
 
@@ -590,7 +825,7 @@ class PackageController extends Controller
             ->route('packages.index')
             ->with(
                 'success',
-                'Paket berhasil diperbarui.'
+                __('flash.package_updated')
             );
     }
 
@@ -612,22 +847,41 @@ class PackageController extends Controller
 
             return redirect()
                 ->route('packages.index')
-                ->with('success', 'Paket berhasil dihapus.');
+                ->with('success', __('flash.package_deleted'));
         } catch (\Throwable $th) {
 
             DB::rollBack();
 
             return redirect()
                 ->back()
-                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
     public function members(Request $request)
     {
+        $validated = $request->validate([
+            'guests' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+            'budget_max' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+        ]);
+
+        $guests = $validated['guests'] ?? null;
+        $budgetMax = $validated['budget_max'] ?? null;
 
         $query = Package::with([
             'options' => function ($query) {
+                $query->where('is_active', true)
+                    ->orderBy('sort_order');
+            },
+            'addons' => function ($query) {
                 $query->where('is_active', true)
                     ->orderBy('sort_order');
             },
@@ -716,6 +970,28 @@ class PackageController extends Controller
                 break;
         }
 
+        if ($guests !== null) {
+            $packages = $packages->filter(function ($package) use ($guests) {
+                return $package->guest_capacity === null ||
+                    $package->guest_capacity >= $guests;
+            });
+        }
+
+        if ($budgetMax !== null) {
+            $packages = $packages->filter(function ($package) use ($budgetMax) {
+                return $package->options->contains(function ($option) use ($budgetMax) {
+                    $finalPrice = $option->discount_price !== null &&
+                        $option->discount_price < $option->price
+                        ? $option->discount_price
+                        : $option->price;
+
+                    return $finalPrice <= $budgetMax;
+                });
+            });
+        }
+
+        $packages = $packages->values();
+
         // =========================
         // MOBILE VIEW
         // =========================
@@ -727,7 +1003,7 @@ class PackageController extends Controller
         ) {
             return view(
                 'pages.mobile.package',
-                compact('packages')
+                compact('packages', 'guests', 'budgetMax')
             );
         }
 
@@ -737,7 +1013,7 @@ class PackageController extends Controller
 
         return view(
             'pages.package.member',
-            compact('packages')
+            compact('packages', 'guests', 'budgetMax')
         );
     }
 }

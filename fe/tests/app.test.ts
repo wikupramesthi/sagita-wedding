@@ -77,7 +77,32 @@ const getPageBatch = vi.fn(
 			case "about":
 				return { stats: null, articles: [] };
 			case "home":
-				return { classes: [], packages: [], events: [], testimonials: [] };
+				return {
+					venues: [
+						{
+							uuid: "v1",
+							name: "Venue Uji",
+							slug: "venue-uji",
+							address: "Jl. Pernikahan",
+							excerpt: "Tempat untuk perayaan istimewa.",
+						},
+					],
+					packages: [],
+					events: [],
+					testimonials: [],
+				};
+			case "venues":
+				return {
+					venues: [
+						{
+							uuid: "v1",
+							name: "Venue Uji",
+							slug: "venue-uji",
+							address: "Jl. Pernikahan",
+							excerpt: "Tempat untuk perayaan istimewa.",
+						},
+					],
+				};
 			case "blog":
 				return { articles: [], total: 0 };
 			default:
@@ -299,8 +324,6 @@ describe("pagination dari meta backend", () => {
 describe("pageScript wiring", () => {
 	it("halaman dengan island memuat loader bundle", async () => {
 		const cases: [string, string][] = [
-			["/classes", "classes"],
-			["/schedules", "schedules"],
 			["/formulir-konsultasi", "consultation-form"],
 			["/vendors", "vendors"],
 			["/faq", "faq"],
@@ -327,7 +350,7 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain("/js/pages/vendors.js");
 		expect(res.text).toContain("The right people");
 		expect(res.text).toContain("Wedding Vendors | Sagita Wedding Planner");
-		expect(res.text).toContain("Ask for details");
+		expect(res.text).toContain("Ask about this vendor");
 		expect(res.text).toContain("https://wa.me/");
 		expect(res.text).toContain("Vendor%20Katering");
 		expect(res.text).toContain('href="/formulir-konsultasi"');
@@ -349,8 +372,9 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('id="consultationForm"');
 		expect(res.text).toContain('<dialog id="consultationSuccess"');
 		expect(res.text).toContain('id="consultationWhatsappConfirm"');
+		expect(res.text).toContain('placeholder="Enter code"');
 		expect(res.text).toContain(
-			'data-whatsapp-message="Halo, admin aku sudah mengisi formulir konsultasi ya, mohon responnya. Terimakasih"',
+			'data-whatsapp-message="Hello, I’ve submitted the wedding consultation form. I look forward to hearing from your team. Thank you."',
 		);
 		expect(res.text).toContain(
 			"Wedding planning shaped around your celebration",
@@ -371,13 +395,13 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain(
 			"<title>Konsultasi Wedding Organizer &amp; Wedding Planner | Sagita</title>",
 		);
+		expect(res.text).toContain("Rencana pernikahan, dibahas bersama");
+		expect(res.text).toContain("Terima kasih telah menghubungi kami.");
+		expect(res.text).toContain('placeholder="Ketik di sini"');
 		expect(res.text).toContain(
-			"Konsultasi Wedding Organizer sesuai rencana Anda",
+			'data-whatsapp-message="Halo, saya sudah mengirim formulir konsultasi pernikahan. Mohon kabari saya jika ada informasi lebih lanjut. Terima kasih."',
 		);
-		expect(res.text).toContain(
-			"Terima kasih telah mempercayakan langkah awal perencanaan pernikahan Anda kepada",
-		);
-		expect(res.text).toContain("Formulir Anda telah berhasil kami terima.");
+		expect(res.text).toContain("Permintaan konsultasi Anda telah kami terima.");
 	});
 
 	it("halaman tanpa island tidak memuat loader halaman", async () => {
@@ -386,10 +410,44 @@ describe("pageScript wiring", () => {
 		expect(res.text).not.toContain("/js/pages/");
 	});
 
-	it("indikator gulir beranda menaut ke bagian kelas", async () => {
+	it("beranda menampilkan venue dari data batch", async () => {
 		const res = await request(app).get("/");
-		expect(res.text).toContain('href="#home-classes"');
-		expect(res.text).toContain('id="home-classes"');
+		expect(res.text).toContain('href="#home-venues"');
+		expect(res.text).toContain('id="home-venues"');
+		expect(res.text).toContain("Venue Uji");
+		expect(res.text).not.toContain('href="/classes"');
+		expect(res.text).toContain('id="accessibilityWidget"');
+		expect(res.text).toContain('aria-controls="accessibilityPanel"');
+	});
+
+	it("direktori venue menggunakan data batch dan tautan peta", async () => {
+		const res = await request(app).get("/venues");
+		expect(res.status).toBe(200);
+		expect(getPageBatch).toHaveBeenCalledWith("venues", undefined);
+		expect(res.text).toContain("Venue Uji");
+		expect(res.text).toContain("Jl. Pernikahan");
+		expect(res.text).toContain("https://www.google.com/maps/search/");
+		expect(res.text).toContain('id="venueSearch"');
+		expect(res.text).toContain('id="venueList"');
+		expect(res.text).toContain('data-singular="venue to explore"');
+		expect(res.text).toContain("pages/venues.js");
+		expect(res.text).toContain("data-venue-item");
+	});
+
+	it("widget aksesibilitas dirender dengan label bahasa Indonesia", async () => {
+		const res = await request(app).get("/").set("Cookie", "locale=id");
+		expect(res.status).toBe(200);
+		expect(res.text).toContain("Aksesibilitas");
+		expect(res.text).toContain("Kontras tinggi");
+		expect(res.text).toContain('aria-label="Buka pengaturan aksesibilitas"');
+	});
+
+	it("URL kelas dan jadwal lama diarahkan ke direktori venue", async () => {
+		for (const path of ["/classes", "/classes/yoga", "/schedules"]) {
+			const res = await request(app).get(path);
+			expect(res.status, path).toBe(301);
+			expect(res.headers.location, path).toBe("/venues");
+		}
 	});
 
 	it("halaman About menampilkan Art of Living dan tautan lama diarahkan", async () => {
@@ -411,7 +469,7 @@ describe("pageScript wiring", () => {
 
 describe("regresi CSP: tidak ada inline script tanpa nonce", () => {
 	it("halaman yang dulu punya inline script tetap aman", async () => {
-		for (const path of ["/", "/classes", "/schedules", "/blog", "/faq"]) {
+		for (const path of ["/", "/venues", "/blog", "/faq"]) {
 			const res = await request(app).get(path);
 			const scripts = [...res.text.matchAll(/<script\b([^>]*)>/gi)];
 			for (const [, attrs] of scripts) {
@@ -438,9 +496,9 @@ describe("not found", () => {
 
 		expect(res.status).toBe(404);
 		expect(res.text).toContain("Mencari halaman yang tepat?");
-		expect(res.text).toContain("Mulai Konsultasi");
+		expect(res.text).toContain("Mulai konsultasi");
 		expect(res.text).toContain('href="/formulir-konsultasi"');
-		expect(res.text).toContain("Perencanaan pernikahan, koordinasi vendor");
+		expect(res.text).toContain("Perencanaan pernikahan yang penuh perhatian");
 		expect(res.text).not.toContain("YogaRoots");
 		expect(res.text).not.toContain("Serene Yoga");
 	});

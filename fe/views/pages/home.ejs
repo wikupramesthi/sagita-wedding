@@ -24,7 +24,7 @@
     <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-sand-900/5 pointer-events-none"></div>
 
     <div class="relative w-full max-w-5xl mx-auto px-6 py-28 text-center">
-      <h1 class="font-display text-sand-900 tracking-tight" style="font-size:clamp(2.6rem, min(11vw, 10vh), 4.75rem); line-height:1.06">
+      <h1 class="font-display text-sand-900 tracking-tight">
         <span class="block anim-slide-up" style="animation-delay:.05s"><%= t.heroLine1 %></span>
         <span class="block italic font-light anim-slide-up" style="animation-delay:.2s"><%= t.heroLine2 %></span>
       </h1>
@@ -32,66 +32,62 @@
       <p class="mt-6 font-sans text-base sm:text-lg text-sand-700 max-w-xl mx-auto leading-relaxed anim-fade-in" style="animation-delay:.45s"><%= t.heroSub %></p>
 
       <div class="mt-10 flex flex-wrap items-center justify-center gap-4 anim-fade-in" style="animation-delay:.65s">
-        <button type="button" data-action="open-booking" class="group inline-flex items-center gap-3 text-white bg-sand-800 hover:bg-sand-900 rounded-full px-8 py-3.5 text-sm font-medium tracking-wide transition-all">
-          <%= t.heroBookClass %>
+        <a href="/formulir-konsultasi" class="group inline-flex items-center gap-3 text-white bg-sand-800 hover:bg-sand-900 rounded-full px-8 py-3.5 text-sm font-medium tracking-wide transition-all">
+          <%= t.consultationCta %>
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-        </button>
-        <a href="/classes" class="inline-flex items-center gap-3 text-sand-800 border border-sand-400/70 hover:border-sand-600 hover:bg-white/70 rounded-full px-8 py-3.5 text-sm tracking-wide transition-all">
-          <%= t.viewAllClasses %>
+        </a>
+        <a href="/venues" class="inline-flex items-center gap-3 text-sand-800 border border-sand-400/70 hover:border-sand-600 hover:bg-white/70 rounded-full px-8 py-3.5 text-sm tracking-wide transition-all">
+          <%= t.viewAllVenues %>
         </a>
       </div>
     </div>
 
     <!-- scroll indicator -->
-    <a href="#home-classes" class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 anim-fade-in cursor-pointer" style="animation-delay:.9s" aria-label="<%= t.scroll %>">
+    <a href="#home-venues" class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 anim-fade-in cursor-pointer" style="animation-delay:.9s" aria-label="<%= t.scroll %>">
       <span class="text-xs tracking-widest uppercase" style="color:rgba(108,90,74,0.55);"><%= t.scroll %></span>
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-down" class="lucide lucide-chevron-down scroll-chevron w-4 h-4" style="color:rgba(108,90,74,0.55);"><path d="m6 9 6 6 6-6"></path></svg>
     </a>
   </section>
 
-  <!-- ======================= CLASSES FOR EVERY BODY ======================= -->
-  <%
-    const classCards = (classes && classes.length) ? classes.slice(0, 4) : (t.fallbackClasses || []);
-    const cardVariants = [
-      { tile: 'bg-sand-100', svg: '<path d="M12 3.5c1.3 2.2 1.3 5 0 7.5-1.3-2.5-1.3-5.3 0-7.5Z" fill="#b79f80"/><path d="M6.2 6.2c2.4.5 4.2 2.1 5 4.7-2.6.4-4.7-.8-5-4.7Z" fill="#cbb99f"/><path d="M17.8 6.2c-.3 3.9-2.4 5.1-5 4.7.8-2.6 2.6-4.2 5-4.7Z" fill="#cbb99f"/><path d="M3.5 13.5c2.2-1.1 5-1.3 8.5-1.3s6.3.2 8.5 1.3c-2.2 3.6-5.2 5.2-8.5 5.2s-6.3-1.6-8.5-5.2Z" fill="#6c5a4a"/><circle cx="12" cy="13.8" r="1.6" fill="#f8f6f2"/>' },
-      { tile: 'bg-sand-100', svg: '<circle cx="12" cy="12" r="4.5" fill="#b79f80"/><g stroke="#6c5a4a" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5 5l1.8 1.8M17.2 17.2 19 19M19 5l-1.8 1.8M6.8 17.2 5 19"/></g>' },
-      { tile: 'bg-sand-100', svg: '<path d="M5 19C5 10 10 5 20 4c-1 10-6 15-15 15Z" fill="#a88f70"/><path d="M5 19c3-5 7-9 12-11" stroke="#6c5a4a" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="17" cy="7" r="1.4" fill="#f8f6f2"/>' },
-      { tile: 'bg-sand-100', svg: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" fill="#6c5a4a"/><circle cx="17" cy="6" r="1.5" fill="#d8c6a9"/><circle cx="20" cy="9.5" r="1" fill="#f8f6f2"/>' },
-    ];
-  %>
-  <section id="home-classes" class="py-16 px-6">
-    <div class="max-w-6xl mx-auto">
+  <!-- ======================= WEDDING VENUES ======================= -->
+  <section id="home-venues" class="py-16">
+    <div class="site-container">
       <div class="reveal flex items-end justify-between mb-12">
         <div>
-          <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-2"><%= t.whatWeOffer %></p>
-          <h2 class="font-display text-3xl sm:text-4xl text-sage-900"><%= t.homeClassesTitle %> <span class="italic"><%= t.homeClassesTitleItalic %></span></h2>
+          <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-2"><%= t.venuesEyebrow %></p>
+          <h2 class="font-display text-3xl sm:text-4xl text-sage-900"><%= t.venuesTitle %> <span class="italic"><%= t.venuesTitleItalic %></span></h2>
         </div>
-        <a href="/classes" class="hidden sm:flex items-center gap-2 text-sm text-sage-700 hover:text-sage-900 transition-colors group">
-          <%= t.viewAllClasses %>
+        <a href="/venues" class="hidden sm:flex items-center gap-2 text-sm text-sage-700 hover:text-sage-900 transition-colors group">
+          <%= t.viewAllVenues %>
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:translate-x-1"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
         </a>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <% classCards.forEach((c, i) => { const v = cardVariants[i % cardVariants.length]; %>
-          <a href="<%= c.slug ? '/classes/' + c.slug : '/classes' %>" class="card-earthy p-6 group cursor-pointer block h-full reveal" data-delay="<%= i * 90 %>">
-            <div class="icon-tile w-10 h-10 rounded-xl <%= v.tile %> flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-                <%- v.svg %>
-              </svg>
-            </div>
-            <h3 class="font-display text-lg text-sage-900 mb-1"><%= c.name %></h3>
-            <p class="text-sm text-stone-warm leading-relaxed line-clamp-3 min-h-[4.27rem]"><%= c.description || 'Explore a mindful class designed to support your journey.' %></p>
-            <div class="mt-4 flex items-center gap-1 text-xs text-sage-700 opacity-0 group-hover:opacity-100 transition-opacity">
-              <%= t.learnMore %>
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% (venues || []).slice(0, 3).forEach((venue, i) => { %>
+          <a href="/venues#venue-<%= venue.slug || venue.uuid %>" class="group overflow-hidden rounded-2xl bg-white border border-sand-200 shadow-sm hover:shadow-lg transition-shadow reveal" data-delay="<%= i * 90 %>">
+            <% if (venue.image) { %>
+              <div class="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-sand-100 via-sand-50 to-clay-50">
+                <img src="<%= venue.image %>" alt="<%= venue.name %>" loading="lazy" decoding="async" data-img-error="remove" class="absolute inset-0 h-full w-full object-cover">
+              </div>
+            <% } else { %>
+              <div class="w-full aspect-[4/3] bg-gradient-to-br from-sand-100 via-sand-50 to-clay-50"></div>
+            <% } %>
+            <div class="p-5">
+              <h3 class="font-display text-xl text-sage-900 group-hover:text-sage-700 transition-colors"><%= venue.name %></h3>
+              <% if (venue.excerpt) { %><p class="mt-2 text-sm leading-relaxed text-stone-warm line-clamp-2"><%= venue.excerpt %></p><% } %>
+              <% if (venue.address) { %><p class="mt-2 text-sm text-stone-warm line-clamp-2"><%= venue.address %></p><% } %>
             </div>
           </a>
         <% }) %>
       </div>
 
-      <a href="/classes" class="sm:hidden flex items-center justify-center gap-2 mt-6 text-sm text-sage-700">
-        <%= t.viewAllClasses %>
+      <% if (!(venues || []).length) { %>
+        <p class="text-stone-warm"><%= t.venueEmptyDescription %></p>
+      <% } %>
+
+      <a href="/venues" class="sm:hidden flex items-center justify-center gap-2 mt-6 text-sm text-sage-700">
+        <%= t.viewAllVenues %>
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
       </a>
     </div>
@@ -102,8 +98,8 @@
     const imgPool = ['/img/yogaroots_about1.jpg', '/img/yogaroots_about2.jpg', '/img/sita-manwani.jpg'];
     const approachCards = (t.approachCards || []).map((a, i) => ({ ...a, img: imgPool[i % imgPool.length] }));
   %>
-  <section class="py-16 px-6 bg-sand-100/50 relative">
-    <div class="max-w-6xl mx-auto">
+  <section class="py-16 bg-sand-100/50 relative">
+    <div class="site-container">
       <div class="reveal text-center mb-16">
           <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.ourApproach %></p>
         <h2 class="font-display text-4xl sm:text-5xl text-sage-900 leading-tight"><%= t.moreThanJust %> <span class="italic text-terracotta-600"><%= t.moreThanJustItalic %></span></h2>
@@ -125,8 +121,8 @@
   </section>
 
   <!-- ======================= UPCOMING / EVENTS ======================= -->
-  <section class="py-16 px-6 bg-clay-50/30">
-    <div class="max-w-6xl mx-auto">
+  <section class="py-16 bg-clay-50/30">
+    <div class="site-container">
       <div class="reveal flex items-end justify-between mb-12">
         <div>
           <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-2"><%= t.upcoming %></p>

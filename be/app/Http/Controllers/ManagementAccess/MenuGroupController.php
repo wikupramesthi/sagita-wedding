@@ -49,7 +49,7 @@ class MenuGroupController extends Controller
                 'position' => MenuGroup::max('position') + 1
             ),
         ));
-        return back()->with('success', 'Menu has been created successfully!');
+        return back()->with('success', 'Menu berhasil ditambahkan!');
     }
 
     /**
@@ -78,7 +78,7 @@ class MenuGroupController extends Controller
         $findId = $menuGroup->find($id);
         $findId->update($data);
 
-        return back()->with('success', 'Menu has been updated successfully!');
+        return back()->with('success', 'Menu berhasil diperbarui!');
     }
 
     /**
@@ -90,6 +90,6 @@ class MenuGroupController extends Controller
         $menu = MenuGroup::findOrFail($decryptID);
         $menu->delete();
 
-        return back()->with('success', 'Data deleted successfully.');
+        return back()->with('success', 'Data berhasil dihapus.');
     }
 }

@@ -37,7 +37,7 @@ class BookingMissedNotification extends Notification
     {
         return [
             'judul_kegiatan' => 'Kelas terlewat',
-            'message' => $this->className.' ('.$this->scheduleLabel.', '.$this->dateLabel.') ditandai tidak hadir karena tidak ada check-in. Kamu bisa memesan lagi kapan saja.',
+            'message' => $this->className.' ('.$this->scheduleLabel.', '.$this->dateLabel.') ditandai tidak hadir karena tidak ada pencatatan kehadiran. Kamu bisa memesan lagi kapan saja.',
             'path' => route('schedules.index', [], false),
             'icon' => 'bi-calendar-x',
         ];

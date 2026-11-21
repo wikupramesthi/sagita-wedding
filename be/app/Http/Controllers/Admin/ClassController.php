@@ -164,7 +164,7 @@ class ClassController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -187,7 +187,7 @@ class ClassController extends Controller
         } catch (\Throwable $th) {
             return redirect()
                 ->back()
-                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -303,7 +303,7 @@ class ClassController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 
@@ -347,7 +347,7 @@ class ClassController extends Controller
 
             return redirect()
                 ->back()
-                ->with('error', 'Terjadi kesalahan: '.$th->getMessage());
+                ->with('error', $this->safeErrorMessage($th));
         }
     }
 }

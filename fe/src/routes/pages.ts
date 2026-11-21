@@ -19,9 +19,9 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 		const data = await getPageBatch("home").catch(() => null);
 
 		res.render("pages/home", {
-			title: "YogaRoots � Find Balance in Every Breath",
+			title: "Wedding Planner & Organizer | Sagita Wedding",
 			pageScript: "home",
-			classes: data?.classes || [],
+			venues: Array.isArray(data?.venues) ? data.venues : [],
 			packages: data?.packages || [],
 			events: data?.events || [],
 			testimonials: Array.isArray(data?.testimonials)
@@ -34,16 +34,21 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 });
 
 router.get(
-	"/classes",
+	"/venues",
 	async (_req: Request, res: Response, next: NextFunction) => {
 		try {
-			const data = await getPageBatch("classes").catch(() => null);
-			const classes = Array.isArray(data?.classes) ? data.classes : [];
-			res.render("pages/classes", {
-				title: "YogaRoots � Class Guide",
-				metaDescription: res.locals.t.classGuideDesc,
-				pageScript: "classes",
-				classes,
+			const data = await getPageBatch("venues");
+			res.render("pages/venues", {
+				title:
+					res.locals.lang === "id"
+						? "Venue Pernikahan | Sagita Wedding Planner"
+						: "Wedding Venues | Sagita Wedding Planner",
+				metaDescription: res.locals.t.venuesDescription,
+				assetV: `${res.locals.assetV}-venues1`,
+				pageScript: "venues",
+				heroNav: true,
+				heroNavLight: true,
+				venues: Array.isArray(data?.venues) ? data.venues : [],
 			});
 		} catch (err) {
 			next(err);
@@ -51,13 +56,8 @@ router.get(
 	},
 );
 
-// ---------- Schedules (weekly timetable) ----------
-router.get("/schedules", (_req: Request, res: Response) => {
-	res.render("pages/schedules", {
-		title: "YogaRoots � Class Schedules",
-		metaDescription: res.locals.t.classesDesc,
-		pageScript: "schedules",
-	});
+router.get(["/classes", "/schedules"], (_req: Request, res: Response) => {
+	res.redirect(301, "/venues");
 });
 
 router.get("/formulir-konsultasi", (_req: Request, res: Response) => {
@@ -92,35 +92,9 @@ router.get("/art-of-living", (_req: Request, res: Response) => {
 	res.redirect(301, "/about");
 });
 
-// ---------- Class detail ----------
-router.get(
-	"/classes/:slug",
-	async (req: Request, res: Response, next: NextFunction) => {
-		try {
-			const data = await getPageBatch("class-detail", {
-				slug: cleanSlug(req.params.slug, "class"),
-			});
-			const cls = data?.class;
-			if (!cls)
-				return res.status(404).render("pages/404", {
-					title: "Class Not Found",
-					robots: "noindex, nofollow",
-					heroNav: true,
-				});
-			res.render("pages/class-detail", { title: cls.name, cls });
-		} catch (e) {
-			const err = toApiError(e);
-			if (err.status === 404 || err.status === 400) {
-				return res.status(404).render("pages/404", {
-					title: "Class Not Found",
-					robots: "noindex, nofollow",
-					heroNav: true,
-				});
-			}
-			next(err);
-		}
-	},
-);
+router.get("/classes/:slug", (_req: Request, res: Response) => {
+	res.redirect(301, "/venues");
+});
 
 // ---------- CMS page ----------
 router.get(
@@ -218,9 +192,6 @@ router.get(
 				pageScript: "blog-detail",
 				post: { ...post, content: sanitizeRichHtml(post.content) },
 				related: Array.isArray(data?.related) ? data.related : [],
-				latestClasses: Array.isArray(data?.latest_classes)
-					? data.latest_classes
-					: [],
 			});
 		} catch (e) {
 			const err = toApiError(e);

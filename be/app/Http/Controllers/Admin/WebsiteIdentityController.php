@@ -109,7 +109,7 @@ class WebsiteIdentityController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan identitas website: '.$th->getMessage());
+            return redirect()->back()->withInput()->with('error', $this->safeErrorMessage($th));
         }
     }
 }

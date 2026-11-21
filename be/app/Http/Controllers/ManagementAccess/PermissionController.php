@@ -31,7 +31,7 @@ class PermissionController extends Controller
         $roles = Role::orderBy('name')->get();
 
         if ($roles->isEmpty()) {
-            abort(403, 'No roles found.');
+            abort(403, 'Tidak ada peran yang ditemukan.');
         }
 
         return view('management-access.permission.index', compact('permissions', 'roles'));
@@ -53,7 +53,7 @@ class PermissionController extends Controller
         Permission::create($request->validated())
             ?->assignRole(! blank($request->roles) ? $request->roles : []);
 
-        return back()->with('success', 'Permission has been created successfully!');
+        return back()->with('success', 'Hak akses berhasil ditambahkan!');
 
     }
 
@@ -81,7 +81,7 @@ class PermissionController extends Controller
         $permission->update($request->validated())
             && $permission->syncRoles(! blank($request->roles) ? $request->roles : []);
 
-        return back()->with('success', 'Permission has been updated successfully!');
+        return back()->with('success', 'Hak akses berhasil diperbarui!');
     }
 
     /**
@@ -91,7 +91,7 @@ class PermissionController extends Controller
     {
         $permission->delete();
 
-        return back()->with('success', 'Permission has been deleted successfully!');
+        return back()->with('success', 'Hak akses berhasil dihapus!');
 
     }
 }

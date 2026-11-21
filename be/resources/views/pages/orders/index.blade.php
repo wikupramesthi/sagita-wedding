@@ -17,10 +17,24 @@ $statusLabels = [
 'expired' => 'Kedaluwarsa',
 'cancelled' => 'Dibatalkan',
 ];
-$viewMode = request()->input('view') === 'kanban' ? 'kanban' : 'table';
+$viewMode = in_array(request()->input('view'), ['table', 'cards', 'kanban'], true) ? request()->input('view') : 'table';
 $viewQuery = request()->except('view', 'page');
 $tableUrl = route('orders.index', array_merge($viewQuery, ['view' => 'table']));
+$cardsUrl = route('orders.index', array_merge($viewQuery, ['view' => 'cards']));
 $kanbanUrl = route('orders.index', array_merge($viewQuery, ['view' => 'kanban']));
+$datePresets = [
+    'today' => ['label' => 'Hari ini', 'start' => now()->toDateString(), 'end' => now()->toDateString()],
+    '7d' => ['label' => '7 hari', 'start' => now()->copy()->subDays(6)->toDateString(), 'end' => now()->toDateString()],
+    '30d' => ['label' => '30 hari', 'start' => now()->copy()->subDays(29)->toDateString(), 'end' => now()->toDateString()],
+    'month' => ['label' => 'Bulan ini', 'start' => now()->copy()->startOfMonth()->toDateString(), 'end' => now()->toDateString()],
+];
+$activePreset = null;
+foreach ($datePresets as $presetKey => $preset) {
+    if (($filters['start_date'] ?? '') === $preset['start'] && ($filters['end_date'] ?? '') === $preset['end']) {
+        $activePreset = $presetKey;
+        break;
+    }
+}
 $chipMap = [
     'search' => ['label' => 'Cari', 'value' => $filters['search'] ?? ''],
     'status' => ['label' => 'Status', 'value' => isset($statusLabels[$filters['status'] ?? '']) ? $statusLabels[$filters['status']] : ''],
@@ -32,34 +46,6 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
 @endphp
 
 <section class="section">
-    @if (session('success'))
-    <div class="alert alert-success alert-dismissible mb-3 fade show" role="alert">
-        <span class="alert-text text-white">{{ session('success') }}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
-    </div>
-    @endif
-
-    @if (session('error'))
-    <div class="alert alert-danger alert-dismissible mb-3 fade show" role="alert">
-        <span class="alert-text text-white">{{ session('error') }}</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
-    </div>
-    @endif
-
-    @if (session('undo_token'))
-    <div class="alert alert-info alert-dismissible mb-3 fade show order-undo-bar d-flex flex-wrap align-items-center justify-content-between gap-2" role="alert">
-        <span class="alert-text">{{ session('undo_message') }}</span>
-        <div class="d-flex align-items-center gap-2">
-            <form method="POST" action="{{ route('orders.bulk-undo') }}">
-                @csrf
-                <input type="hidden" name="undo_token" value="{{ session('undo_token') }}">
-                <button type="submit" class="btn btn-sm btn-light"><i class="bi bi-arrow-counterclockwise me-1"></i>Batalkan</button>
-            </form>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
-        </div>
-    </div>
-    @endif
-
     <div class="row g-3 ml-stats order-stats">
         <div class="col-6 col-xl-3">
             <div class="card order-stat-card stat-total h-100">
@@ -167,13 +153,24 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                 <span class="order-toolbar-icon"><i class="bi bi-sliders2"></i></span>
                 <div>
                     <h6 class="order-toolbar-title mb-0">Pencarian & Filter</h6>
-                    <div class="order-toolbar-subtitle">Sesuaikan daftar pesanan sesuai antrean, status, dan periode.</div>
+                    <div class="order-toolbar-subtitle">
+                        Sesuaikan daftar pesanan sesuai antrean, status, dan periode.
+                        <span class="order-shortcut-hint">Tekan <kbd>/</kbd> untuk cari</span>
+                    </div>
+                    <div class="order-kpi-strip" aria-label="Ringkasan perhatian">
+                        <span class="order-kpi-item is-warning"><i class="bi bi-alarm me-1"></i><b>{{ number_format($queueCounts['sla'] ?? 0) }}</b> SLA &gt;24 jam</span>
+                        <span class="order-kpi-item is-info"><i class="bi bi-person-check me-1"></i><b>{{ number_format($queueCounts['claimed'] ?? 0) }}</b> diklaim</span>
+                        <span class="order-kpi-item is-success"><i class="bi bi-file-earmark-check me-1"></i><b>{{ number_format($queueCounts['uploaded'] ?? 0) }}</b> bukti masuk</span>
+                    </div>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <div class="btn-group btn-group-sm order-view-switch" role="group" aria-label="Tampilan daftar pesanan">
                     <a href="{{ $tableUrl }}" class="btn btn-outline-secondary {{ $viewMode === 'table' ? 'active' : '' }}">
                         <i class="bi bi-table me-1"></i>Tabel
+                    </a>
+                    <a href="{{ $cardsUrl }}" class="btn btn-outline-secondary {{ $viewMode === 'cards' ? 'active' : '' }}">
+                        <i class="bi bi-grid me-1"></i>Kartu
                     </a>
                     <a href="{{ $kanbanUrl }}" class="btn btn-outline-secondary {{ $viewMode === 'kanban' ? 'active' : '' }}">
                         <i class="bi bi-kanban me-1"></i>Kanban
@@ -191,6 +188,9 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     <input type="text" name="search" id="filterSearch" class="form-control"
                         placeholder="No. pesanan, nama, atau email" minlength="2"
                         value="{{ $filters['search'] ?? '' }}">
+                    <div class="small text-warning mt-1 d-none" id="searchLengthHint">
+                        Ketik minimal 2 karakter untuk mencari pesanan.
+                    </div>
                 </div>
                 @endif
                 <div class="order-filter-field">
@@ -213,7 +213,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                 <div class="order-filter-field">
                     <label class="security-filter-label" for="filterPerPage">Per halaman</label>
                     <select name="per_page" id="filterPerPage" class="form-select">
-                        @foreach ([10, 25, 50] as $perPageOption)
+                        @foreach ([10, 25, 50, 100] as $perPageOption)
                         <option value="{{ $perPageOption }}" @selected(($filters['per_page'] ?? 10)===$perPageOption)>{{ $perPageOption }}</option>
                         @endforeach
                     </select>
@@ -243,6 +243,23 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                 </div>
             </form>
 
+            @if ($searchTooShort)
+            <div class="alert alert-warning py-2 px-3 mt-3 mb-0" id="searchTooShortAlert">
+                <i class="bi bi-exclamation-triangle me-1"></i>Kata kunci pencarian minimal 2 karakter. Hasil tidak ditampilkan sampai kata kunci diperpanjang.
+            </div>
+            @endif
+
+            <div class="order-date-presets" aria-label="Preset periode">
+                <span class="order-date-presets-label"><i class="bi bi-calendar-range me-1"></i>Periode cepat:</span>
+                @foreach ($datePresets as $presetKey => $preset)
+                <button type="button" class="order-date-preset {{ $activePreset === $presetKey ? 'active' : '' }}"
+                    data-start="{{ $preset['start'] }}" data-end="{{ $preset['end'] }}">
+                    {{ $preset['label'] }}
+                </button>
+                @endforeach
+                <span class="order-date-presets-hint">Preset akan langsung memperbarui daftar.</span>
+            </div>
+
             @if ($activeChips)
             <div class="order-filter-chips" aria-label="Filter aktif">
                 <span class="order-filter-chips-label">Filter aktif:</span>
@@ -270,15 +287,37 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                 @if ($savedFilters->isNotEmpty())
                 <div class="order-saved-filters">
                     @foreach ($savedFilters as $savedFilter)
-                    <div class="btn-group btn-group-sm" role="group">
+                    <div class="btn-group btn-group-sm order-saved-filter-group" role="group">
                         <a href="{{ route('orders.saved-filters.apply', $savedFilter) }}"
                             class="btn btn-outline-primary text-nowrap">
+                            @if ($savedFilter->pinned_at)<i class="bi bi-pin-angle-fill me-1 text-warning"></i>@endif
                             <i class="bi bi-funnel me-1"></i>{{ $savedFilter->name }}
                             @if ($savedFilter->is_default)<i class="bi bi-star-fill ms-1 text-warning"></i>@endif
                         </a>
+                        <form method="POST" action="{{ route('orders.saved-filters.pin', $savedFilter) }}">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-secondary"
+                                title="{{ $savedFilter->pinned_at ? 'Lepaskan sematan' : 'Sematkan filter' }}">
+                                <i class="bi bi-pin-angle{{ $savedFilter->pinned_at ? '-fill' : '' }}"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('orders.saved-filters.move', $savedFilter) }}">
+                            @csrf
+                            <input type="hidden" name="direction" value="up">
+                            <button type="submit" class="btn btn-outline-secondary" title="Naik"><i class="bi bi-arrow-up"></i></button>
+                        </form>
+                        <form method="POST" action="{{ route('orders.saved-filters.move', $savedFilter) }}">
+                            @csrf
+                            <input type="hidden" name="direction" value="down">
+                            <button type="submit" class="btn btn-outline-secondary" title="Turun"><i class="bi bi-arrow-down"></i></button>
+                        </form>
                         <form method="POST" action="{{ route('orders.saved-filters.default', $savedFilter) }}">
                             @csrf
-                            <button type="submit" class="btn btn-outline-warning" title="Jadikan bawaan"><i class="bi bi-star"></i></button>
+                            <input type="hidden" name="is_default" value="{{ $savedFilter->is_default ? 0 : 1 }}">
+                            <button type="submit" class="btn btn-outline-warning"
+                                title="{{ $savedFilter->is_default ? 'Hapus bawaan' : 'Jadikan bawaan' }}">
+                                <i class="bi bi-star{{ $savedFilter->is_default ? '-fill' : '' }}"></i>
+                            </button>
                         </form>
                         <form method="POST" action="{{ route('orders.saved-filters.destroy', $savedFilter) }}">
                             @csrf
@@ -323,30 +362,50 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             </div>
             @if ($isAdmin)
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <a href="{{ route('orders.report', request()->query()) }}" class="btn btn-sm btn-outline-secondary text-nowrap">
+                <a href="{{ route('orders.report', request()->query()) }}" data-export-link class="btn btn-sm btn-outline-secondary text-nowrap">
                     <i class="bi bi-file-text me-1"></i>Laporan
                 </a>
-                <a href="{{ route('orders.exportCsv', request()->query()) }}" class="btn btn-sm btn-outline-success text-nowrap">
+                <a href="{{ route('orders.exportCsv', request()->query()) }}" data-export-link class="btn btn-sm btn-outline-success text-nowrap">
                     <i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV
                 </a>
-                <a href="{{ route('orders.exportPdf', request()->query()) }}" class="btn btn-sm btn-danger text-nowrap">
+                <a href="{{ route('orders.exportPdf', request()->query()) }}" data-export-link class="btn btn-sm btn-danger text-nowrap">
                     <i class="bi bi-file-earmark-pdf me-1"></i>PDF
                 </a>
-                <a href="{{ route('orders.audit', request()->query()) }}" class="btn btn-sm btn-outline-dark text-nowrap">
+                <a href="{{ route('orders.audit', request()->query()) }}" data-export-link class="btn btn-sm btn-outline-dark text-nowrap">
                     <i class="bi bi-clock-history me-1"></i>Audit
                 </a>
             </div>
             @endif
         </div>
 
-        <div class="card-body orders-card-body" id="ordersCardBody">
+        <div class="order-sticky-bar d-none" id="orderStickyBar" aria-label="Aksi cepat pesanan">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <span class="order-sticky-icon"><i class="bi bi-lightning-charge"></i></span>
+                <div class="min-w-0">
+                    <div class="order-sticky-title">Aksi cepat</div>
+                    <div class="order-sticky-subtitle text-truncate" id="stickyBulkCount">Pilih pesanan menunggu untuk tindakan massal.</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button type="button" class="btn btn-sm btn-light" id="stickyFilter"><i class="bi bi-funnel me-1"></i>Filter</button>
+                @if ($isAdmin)
+                <button type="button" class="btn btn-sm btn-outline-info" id="stickyRemind"><i class="bi bi-alarm me-1"></i>SLA</button>
+                <button type="button" class="btn btn-sm btn-success" id="stickyApprove"><i class="bi bi-check-lg me-1"></i>Setujui</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="stickyReject"><i class="bi bi-x-lg me-1"></i>Tolak</button>
+                @endif
+            </div>
+        </div>
+
+        <div class="card-body orders-card-body {{ $viewMode === 'cards' ? 'view-cards' : '' }}" id="ordersCardBody">
             <div class="orders-table-tools">
                 <div class="orders-table-tools-info">
                     <span class="orders-table-tools-icon"><i class="bi bi-list-ul"></i></span>
                     <div>
-                        <div class="orders-table-tools-title">Tabel pesanan</div>
+                        <div class="orders-table-tools-title">
+                            {{ $viewMode === 'cards' ? 'Kartu pesanan' : ($viewMode === 'kanban' ? 'Papan antrean' : 'Tabel pesanan') }}
+                        </div>
                         <div class="orders-table-tools-subtitle">
-                            {{ $isAdmin ? 'Semua pesanan keanggotaan dan status pembayaran.' : 'Pesanan keanggotaan Anda dan status pembayaran.' }}
+                            {{ $viewMode === 'cards' ? 'Ringkasan setiap pesanan dalam satu kartu agar mudah dipindai.' : ($isAdmin ? 'Semua pesanan keanggotaan dan status pembayaran.' : 'Pesanan keanggotaan Anda dan status pembayaran.') }}
                         </div>
                     </div>
                 </div>
@@ -393,6 +452,10 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <span class="orders-bulk-limit d-none d-lg-inline">Maks. 50 pesanan</span>
+                        <button type="button" class="btn btn-sm btn-outline-info" id="bulkRemind"
+                            title="Kirim pengingat SLA untuk pesanan terpilih. Jika tidak ada yang dipilih, kirim ke semua yang menunggu lebih dari 24 jam.">
+                            <i class="bi bi-alarm me-1"></i>Pengingat SLA
+                        </button>
                         <button type="button" class="btn btn-sm btn-success" id="bulkApprove">
                             <i class="bi bi-check-lg me-1"></i>Setujui
                         </button>
@@ -402,13 +465,17 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     </div>
                 </div>
             </form>
+            <form id="remindSlaForm" method="POST" action="{{ route('orders.remind-sla') }}">
+                @csrf
+                <div id="remindSlaIds"></div>
+            </form>
             <form id="singleRejectForm" method="POST" action="">
                 @csrf
                 <input type="hidden" name="admin_note" id="singleRejectNote" value="">
             </form>
             @endif
 
-            @if ($viewMode === 'table')
+            @if (in_array($viewMode, ['table', 'cards'], true))
             <div class="table-responsive orders-table-wrap">
                 <table class="table security-table orders-table">
                     <colgroup>
@@ -443,7 +510,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                         @forelse ($orders as $order)
                         <tr>
                             @if ($isAdmin)
-                            <td>
+                            <td class="order-check-cell">
                                 @if ($order->status === 'pending')
                                 <input class="form-check-input row-check" type="checkbox" name="ids[]" form="bulkForm"
                                     value="{{ $order->uuid }}" aria-label="Pilih {{ $order->order_number }}">
@@ -484,11 +551,24 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                 <span class="order-status-pill tone-{{ $statusTone }}">
                                     <span class="order-status-dot"></span>{{ $statusLabels[$order->status] ?? $order->status }}
                                 </span>
+                                @if ($isAdmin && $order->status === 'pending')
+                                <div class="order-flags">
+                                    @if ($order->assigned_admin_uuid)
+                                    <span class="order-flag is-claimed"><i class="bi bi-person-check me-1"></i>Diklaim</span>
+                                    @endif
+                                    @if ($order->created_at && $order->created_at->diffInHours() >= 24)
+                                    <span class="order-flag is-sla"><i class="bi bi-alarm me-1"></i>SLA &gt;24 jam</span>
+                                    @endif
+                                </div>
+                                @endif
                             </td>
                             <td data-col="proof" data-label="Bukti">
                                 @if ($order->proof_image_path)
                                 <a href="{{ route('orders.proof.show', $order->uuid) }}" target="_blank"
-                                    class="order-proof-thumb" title="Lihat bukti transfer {{ $order->order_number }}">
+                                    class="order-proof-thumb js-proof-preview"
+                                    data-proof-src="{{ route('orders.proof.show', $order->uuid) }}"
+                                    data-proof-title="Bukti transfer {{ $order->order_number }}"
+                                    title="Lihat bukti transfer {{ $order->order_number }}">
                                     <img src="{{ route('orders.proof.show', $order->uuid) }}" alt="Bukti transfer">
                                 </a>
                                 @else
@@ -508,6 +588,18 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                     @endif
                             </td>
                                 <td class="text-end order-actions">
+                                    @if ($isAdmin && $order->status === 'pending')
+                                    <div class="order-next-action">
+                                        <i class="bi bi-arrow-right-circle me-1"></i>
+                                        @if (!$order->proof_image_path)
+                                        Langkah: minta bukti transfer
+                                        @elseif ($order->assigned_admin_uuid)
+                                        Langkah: tinjau bukti lalu setujui
+                                        @else
+                                        Langkah: ambil alih lalu verifikasi
+                                        @endif
+                                    </div>
+                                    @endif
                                     <div class="dropdown order-action-menu">
                                         <button type="button" class="btn btn-sm btn-outline-secondary"
                                             id="orderAction_{{ $order->uuid }}" data-bs-toggle="dropdown"
@@ -530,10 +622,20 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                                     <i class="bi bi-arrows-fullscreen me-2 text-primary"></i>Pratinjau cepat
                                                 </button>
                                             </li>
+                                            <li>
+                                                <button type="button" class="dropdown-item js-activity"
+                                                    data-action="{{ route('orders.activity', $order->uuid) }}"
+                                                    data-number="{{ $order->order_number }}">
+                                                    <i class="bi bi-clock-history me-2 text-info"></i>Aktivitas
+                                                </button>
+                                            </li>
                                             @endif
                                             @if ($isAdmin && $order->proof_image_path)
                                             <li>
-                                                <a class="dropdown-item" href="{{ route('orders.proof.show', $order->uuid) }}" target="_blank">
+                                                <a class="dropdown-item js-proof-preview"
+                                                    href="{{ route('orders.proof.show', $order->uuid) }}"
+                                                    data-proof-src="{{ route('orders.proof.show', $order->uuid) }}"
+                                                    data-proof-title="Bukti transfer {{ $order->order_number }}">
                                                     <i class="bi bi-file-earmark-image me-2 text-primary"></i>Lihat bukti
                                                 </a>
                                             </li>
@@ -575,15 +677,24 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                 </td>
                         </tr>
                         @empty
-                        <tr>
+                        <tr class="order-empty-row">
                             <td colspan="{{ $isAdmin ? 9 : 7 }}" class="text-center py-5">
                                 <div class="order-empty-state">
-                                    <span class="order-empty-icon"><i class="bi bi-inbox"></i></span>
-                                    <h6 class="mt-3 mb-1">Belum ada pesanan yang cocok</h6>
-                                    <p class="text-muted small mb-3">Coba longgarkan filter atau kembali ke tampilan semua pesanan.</p>
-                                    <a href="{{ route('orders.index') }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-arrow-clockwise me-1"></i>Atur Ulang Filter
-                                    </a>
+                                    <span class="order-empty-icon"><i class="bi {{ $activeChips ? 'bi-funnel' : 'bi-inbox' }}"></i></span>
+                                    <h6 class="mt-3 mb-1">{{ $activeChips ? 'Tidak ada hasil untuk filter ini' : 'Belum ada pesanan' }}</h6>
+                                    <p class="text-muted small mb-3">
+                                        {{ $activeChips ? 'Hapus sebagian filter atau reset semua untuk melihat pesanan lain.' : 'Pesanan baru akan muncul di sini setelah dibuat.' }}
+                                    </p>
+                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                        <a href="{{ route('orders.index') }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>Atur Ulang Filter
+                                        </a>
+                                        @if ($isAdmin && !empty($queueCounts['all']))
+                                        <a href="{{ route('orders.index', ['status' => 'pending']) }}" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-hourglass-split me-1"></i>Lihat Antrean
+                                        </a>
+                                        @endif
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -621,6 +732,16 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                             </div>
                             <div class="order-kanban-meta">{{ $order->user?->name ?? '-' }}</div>
                             <div class="order-kanban-meta">{{ $order->package?->name ?? '-' }}</div>
+                            @if ($isAdmin && $order->status === 'pending')
+                            <div class="order-flags mt-2">
+                                @if ($order->assigned_admin_uuid)
+                                <span class="order-flag is-claimed"><i class="bi bi-person-check me-1"></i>Diklaim</span>
+                                @endif
+                                @if ($order->created_at && $order->created_at->diffInHours() >= 24)
+                                <span class="order-flag is-sla"><i class="bi bi-alarm me-1"></i>SLA &gt;24 jam</span>
+                                @endif
+                            </div>
+                            @endif
                             <div class="d-flex align-items-center justify-content-between gap-2 mt-3">
                                 <span class="fw-bold small">Rp {{ number_format($order->amount, 0, ',', '.') }}</span>
                                 @if ($isAdmin && $order->status === 'pending')
@@ -637,6 +758,11 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                     data-action="{{ route('orders.quick-view', $order->uuid) }}"
                                     data-number="{{ $order->order_number }}" aria-label="Pratinjau {{ $order->order_number }}">
                                     <i class="bi bi-arrows-fullscreen"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info js-activity"
+                                    data-action="{{ route('orders.activity', $order->uuid) }}"
+                                    data-number="{{ $order->order_number }}" aria-label="Aktivitas {{ $order->order_number }}">
+                                    <i class="bi bi-clock-history"></i>
                                 </button>
                                 @endif
                             </div>
@@ -656,16 +782,33 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     <span class="orders-pagination-icon"><i class="bi bi-list-ol"></i></span>
                     <div>
                         <div class="orders-pagination-title">
-                            Menampilkan {{ $orders->firstItem() }}–{{ $orders->lastItem() }} dari {{ $orders->total() }} pesanan
+                            Menampilkan {{ number_format($orders->firstItem()) }}–{{ number_format($orders->lastItem()) }} dari {{ number_format($orders->total()) }} pesanan
                         </div>
                         <div class="orders-pagination-subtitle">
-                            Halaman {{ $orders->currentPage() }} dari {{ $orders->lastPage() }}
+                            Halaman {{ number_format($orders->currentPage()) }} dari {{ number_format($orders->lastPage()) }}
                         </div>
                     </div>
                 </div>
-                <nav class="orders-pagination-links" aria-label="Navigasi halaman pesanan">
-                    {{ $orders->onEachSide(1)->links('pagination::bootstrap-5') }}
-                </nav>
+                <div class="orders-pagination-controls">
+                    <div class="orders-pagination-tools">
+                        <label class="orders-pagination-label" for="ordersPerPageQuick">Per halaman</label>
+                        <select id="ordersPerPageQuick" class="form-select form-select-sm" aria-label="Jumlah pesanan per halaman">
+                            @foreach ([10, 25, 50, 100] as $perPageOption)
+                            <option value="{{ $perPageOption }}" @selected(($filters['per_page'] ?? 10)===$perPageOption)>{{ $perPageOption }}</option>
+                            @endforeach
+                        </select>
+                        <div class="orders-pagination-jump">
+                            <label class="orders-pagination-label" for="ordersPageJump">Halaman</label>
+                            <input type="number" id="ordersPageJump" class="form-control form-control-sm"
+                                min="1" max="{{ $orders->lastPage() }}" value="{{ $orders->currentPage() }}"
+                                aria-label="Nomor halaman">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="ordersPageGo">Pergi</button>
+                        </div>
+                    </div>
+                    <nav class="orders-pagination-links" aria-label="Navigasi halaman pesanan">
+                        {{ $orders->onEachSide(1)->links('pagination::bootstrap-5') }}
+                    </nav>
+                </div>
             </div>
             @endif
         </div>
@@ -711,12 +854,47 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .order-saved-filters .btn-group .btn { border-color: #d0d5dd; border-radius: 0; font-size: 12px; }
     .order-saved-filters .btn-group > .btn:first-child { border-radius: 8px 0 0 8px; }
     .order-saved-filters .btn-group > .btn:last-child { border-radius: 0 8px 8px 0; }
+    .order-saved-filters .btn-group > form:last-child .btn { border-radius: 0 8px 8px 0; }
     .order-saved-empty { font-size: 12px; color: #98a2b3; margin-bottom: 14px; }
     .order-save-row { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; padding-top: 12px; border-top: 1px solid #e4e7ec; }
     .order-save-row > .security-filter-label { width: 100%; margin: 0; font-size: 12px; font-weight: 600; color: #667085; }
     .order-save-row .form-control { width: 240px; border-color: #e4e7ec; border-radius: 10px; }
     .order-save-check { margin-bottom: 7px; }
     .order-save-check .form-check-label { font-size: 12px; color: #667085; }
+    .order-shortcut-hint { margin-left: 6px; color: #98a2b3; font-weight: 400; }
+    .order-shortcut-hint kbd { padding: 1px 5px; border: 1px solid #d0d5dd; border-bottom-width: 2px; border-radius: 5px; background: #fff; color: #344054; font-family: inherit; font-size: 10px; font-weight: 600; line-height: 1.2; }
+    .order-kpi-strip { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .order-kpi-item { display: inline-flex; align-items: center; gap: 2px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .order-kpi-item b { font-variant-numeric: tabular-nums; }
+    .order-kpi-item.is-warning { color: #b54708; background: #fffaeb; }
+    .order-kpi-item.is-info { color: #175cd3; background: #eff8ff; }
+    .order-kpi-item.is-success { color: #027a48; background: #ecfdf3; }
+    .order-date-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+    .order-date-presets-label { font-size: 12px; font-weight: 700; color: #475467; }
+    .order-date-preset { padding: 5px 10px; border: 1px solid #d0d5dd; border-radius: 999px; background: #fff; color: #475467; font-size: 11px; font-weight: 600; }
+    .order-date-preset:hover { border-color: #5b7cfa; color: #3538cd; }
+    .order-date-preset.active { border-color: #5b7cfa; background: #eef2ff; color: #3538cd; }
+    .order-date-presets-hint { font-size: 11px; color: #98a2b3; }
+    .order-sticky-bar {
+        position: sticky;
+        top: 8px;
+        z-index: 1030;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 0 0 14px;
+        padding: 10px 14px;
+        border: 1px solid #d0d5dd;
+        border-radius: 12px;
+        background: rgba(255,255,255,.96);
+        box-shadow: 0 12px 28px rgba(16,24,40,.12);
+        backdrop-filter: blur(8px);
+    }
+    .order-sticky-icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: #b54708; background: #fffaeb; }
+    .order-sticky-title { font-size: 12px; font-weight: 700; color: #101828; }
+    .order-sticky-subtitle { max-width: 320px; font-size: 11px; color: #667085; }
 
     @media (max-width: 1199.98px) {
         .order-filter-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
@@ -1003,6 +1181,11 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
 
     .order-aging.is-late { background: #fffaeb; color: #b54708; }
     .order-aging.is-critical { background: #fef3f2; color: #b42318; }
+    .order-flags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .order-flag { display: inline-flex; align-items: center; padding: 3px 7px; border-radius: 6px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .order-flag.is-claimed { color: #175cd3; background: #eff8ff; }
+    .order-flag.is-sla { color: #b42318; background: #fef3f2; }
+    .order-next-action { margin-bottom: 6px; font-size: 10px; font-weight: 600; color: #667085; white-space: normal; }
 
     .orders-pagination {
         display: flex;
@@ -1069,6 +1252,30 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         color: #c4cbd5;
         background: #f8f9fb;
     }
+
+    .orders-pagination-controls {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .orders-pagination-tools {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 6px 8px;
+        border: 1px solid #e4e7ec;
+        border-radius: 10px;
+        background: #fcfcfd;
+    }
+    .orders-pagination-label { font-size: 11px; font-weight: 600; color: #667085; }
+    .orders-pagination-tools .form-select,
+    .orders-pagination-tools .form-control { width: auto; min-width: 58px; font-size: 12px; }
+    .orders-pagination-tools .form-control { min-width: 62px; }
+    .orders-pagination-jump { display: flex; align-items: center; gap: 6px; }
+    .orders-pagination-links .pagination { justify-content: flex-end; }
 
     .orders-table thead th {
         position: sticky;
@@ -1232,6 +1439,91 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         outline-offset: 2px;
     }
 
+    .orders-card-body.view-cards .table-responsive { overflow: visible; }
+    .orders-card-body.view-cards .orders-table { min-width: 0; border: 0; }
+    .orders-card-body.view-cards .orders-table thead { display: none; }
+    .orders-card-body.view-cards .orders-table,
+    .orders-card-body.view-cards .orders-table tbody { display: block; width: 100%; }
+    .orders-card-body.view-cards .orders-table tbody {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 14px;
+        padding: 2px;
+    }
+    .orders-card-body.view-cards .orders-table tr {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr;
+        align-content: start;
+        width: 100%;
+        margin: 0;
+        padding: 16px;
+        border: 1px solid #e4e7ec;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 6px 18px rgba(16,24,40,.05);
+    }
+    .orders-card-body.view-cards .orders-table td {
+        display: block;
+        width: 100%;
+        padding: .35rem 0;
+        border: 0;
+        white-space: normal;
+        text-align: left !important;
+        vertical-align: top;
+    }
+    .orders-card-body.view-cards .orders-table td[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: .2rem;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #98a2b3;
+    }
+    .orders-card-body.view-cards .orders-table .order-check-cell {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: auto;
+        padding: 0;
+    }
+    .orders-card-body.view-cards .orders-table td[data-label="Pesanan"] {
+        padding: 0 30px 12px 0;
+        border-bottom: 1px solid #eef0f4;
+    }
+    .orders-card-body.view-cards .orders-table td[data-label="Pesanan"]::before { display: none; }
+    .orders-card-body.view-cards .orders-table td[data-label="Pesanan"] .fw-semibold { font-size: 1rem; }
+    .orders-card-body.view-cards .orders-table td[data-label="Pesanan"] .js-copy-order { color: #98a2b3; }
+    .orders-card-body.view-cards .orders-table .order-detail small,
+    .orders-card-body.view-cards .orders-table .order-amount { font-size: .82rem; }
+    .orders-card-body.view-cards .orders-table td[data-col="status"] .order-flags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .35rem;
+        margin-top: .45rem;
+    }
+    .orders-card-body.view-cards .orders-table td[data-col="proof"] { padding-top: .2rem; padding-bottom: .2rem; }
+    .orders-card-body.view-cards .orders-table .order-proof-thumb img {
+        width: 52px;
+        height: 52px;
+        object-fit: cover;
+    }
+    .orders-card-body.view-cards .orders-table .order-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: .6rem;
+        margin-top: .5rem;
+        padding-top: .75rem;
+        border-top: 1px solid #eef0f4;
+    }
+    .orders-card-body.view-cards .orders-table .order-actions::before { display: none; }
+    .orders-card-body.view-cards .orders-table .order-next-action { flex: 1 1 100%; margin-bottom: .25rem; }
+    .orders-card-body.view-cards .orders-table tr.order-empty-row { grid-column: 1 / -1; box-shadow: none; background: transparent; border: 0; }
+
     @media (max-width: 991.98px) {
         .order-kanban { grid-template-columns: 1fr; }
     }
@@ -1268,13 +1560,52 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         .orders-table .order-actions { width: 100%; }
         .orders-table .dropdown-menu { min-width: 12rem; }
         .orders-pagination { align-items: flex-start; flex-direction: column; }
+        .orders-pagination-controls { justify-content: flex-start; width: 100%; }
         .orders-pagination-links { width: 100%; }
+        .orders-pagination-links .pagination { justify-content: center; }
     }
 
     @media (prefers-reduced-motion: reduce) {
         .orders-skeleton-row { animation: none; }
         .order-stats .order-stat-card { transition: none; }
     }
+
+    .order-activity-summary {
+        padding: .9rem;
+        border: 1px solid var(--bs-border-color);
+        border-radius: .75rem;
+        background: rgba(var(--bs-secondary-bg-rgb), .5);
+    }
+    .order-activity-proof-img {
+        width: 100%;
+        max-height: 240px;
+        object-fit: contain;
+        border: 1px solid var(--bs-border-color);
+        border-radius: .65rem;
+        background: var(--bs-body-bg);
+    }
+    .order-activity-timeline { display: flex; flex-direction: column; gap: .8rem; }
+    .order-activity-item { position: relative; display: flex; gap: .7rem; padding-left: .2rem; }
+    .order-activity-item:not(:last-child)::before {
+        content: "";
+        position: absolute;
+        left: .42rem;
+        top: .9rem;
+        bottom: -.8rem;
+        width: 1px;
+        background: var(--bs-border-color);
+    }
+    .order-activity-dot {
+        width: .6rem;
+        height: .6rem;
+        margin-top: .28rem;
+        border-radius: 50%;
+        background: var(--bs-primary);
+        box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), .14);
+        flex: 0 0 auto;
+    }
+    .order-proof-preview-img { width: 100%; max-height: 78vh; object-fit: contain; border-radius: .6rem; }
+    .offcanvas.order-activity-offcanvas { width: min(440px, 100vw); }
 </style>
 @endpush
 
@@ -1320,9 +1651,42 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     </div>
 </div>
 
+@if ($isAdmin)
+<div class="offcanvas offcanvas-end order-activity-offcanvas" tabindex="-1" id="activityOffcanvas" aria-labelledby="activityOffcanvasTitle">
+    <div class="offcanvas-header border-bottom">
+        <div>
+            <h5 class="offcanvas-title" id="activityOffcanvasTitle">Aktivitas pesanan</h5>
+            <div class="small text-muted" id="activityOffcanvasSubtitle">Memuat riwayat...</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
+    </div>
+    <div class="offcanvas-body" id="activityOffcanvasBody">
+        <div class="text-center py-5 text-muted">
+            <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+            Memuat aktivitas...
+        </div>
+    </div>
+</div>
+@endif
+
+<div class="modal fade" id="proofPreviewModal" tabindex="-1" aria-labelledby="proofPreviewTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="proofPreviewTitle">Bukti transfer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body p-2 text-center bg-body-tertiary">
+                <img id="proofPreviewImage" class="order-proof-preview-img" src="" alt="Bukti transfer">
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('after-script')
 <script>
     (function() {
+        var bs = window.bootstrap;
         var checkAll = document.getElementById('checkAll');
         var rows = Array.prototype.slice.call(document.querySelectorAll('.row-check'));
         var count = document.getElementById('bulkCount');
@@ -1332,7 +1696,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         var singleRejectForm = document.getElementById('singleRejectForm');
         var singleRejectNote = document.getElementById('singleRejectNote');
         var rejectModalEl = document.getElementById('rejectModal');
-        var rejectModal = rejectModalEl && window.bootstrap ? new bootstrap.Modal(rejectModalEl) : null;
+        var rejectModal = rejectModalEl && bs ? new bs.Modal(rejectModalEl) : null;
         var rejectReason = document.getElementById('rejectReason');
         var rejectTarget = document.getElementById('rejectTarget');
         var rejectConfirm = document.getElementById('rejectConfirm');
@@ -1343,7 +1707,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         var saveFilterNameInput = document.getElementById('saveFilterNameInput');
         var saveFilterPayload = document.getElementById('saveFilterPayload');
 
-        if (saveFilterButton && saveFilterForm && saveFilterName && saveFilterPayload) {
+        if (saveFilterButton && saveFilterForm && saveFilterName && saveFilterNameInput && saveFilterPayload) {
             saveFilterButton.addEventListener('click', function() {
                 var name = saveFilterName.value.trim();
 
@@ -1365,10 +1729,15 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             var selected = rows.filter(function(box) {
                 return box.checked;
             }).length;
+            var countText = selected ?
+                selected + ' pesanan dipilih untuk tindakan massal.' :
+                'Pilih pesanan menunggu untuk tindakan massal.';
             if (count) {
-                count.textContent = selected ?
-                    selected + ' pesanan dipilih untuk tindakan massal.' :
-                    'Pilih pesanan menunggu untuk tindakan massal.';
+                count.textContent = countText;
+            }
+            var stickyBulkCount = document.getElementById('stickyBulkCount');
+            if (stickyBulkCount) {
+                stickyBulkCount.textContent = countText;
             }
             if (checkAll) {
                 checkAll.checked = rows.length > 0 && selected === rows.length;
@@ -1394,6 +1763,34 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             }).length;
         }
 
+        function submitRemindSla() {
+            var remindForm = document.getElementById('remindSlaForm');
+            var remindIds = document.getElementById('remindSlaIds');
+            if (!remindForm || !remindIds) return;
+
+            var selected = rows.filter(function(box) {
+                return box.checked;
+            }).map(function(box) {
+                return box.value;
+            });
+
+            var message = selected.length
+                ? 'Kirim pengingat SLA ke ' + selected.length + ' pesanan terpilih?'
+                : 'Kirim pengingat SLA ke semua pesanan yang menunggu lebih dari 24 jam?';
+
+            if (!confirm(message)) return;
+
+            remindIds.innerHTML = '';
+            selected.forEach(function(id) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = id;
+                remindIds.appendChild(input);
+            });
+            remindForm.submit();
+        }
+
         function openRejectModal(targetText, action) {
             if (!rejectModal || !rejectReason) {
                 var reason = prompt(targetText + ' Alasan penolakan wajib diisi.');
@@ -1402,10 +1799,12 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     return;
                 }
                 if (action) {
+                    if (!singleRejectForm || !singleRejectNote) return;
                     singleRejectForm.action = action;
                     singleRejectNote.value = reason.trim();
                     singleRejectForm.submit();
                 } else {
+                    if (!bulkForm || !bulkAction || !bulkNote) return;
                     bulkNote.disabled = false;
                     bulkNote.value = reason.trim();
                     bulkAction.value = 'reject';
@@ -1414,7 +1813,9 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                 return;
             }
             pendingSingleAction = action || null;
-            rejectTarget.textContent = targetText;
+            if (rejectTarget) {
+                rejectTarget.textContent = targetText;
+            }
             rejectReason.value = '';
             rejectModal.show();
             setTimeout(function() {
@@ -1435,6 +1836,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             if (!confirm(message.replace(':count', selected))) {
                 return;
             }
+            if (!bulkForm || !bulkAction || !bulkNote) return;
             bulkNote.disabled = action === 'approve';
             bulkAction.value = action;
             bulkForm.submit();
@@ -1453,13 +1855,35 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             });
         }
 
+        var stickyApprove = document.getElementById('stickyApprove');
+        var stickyReject = document.getElementById('stickyReject');
+        if (stickyApprove) {
+            stickyApprove.addEventListener('click', function() {
+                submitBulk('approve', 'Setujui :count pesanan terpilih?');
+            });
+        }
+        if (stickyReject) {
+            stickyReject.addEventListener('click', function() {
+                submitBulk('reject', '');
+            });
+        }
+
+        var bulkRemind = document.getElementById('bulkRemind');
+        var stickyRemind = document.getElementById('stickyRemind');
+        if (bulkRemind) {
+            bulkRemind.addEventListener('click', submitRemindSla);
+        }
+        if (stickyRemind) {
+            stickyRemind.addEventListener('click', submitRemindSla);
+        }
+
         document.querySelectorAll('.js-reject-single').forEach(function(button) {
             button.addEventListener('click', function() {
                 var dropdown = button.closest('.dropdown');
                 var toggle = dropdown ? dropdown.querySelector('[data-bs-toggle="dropdown"]') : null;
 
-                if (toggle && window.bootstrap) {
-                    bootstrap.Dropdown.getOrCreateInstance(toggle).hide();
+                if (toggle && bs) {
+                    bs.Dropdown.getOrCreateInstance(toggle).hide();
                 }
 
                 openRejectModal('Tolak ' + button.dataset.number + '?', button.dataset.action);
@@ -1475,11 +1899,13 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     return;
                 }
                 if (pendingSingleAction) {
+                    if (!singleRejectForm || !singleRejectNote) return;
                     singleRejectForm.action = pendingSingleAction;
                     singleRejectNote.value = reason;
                     singleRejectForm.submit();
                     return;
                 }
+                if (!bulkForm || !bulkAction || !bulkNote) return;
                 bulkNote.disabled = false;
                 bulkNote.value = reason;
                 bulkAction.value = 'reject';
@@ -1490,7 +1916,9 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         if (rejectModalEl) {
             rejectModalEl.addEventListener('hidden.bs.modal', function() {
                 pendingSingleAction = null;
-                rejectReason.value = '';
+                if (rejectReason) {
+                    rejectReason.value = '';
+                }
             });
         }
 
@@ -1506,7 +1934,124 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             });
         }
 
+        document.querySelectorAll('.order-date-preset').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var start = document.getElementById('filterStart');
+                var end = document.getElementById('filterEnd');
+                if (!filterForm || !start || !end) return;
+                start.value = button.dataset.start || '';
+                end.value = button.dataset.end || '';
+                if (filterForm.requestSubmit) {
+                    filterForm.requestSubmit();
+                } else {
+                    filterForm.submit();
+                }
+            });
+        });
+
+        var stickyBar = document.getElementById('orderStickyBar');
+        var toolbarCard = document.querySelector('.order-toolbar-card');
+
+        function updateStickyBar() {
+            if (!stickyBar) return;
+            var show = toolbarCard && window.scrollY > (toolbarCard.offsetTop + toolbarCard.offsetHeight - 120);
+            stickyBar.classList.toggle('d-none', !show);
+        }
+
+        window.addEventListener('scroll', updateStickyBar, { passive: true });
+        updateStickyBar();
+
+        function focusFilter() {
+            var target = document.getElementById('filterSearch') || document.getElementById('filterStatus');
+            if (!target) return;
+            if (target.scrollIntoView) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            setTimeout(function() {
+                target.focus();
+            }, 250);
+        }
+
+        var stickyFilter = document.getElementById('stickyFilter');
+        if (stickyFilter) {
+            stickyFilter.addEventListener('click', focusFilter);
+        }
+
+        var filterSearchInput = document.getElementById('filterSearch');
+        var searchLengthHint = document.getElementById('searchLengthHint');
+
+        if (filterSearchInput && searchLengthHint) {
+            function updateSearchLengthHint() {
+                var length = filterSearchInput.value.trim().length;
+                searchLengthHint.classList.toggle('d-none', length === 0 || length >= 2);
+                filterSearchInput.classList.toggle('is-invalid', length === 1);
+            }
+
+            filterSearchInput.addEventListener('input', updateSearchLengthHint);
+            updateSearchLengthHint();
+        }
+
+        document.addEventListener('keydown', function(event) {
+            var target = event.target;
+            var tag = target && target.tagName ? target.tagName.toLowerCase() : '';
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || (target && target.isContentEditable)) return;
+
+            if (event.key === '/') {
+                event.preventDefault();
+                focusFilter();
+                return;
+            }
+
+            var key = (event.key || '').toLowerCase();
+            if (key === 'a' && checkAll) {
+                event.preventDefault();
+                checkAll.checked = !checkAll.checked;
+                rows.forEach(function(box) { box.checked = checkAll.checked; });
+                updateCount();
+            }
+            if (key === 's' && approve) {
+                event.preventDefault();
+                approve.click();
+            }
+        });
+
         var columnToggles = Array.prototype.slice.call(document.querySelectorAll('.order-col-toggle'));
+
+        function exportColumnsForVisibleColumns() {
+            var columns = ['order'];
+            var groups = {
+                date: ['date'],
+                customer: ['customer', 'email'],
+                package: ['package', 'option', 'amount'],
+                status: ['status'],
+                proof: ['proof']
+            };
+
+            Object.keys(groups).forEach(function(key) {
+                var toggle = document.querySelector('.order-col-toggle[data-col="' + key + '"]');
+
+                if (!toggle || toggle.checked) {
+                    groups[key].forEach(function(column) {
+                        if (columns.indexOf(column) < 0) {
+                            columns.push(column);
+                        }
+                    });
+                }
+            });
+
+            return columns;
+        }
+
+        function syncExportLinks() {
+            var columns = exportColumnsForVisibleColumns().join(',');
+
+            document.querySelectorAll('[data-export-link]').forEach(function(link) {
+                var url = new URL(link.href);
+                url.searchParams.set('columns', columns);
+                link.href = url.toString();
+            });
+        }
 
         function applyColumns(hiddenColumns) {
             document.querySelectorAll('[data-col]:not(.order-col-toggle)').forEach(function(cell) {
@@ -1515,6 +2060,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             columnToggles.forEach(function(toggle) {
                 toggle.checked = hiddenColumns.indexOf(toggle.dataset.col) < 0;
             });
+            syncExportLinks();
         }
 
         if (columnToggles.length) {
@@ -1578,7 +2124,9 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             input.style.opacity = '0';
             document.body.appendChild(input);
             input.select();
-            document.execCommand('copy');
+            try {
+                document.execCommand('copy');
+            } catch (e) {}
             document.body.removeChild(input);
             return Promise.resolve();
         }
@@ -1599,7 +2147,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         });
 
         var quickViewModalEl = document.getElementById('quickViewModal');
-        var quickViewModal = quickViewModalEl && window.bootstrap ? new bootstrap.Modal(quickViewModalEl) : null;
+        var quickViewModal = quickViewModalEl && bs ? new bs.Modal(quickViewModalEl) : null;
         var quickViewTitle = document.getElementById('quickViewTitle');
         var quickViewBody = document.getElementById('quickViewBody');
 
@@ -1608,10 +2156,12 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                 if (!quickViewModal || !quickViewBody) return;
                 var dropdown = button.closest('.dropdown');
                 var toggle = dropdown ? dropdown.querySelector('[data-bs-toggle="dropdown"]') : null;
-                if (toggle && window.bootstrap) {
-                    bootstrap.Dropdown.getOrCreateInstance(toggle).hide();
+                if (toggle && bs) {
+                    bs.Dropdown.getOrCreateInstance(toggle).hide();
                 }
-                quickViewTitle.textContent = 'Pratinjau ' + (button.dataset.number || 'pesanan');
+                if (quickViewTitle) {
+                    quickViewTitle.textContent = 'Pratinjau ' + (button.dataset.number || 'pesanan');
+                }
                 quickViewBody.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>Memuat ringkasan pesanan...</div>';
                 quickViewModal.show();
 
@@ -1628,6 +2178,117 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     });
             });
         });
+
+        var activityOffcanvasEl = document.getElementById('activityOffcanvas');
+        var activityOffcanvas = activityOffcanvasEl && bs ? new bs.Offcanvas(activityOffcanvasEl) : null;
+        var activityOffcanvasBody = document.getElementById('activityOffcanvasBody');
+        var activityOffcanvasSubtitle = document.getElementById('activityOffcanvasSubtitle');
+        var proofPreviewModalEl = document.getElementById('proofPreviewModal');
+        var proofPreviewModal = proofPreviewModalEl && bs ? new bs.Modal(proofPreviewModalEl) : null;
+        var proofPreviewImage = document.getElementById('proofPreviewImage');
+        var proofPreviewTitle = document.getElementById('proofPreviewTitle');
+
+        document.addEventListener('click', function(event) {
+            var target = event.target;
+            if (!target || !target.closest) return;
+
+            var activityButton = target.closest('.js-activity');
+            if (activityButton && activityOffcanvas && activityOffcanvasBody) {
+                var dropdown = activityButton.closest('.dropdown');
+                var toggle = dropdown ? dropdown.querySelector('[data-bs-toggle="dropdown"]') : null;
+                if (toggle && bs) {
+                    bs.Dropdown.getOrCreateInstance(toggle).hide();
+                }
+                if (activityOffcanvasSubtitle) {
+                    activityOffcanvasSubtitle.textContent = activityButton.dataset.number || '';
+                }
+                activityOffcanvasBody.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>Memuat aktivitas...</div>';
+                activityOffcanvas.show();
+
+                fetch(activityButton.dataset.action, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Gagal memuat aktivitas.');
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        activityOffcanvasBody.innerHTML = html;
+                    })
+                    .catch(function() {
+                        activityOffcanvasBody.innerHTML = '<div class="alert alert-danger mb-0">Aktivitas tidak dapat dimuat.</div>';
+                    });
+                return;
+            }
+
+            var proofButton = target.closest('.js-proof-preview');
+            if (proofButton && proofPreviewModal && proofPreviewImage) {
+                event.preventDefault();
+                var src = proofButton.dataset.proofSrc || proofButton.getAttribute('href');
+                if (!src) return;
+                if (proofPreviewTitle) {
+                    proofPreviewTitle.textContent = proofButton.dataset.proofTitle || 'Bukti transfer';
+                }
+                proofPreviewImage.src = src;
+                proofPreviewImage.alt = proofButton.dataset.proofTitle || 'Bukti transfer';
+                proofPreviewModal.show();
+            }
+        });
+
+        if (proofPreviewModalEl) {
+            proofPreviewModalEl.addEventListener('hidden.bs.modal', function() {
+                if (proofPreviewImage) proofPreviewImage.src = '';
+            });
+        }
+
+        document.addEventListener('submit', function(event) {
+            var form = event.target;
+
+            if (!form || !form.matches || !form.matches('form[data-orders-decision]')) {
+                return;
+            }
+
+            form.querySelectorAll('button[type="submit"]').forEach(function(button) {
+                button.disabled = true;
+            });
+        }, true);
+
+        function setOrdersQueryParam(name, value) {
+            var url = new URL(window.location.href);
+
+            if (value === '' || value === null || typeof value === 'undefined') {
+                url.searchParams.delete(name);
+            } else {
+                url.searchParams.set(name, value);
+            }
+
+            window.location.href = url.toString();
+        }
+
+        var ordersPerPageQuick = document.getElementById('ordersPerPageQuick');
+        var ordersPageJump = document.getElementById('ordersPageJump');
+        var ordersPageGo = document.getElementById('ordersPageGo');
+
+        if (ordersPerPageQuick) {
+            ordersPerPageQuick.addEventListener('change', function() {
+                setOrdersQueryParam('per_page', ordersPerPageQuick.value);
+            });
+        }
+
+        if (ordersPageJump && ordersPageGo) {
+            function goToOrdersPage() {
+                var max = parseInt(ordersPageJump.max, 10) || 1;
+                var page = parseInt(ordersPageJump.value, 10) || 1;
+                page = Math.max(1, Math.min(max, page));
+                setOrdersQueryParam('page', page === 1 ? '' : page);
+            }
+
+            ordersPageGo.addEventListener('click', goToOrdersPage);
+            ordersPageJump.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    goToOrdersPage();
+                }
+            });
+        }
     })();
 </script>
 @endpush

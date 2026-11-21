@@ -97,7 +97,7 @@
                         <p class="fw-semibold mb-1">
                             {{ $filter === 'unread' ? 'Tidak ada notifikasi belum dibaca.' : 'Belum ada notifikasi.' }}
                         </p>
-                        <p class="small mb-0">Pembaruan pesanan, pembayaran, dan check-in akan muncul di sini.</p>
+                        <p class="small mb-0">Pembaruan pesanan, pembayaran, dan pencatatan kehadiran akan muncul di sini.</p>
                     </div>
                 @endforelse
             </div>

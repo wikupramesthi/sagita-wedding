@@ -52,7 +52,7 @@ class RouteController extends Controller
             array('status' => ! blank($request->status) ? true : false)
         ));
 
-        return back()->with('success', 'Route has been created successfully!');
+        return back()->with('success', 'Rute berhasil ditambahkan!');
 
     }
 
@@ -82,7 +82,7 @@ class RouteController extends Controller
             array('status' => ! blank($request->status) ? true : false)
         ));
 
-        return back()->with('success', 'Route has been updated successfully!');
+        return back()->with('success', 'Rute berhasil diperbarui!');
 
     }
 
@@ -93,7 +93,7 @@ class RouteController extends Controller
     {
         $route->delete();
 
-        return back()->with('success', 'Route has been deleted successfully!');
+        return back()->with('success', 'Rute berhasil dihapus!');
 
     }
 }
