@@ -6,7 +6,7 @@
 
 <style>
     .mobile-packages {
-        padding: 18px 16px 100px;
+        padding: 18px 16px 0;
         background: var(--bg, #faf8f2);
         min-height: 100vh;
     }
@@ -30,6 +30,31 @@
 
     .packages-note i {
         font-size: 14px;
+    }
+
+    .packages-quick-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .packages-quick-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 11px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--card, #fffdf8);
+        color: var(--sage, #6b8f6f);
+        font-size: 10px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .packages-quick-link i {
+        font-size: 12px;
     }
 
     /* FILTER */
@@ -74,6 +99,217 @@
         background: var(--fg, #31392f);
         border-color: var(--fg, #31392f);
         color: #fff;
+    }
+
+    .mobile-package-filter-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: end;
+        gap: 8px;
+        margin: -6px 0 18px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--card, #fffdf8);
+    }
+
+    .mobile-package-filter-form label {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .mobile-package-filter-form input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--bg, #faf8f2);
+        color: var(--fg, #31392f);
+        font-size: 11px;
+    }
+
+    .mobile-package-filter-form input:focus {
+        border-color: var(--sage, #6b8f6f);
+        outline: none;
+    }
+
+    .mobile-filter-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 1045;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .mobile-filter-layer.is-open {
+        visibility: visible;
+    }
+
+    .mobile-filter-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(28, 36, 28, .46);
+        opacity: 0;
+        transition: opacity .2s ease;
+    }
+
+    .mobile-filter-layer.is-open .mobile-filter-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .mobile-filter-sheet {
+        position: relative;
+        width: 100%;
+        max-width: 430px;
+        padding: 10px 16px calc(22px + env(safe-area-inset-bottom, 0px));
+        border-radius: 22px 22px 0 0;
+        background: var(--card, #fffdf8);
+        box-shadow: 0 -12px 40px rgba(28, 36, 28, .18);
+        transform: translateY(105%);
+        transition: transform .25s ease;
+        pointer-events: auto;
+    }
+
+    .mobile-filter-layer.is-open .mobile-filter-sheet {
+        transform: translateY(0);
+    }
+
+    .mobile-filter-handle {
+        width: 38px;
+        height: 4px;
+        margin: 0 auto 12px;
+        border-radius: 8px;
+        background: var(--line);
+    }
+
+    .mobile-filter-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .mobile-filter-heading strong {
+        color: var(--fg, #31392f);
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .mobile-filter-heading button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .mobile-filter-sheet .mobile-package-filter-form {
+        margin: 0;
+        border: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .mobile-filter-sheet .mobile-package-filter-form label {
+        font-size: 10px;
+    }
+
+    .mobile-filter-sheet .mobile-package-filter-form input {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .mobile-filter-sheet .mobile-package-filter-form button {
+        grid-column: 1 / -1;
+        margin-top: 2px;
+    }
+
+    .mobile-active-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin: -6px 0 18px;
+    }
+
+    .mobile-active-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border: 1px solid rgba(107, 143, 111, .35);
+        border-radius: 30px;
+        background: rgba(107, 143, 111, .10);
+        color: var(--sage, #6b8f6f);
+        font-size: 10px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .availability-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 10px;
+        color: var(--sage, #6b8f6f);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .package-card-tools {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin: 14px 0 16px;
+    }
+
+    .package-tool-form {
+        margin: 0;
+    }
+
+    .package-tool-btn,
+    .package-tool-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        width: 100%;
+        min-height: 42px;
+        padding: 8px 4px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--card, #fffdf8);
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 700;
+        line-height: 1.2;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .package-tool-btn.active {
+        border-color: var(--sage, #6b8f6f);
+        background: rgba(107, 143, 111, .10);
+        color: var(--sage, #6b8f6f);
+    }
+
+    @media (max-width: 360px) {
+        .mobile-package-filter-form {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .mobile-package-filter-form button {
+            grid-column: 1 / -1;
+        }
     }
 
     /* CARD */
@@ -309,15 +545,18 @@
     /* BUTTON */
 
     .choose-package {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 100%;
         border: 0;
         border-radius: 13px;
         padding: 12px 15px;
-        margin-top: 17px;
         background: var(--fg, #31392f);
         color: #fff;
         font-size: 12px;
         font-weight: 700;
+        text-decoration: none;
         transition: .2s ease;
     }
 
@@ -327,32 +566,6 @@
 
     .choose-package i {
         margin-left: 5px;
-    }
-
-    .ask-wa {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
-        width: 100%;
-        margin-top: 9px;
-        padding: 11px 15px;
-        border: 1px solid #25d366;
-        border-radius: 13px;
-        background: #fff;
-        color: #128c4a;
-        font-size: 12px;
-        font-weight: 700;
-        text-decoration: none;
-        transition: .2s ease;
-    }
-
-    .ask-wa i {
-        font-size: 15px;
-    }
-
-    .ask-wa:active {
-        transform: scale(.98);
     }
 
     .package-empty {
@@ -392,6 +605,36 @@
 
 <div class="mobile-packages">
 
+    @php
+    $filterQuery = array_filter([
+        'filter' => request('filter'),
+        'sort' => request('sort'),
+        'guests' => request('guests'),
+        'budget_max' => request('budget_max'),
+    ], fn ($value) => $value !== null && $value !== '');
+
+    $filterWithoutGuests = $filterQuery;
+    unset($filterWithoutGuests['guests']);
+
+    $filterWithoutBudget = $filterQuery;
+    unset($filterWithoutBudget['budget_max']);
+
+    $packageUuids = $packages->pluck('uuid')->all();
+
+    $wishlistedUuids = auth()->check() && $packageUuids
+        ? \App\Models\Package\PackageWishlist::query()
+            ->where('user_uuid', auth()->id())
+            ->whereIn('package_uuid', $packageUuids)
+            ->pluck('package_uuid')
+            ->all()
+        : [];
+
+    $compareUuids = array_values(array_filter(
+        (array) session('package_compare', []),
+        'is_string'
+    ));
+    @endphp
+
     {{-- HEADER --}}
     <div class="packages-top">
 
@@ -407,34 +650,85 @@
             <span>{{ __('mobile.packages_note') }}</span>
         </div>
 
+        @if (\Illuminate\Support\Facades\Route::has('packages.wishlist.index') && \Illuminate\Support\Facades\Route::has('packages.compare.index'))
+        <div class="packages-quick-links">
+            <a href="{{ route('packages.wishlist.index') }}" class="packages-quick-link">
+                <i class="bi bi-heart"></i>Wishlist Saya
+            </a>
+            <a href="{{ route('packages.compare.index') }}" class="packages-quick-link">
+                <i class="bi bi-list-check"></i>Bandingkan ({{ count($compareUuids) }})
+            </a>
+        </div>
+        @endif
+
     </div>
 
 
     {{-- FILTER --}}
-    <p class="compare-hint">{{ __('mobile.bandingkan_paket') }}</p>
-
     <div class="mobile-package-filter">
 
-        <a href="{{ route('packages.member') }}"
+        <a href="{{ route('packages.member', array_diff_key($filterQuery, ['filter' => true])) }}"
             class="mobile-filter-btn {{ !request('filter') ? 'active' : '' }}">
-            <i class="bi bi-grid"></i>{{ __('mobile.all') }}</a>
+            <i class="bi bi-grid"></i>{{ __('mobile.all') }} Paket</a>
 
-        <a href="{{ route('packages.member', [
-                'filter' => 'popular',
-                'sort' => request('sort')
-            ]) }}"
+        <a href="{{ route('packages.member', array_merge($filterQuery, ['filter' => 'popular'])) }}"
             class="mobile-filter-btn {{ request('filter') === 'popular' ? 'active' : '' }}">
             <i class="bi bi-star-fill"></i>{{ __('mobile.paling_dipilih') }}</a>
 
-        @if (request('filter') === 'unlimited')
-        <a href="{{ route('packages.member', [
-                    'filter' => 'unlimited',
-                    'sort' => request('sort')
-                ]) }}"
-            class="mobile-filter-btn active">
+        <a href="{{ route('packages.member', array_merge($filterQuery, ['filter' => 'unlimited'])) }}"
+            class="mobile-filter-btn {{ request('filter') === 'unlimited' ? 'active' : '' }}">
             <i class="bi bi-infinity"></i>{{ __('mobile.unlimited') }}</a>
-        @endif
 
+        <button type="button" id="mobile-filter-trigger" class="mobile-filter-btn" aria-expanded="false" aria-controls="mobile-filter-layer" onclick="openMobileFilter()">
+            <i class="bi bi-funnel"></i>Filter
+        </button>
+
+    </div>
+
+    @if (request('guests') || request('budget_max'))
+    <div class="mobile-active-filters">
+        @if (request('guests'))
+        <a href="{{ route('packages.member', $filterWithoutGuests) }}" class="mobile-active-chip">
+            Jumlah Tamu: {{ request('guests') }}<i class="bi bi-x"></i>
+        </a>
+        @endif
+        @if (request('budget_max'))
+        <a href="{{ route('packages.member', $filterWithoutBudget) }}" class="mobile-active-chip">
+            Budget Maksimum: {{ request('budget_max') }}<i class="bi bi-x"></i>
+        </a>
+        @endif
+    </div>
+    @endif
+
+    <div id="mobile-filter-layer" class="mobile-filter-layer" aria-hidden="true">
+        <div class="mobile-filter-backdrop" onclick="closeMobileFilter()"></div>
+        <div class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-filter-title">
+            <div class="mobile-filter-handle"></div>
+            <div class="mobile-filter-heading">
+                <strong id="mobile-filter-title">Kapasitas & Budget</strong>
+                <button type="button" aria-label="Tutup filter" onclick="closeMobileFilter()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('packages.member') }}" method="GET" class="mobile-package-filter-form">
+                @if (request('filter'))
+                <input type="hidden" name="filter" value="{{ request('filter') }}">
+                @endif
+                @if (request('sort'))
+                <input type="hidden" name="sort" value="{{ request('sort') }}">
+                @endif
+                <div>
+                    <label for="mobile-guests">{{ __('mobile.filter_guests') }}</label>
+                    <input id="mobile-guests" type="number" name="guests" min="1" value="{{ request('guests') }}" placeholder="100">
+                </div>
+                <div>
+                    <label for="mobile-budget">{{ __('mobile.filter_budget') }}</label>
+                    <input id="mobile-budget" type="number" name="budget_max" min="0" value="{{ request('budget_max') }}" placeholder="50000000">
+                </div>
+                <button type="submit" class="btn btn-sage btn-sm">{{ __('mobile.terapkan') }} Filter</button>
+            </form>
+        </div>
     </div>
 
 
@@ -445,13 +739,27 @@
 
     $isPopular = $package->is_popular;
 
-    $waNumber = \App\Models\Consultation::normalizeWhatsapp(
-        (string) config('manual_payment.admin_whatsapp')
-    );
+    $isWishlisted = in_array($package->uuid, $wishlistedUuids, true);
 
-    $waText = __('mobile.tanya_paket_message', [
-        'package' => $package->name,
-    ]);
+    $isCompared = in_array($package->uuid, $compareUuids, true);
+
+    $quotationParams = ['package' => $package->uuid];
+
+    $firstOption = $package->options->first();
+
+    if ($firstOption) {
+        $quotationParams['option_uuid'] = $firstOption->uuid;
+    }
+
+    $quotationAddons = $package->addons->take(2)->pluck('uuid')->filter()->all();
+
+    if ($quotationAddons) {
+        $quotationParams['addon_uuids'] = $quotationAddons;
+    }
+
+    if (request('event_date')) {
+        $quotationParams['event_date'] = request('event_date');
+    }
 
     @endphp
 
@@ -483,6 +791,10 @@
 
             <div class="package-description">
                 {{ $package->description ?: __('mobile.package_fallback_desc') }}
+            </div>
+
+            <div class="availability-badge">
+                <i class="bi bi-check-circle-fill"></i>Tersedia
             </div>
 
             @if (!empty($package->guest_capacity) || !empty($package->event_duration_hours) || !empty($package->venue_note))
@@ -664,28 +976,31 @@
         </ul>
 
 
-        {{-- CTA --}}
-        <button
-            type="button"
-            class="choose-package"
-            onclick="window.location.href='{{ route('checkout.package', $package->uuid) }}'">
+        @if (\Illuminate\Support\Facades\Route::has('packages.wishlist.toggle') && \Illuminate\Support\Facades\Route::has('packages.compare.add') && \Illuminate\Support\Facades\Route::has('packages.quotation'))
+        <div class="package-card-tools">
+            <form method="POST" action="{{ route('packages.wishlist.toggle', $package->uuid) }}" class="package-tool-form">
+                @csrf
+                <button type="submit" class="package-tool-btn {{ $isWishlisted ? 'active' : '' }}">
+                    <i class="bi bi-heart{{ $isWishlisted ? '-fill' : '' }}"></i>{{ $isWishlisted ? 'Simpan' : 'Wishlist' }}
+                </button>
+            </form>
+            <form method="POST" action="{{ route('packages.compare.add', $package->uuid) }}" class="package-tool-form">
+                @csrf
+                <button type="submit" class="package-tool-btn {{ $isCompared ? 'active' : '' }}">
+                    <i class="bi bi-list-check"></i>Bandingkan
+                </button>
+            </form>
+            <a href="{{ route('packages.quotation', $quotationParams) }}" class="package-tool-link">
+                <i class="bi bi-file-earmark-text"></i>Penawaran
+            </a>
+        </div>
+        @endif
 
+        {{-- CTA --}}
+        <a href="{{ route('checkout.package', $package->uuid) }}" class="choose-package">
             {{ __('mobile.choose_package') }}
             <i class="bi bi-arrow-right"></i>
-
-        </button>
-
-        @if ($waNumber)
-        <a
-            class="ask-wa"
-            href="https://wa.me/{{ $waNumber }}?text={{ urlencode($waText) }}"
-            target="_blank"
-            rel="noopener">
-
-            <i class="bi bi-whatsapp"></i>{{ __('mobile.tanya_paket') }}
-
         </a>
-        @endif
 
     </div>
 
@@ -703,10 +1018,56 @@
             {{ __('mobile.no_packages_desc') }}
         </p>
 
+        @if ($filterQuery)
+        <a href="{{ route('packages.member') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset filter
+        </a>
+        @endif
+
     </div>
 
     @endforelse
 
 </div>
+
+<script>
+    function openMobileFilter() {
+        var layer = document.getElementById('mobile-filter-layer');
+        var trigger = document.getElementById('mobile-filter-trigger');
+
+        if (!layer) {
+            return;
+        }
+
+        layer.classList.add('is-open');
+        layer.setAttribute('aria-hidden', 'false');
+
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', 'true');
+        }
+    }
+
+    function closeMobileFilter() {
+        var layer = document.getElementById('mobile-filter-layer');
+        var trigger = document.getElementById('mobile-filter-trigger');
+
+        if (!layer) {
+            return;
+        }
+
+        layer.classList.remove('is-open');
+        layer.setAttribute('aria-hidden', 'true');
+
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeMobileFilter();
+        }
+    });
+</script>
 
 @endsection

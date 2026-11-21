@@ -1,5 +1,5 @@
 <% const pkg = package || {}; %>
-<%- include('../partials/head', { title: pkg.name || 'Package Not Found' }) %>
+<%- include('../partials/head', { title: typeof title !== "undefined" ? title : (pkg.name || 'Package Not Found') }) %>
 <%- include('../partials/navbar') %>
 
 <%

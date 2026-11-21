@@ -382,11 +382,12 @@ class DashboardController extends Controller
         Closure $makeStat,
         Closure $makeSnapshot
     ): array {
-        $newOrdersCount = $countBetween(Order::where('status', 'pending'), 'created_at', $startDate, $endDate);
+        $newOrdersCount = $countBetween(Order::whereIn('status', ['pending','partially_paid']), 'created_at', $startDate, $endDate);
         $newMembershipCount = $countBetween(UserPackage::where('status', 'active'), 'started_at', $startDate, $endDate);
         $revenueMonth = (float) Order::where('status', 'paid')
             ->whereBetween('paid_at', [$startDate.' 00:00:00', $endDate.' 23:59:59'])
-            ->sum('amount');
+            ->get(['amount','total_amount'])
+            ->sum(fn($o)=> (float)($o->total_amount ?: $o->amount));
 
         $stats = [
             $makeStat('Member baru', User::role('user'), 'created_at', 'bi bi-people', 'purple', 'pengguna.index'),
@@ -569,15 +570,16 @@ class DashboardController extends Controller
         $rows = Order::where('status', 'paid')
             ->whereNotNull('paid_at')
             ->whereBetween('paid_at', [$from.' 00:00:00', $to.' 23:59:59'])
-            ->select('paid_at', 'amount')
+            ->select('paid_at', 'amount', 'total_amount')
             ->get();
 
+        $rowAmount = fn ($row) => (float) ($row->total_amount ?: $row->amount);
         $dailyRows = $rows->groupBy(fn ($row) => $row->paid_at->toDateString())
-            ->map(fn ($group) => (float) $group->sum('amount'));
+            ->map(fn ($group) => (float) $group->sum($rowAmount));
         $monthlyRows = $rows->groupBy(fn ($row) => $row->paid_at->format('Y-m'))
-            ->map(fn ($group) => (float) $group->sum('amount'));
+            ->map(fn ($group) => (float) $group->sum($rowAmount));
         $yearlyRows = $rows->groupBy(fn ($row) => $row->paid_at->format('Y'))
-            ->map(fn ($group) => (float) $group->sum('amount'));
+            ->map(fn ($group) => (float) $group->sum($rowAmount));
 
         $start = Carbon::parse($from)->startOfDay();
         $end = Carbon::parse($to)->startOfDay();

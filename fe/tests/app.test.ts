@@ -10,7 +10,15 @@ vi.mock("../src/services/siteIdentityService.js", () => ({
 		description: "Deskripsi uji.",
 		address: "Jl. Uji",
 		phone: "0812",
+		phoneTel: "+62812",
 		email: "uji@example.com",
+		instagramHandle: "sagita.test",
+		instagramHref: "https://www.instagram.com/sagita.test/",
+		facebookHref: "",
+		youtubeHref: "",
+		tiktokHref: "",
+		logoUrl: "https://example.test/sagita-logo.webp",
+		logoWhiteUrl: "/img/logo-white.webp",
 	}),
 }));
 
@@ -35,6 +43,18 @@ const PACKAGES_PAGE = {
 	perPage: 10,
 	total: 25,
 };
+
+let homeSliderBanners: unknown[] = [];
+let homeTestimonials: unknown = [];
+let homeVenues: unknown = [
+	{
+		uuid: "v1",
+		name: "Venue Uji",
+		slug: "venue-uji",
+		address: "Jl. Pernikahan",
+		excerpt: "Tempat untuk perayaan istimewa.",
+	},
+];
 
 const getPageBatch = vi.fn(
 	async (page: string, params: Record<string, unknown> = {}) => {
@@ -78,18 +98,11 @@ const getPageBatch = vi.fn(
 				return { stats: null, articles: [] };
 			case "home":
 				return {
-					venues: [
-						{
-							uuid: "v1",
-							name: "Venue Uji",
-							slug: "venue-uji",
-							address: "Jl. Pernikahan",
-							excerpt: "Tempat untuk perayaan istimewa.",
-						},
-					],
+					sliderBanners: homeSliderBanners,
+					venues: homeVenues,
 					packages: [],
 					events: [],
-					testimonials: [],
+					testimonials: homeTestimonials,
 				};
 			case "venues":
 				return {
@@ -131,6 +144,17 @@ const app = createApp();
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	homeSliderBanners = [];
+	homeTestimonials = [];
+	homeVenues = [
+		{
+			uuid: "v1",
+			name: "Venue Uji",
+			slug: "venue-uji",
+			address: "Jl. Pernikahan",
+			excerpt: "Tempat untuk perayaan istimewa.",
+		},
+	];
 });
 
 /* ------------------------------ health ------------------------------ */
@@ -322,6 +346,22 @@ describe("pagination dari meta backend", () => {
 /* ------------------------- pageScript wiring ------------------------- */
 
 describe("pageScript wiring", () => {
+	it("footer uses identity API values for branding and contact details", async () => {
+		const res = await request(app).get("/");
+
+		expect(res.status).toBe(200);
+		expect(res.text).toContain(
+			'src="https://example.test/sagita-logo.webp"',
+		);
+		expect(res.text).toContain("Wedding Planner — Deskripsi uji.");
+		expect(res.text).toContain('href="tel:+62812"');
+		expect(res.text).toContain(
+			'href="https://www.instagram.com/sagita.test/"',
+		);
+		expect(res.text).toContain('aria-label="Sagita Wedding on Instagram"');
+		const footer = res.text.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? "";
+		expect(footer).not.toContain('href="https://api.whatsapp.com/send/');
+	});
 	it("halaman dengan island memuat loader bundle", async () => {
 		const cases: [string, string][] = [
 			["/formulir-konsultasi", "consultation-form"],
@@ -411,13 +451,201 @@ describe("pageScript wiring", () => {
 	});
 
 	it("beranda menampilkan venue dari data batch", async () => {
-		const res = await request(app).get("/");
+		const res = await request(app).get("/").set("Cookie", "locale=id");
 		expect(res.text).toContain('href="#home-venues"');
 		expect(res.text).toContain('id="home-venues"');
+		expect(res.text).toContain("VENUE PILIHAN UNTUK PERAYAAN ANDA");
+		expect(res.text).toContain("untuk hari istimewa Anda");
+		expect(res.text).toContain(
+			"home-venues-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4",
+		);
 		expect(res.text).toContain("Venue Uji");
+		expect(res.text).toContain("home-venue-card");
+		expect(res.text).toContain("home-venue-icon");
+		expect(res.text).not.toContain("home-venue-card__description");
+		expect(res.text).not.toContain('data-img-error="remove"');
 		expect(res.text).not.toContain('href="/classes"');
 		expect(res.text).toContain('id="accessibilityWidget"');
 		expect(res.text).toContain('aria-controls="accessibilityPanel"');
+	});
+
+	it("beranda menampilkan maksimal empat venue", async () => {
+		homeVenues = Array.from({ length: 6 }, (_, index) => ({
+			uuid: `v${index + 1}`,
+			name: `Venue ${index + 1}`,
+			slug: `venue-${index + 1}`,
+			address: `Jalan ${index + 1}`,
+			excerpt: `Deskripsi venue ${index + 1}.`,
+		}));
+
+		const res = await request(app).get("/");
+		expect(res.status).toBe(200);
+		expect(
+			res.text.match(/class="home-venue-card group reveal"/g),
+		).toHaveLength(4);
+		expect(res.text).toContain("Venue 4");
+		expect(res.text).not.toContain("Venue 5");
+	});
+
+	it("beranda menampilkan skeleton saat data venue dari API belum tersedia", async () => {
+		homeVenues = null;
+
+		const res = await request(app).get("/").set("Cookie", "locale=id");
+		expect(res.status).toBe(200);
+		expect(res.text).toContain('aria-busy="true"');
+		expect(res.text).toContain("Memuat venue pilihan...");
+		expect(res.text.match(/class="home-venue-skeleton"/g)).toHaveLength(4);
+		expect(res.text).not.toContain("Informasi venue segera hadir");
+	});
+
+	it("beranda menampilkan pesan kosong setelah API mengembalikan daftar kosong", async () => {
+		homeVenues = [];
+
+		const res = await request(app).get("/");
+		expect(res.status).toBe(200);
+		expect(res.text).toContain("Contact our team and we’ll help you explore");
+		expect(res.text).not.toContain("home-venue-skeleton");
+	});
+
+	it("beranda menampilkan carousel testimoni di bawah acara", async () => {
+		homeTestimonials = [
+			{
+				nama: "Alya & Raka",
+				jabatan: "Menikah di Jakarta",
+				foto: "https://example.test/testimonials/alyaraka.webp",
+				isi_testimoni: "Hari kami terasa tenang dan penuh kenangan.",
+			},
+			{
+				nama: "Nadia & Bima",
+				jabatan: "Menikah di Bandung",
+				foto: null,
+				isi_testimoni: "Tim Sagita membantu setiap detail.",
+			},
+			{
+				nama: "Dina & Arif",
+				jabatan: null,
+				foto: "https://example.test/testimonials/dinaarif.webp",
+				isi_testimoni: "Semua berjalan sesuai rencana.",
+			},
+		];
+
+		const res = await request(app).get("/").set("Cookie", "locale=id");
+		expect(res.status).toBe(200);
+		expect(
+			res.text.indexOf('class="home-testimonials-section'),
+		).toBeGreaterThan(res.text.indexOf("Acara &amp; Pengumuman"));
+		expect(res.text).toContain("CERITA PERNIKAHAN");
+		expect(res.text).toContain("Dengarkan kisah");
+		expect(res.text).toContain("pasangan ini");
+		expect(res.text).toContain("Alya &amp; Raka");
+		expect(res.text).toContain('data-home-testimonial-action="previous"');
+		expect(res.text).toContain('data-home-testimonial-action="next"');
+		expect(res.text).toContain("Hari kami terasa tenang dan penuh kenangan.");
+		expect(res.text).toContain(
+			"https://example.test/testimonials/alyaraka.webp",
+		);
+	});
+
+	it("beranda menampilkan maksimal sepuluh testimoni", async () => {
+		homeTestimonials = Array.from({ length: 12 }, (_, index) => ({
+			nama: `Pasangan ${index + 1}`,
+			jabatan: "Hari istimewa",
+			foto: null,
+			isi_testimoni: `Cerita ${index + 1}.`,
+		}));
+
+		const res = await request(app).get("/");
+		expect(res.status).toBe(200);
+		expect(res.text.match(/data-home-testimonial-index="\d+"/g)).toHaveLength(
+			10,
+		);
+		expect(res.text).toContain("Pasangan 10");
+		expect(res.text).not.toContain("Pasangan 11");
+		expect(res.text).not.toContain("Pasangan 12");
+	});
+
+	it("beranda hanya menampilkan maksimal lima banner slider valid", async () => {
+		homeSliderBanners = [
+			...Array.from({ length: 6 }, (_, index) => ({
+				posisi: "slider",
+				gambar: `https://example.test/slide-${index + 1}.webp`,
+			})),
+			{ posisi: "slider", gambar: "https://example.test/images/default.png" },
+			{
+				posisi: "pengumuman",
+				gambar: "https://example.test/announcement.webp",
+			},
+		];
+
+		const res = await request(app).get("/");
+		expect(res.status).toBe(200);
+		const slideUrls = res.text.match(/data-home-slides="([^"]*)"/)?.[1];
+		expect(slideUrls?.match(/slide-\d\.webp/g)).toHaveLength(5);
+		expect(slideUrls).not.toContain("slide-6.webp");
+		expect(res.text).toContain('fetchpriority="high"');
+		expect(res.text).toContain("data-home-slide-image");
+		expect(res.text).toContain('href="#home-venues" class="scroll-indicator');
+		expect(res.text).toContain("text-sm font-semibold tracking-[0.18em]");
+		expect(res.text).not.toContain("bg-white/90 px-4 py-2");
+		expect(res.text).toMatch(
+			/aria-label="(?:Hero image controls|Kontrol gambar utama)"/,
+		);
+		expect(
+			res.text.match(/data-home-slide-action="(?:previous|next)"/g),
+		).toHaveLength(2);
+		expect(res.text).not.toContain("data-home-slide-dot");
+		expect(res.text).not.toContain('data-home-slide-action="toggle"');
+		expect(res.text).not.toContain(
+			'<img src="https://example.test/slide-2.webp"',
+		);
+		expect(res.text).not.toContain("announcement.webp");
+		expect(res.text).not.toContain("images/default.png");
+	});
+
+	it("beranda mempertahankan latar fallback saat tidak ada banner slider", async () => {
+		const res = await request(app).get("/");
+		expect(res.status).toBe(200);
+		expect(res.text).not.toContain("data-home-slider");
+		expect(res.text).not.toContain('data-home-slide-action="previous"');
+		expect(res.text).not.toContain('data-home-slide-action="next"');
+		expect(res.text).toContain("radial-gradient");
+	});
+
+	it("versi bahasa pada URL memiliki canonical dan hreflang yang dapat dirayapi", async () => {
+		const res = await request(app).get("/?lang=id");
+		expect(res.status).toBe(200);
+		expect(res.headers.location).toBeUndefined();
+		expect(res.headers["set-cookie"]?.join(";")).toContain("locale=id");
+		expect(res.text).toContain('<html lang="id">');
+		expect(res.text).toContain(
+			"<title>Wedding Organizer &amp; Paket Pernikahan | Sagita Wedding</title>",
+		);
+		const canonical = res.text.match(
+			/<link rel="canonical" href="([^"]+)"/,
+		)?.[1];
+		expect(canonical).toMatch(/\/\?lang=id$/);
+		expect(res.text).toContain(`hreflang="id" href="${canonical}"`);
+		expect(res.text).toMatch(/hreflang="en" href="[^"]+\/"/);
+		const structuredData = res.text.match(
+			/<script type="application\/ld\+json">([\s\S]*?)<\/script>/,
+		)?.[1];
+		expect(structuredData).toBeTruthy();
+		expect(JSON.parse(structuredData as string)["@graph"]).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ "@type": "Organization" }),
+				expect.objectContaining({ "@type": "WebSite" }),
+				expect.objectContaining({
+					"@type": "WebPage",
+					url: canonical,
+					inLanguage: "id",
+				}),
+			]),
+		);
+
+		const cookieLocale = await request(app).get("/").set("Cookie", "locale=id");
+		expect(cookieLocale.text).toMatch(
+			/<link rel="canonical" href="https?:\/\/[^"]+\/\?lang=id"/,
+		);
 	});
 
 	it("direktori venue menggunakan data batch dan tautan peta", async () => {
@@ -432,6 +660,14 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('data-singular="venue to explore"');
 		expect(res.text).toContain("pages/venues.js");
 		expect(res.text).toContain("data-venue-item");
+	});
+
+	it("paket yang tidak ditemukan tidak dapat diindeks", async () => {
+		const res = await request(app).get("/packages/not-a-package");
+		expect(res.status).toBe(404);
+		expect(res.text).toMatch(
+			/<meta\s+name="robots"\s+content="noindex, nofollow"\s*\/?>/,
+		);
 	});
 
 	it("widget aksesibilitas dirender dengan label bahasa Indonesia", async () => {
@@ -498,7 +734,7 @@ describe("not found", () => {
 		expect(res.text).toContain("Mencari halaman yang tepat?");
 		expect(res.text).toContain("Mulai konsultasi");
 		expect(res.text).toContain('href="/formulir-konsultasi"');
-		expect(res.text).toContain("Perencanaan pernikahan yang penuh perhatian");
+		expect(res.text).toContain("Wedding Planner — Deskripsi uji.");
 		expect(res.text).not.toContain("YogaRoots");
 		expect(res.text).not.toContain("Serene Yoga");
 	});

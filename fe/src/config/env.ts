@@ -19,7 +19,29 @@ function optional(name: string, fallback = ""): string {
 
 const NODE_ENV = optional("NODE_ENV", "development");
 const rawApiUrl = required("API_URL", "http://127.0.0.1:8000/api");
-const rawSiteUrl = optional("SITE_URL", "http://localhost:3000");
+const rawSiteUrl = optional(
+	"SITE_URL",
+	NODE_ENV === "production" ? "" : "http://localhost:3000",
+);
+if (!rawSiteUrl) {
+	throw new Error(
+		"Missing required env: SITE_URL (set the public canonical URL)",
+	);
+}
+let parsedSiteUrl: URL;
+try {
+	parsedSiteUrl = new URL(rawSiteUrl);
+} catch {
+	throw new Error("Invalid SITE_URL: expected an absolute HTTP(S) URL");
+}
+if (
+	!["http:", "https:"].includes(parsedSiteUrl.protocol) ||
+	(NODE_ENV === "production" &&
+		(parsedSiteUrl.protocol !== "https:" ||
+			["localhost", "127.0.0.1", "::1"].includes(parsedSiteUrl.hostname)))
+) {
+	throw new Error("Invalid SITE_URL: production requires a public HTTPS URL");
+}
 
 // API_URL berakhiran /api; endpoint web backend (auth) berada di root-nya.
 const apiBase = rawApiUrl.replace(/\/+$/, "").replace(/\/api$/, "");

@@ -48,8 +48,8 @@ export function createApp() {
 	app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 	app.use(express.json({ limit: "100kb" }));
 
-	app.use(appLocals);
 	app.use(i18n);
+	app.use(appLocals);
 	app.use(minifyHtml());
 
 	app.use("/", sitemapRoutes);

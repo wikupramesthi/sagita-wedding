@@ -640,7 +640,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                                 </a>
                                             </li>
                                             @endif
-                                            @if ($isAdmin && $order->status === 'pending')
+                                            @if ($isAdmin && in_array($order->status, ['pending','partially_paid']))
                                             <li>
                                                 @if (!$order->assigned_admin_uuid)
                                                 <form method="POST" action="{{ route('orders.claim', $order->uuid) }}">

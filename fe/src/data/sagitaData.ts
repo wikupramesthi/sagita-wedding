@@ -17,10 +17,11 @@ export const sagitaData = {
 	},
 	nav: [
 		{ key: "home", label: "Home", href: "/" },
-		{ key: "venues", label: "Venues", href: "/venues" },
-		{ key: "packages", label: "Packages", href: "/packages" },
-		{ key: "vendors", label: "Vendors", href: "/vendors" },
 		{ key: "about", label: "About", href: "/about" },
+		{ key: "packages", label: "Packages", href: "/packages" },
+		{ key: "portfolio", label: "Portfolio", href: "#" },
+		{ key: "vendors", label: "Vendors", href: "/vendors" },
+		{ key: "venues", label: "Venues", href: "/venues" },
 		{ key: "faq", label: "FAQs", href: "/faq" },
 	],
 	contact: {

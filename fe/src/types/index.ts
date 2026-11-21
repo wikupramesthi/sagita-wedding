@@ -121,6 +121,15 @@ export interface EventItem {
 	deskripsi?: string;
 }
 
+/** Testimonial shown in the homepage story carousel. */
+export interface TestimonialItem {
+	id?: string;
+	nama?: string;
+	jabatan?: string | null;
+	foto?: string | null;
+	isi_testimoni?: string;
+}
+
 /** Opsi harga paket membership. */
 export interface PackageOption {
 	name?: string;
@@ -158,6 +167,7 @@ export interface FaqItem {
 export interface BannerItem {
 	gambar: string;
 	nama?: string;
+	posisi?: string;
 }
 
 /** Halaman CMS (konten statis yang dikelola via backend). */

@@ -21,9 +21,14 @@ class CheckoutController extends Controller
                     ->orderBy('sort_order');
             },
             'features',
+            'blackoutDates',
+            'promos' => function ($query) {
+                $query->usable()
+                    ->orderBy('sort_order');
+            },
         ])
             ->where('uuid', $packageUuid)
-            ->where('is_active', true)
+            ->published()
             ->firstOrFail();
 
         /*

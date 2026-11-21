@@ -5,8 +5,8 @@
                 <div class="text-muted small">Nomor pesanan</div>
                 <div class="fw-bold fs-5">{{ $order->order_number }}</div>
             </div>
-            <span class="badge bg-{{ $order->status === 'paid' ? 'success' : ($order->status === 'pending' ? 'warning' : 'secondary') }}-subtle text-{{ $order->status === 'paid' ? 'success' : ($order->status === 'pending' ? 'warning' : 'secondary') }}">
-                {{ ['pending' => 'Menunggu', 'paid' => 'Lunas', 'failed' => 'Gagal', 'expired' => 'Kedaluwarsa', 'cancelled' => 'Dibatalkan'][$order->status] ?? $order->status }}
+            <span class="badge bg-{{ $order->status === 'paid' ? 'success' : (in_array($order->status,['pending','partially_paid']) ? 'warning' : 'secondary') }}-subtle text-{{ $order->status === 'paid' ? 'success' : (in_array($order->status,['pending','partially_paid']) ? 'warning' : 'secondary') }}">
+                {{ ['pending' => 'Menunggu', 'partially_paid' => 'DP Terverifikasi', 'paid' => 'Lunas', 'failed' => 'Gagal', 'expired' => 'Kedaluwarsa', 'cancelled' => 'Dibatalkan'][$order->status] ?? $order->status }}
             </span>
         </div>
         <div class="row g-2 small">

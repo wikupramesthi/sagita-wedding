@@ -40,6 +40,43 @@
   </div>
   @endif
 
+  <div class="package-stepper card border-0 shadow-sm mb-4">
+    <div class="card-body py-3 px-3">
+      <div class="row g-2">
+        <div class="col-6 col-md-4 col-xl">
+          <a class="package-step" href="#package-section-information">
+            <span class="package-step-number">1</span>
+            <span>Informasi</span>
+          </a>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <a class="package-step" href="#package-section-event">
+            <span class="package-step-number">2</span>
+            <span>Detail Acara</span>
+          </a>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <a class="package-step" href="#package-section-options">
+            <span class="package-step-number">3</span>
+            <span>Opsi &amp; Add-on</span>
+          </a>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <a class="package-step" href="#package-section-availability">
+            <span class="package-step-number">4</span>
+            <span>Promo &amp; Ketersediaan</span>
+          </a>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <a class="package-step" href="#package-section-publication">
+            <span class="package-step-number">5</span>
+            <span>Publikasi</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <form action="{{ route('packages.store') }}" method="POST">
     @csrf
 
@@ -47,7 +84,7 @@
 
       <div class="col-lg-8">
 
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-information">
           <div class="card-header bg-transparent border-0 p-4 pb-2">
             <div class="d-flex align-items-center gap-2">
               <div class="package-section-icon">
@@ -109,7 +146,7 @@
           </div>
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-event">
           <div class="card-header bg-transparent border-0 p-4 pb-2">
             <div class="d-flex align-items-center gap-2">
               <div class="package-section-icon">
@@ -213,7 +250,7 @@
           </div>
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-options">
           <div class="card-header bg-transparent border-0 p-4 pb-2">
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
               <div class="d-flex align-items-center gap-2">
@@ -530,6 +567,49 @@
                         placeholder="Opsional">
                     </div>
                   </div>
+
+                  <div class="col-md-4">
+                    <label class="form-label">
+                      Min Qty
+                    </label>
+
+                    <input
+                      type="number"
+                      name="addons[0][min_quantity]"
+                      class="form-control"
+                      value="{{ old('addons.0.min_quantity', 1) }}"
+                      min="1"
+                      max="99"
+                      placeholder="1">
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="form-label">
+                      Max Qty
+                    </label>
+
+                    <input
+                      type="number"
+                      name="addons[0][max_quantity]"
+                      class="form-control"
+                      value="{{ old('addons.0.max_quantity') }}"
+                      min="1"
+                      placeholder="Opsional">
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="form-label">
+                      Butuh Layanan ke-
+                    </label>
+
+                    <input
+                      type="number"
+                      name="addons[0][requires_addon_index]"
+                      class="form-control"
+                      value="{{ old('addons.0.requires_addon_index') }}"
+                      min="0"
+                      placeholder="Contoh: 1">
+                  </div>
                 </div>
               </div>
             </div>
@@ -604,10 +684,100 @@
           </div>
         </div>
 
+        <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-availability">
+          <div class="card-header bg-transparent border-0 p-4 pb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+              <div class="d-flex align-items-center gap-2">
+                <div class="package-section-icon">
+                  <i class="bi bi-calendar2-week"></i>
+                </div>
+
+                <div>
+                  <h5 class="mb-1 fw-semibold">
+                    Promo &amp; Ketersediaan
+                  </h5>
+                  <p class="text-muted small mb-0">
+                    Atur waktu pemesanan, tanggal libur, dan promo paket.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                onclick="addPackagePromo()">
+                <i class="bi bi-plus-lg me-1"></i>
+                Tambah Promo
+              </button>
+            </div>
+          </div>
+
+          <div class="card-body p-4 pt-2">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="lead_time_days" class="form-label fw-semibold">
+                  Waktu Minimal Pemesanan (hari)
+                </label>
+
+                <input
+                  type="number"
+                  id="lead_time_days"
+                  name="lead_time_days"
+                  class="form-control @error('lead_time_days') is-invalid @enderror"
+                  value="{{ old('lead_time_days', 30) }}"
+                  min="0"
+                  max="365"
+                  placeholder="0">
+
+                @error('lead_time_days')
+                <div class="invalid-feedback">
+                  {{ $message }}
+                </div>
+                @enderror
+              </div>
+
+              <div class="col-12">
+                <label for="blackout_dates" class="form-label fw-semibold">
+                  Tanggal Blackout
+                </label>
+
+                <textarea
+                  id="blackout_dates"
+                  name="blackout_dates"
+                  rows="2"
+                  class="form-control @error('blackout_dates') is-invalid @enderror"
+                  placeholder="2026-12-24, 2026-12-25">{{ old('blackout_dates') }}</textarea>
+
+                <small class="text-muted">
+                  Pisahkan tanggal dengan koma. Tanggal yang sama akan dihitung sekali.
+                </small>
+
+                @error('blackout_dates')
+                <div class="invalid-feedback">
+                  {{ $message }}
+                </div>
+                @enderror
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold">
+                  Promo
+                </label>
+
+                <div id="package-promos-container"></div>
+
+                <small class="text-muted">
+                  Kode promo harus unik. Promo persentase bernilai 1–100, promo tetap minimal Rp 1.000.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="col-lg-4 package-sidebar">
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-publication">
           <div class="card-header bg-transparent border-0 p-4 pb-2">
             <h5 class="mb-1 fw-semibold">
               Pengaturan Paket
@@ -653,6 +823,32 @@
                 {{ $message }}
               </div>
               @enderror
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold" for="is_published">
+                Status Publikasi
+              </label>
+
+              <input type="hidden" name="is_published" value="0">
+
+              <div class="form-check form-switch">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="is_published"
+                  name="is_published"
+                  value="1"
+                  {{ filter_var(old('is_published', true), FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+
+                <label class="form-check-label" for="is_published">
+                  Tampilkan paket kepada klien
+                </label>
+              </div>
+
+              <small class="text-muted">
+                Paket berstatus draft tidak muncul pada halaman paket member.
+              </small>
             </div>
 
             <div class="package-popular-box">
@@ -772,11 +968,57 @@
     min-height: 42px;
   }
 
+  .package-stepper {
+    background: var(--bs-tertiary-bg);
+  }
+
+  .package-stepper .package-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--bs-body-color);
+    font-size: .875rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .package-stepper .package-step:hover {
+    background: var(--bs-border-color-translucent);
+  }
+
+  .package-stepper .package-step-number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bs-primary);
+    color: #fff;
+    font-size: .75rem;
+    flex-shrink: 0;
+  }
+
+  .package-step-anchor {
+    scroll-margin-top: calc(var(--package-sticky-top, 76px) + 16px);
+  }
+
+  .package-promo-item {
+    background: var(--bs-body-bg);
+  }
+
+  .package-promo-item .form-control,
+  .package-promo-item .form-select {
+    min-height: 42px;
+  }
+
   @media (min-width: 992px) {
 
     .package-sidebar {
       position: sticky;
-      top: 16px;
+      top: calc(var(--package-sticky-top, 76px) + 12px);
       align-self: start;
     }
 
@@ -789,11 +1031,13 @@
     }
 
     .package-option-item .row>div,
-    .package-addon-item .row>div {
-      margin-bottom: 12px;
+    .package-addon-item .row>div,
+    .package-promo-item .row>div {
+      margin-bottom: 4px;
     }
 
-    .package-addon-item {
+    .package-addon-item,
+    .package-promo-item {
       padding: 14px !important;
     }
 
@@ -807,6 +1051,10 @@
   let packageAddonIndex =
     document.querySelectorAll('#package-addons-container .package-addon-item')
       .length || 1;
+
+  let packagePromoIndex =
+    document.querySelectorAll('#package-promos-container .package-promo-item')
+      .length || 0;
 
 
   function addPackageOption() {
@@ -1131,6 +1379,53 @@
 
                     </div>
 
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Min Qty
+                        </label>
+
+                        <input
+                            type="number"
+                            name="addons[${index}][min_quantity]"
+                            class="form-control"
+                            value="1"
+                            min="1"
+                            max="99"
+                            placeholder="1">
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Max Qty
+                        </label>
+
+                        <input
+                            type="number"
+                            name="addons[${index}][max_quantity]"
+                            class="form-control"
+                            placeholder="Opsional"
+                            min="1">
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Butuh Layanan ke-
+                        </label>
+
+                        <input
+                            type="number"
+                            name="addons[${index}][requires_addon_index]"
+                            class="form-control"
+                            placeholder="Contoh: 1"
+                            min="0">
+
+                    </div>
+
                 </div>
 
             </div>
@@ -1189,6 +1484,116 @@
 
       if (title) {
         title.textContent = `Opsi ${index + 1}`;
+      }
+
+    });
+  }
+
+
+  function addPackagePromo() {
+
+    const container = document.getElementById('package-promos-container');
+
+    if (!container) {
+      return;
+    }
+
+    const index = packagePromoIndex++;
+
+    const html = `
+            <div class="package-promo-item border rounded-3 p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-semibold package-promo-title">
+                        Promo ${index + 1}
+                    </span>
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger package-remove-promo"
+                        onclick="removePackagePromo(this)">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Kode Promo <span class="text-danger">*</span></label>
+                        <input type="text" name="promos[${index}][code]" class="form-control" placeholder="Contoh: HEMAT2026" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Tipe <span class="text-danger">*</span></label>
+                        <select name="promos[${index}][type]" class="form-select" required>
+                            <option value="percent">Persentase</option>
+                            <option value="fixed">Nominal</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Nilai <span class="text-danger">*</span></label>
+                        <input type="number" name="promos[${index}][value]" class="form-control" min="1" placeholder="Contoh: 10" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Minimal Pembelian</label>
+                        <input type="number" name="promos[${index}][min_purchase]" class="form-control" min="0" placeholder="0">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Maksimal Diskon</label>
+                        <input type="number" name="promos[${index}][max_discount]" class="form-control" min="1" placeholder="Opsional">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Maksimal Pemakaian</label>
+                        <input type="number" name="promos[${index}][max_uses]" class="form-control" min="1" placeholder="Opsional">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Mulai</label>
+                        <input type="date" name="promos[${index}][starts_at]" class="form-control">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Berakhir</label>
+                        <input type="date" name="promos[${index}][ends_at]" class="form-control">
+                    </div>
+
+                    <div class="col-12">
+                        <input type="hidden" name="promos[${index}][is_active]" value="0">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" class="form-check-input" id="promo-active-${index}" name="promos[${index}][is_active]" value="1" checked>
+                            <label class="form-check-label" for="promo-active-${index}">Aktif</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+    container.insertAdjacentHTML('beforeend', html);
+    updatePackagePromoTitles();
+  }
+
+
+  function removePackagePromo(button) {
+
+    button.closest('.package-promo-item').remove();
+    updatePackagePromoTitles();
+  }
+
+
+  function updatePackagePromoTitles() {
+
+    const items = document.querySelectorAll(
+      '#package-promos-container .package-promo-item'
+    );
+
+    items.forEach((item, index) => {
+
+      const title = item.querySelector('.package-promo-title');
+
+      if (title) {
+        title.textContent = `Promo ${index + 1}`;
       }
 
     });

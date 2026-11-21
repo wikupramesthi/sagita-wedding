@@ -189,12 +189,13 @@ const rawTranslations = {
   en: {
     nav: {
       home: "Home",
-      about: "About",
+      about: "About Us",
       artofliving: "Art of Living",
       venues: "Venues",
       classes: "Classes",
       schedules: "Schedules",
-      packages: "Packages",
+      packages: "Packages & Services",
+      portfolio: "Portfolio",
       vendors: "Vendors",
       faq: "FAQs",
       events: "Events",
@@ -226,11 +227,12 @@ const rawTranslations = {
     viewSchedule: "View schedule",
     bookingSignedInTitle: "Welcome back",
     bookingSignedInDesc:
-    "You’re signed in. Talk with our team about your wedding plans.",
+      "You’re signed in. Talk with our team about your wedding plans.",
     bookingSignedOutTitle: "Let’s plan your wedding",
     bookingSignedOutDesc:
-    "Sign in with Google to continue the conversation with our team.",
-    syncedNote: "Your name and email will be shared with our team to follow up.",
+      "Sign in with Google to continue the conversation with our team.",
+    syncedNote:
+      "Your name and email will be shared with our team to follow up.",
     loginWithGoogle: "Sign in with Google",
     closeModal: "Close",
 
@@ -292,14 +294,20 @@ const rawTranslations = {
     // Hero
     heroLine1: "A celebration,",
     heroLine2: "thoughtfully yours.",
-    heroSub: "Wedding planning shaped around your story, your priorities, and the people you love.",
+    heroSub:
+      "Wedding planning shaped around your story, your priorities, and the people you love.",
     heroBookClass: "Book Your First Class",
+    heroSliderControls: "Hero image controls",
+    heroSlidePrevious: "Previous slide",
+    heroSlideNext: "Next slide",
     scroll: "Scroll",
 
     venuesEyebrow: "A PLACE FOR YOUR STORY",
     venuesTitle: "Find a venue",
     venuesTitleItalic: "to call yours",
-    venuesDescription: "Explore wedding venues selected to make your celebration feel unmistakably yours.",
+    venuesDescription:
+      "Explore wedding venues selected to make your celebration feel unmistakably yours.",
+    venuesLoading: "Loading selected venues...",
     venueSearchLabel: "Find your setting",
     venueSearchPlaceholder: "Search by venue name or location",
     venueCountLabel: "venues to explore",
@@ -311,14 +319,22 @@ const rawTranslations = {
     viewAllVenues: "Explore all venues",
     venueMapCta: "View on map",
     venueEmptyTitle: "Venue details are coming soon",
-    venueEmptyDescription: "Contact our team and we’ll help you explore the right setting for your celebration.",
+    venueEmptyDescription:
+      "Contact our team and we’ll help you explore the right setting for your celebration.",
     venueClosingTitle: "Already have a venue in mind?",
-    venueClosingDescription: "Let’s talk through your ideas and make sure the setting feels right for your celebration.",
+    venueClosingDescription:
+      "Let’s talk through your ideas and make sure the setting feels right for your celebration.",
     viewAllEvents: "View all events",
     eventViewDetails: "View Details",
     eventReserve: "Reserve My Spot",
     eventNoDesc: "More details will be announced soon.",
     learnMore: "Learn more",
+    testimonialsEyebrow: "WEDDING STORIES",
+    testimonialsTitle: "Hear from couples who",
+    testimonialsTitleItalic: "trusted us with their special day.",
+    testimonialPrevious: "Previous testimonial",
+    testimonialNext: "Next testimonial",
+    testimonialPosition: "Testimonial",
     fallbackClasses: [
       {
         name: "Yoga Nidra",
@@ -565,12 +581,13 @@ const rawTranslations = {
   id: {
     nav: {
       home: "Beranda",
-      about: "Tentang",
+      about: "Tentang Kami",
       artofliving: "Art of Living",
       venues: "Venue",
       classes: "Kelas",
       schedules: "Jadwal",
-      packages: "Paket",
+      packages: "Paket & Layanan",
+      portfolio: "Portofolio",
       vendors: "Vendor",
       faq: "FAQ",
       events: "Acara",
@@ -670,33 +687,48 @@ const rawTranslations = {
     // Hero
     heroLine1: "Perayaan yang",
     heroLine2: "dirancang untuk Anda.",
-    heroSub: "Perencanaan pernikahan yang berangkat dari kisah, prioritas, dan orang-orang terkasih Anda.",
+    heroSub:
+      "Perencanaan pernikahan yang berangkat dari kisah, prioritas, dan orang-orang terkasih Anda.",
     heroBookClass: "Pesan Kelas Pertamamu",
+    heroSliderControls: "Kontrol gambar utama",
+    heroSlidePrevious: "Slide sebelumnya",
+    heroSlideNext: "Slide berikutnya",
     scroll: "Gulir",
 
-    venuesEyebrow: "TEMPAT UNTUK KISAH ANDA",
+    venuesEyebrow: "VENUE PILIHAN UNTUK PERAYAAN ANDA",
     venuesTitle: "Temukan venue",
-    venuesTitleItalic: "yang terasa tepat",
-    venuesDescription: "Jelajahi pilihan venue pernikahan yang dapat menjadikan perayaan Anda terasa istimewa.",
+    venuesTitleItalic: "untuk hari istimewa Anda",
+    venuesDescription:
+      "Jelajahi pilihan venue pernikahan yang dapat menjadikan perayaan Anda terasa istimewa.",
+    venuesLoading: "Memuat venue pilihan...",
     venueSearchLabel: "Temukan tempat pilihan",
     venueSearchPlaceholder: "Cari berdasarkan nama venue atau lokasi",
     venueCountLabel: "venue untuk dijelajahi",
     venueCountSingularLabel: "venue untuk dijelajahi",
     venueNoResults: "Venue tidak ditemukan",
-    venueNoResultsDescription: "Coba kata kunci nama venue atau lokasi yang berbeda.",
+    venueNoResultsDescription:
+      "Coba kata kunci nama venue atau lokasi yang berbeda.",
     venueSearchClear: "Hapus pencarian",
     venueLocationLabel: "Lokasi",
-    viewAllVenues: "Jelajahi semua venue",
+    viewAllVenues: "Lihat semua venue",
     venueMapCta: "Lihat peta",
     venueEmptyTitle: "Informasi venue segera hadir",
-    venueEmptyDescription: "Hubungi tim kami untuk menemukan tempat yang sesuai dengan perayaan Anda.",
+    venueEmptyDescription:
+      "Hubungi tim kami untuk menemukan tempat yang sesuai dengan perayaan Anda.",
     venueClosingTitle: "Sudah memiliki venue pilihan?",
-    venueClosingDescription: "Mari bicarakan rencana Anda dan pastikan tempatnya terasa tepat untuk perayaan istimewa.",
+    venueClosingDescription:
+      "Mari bicarakan rencana Anda dan pastikan tempatnya terasa tepat untuk perayaan istimewa.",
     viewAllEvents: "Lihat semua acara",
     eventViewDetails: "Lihat Detail",
     eventReserve: "Pesan Tempatku",
     eventNoDesc: "Detail lebih lanjut akan segera diumumkan.",
     learnMore: "Selengkapnya",
+    testimonialsEyebrow: "CERITA PERNIKAHAN",
+    testimonialsTitle: "Dengarkan kisah",
+    testimonialsTitleItalic: "pasangan ini",
+    testimonialPrevious: "Testimoni sebelumnya",
+    testimonialNext: "Testimoni berikutnya",
+    testimonialPosition: "Testimoni",
     fallbackClasses: [
       {
         name: "Yoga Nidra",

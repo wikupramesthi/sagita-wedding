@@ -6,21 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\OrderSavedFilter;
 use App\Models\Package\PackageAddon;
+use App\Models\Package\PackageBlackoutDate;
 use App\Models\Package\PackageOption;
+use App\Models\Package\PackagePromo;
 use App\Models\Payment\Order;
 use App\Models\Payment\Payment;
 use App\Models\User;
 use App\Models\UserPackage;
-use App\Services\MembershipService;
-use App\Support\ImageShrinker;
 use App\Notifications\MemberActiveNotification;
 use App\Notifications\OrderBaruNotification;
 use App\Notifications\OrderRejectedNotification;
 use App\Notifications\OrderSlaReminderNotification;
 use App\Notifications\ProofUploadedNotification;
+use App\Services\MembershipService;
+use App\Support\ImageShrinker;
+use App\Support\MemberView;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -79,7 +83,7 @@ class OrderController extends Controller
         ")->first();
 
         $queue = Order::packageOnly()->where('status', 'pending');
-        if (!$isAdmin) {
+        if (! $isAdmin) {
             $queue->where('user_uuid', $user->uuid);
         }
 
@@ -134,7 +138,7 @@ class OrderController extends Controller
         $searchTooShort = $searchTerm !== '' && Str::length($searchTerm) < 2;
 
         // Member: laptop/desktop = view desktop, HP = phone-frame mobile.
-        if (!$isAdmin && \App\Support\MemberView::isMobile()) {
+        if (! $isAdmin && MemberView::isMobile()) {
             return view('pages.mobile.orders', [
                 'orders' => $orders,
                 'stats' => $stats,
@@ -348,7 +352,6 @@ class OrderController extends Controller
         return $normalized;
     }
 
-
     /**
      * Display the specified order.
      */
@@ -372,7 +375,7 @@ class OrderController extends Controller
         */
 
         if (
-            !$user->hasAnyRole(['super-admin', 'admin']) &&
+            ! $user->hasAnyRole(['super-admin', 'admin']) &&
             $order->user_uuid !== $user->uuid
         ) {
             abort(403);
@@ -392,9 +395,9 @@ class OrderController extends Controller
                 ->get()
             : collect();
 
-        $isMobile = \App\Support\MemberView::isMobile();
+        $isMobile = MemberView::isMobile();
 
-        if (!$isAdmin && $isMobile) {
+        if (! $isAdmin && $isMobile) {
             return view(
                 'pages.mobile.order-show',
                 compact('order', 'isAdmin', 'userPackage', 'auditLogs')
@@ -418,7 +421,7 @@ class OrderController extends Controller
             ->where('uuid', $uuid)
             ->firstOrFail();
 
-        if (!$isAdmin && $order->user_uuid !== $user->uuid) {
+        if (! $isAdmin && $order->user_uuid !== $user->uuid) {
             abort(404);
         }
 
@@ -469,7 +472,7 @@ class OrderController extends Controller
         }
 
         try {
-            [$order, $userPackage] = $this->activatePendingOrder(
+            [$order, $userPackage, $stage] = $this->activatePendingOrder(
                 $order,
                 $validated['admin_note'] ?? null
             );
@@ -486,50 +489,45 @@ class OrderController extends Controller
         $this->finishIdempotency($idempotencyKey, $order->uuid);
 
         try {
-            $order->user?->notify(new MemberActiveNotification(
-                $order->uuid,
-                $order->order_number,
-                $userPackage->expired_at,
-            ));
-        } catch (\Throwable $e) {
-            Log::error('Membership activation notification failed: ' . $e->getMessage());
+            if ($stage === 'dp') {
+                $order->user?->notify(new \App\Notifications\OrderPaymentVerifiedNotification(
+                    $order->uuid, $order->order_number,
+                    'DP diterima. Sisa pelunasan: Rp ' . number_format((float) $order->remaining_amount_value, 0, ',', '.'),
+                    'bi-cash-coin'
+                ));
+            } elseif ($userPackage) {
+                $order->user?->notify(new MemberActiveNotification($order->uuid, $order->order_number, $userPackage->expired_at));
+            }
+        } catch (Throwable $e) {
+            Log::error('Membership activation notification failed: '.$e->getMessage());
         }
 
-        return redirect()
-            ->route('orders.show', $order->uuid)
-            ->with('success', __('flash.order_approve_ok'));
+        $success = $stage === 'dp' ? 'DP berhasil diverifikasi. Menunggu pelunasan.' : __('flash.order_approve_ok');
+        return redirect()->route('orders.show', $order->uuid)->with('success', $success);
     }
 
     /**
-     * Approve a pending order inside a single locked transaction.
-     * Shared by the single and bulk verification actions.
+     * Approve a pending/partially paid order inside a single locked transaction.
+     * DP: pending -> partially_paid (no membership activation). Balance/full: -> paid + activate membership.
      *
-     * @return array{0: Order, 1: UserPackage}
+     * @return array{0: Order, 1: ?UserPackage, 2: string}
      */
     private function activatePendingOrder(string $orderUuid, ?string $note): array
     {
         return DB::transaction(function () use ($orderUuid, $note) {
-            $order = Order::packageOnly()->with(['packageOption', 'user'])
+            $order = Order::packageOnly()->with(['packageOption', 'user', 'payments'])
                 ->where('uuid', $orderUuid)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($order->status !== 'pending') {
-                throw ValidationException::withMessages([
-                    'order' => __('flash.order_only_pending_approve'),
-                ]);
+            if (! in_array($order->status, ['pending', 'partially_paid'], true)) {
+                throw ValidationException::withMessages(['order' => __('flash.order_only_pending_approve')]);
             }
-
-            if ($order->expired_at?->isPast()) {
-                throw ValidationException::withMessages([
-                    'order' => __('flash.order_expired_cannot_process'),
-                ]);
+            if ($order->status === 'pending' && $order->expired_at?->isPast()) {
+                throw ValidationException::withMessages(['order' => __('flash.order_expired_cannot_process')]);
             }
-
-            if (!$order->package_option_uuid || !$order->packageOption) {
-                throw ValidationException::withMessages([
-                    'order' => __('flash.order_no_option'),
-                ]);
+            if (! $order->package_option_uuid || ! $order->packageOption) {
+                throw ValidationException::withMessages(['order' => __('flash.order_no_option')]);
             }
 
             $snapshot = [
@@ -539,109 +537,106 @@ class OrderController extends Controller
                     'admin_note' => $order->admin_note,
                     'assigned_admin_uuid' => $order->assigned_admin_uuid,
                     'pending_key' => $order->pending_key,
+                    'amount_paid' => (float) ($order->amount_paid ?? 0),
+                    'remaining_amount' => (float) ($order->remaining_amount ?? 0),
+                    'balance_due_at' => $order->balance_due_at?->toDateTimeString(),
                 ],
                 'payment_uuid' => null,
                 'user_package' => null,
+                'stage' => null,
             ];
 
+            $fullAmount = (float) ($order->full_amount ?: $order->amount);
+            $dueNow = (float) ($order->amount ?: 0);
+            $scheme = $order->payment_scheme;
+            $isDpInitial = $order->status === 'pending' && in_array($scheme, ['dp30', 'dp50'], true);
+
+            if ($isDpInitial) {
+                $payment = Payment::create([
+                    'order_uuid' => $order->uuid,
+                    'kind' => 'dp',
+                    'payment_gateway' => 'manual_transfer',
+                    'payment_type' => 'Transfer Manual DP',
+                    'gross_amount' => $dueNow,
+                    'status' => 'paid',
+                    'paid_at' => now(),
+                    'proof_image_path' => $order->proof_image_path,
+                    'proof_uploaded_at' => $order->proof_uploaded_at,
+                ]);
+                $remaining = max(0, $fullAmount - $dueNow);
+                $order->update([
+                    'status' => 'partially_paid',
+                    'paid_at' => null,
+                    'amount_paid' => $dueNow,
+                    'remaining_amount' => $remaining,
+                    'total_amount' => $fullAmount,
+                    'balance_due_at' => $order->event_date ? $order->event_date->copy()->startOfDay() : $order->balance_due_at,
+                    'admin_note' => $note,
+                    'assigned_admin_uuid' => $order->assigned_admin_uuid ?: Auth::user()->uuid,
+                    'proof_image_path' => null,
+                    'proof_uploaded_at' => null,
+                ]);
+                $snapshot['payment_uuid'] = $payment->uuid;
+                $snapshot['stage'] = 'dp';
+                $order->update(['approval_snapshot' => $snapshot]);
+                $this->logOrderAction($order, 'approved_dp', ['admin_note' => $note, 'amount_paid' => $dueNow, 'remaining_amount' => $remaining]);
+                return [$order->fresh(), null, 'dp'];
+            }
+
+            $stage = $order->status === 'partially_paid' ? 'balance' : 'full';
+            $settleAmount = $stage === 'balance' ? max(0, $fullAmount - (float) $order->amount_paid_value) : $dueNow;
+            if ($settleAmount <= 0) { $settleAmount = $stage === 'balance' ? max(0, (float) $order->remaining_amount_value) : $dueNow; }
+
+            $payment = Payment::create([
+                'order_uuid' => $order->uuid,
+                'kind' => $stage,
+                'payment_gateway' => 'manual_transfer',
+                'payment_type' => $stage === 'balance' ? 'Pelunasan Manual' : 'Transfer Manual',
+                'gross_amount' => $settleAmount,
+                'status' => 'paid',
+                'paid_at' => now(),
+                'proof_image_path' => $order->proof_image_path,
+                'proof_uploaded_at' => $order->proof_uploaded_at,
+            ]);
             $order->update([
                 'status' => 'paid',
                 'paid_at' => now(),
+                'amount_paid' => $fullAmount,
+                'remaining_amount' => 0,
+                'total_amount' => $fullAmount,
                 'admin_note' => $note,
                 'assigned_admin_uuid' => $order->assigned_admin_uuid ?: Auth::user()->uuid,
             ]);
 
-            $payment = Payment::create([
-                'order_uuid' => $order->uuid,
-                'payment_gateway' => 'manual_transfer',
-                'payment_type' => 'Transfer Manual',
-                'gross_amount' => $order->amount,
-                'status' => 'paid',
-                'paid_at' => now(),
-            ]);
-
             $snapshot['payment_uuid'] = $payment->uuid;
-
+            $snapshot['stage'] = $stage;
             $option = $order->packageOption;
             $started = now();
-
             $existing = UserPackage::where('user_uuid', $order->user_uuid)
                 ->where('package_uuid', $order->package_uuid)
                 ->where('status', 'active')
-                ->where(function ($q) {
-                    $q->whereNull('expired_at')->orWhere('expired_at', '>', now());
-                })
+                ->where(function ($q) { $q->whereNull('expired_at')->orWhere('expired_at', '>', now()); })
                 ->lockForUpdate()
                 ->first();
 
             if ($existing) {
-                $snapshot['user_package'] = [
-                    'created' => false,
-                    'uuid' => $existing->uuid,
-                    'expired_at' => $existing->expired_at?->toDateTimeString(),
-                    'quota' => $existing->quota,
-                    'order_uuid' => $existing->order_uuid,
-                ];
-
-                $base = $existing->expired_at && $existing->expired_at->isFuture()
-                    ? $existing->expired_at->copy()
-                    : $started->copy();
-
-                $expired = match ($option->duration_unit) {
-                    'day' => $base->addDays($option->duration),
-                    'week' => $base->addWeeks($option->duration),
-                    'year' => $base->addYears($option->duration),
-                    default => $base->addMonths($option->duration),
-                };
-
+                $snapshot['user_package'] = ['created' => false, 'uuid' => $existing->uuid, 'expired_at' => $existing->expired_at?->toDateTimeString(), 'quota' => $existing->quota, 'order_uuid' => $existing->order_uuid];
+                $base = $existing->expired_at && $existing->expired_at->isFuture() ? $existing->expired_at->copy() : $started->copy();
+                $expired = match ($option->duration_unit) { 'day' => $base->addDays($option->duration), 'week' => $base->addWeeks($option->duration), 'year' => $base->addYears($option->duration), default => $base->addMonths($option->duration) };
                 $quota = $existing->quota;
-                if (!is_null($quota) && !is_null($option->quota)) {
-                    $quota += $option->quota;
-                } elseif (is_null($existing->quota)) {
-                    $quota = null;
-                } else {
-                    $quota = $option->quota;
-                }
-
-                $existing->update([
-                    'order_uuid' => $order->uuid,
-                    'expired_at' => $expired,
-                    'quota' => $quota,
-                ]);
-
+                if (! is_null($quota) && ! is_null($option->quota)) { $quota += $option->quota; }
+                elseif (is_null($existing->quota)) { $quota = null; } else { $quota = $option->quota; }
+                $existing->update(['order_uuid' => $order->uuid, 'expired_at' => $expired, 'quota' => $quota]);
                 $userPackage = $existing->fresh();
             } else {
-                $expired = match ($option->duration_unit) {
-                    'day' => (clone $started)->addDays($option->duration),
-                    'week' => (clone $started)->addWeeks($option->duration),
-                    'year' => (clone $started)->addYears($option->duration),
-                    default => (clone $started)->addMonths($option->duration),
-                };
-
-                $userPackage = UserPackage::create([
-                    'user_uuid' => $order->user_uuid,
-                    'package_uuid' => $order->package_uuid,
-                    'order_uuid' => $order->uuid,
-                    'quota' => $option->quota,
-                    'started_at' => $started,
-                    'expired_at' => $expired,
-                    'status' => 'active',
-                ]);
-
-                $snapshot['user_package'] = [
-                    'created' => true,
-                    'uuid' => $userPackage->uuid,
-                ];
+                $expired = match ($option->duration_unit) { 'day' => (clone $started)->addDays($option->duration), 'week' => (clone $started)->addWeeks($option->duration), 'year' => (clone $started)->addYears($option->duration), default => (clone $started)->addMonths($option->duration) };
+                $userPackage = UserPackage::create(['user_uuid' => $order->user_uuid, 'package_uuid' => $order->package_uuid, 'order_uuid' => $order->uuid, 'quota' => $option->quota, 'started_at' => $started, 'expired_at' => $expired, 'status' => 'active']);
+                $snapshot['user_package'] = ['created' => true, 'uuid' => $userPackage->uuid];
             }
 
             $order->update(['approval_snapshot' => $snapshot]);
-
-            $this->logOrderAction($order, 'approved', [
-                'admin_note' => $note,
-                'user_package_uuid' => $userPackage->uuid,
-            ]);
-
-            return [$order, $userPackage];
+            $this->logOrderAction($order, $stage === 'balance' ? 'approved_balance' : 'approved', ['admin_note' => $note, 'user_package_uuid' => $userPackage->uuid, 'amount_paid' => $fullAmount]);
+            return [$order->fresh(), $userPackage, $stage];
         });
     }
 
@@ -688,8 +683,8 @@ class OrderController extends Controller
                 $rejected->order_number,
                 $validated['admin_note'],
             ));
-        } catch (\Throwable $e) {
-            Log::error('Order rejection notification failed: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::error('Order rejection notification failed: '.$e->getMessage());
         }
 
         return back()->with('success', __('flash.order_rejected'));
@@ -705,9 +700,15 @@ class OrderController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($order->status !== 'pending') {
+            if (! in_array($order->status, ['pending', 'partially_paid'], true)) {
                 throw ValidationException::withMessages([
                     'order' => __('flash.order_only_pending_reject'),
+                ]);
+            }
+
+            if ($order->status === 'partially_paid') {
+                throw ValidationException::withMessages([
+                    'order' => 'Pesanan DP yang sudah diverifikasi tidak bisa ditolak otomatis. Gunakan proses refund/manual settlement.',
                 ]);
             }
 
@@ -717,6 +718,7 @@ class OrderController extends Controller
                 'assigned_admin_uuid' => $order->assigned_admin_uuid ?: Auth::user()->uuid,
             ]);
 
+            $order->payments()->where('status', 'pending')->update(['status' => 'failed']);
             $order->payment?->update(['status' => 'failed']);
 
             $this->logOrderAction($order, 'rejected', ['admin_note' => $note]);
@@ -750,7 +752,7 @@ class OrderController extends Controller
 
         $idempotencyKey = $this->idempotencyKey(
             $request,
-            'bulk-' . $validated['action'],
+            'bulk-'.$validated['action'],
             implode(',', $orderIds)
         );
 
@@ -780,19 +782,23 @@ class OrderController extends Controller
                 $before = Order::packageOnly()->where('uuid', $orderUuid)->first()?->getAttributes() ?? [];
 
                 if ($validated['action'] === 'approve') {
-                    [$order, $userPackage] = $this->activatePendingOrder(
+                    [$order, $userPackage, $stage] = $this->activatePendingOrder(
                         $orderUuid,
                         $validated['admin_note'] ?? null
                     );
 
                     try {
-                        $order->user?->notify(new MemberActiveNotification(
-                            $order->uuid,
-                            $order->order_number,
-                            $userPackage->expired_at,
-                        ));
-                    } catch (\Throwable $e) {
-                        Log::error('Membership activation notification failed: ' . $e->getMessage());
+                        if ($stage === 'dp') {
+                            $order->user?->notify(new \App\Notifications\OrderPaymentVerifiedNotification(
+                                $order->uuid, $order->order_number,
+                                'DP diterima. Sisa pelunasan: Rp ' . number_format((float) $order->remaining_amount_value, 0, ',', '.'),
+                                'bi-cash-coin'
+                            ));
+                        } elseif ($userPackage) {
+                            $order->user?->notify(new MemberActiveNotification($order->uuid, $order->order_number, $userPackage->expired_at));
+                        }
+                    } catch (Throwable $e) {
+                        Log::error('Membership activation notification failed: '.$e->getMessage());
                     }
 
                     $undoSnapshot[] = [
@@ -813,8 +819,8 @@ class OrderController extends Controller
                             $rejected->order_number,
                             $validated['admin_note'],
                         ));
-                    } catch (\Throwable $e) {
-                        Log::error('Order rejection notification failed: ' . $e->getMessage());
+                    } catch (Throwable $e) {
+                        Log::error('Order rejection notification failed: '.$e->getMessage());
                     }
 
                     $undoSnapshot[] = [
@@ -833,20 +839,20 @@ class OrderController extends Controller
                 $berhasil++;
             } catch (Throwable $e) {
                 $gagal++;
-                $gagalRincian[] = $orderUuid . ': ' . $e->getMessage();
-                Log::warning('Bulk order action failed: ' . $e->getMessage(), ['order' => $orderUuid]);
+                $gagalRincian[] = $orderUuid.': '.$e->getMessage();
+                Log::warning('Bulk order action failed: '.$e->getMessage(), ['order' => $orderUuid]);
             }
         }
 
-        $pesan = $berhasil . ' pesanan berhasil ' . ($validated['action'] === 'approve' ? 'disetujui' : 'ditolak') . '.';
+        $pesan = $berhasil.' pesanan berhasil '.($validated['action'] === 'approve' ? 'disetujui' : 'ditolak').'.';
         if ($gagal > 0) {
-            $pesan .= ' ' . $gagal . ' pesanan gagal diproses.';
-            $pesan .= ' Rincian: ' . implode(' | ', array_slice($gagalRincian, 0, 3)) . '.';
+            $pesan .= ' '.$gagal.' pesanan gagal diproses.';
+            $pesan .= ' Rincian: '.implode(' | ', array_slice($gagalRincian, 0, 3)).'.';
         }
 
         if ($undoSnapshot !== []) {
             Cache::put(
-                'orders.bulk_undo.' . Auth::user()->uuid . '.' . $undoToken,
+                'orders.bulk_undo.'.Auth::user()->uuid.'.'.$undoToken,
                 $undoSnapshot,
                 now()->addMinutes(10)
             );
@@ -872,10 +878,10 @@ class OrderController extends Controller
             'undo_token' => ['required', 'string'],
         ]);
 
-        $key = 'orders.bulk_undo.' . Auth::user()->uuid . '.' . $validated['undo_token'];
+        $key = 'orders.bulk_undo.'.Auth::user()->uuid.'.'.$validated['undo_token'];
         $snapshot = Cache::get($key);
 
-        if (!$snapshot) {
+        if (! $snapshot) {
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => __('flash.order_bulk_undo_expired')], 422)
                 : back()->with('error', __('flash.order_bulk_undo_expired'));
@@ -897,7 +903,7 @@ class OrderController extends Controller
 
                         $paymentStatus = $item['payment_status'] ?? 'pending';
 
-                        if (!empty($item['payment_uuid'])) {
+                        if (! empty($item['payment_uuid'])) {
                             Payment::where('uuid', $item['payment_uuid'])
                                 ->update(['status' => $paymentStatus]);
                         } else {
@@ -923,13 +929,13 @@ class OrderController extends Controller
                         'approval_snapshot' => null,
                     ]);
 
-                    if (!empty($approval['payment_uuid'])) {
+                    if (! empty($approval['payment_uuid'])) {
                         Payment::where('uuid', $approval['payment_uuid'])->delete();
                     }
 
-                    if (!empty($userPackageBefore['created'])) {
+                    if (! empty($userPackageBefore['created'])) {
                         UserPackage::where('uuid', $userPackageBefore['uuid'])->delete();
-                    } elseif (!empty($userPackageBefore['uuid'])) {
+                    } elseif (! empty($userPackageBefore['uuid'])) {
                         UserPackage::where('uuid', $userPackageBefore['uuid'])->update([
                             'expired_at' => $userPackageBefore['expired_at'] ?? null,
                             'quota' => $userPackageBefore['quota'] ?? null,
@@ -941,7 +947,7 @@ class OrderController extends Controller
                 }
             });
         } catch (Throwable $e) {
-            Log::warning('Order bulk undo failed: ' . $e->getMessage());
+            Log::warning('Order bulk undo failed: '.$e->getMessage());
 
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => __('flash.order_bulk_undo_failed')], 500)
@@ -1017,7 +1023,7 @@ class OrderController extends Controller
                         $usiaJam,
                     ));
                     $terkirimPesanan++;
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     Log::warning('orders.sla.manual_failed', [
                         'order' => $order->uuid,
                         'recipient' => $recipient->uuid ?? null,
@@ -1041,11 +1047,11 @@ class OrderController extends Controller
         }
 
         $pesan = $terkirim > 0
-            ? $terkirim . ' pengingat SLA berhasil dikirim.'
+            ? $terkirim.' pengingat SLA berhasil dikirim.'
             : __('flash.order_sla_reminded');
 
         if ($dilewati > 0) {
-            $pesan .= ' ' . $dilewati . ' pesanan dilewati.';
+            $pesan .= ' '.$dilewati.' pesanan dilewati.';
         }
 
         return back()->with('success', $pesan);
@@ -1115,7 +1121,7 @@ class OrderController extends Controller
 
         $logs = $query->limit(5000)->get();
 
-        $fileName = 'order-audit-' . now()->format('Ymd-His') . '.csv';
+        $fileName = 'order-audit-'.now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($logs): void {
             $handle = fopen('php://output', 'w');
@@ -1148,23 +1154,23 @@ class OrderController extends Controller
 
         $phone = preg_replace('/\D+/', '', (string) ($order->user?->no_hp ?? '')) ?: '';
         if (str_starts_with($phone, '0')) {
-            $phone = '62' . substr($phone, 1);
-        } elseif (!str_starts_with($phone, '62')) {
-            $phone = '62' . $phone;
+            $phone = '62'.substr($phone, 1);
+        } elseif (! str_starts_with($phone, '62')) {
+            $phone = '62'.$phone;
         }
 
-        if (!Str::length($phone) || $phone === '62') {
+        if (! Str::length($phone) || $phone === '62') {
             return back()->with('error', __('flash.order_whatsapp_number_missing'));
         }
 
-        $message = 'Halo ' . ($order->user?->name ?? 'Pelanggan') . ', kami dari Sagita Wedding Organizer ingin mengonfirmasi pesanan '
-            . $order->order_number . '. Mohon ditindaklanjuti, terima kasih.';
+        $message = 'Halo '.($order->user?->name ?? 'Pelanggan').', kami dari Sagita Wedding Organizer ingin mengonfirmasi pesanan '
+            .$order->order_number.'. Mohon ditindaklanjuti, terima kasih.';
 
         $this->logOrderAction($order, 'whatsapp_opened', [
             'phone' => preg_replace('/\d/', 'x', substr($phone, -4)),
         ]);
 
-        return redirect()->away('https://wa.me/' . $phone . '?text=' . rawurlencode($message));
+        return redirect()->away('https://wa.me/'.$phone.'?text='.rawurlencode($message));
     }
 
     /**
@@ -1184,6 +1190,7 @@ class OrderController extends Controller
 
         $statusLabels = [
             'paid' => 'Lunas',
+            'partially_paid' => 'DP Terverifikasi',
             'pending' => 'Menunggu',
             'failed' => 'Gagal',
             'expired' => 'Kedaluwarsa',
@@ -1218,8 +1225,24 @@ class OrderController extends Controller
                 'value' => fn ($order) => $order->packageOption?->name ?? '-',
             ],
             'amount' => [
-                'label' => 'Jumlah (Rp)',
+                'label' => 'Tagihan Saat Ini (Rp)',
                 'value' => fn ($order) => $order->amount,
+            ],
+            'total' => [
+                'label' => 'Total Paket (Rp)',
+                'value' => fn ($order) => (float) ($order->total_amount ?: $order->amount),
+            ],
+            'paid_amount' => [
+                'label' => 'Dibayar (Rp)',
+                'value' => fn ($order) => (float) ($order->amount_paid_value ?? 0),
+            ],
+            'remaining' => [
+                'label' => 'Sisa (Rp)',
+                'value' => fn ($order) => (float) ($order->remaining_amount_value ?? 0),
+            ],
+            'scheme' => [
+                'label' => 'Skema Pembayaran',
+                'value' => fn ($order) => $order->scheme_label ?? 'Bayar Lunas',
             ],
             'status' => [
                 'label' => 'Status',
@@ -1273,7 +1296,7 @@ class OrderController extends Controller
             fclose($handle);
         }, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="laporan-pesanan-' . now()->format('Ymd-His') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="laporan-pesanan-'.now()->format('Ymd-His').'.csv"',
             'Cache-Control' => 'no-store, no-cache, must-revalidate',
         ]);
     }
@@ -1298,7 +1321,7 @@ class OrderController extends Controller
                 'required',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
-                'max:' . config('manual_payment.proof_max_kb', 3072),
+                'max:'.config('manual_payment.proof_max_kb', 3072),
             ],
         ]);
 
@@ -1335,8 +1358,8 @@ class OrderController extends Controller
                     (float) $order->amount,
                 ));
             }
-        } catch (\Throwable $e) {
-            Log::error('Proof upload notification failed: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::error('Proof upload notification failed: '.$e->getMessage());
         }
 
         return back()->with('success', __('flash.proof_ok'));
@@ -1353,11 +1376,11 @@ class OrderController extends Controller
         $user = Auth::user();
         $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
 
-        if (!$isAdmin && $order->user_uuid !== $user->uuid) {
+        if (! $isAdmin && $order->user_uuid !== $user->uuid) {
             abort(403);
         }
 
-        if (!$order->proof_image_path) {
+        if (! $order->proof_image_path) {
             abort(404);
         }
 
@@ -1365,17 +1388,16 @@ class OrderController extends Controller
         $disk = Storage::disk($diskName);
 
         // Backward compatibility with proofs stored on the public disk.
-        if (!$disk->exists($order->proof_image_path) && $diskName !== 'public') {
+        if (! $disk->exists($order->proof_image_path) && $diskName !== 'public') {
             $disk = Storage::disk('public');
         }
 
-        if (!$disk->exists($order->proof_image_path)) {
+        if (! $disk->exists($order->proof_image_path)) {
             abort(404);
         }
 
         return response()->file($disk->path($order->proof_image_path));
     }
-
 
     /**
      * Store a newly created order.
@@ -1403,6 +1425,11 @@ class OrderController extends Controller
                 'exists:package_options,uuid',
             ],
 
+            'event_date' => [
+                'required',
+                'date',
+            ],
+
             'addon_uuids' => [
                 'nullable',
                 'array',
@@ -1412,6 +1439,28 @@ class OrderController extends Controller
                 'uuid',
                 Rule::exists('package_addons', 'uuid')
                     ->where('is_active', true),
+            ],
+
+            'addon_quantities' => [
+                'nullable',
+                'array',
+            ],
+
+            'addon_quantities.*' => [
+                'integer',
+                'min:1',
+                'max:99',
+            ],
+
+            'promo_code' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
+            'payment_scheme' => [
+                'nullable',
+                Rule::in(['dp30', 'dp50', 'full']),
             ],
         ]);
 
@@ -1428,11 +1477,10 @@ class OrderController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$option) {
+        if (! $option) {
             return back()
                 ->withErrors([
-                    'package_option_uuid' =>
-                    __('flash.option_unavailable'),
+                    'package_option_uuid' => __('flash.option_unavailable'),
                 ])
                 ->withInput();
         }
@@ -1444,13 +1492,13 @@ class OrderController extends Controller
         */
 
         if (
-            !$option->package ||
-            $option->package->is_active !== 'active'
+            ! $option->package ||
+            $option->package->is_active !== 'active' ||
+            ! $option->package->is_published
         ) {
             return back()
                 ->withErrors([
-                    'package_option_uuid' =>
-                    __('flash.package_unavailable'),
+                    'package_option_uuid' => __('flash.package_unavailable'),
                 ])
                 ->withInput();
         }
@@ -1461,8 +1509,32 @@ class OrderController extends Controller
         if ($activePackage && $activePackage->package_uuid !== $option->package_uuid) {
             return back()
                 ->withErrors([
-                    'package_option_uuid' =>
-                    __('flash.active_package_block'),
+                    'package_option_uuid' => __('flash.active_package_block'),
+                ])
+                ->withInput();
+        }
+
+        $eventDate = Carbon::parse($validated['event_date'])->startOfDay();
+        $earliestEventDate = now()->startOfDay()->addDays((int) ($option->package->lead_time_days ?? 0));
+
+        if ($eventDate->lt($earliestEventDate)) {
+            return back()
+                ->withErrors([
+                    'event_date' => __('flash.event_date_too_soon', [
+                        'count' => (int) ($option->package->lead_time_days ?? 0),
+                    ]),
+                ])
+                ->withInput();
+        }
+
+        if (
+            PackageBlackoutDate::where('package_uuid', $option->package_uuid)
+                ->whereDate('date', $eventDate->toDateString())
+                ->exists()
+        ) {
+            return back()
+                ->withErrors([
+                    'event_date' => __('flash.event_date_blackout'),
                 ])
                 ->withInput();
         }
@@ -1496,29 +1568,117 @@ class OrderController extends Controller
                 ->withInput();
         }
 
+        $addonQuantities = $validated['addon_quantities'] ?? [];
+        $selectedAddonUuids = $addons->pluck('uuid')->all();
+
+        $addonLines = $addons->map(function ($addon) use ($addonQuantities) {
+            $min = max(1, (int) ($addon->min_quantity ?? 1));
+            $max = $addon->max_quantity !== null
+                ? min(99, (int) $addon->max_quantity)
+                : 99;
+
+            return [
+                'addon' => $addon,
+                'quantity' => (int) ($addonQuantities[$addon->uuid] ?? $min),
+                'min' => $min,
+                'max' => max($min, $max),
+            ];
+        });
+
+        foreach ($addonLines as $line) {
+            if ($line['quantity'] < $line['min'] || $line['quantity'] > $line['max']) {
+                return back()
+                    ->withErrors([
+                        'addon_quantities' => __('flash.addon_quantity_invalid'),
+                    ])
+                    ->withInput();
+            }
+        }
+
+        foreach ($addons as $addon) {
+            if (
+                $addon->requires_addon_uuid &&
+                ! in_array($addon->requires_addon_uuid, $selectedAddonUuids, true)
+            ) {
+                return back()
+                    ->withErrors([
+                        'addon_uuids' => __('flash.addon_dependency_missing'),
+                    ])
+                    ->withInput();
+            }
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Calculate Final Price
         |--------------------------------------------------------------------------
         */
 
-        $amount =
+        $subtotal =
             $option->discount_price !== null &&
             $option->discount_price < $option->price
-            ? $option->discount_price
-            : $option->price;
+            ? (int) $option->discount_price
+            : (int) $option->price;
 
-        foreach ($addons as $addon) {
-            $amount += $addon->final_price;
-        }
+        $addonSnapshot = [];
 
-        $addonSnapshot = $addons->map(function ($addon) {
-            return [
+        foreach ($addonLines as $line) {
+            $addon = $line['addon'];
+            $lineTotal = (int) $addon->final_price * $line['quantity'];
+
+            $subtotal += $lineTotal;
+
+            $addonSnapshot[] = [
                 'uuid' => $addon->uuid,
                 'name' => $addon->name,
-                'price' => $addon->final_price,
+                'price' => (int) $addon->final_price,
+                'quantity' => $line['quantity'],
+                'line_total' => $lineTotal,
             ];
-        })->values()->all();
+        }
+
+        $promo = null;
+        $discount = 0;
+        $promoCodeInput = trim((string) ($validated['promo_code'] ?? ''));
+
+        if ($promoCodeInput !== '') {
+            $promo = PackagePromo::whereRaw('UPPER(code)=UPPER(?)', [strtoupper($promoCodeInput)])
+                ->usable()
+                ->first();
+
+            if (
+                ! $promo ||
+                ($promo->package_uuid !== null && $promo->package_uuid !== $option->package_uuid)
+            ) {
+                return back()
+                    ->withErrors([
+                        'promo_code' => __('flash.promo_invalid'),
+                    ])
+                    ->withInput();
+            }
+
+            if ($subtotal < (int) $promo->min_purchase) {
+                return back()
+                    ->withErrors([
+                        'promo_code' => __('flash.promo_min_purchase'),
+                    ])
+                    ->withInput();
+            }
+
+            $discount = $promo->discountFor((int) $subtotal);
+        }
+
+        $fullAmount = max(0, $subtotal - $discount);
+
+        $paymentSchemes = [
+            'dp30' => ['label' => 'DP 30%', 'factor' => 0.30],
+            'dp50' => ['label' => 'DP 50%', 'factor' => 0.50],
+            'full' => ['label' => 'Bayar Lunas', 'factor' => 1.00],
+        ];
+
+        $paymentScheme = $validated['payment_scheme'] ?? 'full';
+        $schemeLabel = $paymentSchemes[$paymentScheme]['label'];
+        $amount = (int) round($fullAmount * $paymentSchemes[$paymentScheme]['factor']);
 
         /*
         |--------------------------------------------------------------------------
@@ -1557,47 +1717,81 @@ class OrderController extends Controller
                 $user,
                 $option,
                 $amount,
-                $addonSnapshot
-            ) {
-
-            return Order::create([
-
-                'uuid' =>
-                (string) Str::uuid(),
-
-                'user_uuid' =>
-                $user->uuid,
-
-                'order_number' =>
-                'ORD-' . strtoupper(Str::random(10)),
-
-                'type' =>
-                'package',
-
-                'package_uuid' =>
-                $option->package_uuid,
-
-                'package_option_uuid' =>
-                $option->uuid,
-
-                'class_schedule_uuid' =>
-                null,
-
-                'amount' =>
-                $amount,
-
-                'status' =>
-                'pending',
-
-                'expired_at' =>
-                now()->addHours(24),
-
-                'paid_at' =>
-                null,
-
-                'addons' =>
                 $addonSnapshot,
-            ]);
+                $promo,
+                $discount,
+                $eventDate,
+                $paymentScheme,
+                $schemeLabel,
+                $fullAmount
+            ) {
+                if ($promo) {
+                    $claimed = PackagePromo::where('uuid', $promo->uuid)
+                        ->usable()
+                        ->increment('used_count');
+
+                    if (! $claimed) {
+                        throw ValidationException::withMessages([
+                            'promo_code' => __('flash.promo_invalid'),
+                        ]);
+                    }
+                }
+
+                $remainingAmount = max(0, (int) $fullAmount - (int) $amount);
+
+                return Order::create([
+
+                    'uuid' => (string) Str::uuid(),
+
+                    'user_uuid' => $user->uuid,
+
+                    'order_number' => 'ORD-'.strtoupper(Str::random(10)),
+
+                    'type' => 'package',
+
+                    'package_uuid' => $option->package_uuid,
+
+                    'package_option_uuid' => $option->uuid,
+
+                    'event_date' => $eventDate->toDateString(),
+
+                    'class_schedule_uuid' => null,
+
+                    'amount' => $amount,
+
+                    'payment_scheme' => $paymentScheme,
+
+                    'total_amount' => $fullAmount,
+
+                    'amount_paid' => 0,
+
+                    'remaining_amount' => $remainingAmount,
+
+                    'balance_due_at' => $paymentScheme !== 'full' ? $eventDate->copy()->startOfDay() : null,
+
+                    'status' => 'pending',
+
+                    'expired_at' => now()->addHours(24),
+
+                    'paid_at' => null,
+
+                    'addons' => $addonSnapshot,
+
+                    'promo_code' => $promo?->code,
+
+                    'promo_discount' => $discount,
+
+                    'promo_snapshot' => [
+                        'code' => $promo?->code,
+                        'type' => $promo?->type,
+                        'value' => $promo ? (int) $promo->value : null,
+                        'discount' => $discount,
+                        'payment_scheme' => $paymentScheme,
+                        'scheme_label' => $schemeLabel,
+                        'full_amount' => $fullAmount,
+                        'due_amount' => $amount,
+                    ],
+                ]);
             });
         } catch (QueryException $e) {
             return back()->with('error', __('flash.order_pending_exists'));
@@ -1695,19 +1889,39 @@ class OrderController extends Controller
         }
 
         try {
-            $newOrder = DB::transaction(function () use ($owner, $option, $amount) {
+            $newOrder = DB::transaction(function () use ($owner, $option, $amount, $old) {
+                $paymentScheme = in_array($old->payment_scheme, ['dp30','dp50','full'], true) ? $old->payment_scheme : 'full';
+                $fullAmount = (float) ($old->total_amount ?: $old->amount ?: $amount);
+                $schemeFactor = match($paymentScheme){ 'dp30'=>0.30, 'dp50'=>0.50, default=>1.00 };
+                $newAmount = (int) round($fullAmount * $schemeFactor);
+                $remainingAmount = max(0, (int) round($fullAmount - $newAmount));
                 return Order::create([
                     'uuid' => (string) Str::uuid(),
                     'user_uuid' => $owner->uuid,
-                    'order_number' => 'ORD-' . strtoupper(Str::random(10)),
+                    'order_number' => 'ORD-'.strtoupper(Str::random(10)),
                     'type' => 'package',
                     'package_uuid' => $option->package_uuid,
                     'package_option_uuid' => $option->uuid,
+                    'event_date' => $old->event_date?->toDateString(),
                     'class_schedule_uuid' => null,
-                    'amount' => $amount,
+                    'amount' => $newAmount,
+                    'payment_scheme' => $paymentScheme,
+                    'total_amount' => (int) round($fullAmount),
+                    'amount_paid' => 0,
+                    'remaining_amount' => $remainingAmount,
+                    'balance_due_at' => $paymentScheme !== 'full' ? ($old->event_date?->copy()->startOfDay()) : null,
                     'status' => 'pending',
                     'expired_at' => now()->addHours(24),
                     'paid_at' => null,
+                    'addons' => $old->addons,
+                    'promo_code' => $old->promo_code,
+                    'promo_discount' => $old->promo_discount ?? 0,
+                    'promo_snapshot' => array_merge((array) ($old->promo_snapshot ?? []), [
+                        'payment_scheme' => $paymentScheme,
+                        'scheme_label' => match($paymentScheme){'dp30'=>'DP 30%','dp50'=>'DP 50%',default=>'Bayar Lunas'},
+                        'full_amount' => (int) round($fullAmount),
+                        'due_amount' => $newAmount,
+                    ]),
                 ]);
             });
         } catch (QueryException $e) {
@@ -1772,7 +1986,7 @@ class OrderController extends Controller
             $this->reportData($orders, $request, $user)
         )->setPaper('a4', 'landscape');
 
-        return $pdf->download('order-report-' . now()->format('Ymd-His') . '.pdf');
+        return $pdf->download('order-report-'.now()->format('Ymd-His').'.pdf');
     }
 
     /**
@@ -1788,7 +2002,7 @@ class OrderController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (!$user->hasAnyRole(['super-admin', 'admin'])) {
+        if (! $user->hasAnyRole(['super-admin', 'admin'])) {
             $query->where('user_uuid', $user->uuid);
         }
 
@@ -1933,15 +2147,15 @@ class OrderController extends Controller
     private function reportPeriod(Request $request): string
     {
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            return $request->input('start_date') . ' sampai ' . $request->input('end_date');
+            return $request->input('start_date').' sampai '.$request->input('end_date');
         }
 
         if ($request->filled('start_date')) {
-            return 'Sejak ' . $request->input('start_date');
+            return 'Sejak '.$request->input('start_date');
         }
 
         if ($request->filled('end_date')) {
-            return 'Hingga ' . $request->input('end_date');
+            return 'Hingga '.$request->input('end_date');
         }
 
         return 'Semua Periode';
@@ -1965,7 +2179,7 @@ class OrderController extends Controller
 
             $packageName = $order->package?->name ?? '-';
             if ($order->packageOption?->name) {
-                $packageName .= ' — ' . $order->packageOption->name;
+                $packageName .= ' — '.$order->packageOption->name;
             }
 
             Notification::send($admins, new OrderBaruNotification(
@@ -1975,8 +2189,8 @@ class OrderController extends Controller
                 $packageName,
                 (float) $order->amount,
             ));
-        } catch (\Throwable $e) {
-            Log::error('Order admin notification failed: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::error('Order admin notification failed: '.$e->getMessage());
         }
     }
 
@@ -1984,16 +2198,16 @@ class OrderController extends Controller
     {
         $provided = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
 
-        if (!is_string($provided) || trim($provided) === '') {
+        if (! is_string($provided) || trim($provided) === '') {
             return null;
         }
 
-        return 'orders.idempotency.' . Auth::user()->uuid . '.' . $action . '.' . sha1($subject . '|' . $provided);
+        return 'orders.idempotency.'.Auth::user()->uuid.'.'.$action.'.'.sha1($subject.'|'.$provided);
     }
 
     private function cachedIdempotencyResult(?string $key): ?string
     {
-        if (!$key) {
+        if (! $key) {
             return null;
         }
 
@@ -2010,7 +2224,7 @@ class OrderController extends Controller
 
     private function beginIdempotency(?string $key): bool
     {
-        if (!$key) {
+        if (! $key) {
             return true;
         }
 
@@ -2110,14 +2324,14 @@ class OrderController extends Controller
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
             ]);
-        } catch (\Throwable $e) {
-            Log::warning('Order audit log failed: ' . $e->getMessage(), ['order' => $order->uuid]);
+        } catch (Throwable $e) {
+            Log::warning('Order audit log failed: '.$e->getMessage(), ['order' => $order->uuid]);
         }
     }
 
     private function maskAuditValues(array $values): array
     {
-        if (!empty($values['admin_note'])) {
+        if (! empty($values['admin_note'])) {
             $values['admin_note'] = preg_replace(
                 ['/[\w.+-]+@[\w.-]+\.\w+/', '/(08|\+?628)\d{6,}/'],
                 ['[email]', '[nomor]'],

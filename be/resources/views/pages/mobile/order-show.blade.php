@@ -92,13 +92,28 @@
                 <span class="text-muted2 text-small">{{ __('mobile.date') }}</span>
                 <span class="small fw-semibold">{{ $order->created_at?->format('d M Y') ?? '-' }}</span>
             </div>
+            @if ($order->event_date)
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted2 text-small">Tanggal Acara</span>
+                    <span class="small fw-semibold">{{ $order->event_date->translatedFormat('d F Y') }}</span>
+                </div>
+            @endif
+            @if ($order->promo_code)
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted2 text-small">Promo</span>
+                    <span class="small fw-semibold text-end">
+                        {{ $order->promo_code }}
+                        (Hemat Rp {{ number_format((int) $order->promo_discount, 0, ',', '.') }})
+                    </span>
+                </div>
+            @endif
             @if (!empty($order->addons))
                 <div class="py-2 border-bottom">
                     <div class="text-muted2 text-small mb-1">{{ __('mobile.layanan_tambahan') }}</div>
                     @foreach ($order->addons as $addon)
                         <div class="d-flex justify-content-between gap-3 py-1">
-                            <span class="small">{{ $addon['name'] ?? '-' }}</span>
-                            <span class="small fw-semibold">Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}</span>
+                            <span class="small">{{ $addon['name'] ?? '-' }} x{{ (int) ($addon['quantity'] ?? 1) }}</span>
+                            <span class="small fw-semibold">Rp {{ number_format((int) ($addon['line_total'] ?? $addon['price'] ?? 0), 0, ',', '.') }}</span>
                         </div>
                     @endforeach
                 </div>
@@ -118,6 +133,17 @@
                         <li>{{ $step }}</li>
                     @endforeach
                 </ol>
+
+                @php
+                    $schemeLabel = $order->promo_snapshot['scheme_label'] ?? 'Bayar Lunas';
+                    $fullAmount = $order->promo_snapshot['full_amount'] ?? $order->amount;
+                @endphp
+                <div class="app-card p-2 mb-3 text-small">
+                    <div>Skema pembayaran: <strong>{{ $schemeLabel }}</strong></div>
+                    @if ((int) $fullAmount !== (int) $order->amount)
+                    <div class="text-muted2">Total paket Rp {{ number_format($fullAmount, 0, ',', '.') }} — dibayar sekarang Rp {{ number_format($order->amount, 0, ',', '.') }}.</div>
+                    @endif
+                </div>
 
                 @if ($bankAccount)
                     <div class="p-3 rounded-3 bg-sage-soft mb-3">

@@ -88,5 +88,8 @@ perlu backend MySQL.
 
 ## SEO
 
-- `/sitemap.xml` dinamis (10 URL statis + slug classes/packages/blog/pages dari backend, cache 1 jam, fail-open)
+- `/sitemap.xml` dinamis (URL statis + slug packages/blog/pages dari backend, cache 1 jam, fail-open)
 - `/robots.txt` dinamis dengan `Sitemap:` absolut mengikuti `SITE_URL`
+- URL `?lang=id` dipertahankan agar canonical dan `hreflang` bahasa Indonesia dapat dirayapi; bahasa Inggris memakai URL tanpa parameter.
+- Tetapkan `SITE_URL` ke domain publik HTTPS yang kanonis di production, lalu verifikasi domain dan kirim sitemap melalui Google Search Console.
+- Peringkat, sitelink, dan backlink tidak dapat dijamin oleh perubahan kode; bangun backlink melalui rujukan dan kemitraan yang relevan, bukan tautan spam atau berbayar.

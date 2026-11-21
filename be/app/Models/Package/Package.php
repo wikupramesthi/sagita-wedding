@@ -30,13 +30,31 @@ class Package extends Model
         'cover_url',
         'is_popular',
         'is_active',
+        'is_published',
+        'published_at',
+        'lead_time_days',
     ];
 
     protected $casts = [
         'is_popular' => 'boolean',
+        'is_active' => 'string',
+        'is_published' => 'boolean',
+        'published_at' => 'datetime',
+        'lead_time_days' => 'integer',
         'guest_capacity' => 'integer',
         'event_duration_hours' => 'integer',
     ];
+
+    public function scopePublished($query)
+    {
+        return $query
+            ->where('is_published', true)
+            ->where('is_active', 'active')
+            ->where(function ($query) {
+                $query->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            });
+    }
 
     public function options(): HasMany
     {
@@ -78,6 +96,33 @@ class Package extends Model
     {
         return $this->hasMany(
             Order::class,
+            'package_uuid',
+            'uuid'
+        );
+    }
+
+    public function blackoutDates(): HasMany
+    {
+        return $this->hasMany(
+            PackageBlackoutDate::class,
+            'package_uuid',
+            'uuid'
+        )->orderBy('date');
+    }
+
+    public function promos(): HasMany
+    {
+        return $this->hasMany(
+            PackagePromo::class,
+            'package_uuid',
+            'uuid'
+        )->orderBy('sort_order');
+    }
+
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(
+            PackageWishlist::class,
             'package_uuid',
             'uuid'
         );

@@ -14,6 +14,8 @@ const _description = (typeof metaDescription !== "undefined" && metaDescription 
 const _keywords = typeof metaKeywords !== "undefined" && metaKeywords ? metaKeywords : (_seo.keywords || _site.metaKeywords || "");
 const _robots = typeof robots !== "undefined" && robots ? robots : (_seo.robots || "index, follow");
 const _canonical = typeof currentUrl !== "undefined" ? currentUrl : _siteUrl;
+const _currentPath = typeof currentPath !== "undefined" ? currentPath : "/";
+const _languageUrl = (code) => `${_siteUrl}${_currentPath}${code === "en" ? "" : `?lang=${encodeURIComponent(code)}`}`;
 const _ogImageRaw = _seo.ogImage || _site.ogImage || "/img/logo.WebP";
 const _ogImage = /^https?:\/\//i.test(_ogImageRaw) ? _ogImageRaw : (_siteUrl + _ogImageRaw);
 const _faviconRaw = _site.faviconUrl || "/img/fav.png";
@@ -42,7 +44,17 @@ const _jsonLd = {
       "@id": _siteUrl + "/#website",
       "url": _siteUrl,
       "name": _site.name || "Sagita Wedding",
-      "inLanguage": _langCodes
+      "inLanguage": _langCodes,
+      "publisher": { "@id": _siteUrl + "/#organization" }
+    },
+    {
+      "@type": "WebPage",
+      "@id": _canonical + "#webpage",
+      "url": _canonical,
+      "name": _pageTitle,
+      "description": _description,
+      "inLanguage": _lang,
+      "isPartOf": { "@id": _siteUrl + "/#website" }
     }
   ]
 };
@@ -61,15 +73,15 @@ const _jsonLd = {
 
 <link rel="canonical" href="<%= _canonical %>" />
 
-<!-- Hreflang: versi bahasa via ?lang= (standar Google multibahasa) -->
-<link rel="alternate" hreflang="x-default" href="<%= _canonical %>" />
+<!-- Hreflang: setiap bahasa memiliki URL stabil dan canonical yang sesuai -->
+<link rel="alternate" hreflang="x-default" href="<%= _languageUrl('en') %>" />
 <% _langCodes.forEach((code) => { %>
-<link rel="alternate" hreflang="<%= code %>" href="<%= _canonical %>?lang=<%= code %>" />
+<link rel="alternate" hreflang="<%= code %>" href="<%= _languageUrl(code) %>" />
 <% }) %>
 
 <!-- Open Graph -->
 <meta property="og:type" content="website" />
-<meta property="og:locale" content="<%= _lang %>" />
+<meta property="og:locale" content="<%= _lang === 'id' ? 'id_ID' : 'en_US' %>" />
 <meta property="og:site_name" content="<%= _site.name || "Sagita Wedding" %>" />
 <meta property="og:title" content="<%= _pageTitle %>" />
 <meta property="og:description" content="<%= _description %>" />
@@ -114,8 +126,8 @@ const _jsonLd = {
 />
 <link rel="preload" href="/css/output.css?v=<%= assetV %>" as="style" />
 <link rel="stylesheet" href="/css/output.css?v=<%= assetV %>" />
-<link rel="preload" href="/css/custom.css?v=<%= assetV %>-layout-system4" as="style" />
-<link rel="stylesheet" href="/css/custom.css?v=<%= assetV %>-layout-system4" />
+<link rel="preload" href="/css/custom.css?v=<%= assetV %>-layout-system13" as="style" />
+<link rel="stylesheet" href="/css/custom.css?v=<%= assetV %>-layout-system13" />
 
 <script nonce="<%= nonce %>">
   (function () {

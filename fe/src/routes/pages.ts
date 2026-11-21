@@ -1,7 +1,12 @@
 import { Router } from "express";
 import { localizeFaqCategories, localizeFaqs } from "../data/faqContent.js";
 import { getPageBatch } from "../services/batchService.js";
-import type { NextFunction, Request, Response } from "../types/index.js";
+import type {
+	BannerItem,
+	NextFunction,
+	Request,
+	Response,
+} from "../types/index.js";
 import { toApiError } from "../utils/errors.js";
 import { sanitizeRichHtml } from "../utils/sanitize.js";
 import {
@@ -13,19 +18,51 @@ import {
 
 const router = Router();
 
+function getHomeSliderBanners(value: unknown): BannerItem[] {
+	if (!Array.isArray(value)) return [];
+
+	return value
+		.filter((item): item is BannerItem => {
+			if (!item || typeof item !== "object" || !("gambar" in item)) {
+				return false;
+			}
+
+			const banner = item as Record<string, unknown>;
+			const imageUrl = banner.gambar;
+			return (
+				banner.posisi === "slider" &&
+				typeof imageUrl === "string" &&
+				/^(https?:\/\/|\/(?!\/))/i.test(imageUrl) &&
+				!/\/images\/default\.png(?:[?#]|$)/i.test(imageUrl)
+			);
+		})
+		.slice(0, 5);
+}
+
 // ---------- Home ----------
 router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 	try {
 		const data = await getPageBatch("home").catch(() => null);
+		const isID = res.locals.lang === "id";
+		const sliderBanners = getHomeSliderBanners(data?.sliderBanners);
 
 		res.render("pages/home", {
-			title: "Wedding Planner & Organizer | Sagita Wedding",
+			title: isID
+				? "Wedding Organizer & Paket Pernikahan | Sagita Wedding"
+				: "Wedding Planner & Organizer | Sagita Wedding",
+			metaDescription: isID
+				? "Sagita Wedding Planner membantu merencanakan pernikahan, mengoordinasikan vendor, memilih venue, dan mendampingi hari perayaan Anda."
+				: "Plan your wedding with Sagita Wedding Planner. Explore venues, coordinate trusted vendors, and get thoughtful support on your wedding day.",
+			heroNav: sliderBanners.length > 0,
 			pageScript: "home",
-			venues: Array.isArray(data?.venues) ? data.venues : [],
+			assetV: `${res.locals.assetV}-home-slider21`,
+			sliderBanners,
+			venueDataLoaded: Array.isArray(data?.venues),
+			venues: Array.isArray(data?.venues) ? data.venues.slice(0, 4) : [],
 			packages: data?.packages || [],
 			events: data?.events || [],
 			testimonials: Array.isArray(data?.testimonials)
-				? data.testimonials.slice(0, 3)
+				? data.testimonials.slice(0, 10)
 				: [],
 		});
 	} catch (err) {
@@ -79,8 +116,8 @@ router.get("/about", (_req: Request, res: Response) => {
 	const isID = res.locals.lang === "id";
 	res.render("pages/art-of-living", {
 		title: isID
-			? "Art of Living � Gurudev Sri Sri Ravi Shankar | YogaRoots"
-			: "Art of Living � Gurudev Sri Sri Ravi Shankar | YogaRoots",
+			? "Gurudev Sri Sri Ravi Shankar & Art of Living | Sagita Wedding"
+			: "Gurudev Sri Sri Ravi Shankar & Art of Living | Sagita Wedding",
 		metaDescription: isID
 			? "Mengenal Gurudev Sri Sri Ravi Shankar, pendiri Art of Living � duta perdamaian, pencipta Sudarshan Kriya, menjangkau 800 juta+ jiwa di 180 negara."
 			: "Meet Gurudev Sri Sri Ravi Shankar, founder of Art of Living � ambassador of peace, creator of Sudarshan Kriya, reaching 800M+ lives across 180 countries.",
@@ -162,8 +199,14 @@ router.get(
 		try {
 			const data = await getPageBatch("blog");
 			const posts = Array.isArray(data?.articles) ? data.articles : [];
+			const isID = res.locals.lang === "id";
 			res.render("pages/blog", {
-				title: "Yoga Articles & Tips",
+				title: isID
+					? "Artikel Pernikahan & Tips Wedding | Sagita Wedding"
+					: "Wedding Articles & Planning Tips | Sagita Wedding",
+				metaDescription: isID
+					? "Baca artikel dan tips pernikahan dari Sagita Wedding Planner, mulai dari perencanaan, venue, vendor, hingga persiapan hari istimewa."
+					: "Read wedding planning articles from Sagita Wedding Planner, with ideas for venues, vendors, preparation, and your wedding day.",
 				pageScript: "blog",
 				posts,
 				totalPosts: data?.total || posts.length,
@@ -188,7 +231,14 @@ router.get(
 					heroNav: true,
 				});
 			res.render("pages/blog-detail", {
-				title: post.title,
+				title: `${post.title} | Sagita Wedding`,
+				metaDescription:
+					typeof post.excerpt === "string" && post.excerpt.trim()
+						? post.excerpt
+								.replace(/<[^>]*>/g, " ")
+								.replace(/\s+/g, " ")
+								.trim()
+						: undefined,
 				pageScript: "blog-detail",
 				post: { ...post, content: sanitizeRichHtml(post.content) },
 				related: Array.isArray(data?.related) ? data.related : [],
@@ -222,8 +272,14 @@ router.get(
 			const data = await getPageBatch("packages", params);
 			const packages = Array.isArray(data?.packages) ? data.packages : [];
 			const meta = data?.meta || {};
+			const isID = res.locals.lang === "id";
 			res.render("pages/packages", {
-				title: "Membership Packages",
+				title: isID
+					? "Paket Pernikahan | Sagita Wedding Planner"
+					: "Wedding Planning Packages | Sagita Wedding Planner",
+				metaDescription: isID
+					? "Jelajahi paket pernikahan Sagita Wedding Planner dan temukan layanan yang sesuai dengan rencana, kebutuhan, dan hari istimewa Anda."
+					: "Explore Sagita Wedding Planner packages and find wedding planning services that fit your plans, priorities, and celebration.",
 				packages,
 				search: params.search,
 				filter: params.filter,
@@ -247,13 +303,21 @@ router.get("/packages/:slug", async (req: Request, res: Response) => {
 		const packageDetail = data?.package;
 		if (!packageDetail) throw new Error("Package not found");
 		res.render("pages/packages-detail", {
-			title: packageDetail.name,
+			title: `${packageDetail.name} | Wedding Package | Sagita Wedding`,
+			metaDescription:
+				typeof packageDetail.description === "string"
+					? packageDetail.description
+							.replace(/<[^>]*>/g, " ")
+							.replace(/\s+/g, " ")
+							.trim()
+					: undefined,
 			package: packageDetail,
 			error: null,
 		});
 	} catch (_err) {
 		return res.status(404).render("pages/packages-detail", {
 			title: "Package Not Found",
+			robots: "noindex, nofollow",
 			package: null,
 			error: "Package not found.",
 		});
@@ -276,8 +340,14 @@ router.get(
 			const data = await getPageBatch("events", params);
 			const events = Array.isArray(data?.events) ? data.events : [];
 			const meta = data?.meta || {};
+			const isID = res.locals.lang === "id";
 			res.render("pages/events", {
-				title: "Event & Workshop",
+				title: isID
+					? "Acara & Workshop | Sagita Wedding Planner"
+					: "Events & Workshops | Sagita Wedding Planner",
+				metaDescription: isID
+					? "Lihat acara dan workshop Sagita Wedding Planner untuk mendapatkan inspirasi dan informasi seputar persiapan pernikahan."
+					: "Explore Sagita Wedding Planner events and workshops for ideas and guidance on preparing for your wedding.",
 				events,
 				search: params.search,
 				filter: params.filter,
@@ -301,7 +371,16 @@ router.get(
 		try {
 			const data = await getPageBatch("gallery").catch(() => null);
 			const gallery = Array.isArray(data?.gallery) ? data.gallery : [];
-			res.render("pages/gallery", { title: "Our Gallery", gallery });
+			const isID = res.locals.lang === "id";
+			res.render("pages/gallery", {
+				title: isID
+					? "Galeri Pernikahan | Sagita Wedding Planner"
+					: "Wedding Gallery | Sagita Wedding Planner",
+				metaDescription: isID
+					? "Lihat galeri Sagita Wedding Planner untuk inspirasi suasana dan detail perayaan pernikahan."
+					: "Explore the Sagita Wedding Planner gallery for inspiration from wedding celebrations and thoughtful details.",
+				gallery,
+			});
 		} catch (err) {
 			next(err);
 		}

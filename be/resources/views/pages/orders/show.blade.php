@@ -7,11 +7,17 @@
 @php
     $statusLabels = [
         'pending' => 'Menunggu Verifikasi',
+        'partially_paid' => 'DP Terverifikasi',
         'paid' => 'Lunas',
         'failed' => 'Gagal',
         'expired' => 'Kedaluwarsa',
         'cancelled' => 'Dibatalkan',
     ];
+    $schemeLabel = $order->scheme_label ?? 'Bayar Lunas';
+    $fullAmount = (float) ($order->total_amount ?: $order->amount);
+    $amountPaid = (float) ($order->amount_paid_value ?? ($order->status === 'paid' ? $fullAmount : 0));
+    $remainingAmount = (float) ($order->remaining_amount_value ?? max(0, $fullAmount - $amountPaid));
+    $isDp = in_array($order->payment_scheme, ['dp30','dp50'], true);
 @endphp
 
 <div class="receipt-page">
@@ -144,13 +150,30 @@
                                 <div class="fw-semibold">{{ $order->user->phone ?? $order->user->whatsapp }}</div>
                             </div>
                         @endif
+                        @if ($order->event_date)
+                            <div class="col-md-4">
+                                <div class="text-muted">Tanggal Acara</div>
+                                <div class="fw-semibold">{{ $order->event_date->translatedFormat('d F Y') }}</div>
+                            </div>
+                        @endif
+                        @if ($order->promo_code)
+                            <div class="col-md-4">
+                                <div class="text-muted">Promo</div>
+                                <div class="fw-semibold">
+                                    {{ $order->promo_code }}
+                                    (Hemat Rp {{ number_format((int) $order->promo_discount, 0, ',', '.') }})
+                                </div>
+                            </div>
+                        @endif
                         @if (!empty($order->addons))
                             <div class="col-12">
                                 <div class="text-muted mb-1">Layanan tambahan</div>
                                 @foreach ($order->addons as $addon)
                                     <div class="d-flex justify-content-between gap-3 border-bottom py-1">
-                                        <span class="fw-semibold">{{ $addon['name'] ?? '-' }}</span>
-                                        <span>Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}</span>
+                                        <span class="fw-semibold">
+                                            {{ $addon['name'] ?? '-' }} x{{ (int) ($addon['quantity'] ?? 1) }}
+                                        </span>
+                                        <span>Rp {{ number_format((int) ($addon['line_total'] ?? $addon['price'] ?? 0), 0, ',', '.') }}</span>
                                     </div>
                                 @endforeach
                             </div>
@@ -239,6 +262,17 @@
                         <li>Unggah bukti transfer (atau konfirmasi melalui WhatsApp).</li>
                         <li>Admin akan memverifikasi — keanggotaan aktif otomatis setelah disetujui.</li>
                     </ol>
+
+                    @php
+                        $schemeLabel = $order->promo_snapshot['scheme_label'] ?? 'Bayar Lunas';
+                        $fullAmount = $order->promo_snapshot['full_amount'] ?? $order->amount;
+                    @endphp
+                    <div class="alert alert-light border small mb-3">
+                        <div>Skema pembayaran: <strong>{{ $schemeLabel }}</strong></div>
+                        @if ((int) $fullAmount !== (int) $order->amount)
+                        <div class="text-muted">Total paket Rp {{ number_format($fullAmount, 0, ',', '.') }} — dibayar sekarang Rp {{ number_format($order->amount, 0, ',', '.') }}.</div>
+                        @endif
+                    </div>
 
                     @if ($bankAccount)
                         <div class="p-3 rounded-3 bg-light mb-3">

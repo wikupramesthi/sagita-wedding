@@ -29,6 +29,27 @@ class PackageResource extends JsonResource
 
             'is_popular' => (bool) $this->is_popular,
 
+            'lead_time_days' => (int) $this->lead_time_days,
+
+            'payment_schemes' => [
+                ['code' => 'dp30', 'label' => 'DP 30%', 'factor' => 0.30],
+                ['code' => 'dp50', 'label' => 'DP 50%', 'factor' => 0.50],
+                ['code' => 'full', 'label' => 'Bayar Lunas', 'factor' => 1.00],
+            ],
+
+            'blackout_dates' => $this->whenLoaded('blackoutDates', fn () => $this->blackoutDates->map(fn ($d) => [
+                'date' => $d->date?->toDateString(),
+                'reason' => $d->reason,
+            ])->values(), []),
+
+            'promos' => $this->whenLoaded('promos', fn () => $this->promos->filter(fn ($p) => $p->isUsable())->map(fn ($p) => [
+                'code' => $p->code,
+                'type' => $p->type,
+                'value' => (int) $p->value,
+                'min_purchase' => (int) $p->min_purchase,
+                'max_discount' => $p->max_discount !== null ? (int) $p->max_discount : null,
+            ])->values(), []),
+
             'options' => $this->options->map(function ($option) {
 
                 $finalPrice = (
@@ -83,6 +104,14 @@ class PackageResource extends JsonResource
                     'discount_price' => $addon->discount_price,
 
                     'final_price' => $finalPrice,
+
+                    'min_quantity' => (int) ($addon->min_quantity ?? 1),
+
+                    'max_quantity' => $addon->max_quantity !== null
+                        ? (int) $addon->max_quantity
+                        : null,
+
+                    'requires_addon_uuid' => $addon->requires_addon_uuid,
 
                     'sort_order' => $addon->sort_order,
 

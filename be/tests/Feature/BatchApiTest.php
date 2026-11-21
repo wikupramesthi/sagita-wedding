@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\Testimonial;
 use App\Models\Venue;
 use Tests\TestCase;
 
@@ -60,6 +61,25 @@ class BatchApiTest extends TestCase
             (string) $response->headers->get('Cache-Control'),
         );
         $this->assertNotEmpty($response->headers->get('ETag'));
+    }
+
+    public function test_home_batch_limits_testimonials_to_ten_items(): void
+    {
+        foreach (range(1, 12) as $order) {
+            Testimonial::query()->create([
+                'nama' => "Pasangan {$order}",
+                'jabatan' => 'Pasangan pengantin',
+                'isi_testimoni' => "Cerita {$order}.",
+                'urutan' => $order,
+                'is_active' => 'active',
+            ]);
+        }
+
+        $this->api()
+            ->getJson('/api/batch/home')
+            ->assertOk()
+            ->assertJsonCount(10, 'data.testimonials')
+            ->assertJsonPath('data.testimonials.9.nama', 'Pasangan 10');
     }
 
     public function test_venues_batch_returns_active_venue_directory(): void

@@ -2,6 +2,21 @@
 @section('title', 'Pemesanan Paket')
 @section('content')
 
+@php
+$leadTimeDays = (int) ($package->lead_time_days ?? 0);
+$minEventDate = now()->addDays($leadTimeDays)->toDateString();
+$blackoutDates = $package->blackoutDates ?? collect();
+$promos = ($package->promos ?? collect())->map(function ($promo) {
+    return [
+        'code' => strtoupper($promo->code),
+        'type' => $promo->type,
+        'value' => (int) $promo->value,
+        'min_purchase' => (int) $promo->min_purchase,
+        'max_discount' => $promo->max_discount,
+    ];
+})->values()->all();
+@endphp
+
 <div class="container-fluid package-checkout">
 
     {{-- Page Header --}}
@@ -89,6 +104,21 @@
                         @endif
                     </div>
                     @endif
+
+                    <div class="checkout-event-meta mt-2">
+                        <span>
+                            <i class="bi bi-calendar2-check me-1"></i>
+                            Pemesanan minimal <strong>{{ $leadTimeDays }} hari</strong> sebelum tanggal acara.
+                        </span>
+
+                        @if ($blackoutDates->count())
+                        <span>
+                            <i class="bi bi-calendar-x me-1"></i>
+                            Tanggal tidak tersedia:
+                            <strong>{{ $blackoutDates->pluck('date')->map(fn ($date) => $date?->format('d M Y'))->implode(', ') }}</strong>
+                        </span>
+                        @endif
+                    </div>
 
                 </div>
 
@@ -268,6 +298,21 @@
                             @endif
                         </span>
 
+                        <span class="addon-qty-field">
+                            <span class="text-muted small d-block">Jumlah</span>
+                            <input
+                                type="number"
+                                class="form-control form-control-sm addon-quantity"
+                                form="checkoutForm"
+                                name="addon_quantities[{{ $addon->uuid }}]"
+                                data-addon-uuid="{{ $addon->uuid }}"
+                                data-addon-name="{{ $addon->name }}"
+                                data-addon-price="{{ (int) $addon->final_price }}"
+                                min="{{ max(1, (int) $addon->min_quantity) }}"
+                                max="{{ $addon->max_quantity ?? 99 }}"
+                                value="{{ max(1, (int) $addon->min_quantity) }}">
+                        </span>
+
                         <span class="addon-option-price">
                             Rp {{ number_format($addon->final_price, 0, ',', '.') }}
                         </span>
@@ -388,14 +433,49 @@
 
                 </div>
 
-            </div>
+                </div>
 
-        </div>
+                <div class="mt-4 checkout-scheme-card">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-cash-coin fs-5"></i>
+                        <div>
+                            <h6 class="fw-bold mb-0">Skema Pembayaran</h6>
+                            <div class="text-muted small mb-0">Pilih jumlah yang dibayar sekarang.</div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-scheme-options">
+                        <label class="checkout-scheme-option">
+                            <input type="radio" name="payment_scheme" value="dp30" form="checkoutForm" class="payment-scheme-input">
+                            <span class="checkout-scheme-body">
+                                <strong>DP 30%</strong>
+                                <small>Bayar sebagian di awal</small>
+                            </span>
+                        </label>
+                        <label class="checkout-scheme-option">
+                            <input type="radio" name="payment_scheme" value="dp50" form="checkoutForm" class="payment-scheme-input">
+                            <span class="checkout-scheme-body">
+                                <strong>DP 50%</strong>
+                                <small>Setengah dari total paket</small>
+                            </span>
+                        </label>
+                        <label class="checkout-scheme-option">
+                            <input type="radio" name="payment_scheme" value="full" form="checkoutForm" class="payment-scheme-input" checked>
+                            <span class="checkout-scheme-body">
+                                <strong>Bayar Lunas</strong>
+                                <small>Langsung lunasi seluruh paket</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
 
 
         {{-- =====================================================
              RIGHT
         ====================================================== --}}
+
         <div class="col-lg-4">
 
             <div class="card border-0 shadow-sm checkout-summary">
@@ -575,6 +655,21 @@
                         </div>
 
 
+                        <div class="d-flex justify-content-between align-items-end summary-discount-row d-none" id="summaryDiscountRow">
+
+                            <span class="text-muted small">
+                                Diskon promo
+                            </span>
+
+                            <div class="text-end">
+                                <div id="summaryDiscount" class="summary-price">
+                                    Rp 0
+                                </div>
+                            </div>
+
+                        </div>
+
+
                         <div class="summary-divider"></div>
 
 
@@ -598,6 +693,19 @@
 
                         </div>
 
+                        <div class="d-flex justify-content-between align-items-end checkout-due-row">
+                            <span class="text-muted small">
+                                Dibayar sekarang
+                            </span>
+                            <strong id="summaryDue" class="summary-total">
+                                @if ($package->options->first())
+                                Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}
+                                @else
+                                Rp 0
+                                @endif
+                            </strong>
+                        </div>
+
                     </div>
 
 
@@ -608,6 +716,51 @@
                         method="POST"
                         id="checkoutForm">
                         @csrf
+
+                        <div class="mb-3">
+                            <label for="event_date" class="form-label small fw-semibold mb-1">
+                                Tanggal Acara
+                            </label>
+
+                            <input
+                                type="date"
+                                name="event_date"
+                                id="event_date"
+                                class="form-control"
+                                min="{{ $minEventDate }}"
+                                value="{{ old('event_date', $minEventDate) }}"
+                                required>
+
+                            <div class="form-text">
+                                Minimal {{ $leadTimeDays }} hari sebelum acara.
+
+                                @if ($blackoutDates->count())
+                                Tanggal tidak tersedia:
+                                {{ $blackoutDates->pluck('date')->map(fn ($date) => $date?->format('d M Y'))->implode(', ') }}
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="promo_code" class="form-label small fw-semibold mb-1">
+                                Kode Promo
+                            </label>
+
+                            <input
+                                type="text"
+                                name="promo_code"
+                                id="promo_code"
+                                class="form-control"
+                                maxlength="50"
+                                placeholder="Masukkan kode promo"
+                                value="{{ old('promo_code') }}">
+
+                            @if ($promos)
+                            <div class="form-text">
+                                Promo tersedia: {{ collect($promos)->pluck('code')->implode(', ') }}
+                            </div>
+                            @endif
+                        </div>
 
                         <input
                             type="hidden"
@@ -622,7 +775,7 @@
                         <div id="addonUuidInputs"></div>
 
                         <button
-                            type="submit"
+                            type="button"
                             id="continuePayment"
                             class="btn btn-primary w-100 continue-payment">
                             Lanjutkan ke Pembayaran
@@ -662,6 +815,50 @@
 
     </div>
 
+</div>
+
+
+<div class="modal fade" id="checkoutConfirmModal" tabindex="-1" aria-labelledby="checkoutConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content checkout-confirm-modal">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold" id="checkoutConfirmLabel">Konfirmasi Pesanan</h5>
+                    <div class="text-muted small">Periksa detail sebelum melanjutkan pembayaran.</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <div class="checkout-confirm-row">
+                    <span>Paket</span>
+                    <strong id="confirmOption">-</strong>
+                </div>
+                <div class="checkout-confirm-row">
+                    <span>Tanggal acara</span>
+                    <strong id="confirmDate">-</strong>
+                </div>
+                <div class="checkout-confirm-row">
+                    <span>Skema pembayaran</span>
+                    <strong id="confirmScheme">Bayar Lunas</strong>
+                </div>
+                <div class="checkout-confirm-row">
+                    <span>Total paket</span>
+                    <strong id="confirmTotal">Rp 0</strong>
+                </div>
+                <div class="checkout-confirm-row checkout-confirm-due">
+                    <span>Dibayar sekarang</span>
+                    <strong id="confirmDue">Rp 0</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Ubah</button>
+                <button type="submit" form="checkoutForm" id="confirmCheckout" class="btn btn-primary">
+                    Konfirmasi & Bayar
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -961,6 +1158,17 @@
     }
 
 
+    .addon-qty-field {
+        width: 78px;
+        flex-shrink: 0;
+    }
+
+
+    .addon-qty-field input {
+        text-align: center;
+    }
+
+
     .summary-addons {
         margin-top: 18px;
         padding: 15px;
@@ -972,6 +1180,11 @@
 
 
     .summary-addon-row {
+        margin-top: 12px;
+    }
+
+
+    .summary-discount-row {
         margin-top: 12px;
     }
 
@@ -1023,10 +1236,8 @@
 
     .checkout-summary {
         position: sticky;
-        top: 20px;
+        top: calc(var(--package-sticky-top, 76px) + 16px);
         align-self: start;
-        max-height: calc(100vh - 40px);
-        overflow-y: auto;
         z-index: 2;
     }
 
@@ -1207,6 +1418,92 @@
     }
 
 
+    .checkout-scheme-card {
+        padding: 18px;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 14px;
+        background: var(--bs-tertiary-bg);
+    }
+
+    .checkout-scheme-options {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .checkout-scheme-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin: 0;
+        padding: 12px 10px;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 11px;
+        background: var(--bs-body-bg);
+        cursor: pointer;
+        transition: border-color .2s ease, background .2s ease;
+    }
+
+    .checkout-scheme-option:has(input:checked) {
+        border-color: var(--bs-primary);
+        background: rgba(13, 110, 253, .06);
+    }
+
+    .checkout-scheme-option input {
+        margin-top: 3px;
+        accent-color: var(--bs-primary);
+    }
+
+    .checkout-scheme-body {
+        display: grid;
+        gap: 3px;
+        line-height: 1.3;
+    }
+
+    .checkout-scheme-body strong {
+        font-size: 13px;
+    }
+
+    .checkout-scheme-body small {
+        color: var(--bs-secondary-color);
+        font-size: 11px;
+    }
+
+    .checkout-due-row {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed var(--bs-border-color);
+    }
+
+    .checkout-confirm-modal .modal-body {
+        display: grid;
+        gap: 10px;
+    }
+
+    .checkout-confirm-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 13px;
+    }
+
+    .checkout-confirm-row > span {
+        color: var(--bs-secondary-color);
+    }
+
+    .checkout-confirm-due {
+        margin-top: 4px;
+        padding-top: 12px;
+        border-top: 1px solid var(--bs-border-color);
+        font-size: 15px;
+    }
+
+    @media (max-width: 767.98px) {
+        .checkout-scheme-options { grid-template-columns: 1fr; }
+    }
+
+
     /* =========================================================
    RESPONSIVE
 ========================================================= */
@@ -1290,6 +1587,32 @@
         const addonUuidInputs =
             document.getElementById('addonUuidInputs');
 
+        const quantityInputs =
+            document.querySelectorAll('.addon-quantity');
+
+        const promoInput =
+            document.getElementById('promo_code');
+
+        const summaryDiscountRow =
+            document.getElementById('summaryDiscountRow');
+
+        const summaryDiscount =
+            document.getElementById('summaryDiscount');
+
+        const summaryDue =
+            document.getElementById('summaryDue');
+
+        const paymentSchemeInputs =
+            document.querySelectorAll('.payment-scheme-input');
+
+        const continuePayment =
+            document.getElementById('continuePayment');
+
+        const confirmModalElement =
+            document.getElementById('checkoutConfirmModal');
+
+        const promos = @json($promos);
+
 
         /*
         |--------------------------------------------------------------------------
@@ -1299,6 +1622,54 @@
 
         function formatRupiah(value) {
             return 'Rp ' + Number(value).toLocaleString('id-ID');
+        }
+
+
+        function addonQuantity(item) {
+            const input = document.querySelector(
+                '[name="addon_quantities[' + item.dataset.addonUuid + ']"]'
+            );
+            const min = Number(input?.min || 1);
+            const max = Number(input?.max || 99);
+            const value = Number(input?.value || min);
+            return Math.min(max, Math.max(min, value));
+        }
+
+
+        function promoDiscount(subtotal) {
+            const code = (promoInput?.value || '').trim().toUpperCase();
+
+            if (!code) {
+                return 0;
+            }
+
+            const promo = promos.find(item => item.code === code);
+
+            if (!promo || subtotal < promo.min_purchase) {
+                return 0;
+            }
+
+            let discount = promo.type === 'percent'
+                ? Math.round(subtotal * promo.value / 100)
+                : promo.value;
+
+            if (promo.max_discount !== null) {
+                discount = Math.min(discount, promo.max_discount);
+            }
+
+            return Math.max(0, Math.min(discount, subtotal));
+        }
+
+
+        function selectedPaymentScheme() {
+            const selected = Array.from(paymentSchemeInputs).find(input => input.checked);
+            const value = selected?.value || 'full';
+
+            return {
+                value,
+                label: value === 'dp30' ? 'DP 30%' : value === 'dp50' ? 'DP 50%' : 'Bayar Lunas',
+                factor: value === 'dp30' ? 0.30 : value === 'dp50' ? 0.50 : 1,
+            };
         }
 
 
@@ -1438,9 +1809,23 @@
 
             const addonTotal = selectedAddons.reduce(
                 (total, item) =>
-                total + Number(item.dataset.addonPrice || 0),
+                total + Number(item.dataset.addonPrice || 0) * addonQuantity(item),
                 0
             );
+
+            const discount = promoDiscount(price + addonTotal);
+
+            if (summaryDiscountRow) {
+                summaryDiscountRow.classList.toggle(
+                    'd-none',
+                    discount === 0
+                );
+            }
+
+            if (summaryDiscount) {
+                summaryDiscount.textContent =
+                    formatRupiah(discount);
+            }
 
 
             if (summaryAddonsList) {
@@ -1459,13 +1844,15 @@
                         document.createElement('span');
 
                     label.textContent =
-                        item.dataset.addonName;
+                        item.dataset.addonName + ' x' + addonQuantity(item);
 
                     const value =
                         document.createElement('strong');
 
                     value.textContent =
-                        formatRupiah(item.dataset.addonPrice);
+                        formatRupiah(
+                            Number(item.dataset.addonPrice) * addonQuantity(item)
+                        );
 
                     line.appendChild(label);
                     line.appendChild(value);
@@ -1505,8 +1892,14 @@
             }
 
 
-            summaryTotal.textContent =
-                formatRupiah(price + addonTotal);
+            const total = Math.max(0, price + addonTotal - discount);
+            const scheme = selectedPaymentScheme();
+
+            summaryTotal.textContent = formatRupiah(total);
+
+            if (summaryDue) {
+                summaryDue.textContent = formatRupiah(Math.round(total * scheme.factor));
+            }
 
 
             if (addonUuidInputs) {
@@ -1580,66 +1973,98 @@
         });
 
 
+        quantityInputs.forEach(input => {
+
+            input.addEventListener('input', function() {
+
+                const selected =
+                    document.querySelector(
+                        '.package-option-choice.selected'
+                    ) || options[0];
+
+                updateSummary(selected);
+
+            });
+
+        });
+
+
+        if (promoInput) {
+
+            promoInput.addEventListener('input', function() {
+
+                const selected =
+                    document.querySelector(
+                        '.package-option-choice.selected'
+                    ) || options[0];
+
+                updateSummary(selected);
+
+            });
+
+        }
+
+        paymentSchemeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const selected =
+                    document.querySelector(
+                        '.package-option-choice.selected'
+                    ) || options[0];
+
+                updateSummary(selected);
+            });
+        });
+
+
         /*
         |--------------------------------------------------------------------------
         | Submit Checkout
         |--------------------------------------------------------------------------
         */
 
-        if (checkoutForm) {
+        if (checkoutForm && continuePayment && confirmModalElement) {
 
-            checkoutForm.addEventListener(
-                'submit',
-                function(event) {
+            continuePayment.addEventListener('click', function() {
 
-                    const selected =
-                        document.querySelector(
-                            '.package-option-choice.selected'
-                        );
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Validate Selected Option
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (!selected) {
-
-                        event.preventDefault();
-
-                        alert(
-                            'Silakan pilih opsi paket.'
-                        );
-
-                        return;
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Make Sure UUID Is Set
-                    |--------------------------------------------------------------------------
-                    */
-
-                    packageOptionUuid.value =
-                        selected.dataset.optionUuid;
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Debug
-                    |--------------------------------------------------------------------------
-                    */
-
-                    console.log(
-                        'Creating order for package option:',
-                        packageOptionUuid.value
+                const selected =
+                    document.querySelector(
+                        '.package-option-choice.selected'
                     );
 
+                if (!selected) {
+                    alert('Silakan pilih opsi paket.');
+                    return;
                 }
-            );
 
+                if (!checkoutForm.reportValidity()) {
+                    return;
+                }
+
+                packageOptionUuid.value = selected.dataset.optionUuid;
+
+                const total = Number(
+                    (summaryTotal.textContent || '').replace(/\D/g, '')
+                ) || 0;
+                const scheme = selectedPaymentScheme();
+                const due = Math.round(total * scheme.factor);
+
+                document.getElementById('confirmOption').textContent =
+                    selected.dataset.optionName || '-';
+                document.getElementById('confirmDate').textContent =
+                    document.getElementById('event_date')?.value || '-';
+                document.getElementById('confirmScheme').textContent =
+                    scheme.label;
+                document.getElementById('confirmTotal').textContent =
+                    formatRupiah(total);
+                document.getElementById('confirmDue').textContent =
+                    formatRupiah(due);
+
+                bootstrap.Modal.getOrCreateInstance(confirmModalElement).show();
+            });
+
+            confirmModalElement.addEventListener('shown.bs.modal', function() {
+                document.getElementById('confirmCheckout')?.focus();
+            });
         }
 
     });

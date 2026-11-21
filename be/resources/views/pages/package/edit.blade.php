@@ -36,6 +36,59 @@
     </div>
     @endif
 
+    @php
+        $addonIndexByUuid = [];
+        foreach ($package->addons as $addonIndex => $addonItem) {
+            $addonIndexByUuid[$addonItem->uuid] = $addonIndex;
+        }
+
+        $blackoutValue = old(
+            'blackout_dates',
+            $package->blackoutDates
+                ->map(fn ($item) => $item->date->format('Y-m-d'))
+                ->implode(', ')
+        );
+    @endphp
+
+    <script type="application/json" id="package-reorder-meta">@json(['url' => route('packages.reorder', $package->uuid)])</script>
+
+    <div class="package-stepper card border-0 shadow-sm mb-4">
+        <div class="card-body py-3 px-3">
+            <div class="row g-2">
+                <div class="col-6 col-md-4 col-xl">
+                    <a class="package-step" href="#package-section-information">
+                        <span class="package-step-number">1</span>
+                        <span>Informasi</span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-xl">
+                    <a class="package-step" href="#package-section-event">
+                        <span class="package-step-number">2</span>
+                        <span>Detail Acara</span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-xl">
+                    <a class="package-step" href="#package-section-options">
+                        <span class="package-step-number">3</span>
+                        <span>Opsi &amp; Add-on</span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-xl">
+                    <a class="package-step" href="#package-section-availability">
+                        <span class="package-step-number">4</span>
+                        <span>Promo &amp; Ketersediaan</span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-xl">
+                    <a class="package-step" href="#package-section-publication">
+                        <span class="package-step-number">5</span>
+                        <span>Publikasi</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <form action="{{ route('packages.update', $package->uuid) }}" method="POST">
         @csrf
         @method('PUT')
@@ -44,7 +97,7 @@
 
             <div class="col-lg-8">
 
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-information">
                     <div class="card-header bg-transparent border-0 p-4 pb-2">
                         <div class="d-flex align-items-center gap-3">
                             <div class="package-section-icon">
@@ -92,7 +145,7 @@
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-event">
                     <div class="card-header bg-transparent border-0 p-4 pb-2">
                         <div class="d-flex align-items-center gap-3">
                             <div class="package-section-icon">
@@ -168,7 +221,7 @@
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-options">
                     <div class="card-header bg-transparent border-0 p-4 pb-2">
                         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
                             <div class="d-flex align-items-center gap-3">
@@ -199,12 +252,14 @@
                         <div id="package-options-container">
 
                             @forelse ($package->options as $index => $option)
-                            <div class="package-option-item border rounded-3 p-3 mb-3">
+                            <div class="package-option-item border rounded-3 p-3 mb-3" draggable="true" data-uuid="{{ $option->uuid }}">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <span class="fw-semibold package-option-title">
-                                            Opsi {{ $index + 1 }}
-                                        </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="package-sortable-handle" title="Geser untuk mengubah urutan"><i class="bi bi-grip-vertical"></i></span>
+                                        <div>
+                                            <span class="fw-semibold package-option-title">
+                                                Opsi {{ $index + 1 }}
+                                            </span>
 
                                         <span class="text-muted small ms-1">
                                             Pilihan harga
@@ -346,16 +401,19 @@
                             </div>
 
                             @empty
-                            <div class="package-option-item border rounded-3 p-3 mb-3">
+                            <div class="package-option-item border rounded-3 p-3 mb-3" draggable="true">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <span class="fw-semibold package-option-title">
-                                            Opsi 1
-                                        </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="package-sortable-handle" title="Geser untuk mengubah urutan"><i class="bi bi-grip-vertical"></i></span>
+                                        <div>
+                                            <span class="fw-semibold package-option-title">
+                                                Opsi 1
+                                            </span>
 
-                                        <span class="text-muted small ms-1">
-                                            Pilihan harga
-                                        </span>
+                                            <span class="text-muted small ms-1">
+                                                Pilihan harga
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <button type="button"
@@ -525,11 +583,14 @@
                         <div id="package-addons-container">
 
                             @forelse ($package->addons ?? [] as $index => $addon)
-                            <div class="package-addon-item border rounded-3 p-3 mb-3">
+                            <div class="package-addon-item border rounded-3 p-3 mb-3" draggable="true" data-uuid="{{ $addon->uuid }}">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="fw-semibold package-addon-title">
-                                        Layanan {{ $index + 1 }}
-                                    </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="package-sortable-handle" title="Geser untuk mengubah urutan"><i class="bi bi-grip-vertical"></i></span>
+                                        <span class="fw-semibold package-addon-title">
+                                            Layanan {{ $index + 1 }}
+                                        </span>
+                                    </div>
 
                                     <button type="button"
                                         class="btn btn-sm btn-outline-danger btn-remove-package-addon">
@@ -599,15 +660,58 @@
                                                 placeholder="Opsional">
                                         </div>
                                     </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">
+                                            Min Qty
+                                        </label>
+
+                                        <input type="number"
+                                            name="addons[{{ $index }}][min_quantity]"
+                                            class="form-control"
+                                            value="{{ old("addons.$index.min_quantity", $addon->min_quantity) }}"
+                                            min="1"
+                                            max="99"
+                                            placeholder="1">
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">
+                                            Max Qty
+                                        </label>
+
+                                        <input type="number"
+                                            name="addons[{{ $index }}][max_quantity]"
+                                            class="form-control"
+                                            value="{{ old("addons.$index.max_quantity", $addon->max_quantity) }}"
+                                            min="1"
+                                            placeholder="Opsional">
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">
+                                            Butuh Layanan ke-
+                                        </label>
+
+                                        <input type="number"
+                                            name="addons[{{ $index }}][requires_addon_index]"
+                                            class="form-control"
+                                            value="{{ old("addons.$index.requires_addon_index", $addonIndexByUuid[$addon->requires_addon_uuid] ?? '') }}"
+                                            min="0"
+                                            placeholder="Contoh: 1">
+                                    </div>
                                 </div>
                             </div>
 
                             @empty
-                            <div class="package-addon-item border rounded-3 p-3 mb-3">
+                            <div class="package-addon-item border rounded-3 p-3 mb-3" draggable="true">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="fw-semibold package-addon-title">
-                                        Layanan 1
-                                    </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="package-sortable-handle" title="Geser untuk mengubah urutan"><i class="bi bi-grip-vertical"></i></span>
+                                        <span class="fw-semibold package-addon-title">
+                                            Layanan 1
+                                        </span>
+                                    </div>
 
                                     <button type="button"
                                         class="btn btn-sm btn-outline-danger btn-remove-package-addon">
@@ -677,6 +781,46 @@
                                                 placeholder="Opsional">
                                         </div>
                                     </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">
+                                            Min Qty
+                                        </label>
+
+                                        <input type="number"
+                                            name="addons[0][min_quantity]"
+                                            class="form-control"
+                                            value="{{ old('addons.0.min_quantity', 1) }}"
+                                            min="1"
+                                            max="99"
+                                            placeholder="1">
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">
+                                            Max Qty
+                                        </label>
+
+                                        <input type="number"
+                                            name="addons[0][max_quantity]"
+                                            class="form-control"
+                                            value="{{ old('addons.0.max_quantity') }}"
+                                            min="1"
+                                            placeholder="Opsional">
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">
+                                            Butuh Layanan ke-
+                                        </label>
+
+                                        <input type="number"
+                                            name="addons[0][requires_addon_index]"
+                                            class="form-control"
+                                            value="{{ old('addons.0.requires_addon_index') }}"
+                                            min="0"
+                                            placeholder="Contoh: 1">
+                                    </div>
                                 </div>
                             </div>
                             @endforelse
@@ -722,9 +866,9 @@
                         <div id="package-features-container">
 
                             @forelse ($package->features as $index => $feature)
-                            <div class="input-group mb-2 package-feature-item">
-                                <span class="input-group-text bg-transparent">
-                                    <i class="bi bi-check2"></i>
+                            <div class="input-group mb-2 package-feature-item" draggable="true" data-uuid="{{ $feature->uuid }}">
+                                <span class="input-group-text bg-transparent package-sortable-handle" title="Geser untuk mengubah urutan">
+                                    <i class="bi bi-grip-vertical"></i>
                                 </span>
 
                                 <input type="text"
@@ -740,9 +884,9 @@
                             </div>
 
                             @empty
-                            <div class="input-group mb-2 package-feature-item">
-                                <span class="input-group-text bg-transparent">
-                                    <i class="bi bi-check2"></i>
+                            <div class="input-group mb-2 package-feature-item" draggable="true">
+                                <span class="input-group-text bg-transparent package-sortable-handle" title="Geser untuk mengubah urutan">
+                                    <i class="bi bi-grip-vertical"></i>
                                 </span>
 
                                 <input type="text"
@@ -765,10 +909,211 @@
                     </div>
                 </div>
 
+                <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-availability">
+                    <div class="card-header bg-transparent border-0 p-4 pb-2">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="package-section-icon">
+                                    <i class="bi bi-calendar2-week"></i>
+                                </div>
+
+                                <div>
+                                    <h5 class="fw-semibold mb-1">
+                                        Promo &amp; Ketersediaan
+                                    </h5>
+                                    <p class="text-muted small mb-0">
+                                        Atur waktu pemesanan, tanggal libur, dan promo paket.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                id="btn-add-package-promo"
+                                class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-lg me-1"></i>
+                                Tambah Promo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4 pt-2">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="lead_time_days" class="form-label fw-semibold">
+                                    Waktu Minimal Pemesanan (hari)
+                                </label>
+
+                                <input type="number"
+                                    id="lead_time_days"
+                                    name="lead_time_days"
+                                    class="form-control"
+                                    value="{{ old('lead_time_days', $package->lead_time_days ?? 30) }}"
+                                    min="0"
+                                    max="365"
+                                    placeholder="0">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="blackout_dates" class="form-label fw-semibold">
+                                    Tanggal Blackout
+                                </label>
+
+                                <textarea id="blackout_dates"
+                                    name="blackout_dates"
+                                    rows="2"
+                                    class="form-control"
+                                    placeholder="2026-12-24, 2026-12-25">{{ $blackoutValue }}</textarea>
+
+                                <small class="text-muted">
+                                    Pisahkan tanggal dengan koma. Tanggal yang sama akan dihitung sekali.
+                                </small>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">
+                                    Promo
+                                </label>
+
+                                <div id="package-promos-container">
+                                    @forelse ($package->promos as $index => $promo)
+                                    <div class="package-promo-item border rounded-3 p-3 mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="fw-semibold package-promo-title">
+                                                Promo {{ $index + 1 }}
+                                            </span>
+
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-danger btn-remove-package-promo">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Kode Promo <span class="text-danger">*</span></label>
+
+                                                <input type="text"
+                                                    name="promos[{{ $index }}][code]"
+                                                    class="form-control"
+                                                    value="{{ old("promos.$index.code", $promo->code) }}"
+                                                    placeholder="Contoh: HEMAT2026"
+                                                    required>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label class="form-label">Tipe <span class="text-danger">*</span></label>
+
+                                                <select name="promos[{{ $index }}][type]"
+                                                    class="form-select"
+                                                    required>
+                                                    <option value="percent"
+                                                        {{ old("promos.$index.type", $promo->type) === 'percent' ? 'selected' : '' }}>
+                                                        Persentase
+                                                    </option>
+
+                                                    <option value="fixed"
+                                                        {{ old("promos.$index.type", $promo->type) === 'fixed' ? 'selected' : '' }}>
+                                                        Nominal
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label class="form-label">Nilai <span class="text-danger">*</span></label>
+
+                                                <input type="number"
+                                                    name="promos[{{ $index }}][value]"
+                                                    class="form-control"
+                                                    value="{{ old("promos.$index.value", $promo->value) }}"
+                                                    min="1"
+                                                    required>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label class="form-label">Minimal Pembelian</label>
+
+                                                <input type="number"
+                                                    name="promos[{{ $index }}][min_purchase]"
+                                                    class="form-control"
+                                                    value="{{ old("promos.$index.min_purchase", $promo->min_purchase) }}"
+                                                    min="0">
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label class="form-label">Maksimal Diskon</label>
+
+                                                <input type="number"
+                                                    name="promos[{{ $index }}][max_discount]"
+                                                    class="form-control"
+                                                    value="{{ old("promos.$index.max_discount", $promo->max_discount) }}"
+                                                    min="1">
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label class="form-label">Maksimal Pemakaian</label>
+
+                                                <input type="number"
+                                                    name="promos[{{ $index }}][max_uses]"
+                                                    class="form-control"
+                                                    value="{{ old("promos.$index.max_uses", $promo->max_uses) }}"
+                                                    min="1">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label">Mulai</label>
+
+                                                <input type="date"
+                                                    name="promos[{{ $index }}][starts_at]"
+                                                    class="form-control"
+                                                    value="{{ old("promos.$index.starts_at", $promo->starts_at ? $promo->starts_at->format('Y-m-d') : '') }}">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label">Berakhir</label>
+
+                                                <input type="date"
+                                                    name="promos[{{ $index }}][ends_at]"
+                                                    class="form-control"
+                                                    value="{{ old("promos.$index.ends_at", $promo->ends_at ? $promo->ends_at->format('Y-m-d') : '') }}">
+                                            </div>
+
+                                            <div class="col-12">
+                                                <input type="hidden"
+                                                    name="promos[{{ $index }}][is_active]"
+                                                    value="0">
+
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox"
+                                                        class="form-check-input"
+                                                        id="promo-active-{{ $index }}"
+                                                        name="promos[{{ $index }}][is_active]"
+                                                        value="1"
+                                                        {{ filter_var(old("promos.$index.is_active", $promo->is_active), FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+
+                                                    <label class="form-check-label" for="promo-active-{{ $index }}">
+                                                        Aktif
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @empty
+                                    <div class="text-muted small package-promo-empty">Belum ada promo.</div>
+                                    @endforelse
+                                </div>
+
+                                <small class="text-muted">
+                                    Kode promo harus unik. Promo persentase bernilai 1–100, promo tetap minimal Rp 1.000.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <div class="col-lg-4 package-sidebar">
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm mb-4 package-step-anchor" id="package-section-publication">
                     <div class="card-header bg-transparent border-0 p-4 pb-2">
                         <h5 class="fw-semibold mb-1">
                             Pengaturan Paket
@@ -800,6 +1145,31 @@
                                 </option>
 
                             </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold" for="is_published">
+                                Status Publikasi
+                            </label>
+
+                            <input type="hidden" name="is_published" value="0">
+
+                            <div class="form-check form-switch">
+                                <input type="checkbox"
+                                    class="form-check-input"
+                                    id="is_published"
+                                    name="is_published"
+                                    value="1"
+                                    {{ filter_var(old('is_published', $package->is_published), FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+
+                                <label class="form-check-label" for="is_published">
+                                    Tampilkan paket kepada klien
+                                </label>
+                            </div>
+
+                            <div class="small text-muted mt-2">
+                                Paket berstatus draft tidak muncul pada halaman paket member.
+                            </div>
                         </div>
 
                         <div class="package-popular-box">
@@ -884,8 +1254,25 @@
         flex-shrink: 0;
     }
 
-    .package-option-item,
-    .package-addon-item {
+        .package-sortable-handle {
+            cursor: grab;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #98a2b3;
+            user-select: none;
+        }
+
+        .package-sortable-handle:active { cursor: grabbing; }
+        .package-option-item.is-dragging,
+        .package-addon-item.is-dragging,
+        .package-feature-item.is-dragging { opacity: .5; }
+        .package-option-item.drag-over,
+        .package-addon-item.drag-over,
+        .package-feature-item.drag-over { outline: 2px dashed #5b7cfa; outline-offset: 2px; }
+
+        .package-option-item,
+        .package-addon-item {
         background: var(--bs-body-bg);
     }
 
@@ -917,11 +1304,57 @@
         min-height: 42px;
     }
 
+    .package-stepper {
+        background: var(--bs-tertiary-bg);
+    }
+
+    .package-stepper .package-step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        color: var(--bs-body-color);
+        font-size: .875rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .package-stepper .package-step:hover {
+        background: var(--bs-border-color-translucent);
+    }
+
+    .package-stepper .package-step-number {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bs-primary);
+        color: #fff;
+        font-size: .75rem;
+        flex-shrink: 0;
+    }
+
+    .package-step-anchor {
+        scroll-margin-top: calc(var(--package-sticky-top, 76px) + 16px);
+    }
+
+    .package-promo-item {
+        background: var(--bs-body-bg);
+    }
+
+    .package-promo-item .form-control,
+    .package-promo-item .form-select {
+        min-height: 42px;
+    }
+
     @media (min-width: 992px) {
 
         .package-sidebar {
             position: sticky;
-            top: 16px;
+            top: calc(var(--package-sticky-top, 76px) + 12px);
             align-self: start;
         }
 
@@ -934,11 +1367,13 @@
         }
 
         .package-option-item .row>div,
-        .package-addon-item .row>div {
-            margin-bottom: 12px;
+        .package-addon-item .row>div,
+        .package-promo-item .row>div {
+            margin-bottom: 4px;
         }
 
-        .package-addon-item {
+        .package-addon-item,
+        .package-promo-item {
             padding: 14px !important;
         }
 
@@ -967,6 +1402,16 @@
 
         let addonIndex = addonContainer ?
             addonContainer.querySelectorAll('.package-addon-item').length :
+            0;
+
+        const promoContainer =
+            document.getElementById('package-promos-container');
+
+        const addPromoButton =
+            document.getElementById('btn-add-package-promo');
+
+        let promoIndex = promoContainer ?
+            promoContainer.querySelectorAll('.package-promo-item').length :
             0;
 
 
@@ -1019,13 +1464,16 @@
         function createAddon(index) {
 
             return `
-            <div class="package-addon-item border rounded-3 p-3 mb-3">
+            <div class="package-addon-item border rounded-3 p-3 mb-3" draggable="true">
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
 
-                    <span class="fw-semibold package-addon-title">
-                        Layanan ${index + 1}
-                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="package-sortable-handle" title="Geser untuk mengubah urutan"><i class="bi bi-grip-vertical"></i></span>
+                        <span class="fw-semibold package-addon-title">
+                            Layanan ${index + 1}
+                        </span>
+                    </div>
 
                     <button type="button"
                             class="btn btn-sm btn-outline-danger btn-remove-package-addon">
@@ -1113,6 +1561,50 @@
 
                     </div>
 
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Min Qty
+                        </label>
+
+                        <input type="number"
+                               name="addons[${index}][min_quantity]"
+                               class="form-control"
+                               value="1"
+                               min="1"
+                               max="99"
+                               placeholder="1">
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Max Qty
+                        </label>
+
+                        <input type="number"
+                               name="addons[${index}][max_quantity]"
+                               class="form-control"
+                               placeholder="Opsional"
+                               min="1">
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Butuh Layanan ke-
+                        </label>
+
+                        <input type="number"
+                               name="addons[${index}][requires_addon_index]"
+                               class="form-control"
+                               placeholder="Contoh: 1"
+                               min="0">
+
+                    </div>
+
                 </div>
 
             </div>
@@ -1156,24 +1648,26 @@
         function createOption(index) {
 
             return `
-            <div class="package-option-item border rounded-3 p-3 mb-3">
+            <div class="package-option-item border rounded-3 p-3 mb-3" draggable="true">
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
 
-                    <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="package-sortable-handle" title="Geser untuk mengubah urutan"><i class="bi bi-grip-vertical"></i></span>
+                        <div>
+                            <span class="fw-semibold package-option-title">
+                                Opsi ${index + 1}
+                            </span>
 
-                        <span class="fw-semibold package-option-title">
-                            Opsi ${index + 1}
-                        </span>
+                            <span class="text-muted small ms-1">
+                                                Pilihan harga
+                                            </span>
+                                        </div>
+                                    </div>
 
-                        <span class="text-muted small ms-1">
-                            Pilihan harga
-                        </span>
+                                    <button type="button"
+                                        class="btn btn-sm btn-outline-danger btn-remove-package-option">
 
-                    </div>
-
-                    <button type="button"
-                            class="btn btn-sm btn-outline-danger btn-remove-package-option">
 
                         <i class="bi bi-trash3"></i>
 
@@ -1414,12 +1908,12 @@
         function createFeature() {
 
             return `
-            <div class="package-feature-item mb-2">
+            <div class="package-feature-item mb-2" draggable="true">
 
                 <div class="input-group">
 
-                    <span class="input-group-text bg-transparent">
-                        <i class="bi bi-check2"></i>
+                    <span class="input-group-text bg-transparent package-sortable-handle" title="Geser untuk mengubah urutan">
+                        <i class="bi bi-grip-vertical"></i>
                     </span>
 
                     <input type="text"
@@ -1502,9 +1996,296 @@
         }
 
 
+        function createPromo(index) {
+
+            return `
+            <div class="package-promo-item border rounded-3 p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-semibold package-promo-title">
+                        Promo ${index + 1}
+                    </span>
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger btn-remove-package-promo">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Kode Promo <span class="text-danger">*</span></label>
+                        <input type="text"
+                               name="promos[${index}][code]"
+                               class="form-control"
+                               placeholder="Contoh: HEMAT2026"
+                               required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Tipe <span class="text-danger">*</span></label>
+                        <select name="promos[${index}][type]" class="form-select" required>
+                            <option value="percent">Persentase</option>
+                            <option value="fixed">Nominal</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Nilai <span class="text-danger">*</span></label>
+                        <input type="number"
+                               name="promos[${index}][value]"
+                               class="form-control"
+                               min="1"
+                               placeholder="Contoh: 10"
+                               required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Minimal Pembelian</label>
+                        <input type="number"
+                               name="promos[${index}][min_purchase]"
+                               class="form-control"
+                               min="0"
+                               placeholder="0">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Maksimal Diskon</label>
+                        <input type="number"
+                               name="promos[${index}][max_discount]"
+                               class="form-control"
+                               min="1"
+                               placeholder="Opsional">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Maksimal Pemakaian</label>
+                        <input type="number"
+                               name="promos[${index}][max_uses]"
+                               class="form-control"
+                               min="1"
+                               placeholder="Opsional">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Mulai</label>
+                        <input type="date"
+                               name="promos[${index}][starts_at]"
+                               class="form-control">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Berakhir</label>
+                        <input type="date"
+                               name="promos[${index}][ends_at]"
+                               class="form-control">
+                    </div>
+
+                    <div class="col-12">
+                        <input type="hidden" name="promos[${index}][is_active]" value="0">
+                        <div class="form-check form-switch">
+                            <input type="checkbox"
+                                   class="form-check-input"
+                                   id="promo-active-${index}"
+                                   name="promos[${index}][is_active]"
+                                   value="1"
+                                   checked>
+                            <label class="form-check-label" for="promo-active-${index}">Aktif</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        }
+
+
+        function updatePromoTitles() {
+
+            if (!promoContainer) {
+                return;
+            }
+
+            const items =
+                promoContainer.querySelectorAll('.package-promo-item');
+
+            items.forEach(function(item, index) {
+
+                const title =
+                    item.querySelector('.package-promo-title');
+
+                if (title) {
+                    title.textContent = 'Promo ' + (index + 1);
+                }
+
+            });
+
+        }
+
+
+        if (addPromoButton && promoContainer) {
+
+            addPromoButton.addEventListener('click', function() {
+
+                const empty = promoContainer.querySelector('.package-promo-empty');
+
+                if (empty) {
+                    empty.remove();
+                }
+
+                promoContainer.insertAdjacentHTML(
+                    'beforeend',
+                    createPromo(promoIndex)
+                );
+
+                promoIndex++;
+
+                updatePromoTitles();
+
+            });
+
+        }
+
+
+        if (promoContainer) {
+
+            promoContainer.addEventListener('click', function(event) {
+
+                const removeButton =
+                    event.target.closest('.btn-remove-package-promo');
+
+                if (!removeButton) {
+                    return;
+                }
+
+                const item =
+                    removeButton.closest('.package-promo-item');
+
+                if (item) {
+                    item.remove();
+                }
+
+                updatePromoTitles();
+
+            });
+
+        }
+
+
         updateOptionTitles();
 
         updateAddonTitles();
+
+        updatePromoTitles();
+
+        let reorderUrl = '';
+        try {
+            reorderUrl = JSON.parse(document.getElementById('package-reorder-meta')?.textContent || '{}').url || '';
+        } catch (error) {
+            reorderUrl = '';
+        }
+
+        function renumberIndexedItems(container, selector, prefix) {
+            if (!container) return;
+
+            container.querySelectorAll(selector).forEach(function (item, index) {
+                item.querySelectorAll('[name^="' + prefix + '["]').forEach(function (field) {
+                    field.name = field.name.replace(
+                        new RegExp('^' + prefix + '\\[\\d+\\]'),
+                        prefix + '[' + index + ']'
+                    );
+                });
+            });
+        }
+
+        function persistReorder(type, container, selector) {
+            if (!container || !reorderUrl) return;
+
+            const uuids = Array.from(container.querySelectorAll(selector))
+                .map(function (item) { return item.dataset.uuid || ''; })
+                .filter(Boolean);
+
+            if (!uuids.length) return;
+
+            fetch(reorderUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ type: type, uuids: uuids }),
+            }).catch(function () {});
+        }
+
+        function initSortable(container, selector, type, afterDrop) {
+            if (!container) return;
+            let dragged = null;
+
+            container.querySelectorAll(selector).forEach(function (item) {
+                item.addEventListener('dragstart', function (event) {
+                    dragged = item;
+                    item.classList.add('is-dragging');
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', type);
+                });
+
+                item.addEventListener('dragend', function () {
+                    container.querySelectorAll(selector).forEach(function (node) {
+                        node.classList.remove('is-dragging', 'drag-over');
+                    });
+                    dragged = null;
+                });
+
+                item.addEventListener('dragover', function (event) {
+                    if (!dragged || dragged === item) return;
+                    event.preventDefault();
+                    item.classList.add('drag-over');
+
+                    const bounds = item.getBoundingClientRect();
+                    const insertAfter = event.clientY > bounds.top + bounds.height / 2;
+                    container.insertBefore(dragged, insertAfter ? item.nextSibling : item);
+                });
+
+                item.addEventListener('dragleave', function () {
+                    item.classList.remove('drag-over');
+                });
+
+                item.addEventListener('drop', function (event) {
+                    event.preventDefault();
+                    item.classList.remove('drag-over');
+                    if (!dragged) return;
+
+                    if (afterDrop) afterDrop();
+                    persistReorder(type, container, selector);
+                });
+            });
+        }
+
+        initSortable(optionContainer, '.package-option-item', 'options', function () {
+            renumberIndexedItems(optionContainer, '.package-option-item', 'options');
+            updateOptionTitles();
+        });
+        initSortable(addonContainer, '.package-addon-item', 'addons', function () {
+            renumberIndexedItems(addonContainer, '.package-addon-item', 'addons');
+            updateAddonTitles();
+        });
+        initSortable(featureContainer, '.package-feature-item', 'features');
+
+        optionContainer?.addEventListener('click', function (event) {
+            if (event.target.closest('.btn-remove-package-option')) {
+                setTimeout(function () {
+                    renumberIndexedItems(optionContainer, '.package-option-item', 'options');
+                }, 0);
+            }
+        });
+
+        addonContainer?.addEventListener('click', function (event) {
+            if (event.target.closest('.btn-remove-package-addon')) {
+                setTimeout(function () {
+                    renumberIndexedItems(addonContainer, '.package-addon-item', 'addons');
+                }, 0);
+            }
+        });
 
     });
 </script>

@@ -4,7 +4,11 @@ import {
 	getAlternatingWhatsAppContact,
 	siteContact,
 } from "../config/env.js";
-import { LANGUAGE_OPTIONS } from "../config/locales.js";
+import {
+	DEFAULT_LOCALE,
+	isLocale,
+	LANGUAGE_OPTIONS,
+} from "../config/locales.js";
 import { sagitaData } from "../data/sagitaData.js";
 import { getSessionUser, hasSessionCookie } from "../services/authService.js";
 import { resolveSite } from "../services/siteIdentityService.js";
@@ -77,7 +81,12 @@ export async function appLocals(
 			googleAuthUrl: siteContact.googleAuthUrl,
 		};
 		res.locals.currentPath = req.path;
-		res.locals.currentUrl = `${env.SITE_URL}${req.path}`;
+		const requestedLocale = isLocale(res.locals.lang)
+			? res.locals.lang
+			: DEFAULT_LOCALE;
+		res.locals.currentUrl = `${env.SITE_URL}${req.path}${
+			requestedLocale === DEFAULT_LOCALE ? "" : `?lang=${requestedLocale}`
+		}`;
 		res.locals.siteUrl = env.SITE_URL;
 		// Versi asset untuk cache-busting (?v=) — via env ASSET_V
 		res.locals.assetV = env.ASSET_V;

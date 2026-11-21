@@ -20,9 +20,11 @@ use App\Http\Controllers\Admin\MembershipController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PackageController;
+use App\Http\Controllers\Admin\PackageInteractionController;
 use App\Http\Controllers\Admin\PagesController;
 use App\Http\Controllers\Admin\PenggunaController;
 use App\Http\Controllers\Admin\PollController;
+use App\Http\Controllers\Admin\QuotationController;
 use App\Http\Controllers\Admin\Security\AuditLogController;
 use App\Http\Controllers\Admin\Security\FailedLoginController;
 use App\Http\Controllers\Admin\Security\LoginActivityController;
@@ -195,6 +197,47 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
         '/packages/members',
         [PackageController::class, 'members']
     )->name('packages.member');
+    Route::get(
+        '/packages/wishlist',
+        [PackageInteractionController::class, 'wishlistIndex']
+    )->name('packages.wishlist.index');
+    Route::get(
+        '/packages/compare',
+        [PackageInteractionController::class, 'compareIndex']
+    )->name('packages.compare.index');
+    Route::post(
+        '/packages/compare/clear',
+        [PackageInteractionController::class, 'compareClear']
+    )->name('packages.compare.clear');
+    Route::get(
+        '/packages/{package}/quotation',
+        [QuotationController::class, 'package']
+    )->name('packages.quotation');
+    Route::get(
+        '/packages/{package}/quotation/download',
+        [QuotationController::class, 'download']
+    )->name('packages.quotation.download');
+    Route::post(
+        '/packages/{package}/wishlist',
+        [PackageInteractionController::class, 'wishlistToggle']
+    )->name('packages.wishlist.toggle');
+    Route::post(
+        '/packages/{package}/compare',
+        [PackageInteractionController::class, 'compareAdd']
+    )->name('packages.compare.add');
+    Route::delete(
+        '/packages/{package}/compare',
+        [PackageInteractionController::class, 'compareRemove']
+    )->name('packages.compare.remove');
+    Route::post(
+        '/packages/bulk',
+        [PackageController::class, 'bulkAction']
+    )->name('packages.bulk');
+    Route::get('/packages/export', [PackageController::class, 'export'])->name('packages.export');
+    Route::post('/packages/{package}/duplicate', [PackageController::class, 'duplicate'])->name('packages.duplicate');
+    Route::patch('/packages/{package}/toggle-status', [PackageController::class, 'toggleStatus'])->name('packages.toggle-status');
+    Route::post('/packages/{package}/reorder', [PackageController::class, 'reorder'])->name('packages.reorder');
+    Route::get('/packages/{package}/preview', [PackageController::class, 'preview'])->name('packages.preview');
     Route::resource('packages', PackageController::class);
     Route::resource('venues', VenueController::class)->except(['show']);
     Route::resource('classes', ClassController::class)->except(['show']);
@@ -232,12 +275,12 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::post('orders/saved-filters/{savedFilter}/move', [OrderController::class, 'moveSavedFilter'])->name('orders.saved-filters.move');
     Route::delete('orders/saved-filters/{savedFilter}', [OrderController::class, 'deleteSavedFilter'])->name('orders.saved-filters.destroy');
     Route::post('orders/bulk', [OrderController::class, 'bulkAction'])->name('orders.bulk');
-Route::post('orders/remind-sla', [OrderController::class, 'remindSla'])->name('orders.remind-sla');
-Route::post('orders/bulk/undo', [OrderController::class, 'bulkUndo'])->name('orders.bulk-undo');
-Route::post('orders/{order}/claim', [OrderController::class, 'claim'])->name('orders.claim');
-Route::get('orders/{order}/quick-view', [OrderController::class, 'quickView'])->name('orders.quick-view');
-Route::get('orders/{order}/activity', [OrderController::class, 'activity'])->name('orders.activity');
-Route::get('orders/{order}/whatsapp', [OrderController::class, 'whatsapp'])->name('orders.whatsapp');
+    Route::post('orders/remind-sla', [OrderController::class, 'remindSla'])->name('orders.remind-sla');
+    Route::post('orders/bulk/undo', [OrderController::class, 'bulkUndo'])->name('orders.bulk-undo');
+    Route::post('orders/{order}/claim', [OrderController::class, 'claim'])->name('orders.claim');
+    Route::get('orders/{order}/quick-view', [OrderController::class, 'quickView'])->name('orders.quick-view');
+    Route::get('orders/{order}/activity', [OrderController::class, 'activity'])->name('orders.activity');
+    Route::get('orders/{order}/whatsapp', [OrderController::class, 'whatsapp'])->name('orders.whatsapp');
     Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
     Route::post('orders/{order}/reject', [OrderController::class, 'reject'])->name('orders.reject');
     Route::get('orders/{order}/proof', [OrderController::class, 'showProof'])->name('orders.proof.show');

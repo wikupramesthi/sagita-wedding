@@ -24,6 +24,9 @@ class PackageAddon extends Model
         'description',
         'price',
         'discount_price',
+        'min_quantity',
+        'max_quantity',
+        'requires_addon_uuid',
         'sort_order',
         'is_active',
     ];
@@ -31,6 +34,8 @@ class PackageAddon extends Model
     protected $casts = [
         'price' => 'integer',
         'discount_price' => 'integer',
+        'min_quantity' => 'integer',
+        'max_quantity' => 'integer',
         'sort_order' => 'integer',
         'is_active' => 'boolean',
     ];
@@ -40,6 +45,15 @@ class PackageAddon extends Model
         return $this->belongsTo(
             Package::class,
             'package_uuid',
+            'uuid'
+        );
+    }
+
+    public function requiresAddon(): BelongsTo
+    {
+        return $this->belongsTo(
+            PackageAddon::class,
+            'requires_addon_uuid',
             'uuid'
         );
     }

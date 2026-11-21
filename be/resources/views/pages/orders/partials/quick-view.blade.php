@@ -53,7 +53,7 @@
         <a href="{{ route('orders.show', $order->uuid) }}" class="btn btn-sm btn-primary">
             <i class="bi bi-eye me-1"></i>Detail lengkap
         </a>
-        @if ($isAdmin && $order->status === 'pending')
+        @if ($isAdmin && in_array($order->status, ['pending','partially_paid']))
         <form method="POST" action="{{ route('orders.approve', $order->uuid) }}" data-orders-decision>
             @csrf
             <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">

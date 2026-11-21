@@ -3,14 +3,33 @@
 @section('content')
 
 @php
-    $waNumber = \App\Models\Consultation::normalizeWhatsapp((string) config('manual_payment.admin_whatsapp'));
+    $packageUuids = $packages->pluck('uuid')->all();
+
+    $wishlistedUuids = auth()->check() && $packageUuids
+        ? \App\Models\Package\PackageWishlist::query()
+            ->where('user_uuid', auth()->id())
+            ->whereIn('package_uuid', $packageUuids)
+            ->pluck('package_uuid')
+            ->all()
+        : [];
+
+    $compareUuids = array_values(array_filter(
+        (array) session('package_compare', []),
+        'is_string'
+    ));
 @endphp
 
 <style>
 .package-catalog-page { min-height: 100vh; padding: 40px 0 70px; }
 
 /* Filter */
-.package-filter { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 30px; padding: 6px; background: #fff; border: 1px solid #ece9e4; border-radius: 14px; box-shadow: 0 4px 18px rgba(0, 0, 0, .035); }
+.package-catalog-hero { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 26px; }
+.package-catalog-eyebrow { margin: 0 0 8px; color: #6d4aff; font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.package-catalog-hero h1 { margin: 0 0 8px; color: #202020; font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
+.package-catalog-hero p { margin: 0; color: #7b7f78; font-size: 14px; }
+.package-catalog-count { display: inline-flex; align-items: center; gap: 8px; padding: 10px 15px; border: 1px solid #ece9e4; border-radius: 12px; background: #fff; color: #6d4aff; font-size: 12px; font-weight: 700; }
+.package-preview-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; padding: 12px 16px; border: 1px solid #d9d0ff; border-radius: 14px; background: #f7f5ff; color: #4b2db8; font-size: 13px; }
+.package-filter { position: sticky; top: 76px; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 40px; padding: 6px; background: #fff; border: 1px solid #ece9e4; border-radius: 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .06); }
 .package-filter-left { display: flex; align-items: center; gap: 4px; }
 .package-filter-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border-radius: 9px; color: #777; background: transparent; text-decoration: none; font-size: 13px; font-weight: 600; transition: all .2s ease; }
 .package-filter-btn:hover { color: #6d4aff; background: #f7f5ff; }
@@ -27,8 +46,8 @@
 .package-catalog-card { position: relative; height: 100%; background: #fff; border: 1px solid #ece9e4; border-radius: 24px; padding: 30px; display: flex; flex-direction: column; box-shadow: 0 8px 30px rgba(0, 0, 0, .045); transition: transform .3s ease, box-shadow .3s ease; }
 .package-catalog-card:hover { transform: translateY(-7px); box-shadow: 0 18px 45px rgba(0, 0, 0, .10); }
 .package-catalog-card.popular { background: linear-gradient(145deg, #32165f 0%, #47217d 50%, #29205d 100%); border: 2px solid #7047e8; color: #fff; box-shadow: 0 20px 45px rgba(73, 37, 126, .25); transform: translateY(-10px); }
-.package-catalog-card.popular:hover { transform: translateY(-16px); }
-.popular-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: #7047e8; color: #fff; padding: 7px 18px; border-radius: 50px; font-size: 12px; font-weight: 700; white-space: nowrap; box-shadow: 0 6px 18px rgba(112, 71, 232, .35); }
+.package-catalog-card.popular:hover { transform: translateY(-12px); }
+.popular-badge { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); background: #7047e8; color: #fff; padding: 7px 18px; border-radius: 50px; font-size: 12px; font-weight: 700; white-space: nowrap; box-shadow: 0 6px 18px rgba(112, 71, 232, .35); }
 
 .package-name { font-size: 25px; font-weight: 700; color: #202020; margin-bottom: 7px; }
 .popular .package-name { color: #fff; }
@@ -62,7 +81,7 @@
 .popular .package-features li i { color: #b49aff; }
 
 /* Button */
-.choose-package { width: 100%; border-radius: 12px; padding: 12px 20px; font-size: 14px; font-weight: 700; border: 1.5px solid #6d4aff; background: transparent; color: #6d4aff; transition: all .25s ease; }
+.choose-package { display: inline-flex; align-items: center; justify-content: center; width: 100%; border-radius: 12px; padding: 12px 20px; font-size: 14px; font-weight: 700; border: 1.5px solid #6d4aff; background: transparent; color: #6d4aff; text-decoration: none; transition: all .25s ease; }
 .choose-package:hover { background: #6d4aff; color: #fff; }
 .popular .choose-package { background: #7047e8; border-color: #7047e8; color: #fff; }
 .popular .choose-package:hover { background: #805cf0; border-color: #805cf0; }
@@ -75,17 +94,34 @@
 .package-event-meta span { display: inline-flex; align-items: center; }
 .package-catalog-card.popular .package-event-meta { color: rgba(255, 255, 255, .78); }
 .package-card-actions { display: grid; gap: 10px; }
-.choose-package-wa { border-color: #25d366; color: #128c4b; text-decoration: none; }
-.choose-package-wa:hover { background: #25d366; color: #fff; }
-.package-catalog-card.popular .choose-package-wa { border-color: #25d366; color: #fff; }
+
+.package-quick-links { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+.package-quick-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border: 1px solid #ece9e4; border-radius: 9px; background: #fff; color: #6d4aff; font-size: 12px; font-weight: 700; text-decoration: none; transition: all .2s ease; }
+.package-quick-link:hover { background: #f7f5ff; border-color: #d9d0ff; }
+.package-quick-link i { font-size: 15px; }
+
+.package-card-tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0 18px; }
+.package-tool-form { margin: 0; }
+.package-tool-btn, .package-tool-link { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; min-height: 44px; padding: 8px 5px; border: 1px solid #e7e4df; border-radius: 10px; background: #fff; color: #666; font-size: 11px; font-weight: 700; line-height: 1.2; text-decoration: none; transition: all .2s ease; }
+.package-tool-btn i, .package-tool-link i { flex-shrink: 0; font-size: 14px; }
+.package-tool-btn:hover, .package-tool-link:hover { border-color: #6d4aff; color: #6d4aff; }
+.package-tool-btn.active { border-color: #6d4aff; background: #f1edff; color: #6d4aff; }
+.package-catalog-card.popular .package-tool-btn, .package-catalog-card.popular .package-tool-link { border-color: rgba(255, 255, 255, .28); background: rgba(255, 255, 255, .08); color: #fff; }
+.package-catalog-card.popular .package-tool-btn.active { border-color: #b49aff; background: rgba(180, 154, 255, .22); color: #fff; }
 
 .package-filter-form { margin-bottom: 28px; padding: 14px 16px; background: #fff; border: 1px solid #ece9e4; border-radius: 14px; box-shadow: 0 4px 18px rgba(0, 0, 0, .035); }
 .package-filter-form .form-label { color: #777; font-weight: 600; }
 .package-filter-form .form-control { border-color: #e7e4df; border-radius: 9px; font-size: 13px; }
 
-.package-compare h4 { color: #202020; }
+.package-compare { background: #fff; border: 1px solid #ece9e4; border-radius: 18px; padding: 20px 22px; box-shadow: 0 8px 30px rgba(0, 0, 0, .035); }
+.package-compare summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; color: #202020; font-size: 17px; font-weight: 800; }
+.package-compare summary::-webkit-details-marker { display: none; }
+.package-compare summary::after { content: '\f282'; font-family: 'bootstrap-icons'; font-size: 14px; color: #6d4aff; transition: transform .2s ease; }
+.package-compare[open] summary::after { transform: rotate(180deg); }
+.package-compare-summary { margin: 6px 0 0; color: #888; font-size: 13px; }
+.package-compare-details { margin-top: 18px; }
 .compare-table { background: #fff; border-color: #ece9e4; font-size: 13px; }
-.compare-table th, .compare-table td { min-width: 180px; border-color: #ece9e4; }
+.compare-table th, .compare-table td { min-width: 180px; border-color: #ece9e4; vertical-align: middle; }
 .compare-table thead th { background: #faf8ff; color: #444; font-weight: 700; }
 .compare-table th:first-child, .compare-table td:first-child { position: sticky; left: 0; z-index: 1; min-width: 170px; background: #fff; font-weight: 700; color: #444; }
 .compare-table thead th:first-child { z-index: 2; background: #faf8ff; }
@@ -121,15 +157,46 @@
 <div class="package-catalog-page">
     <div class="container">
 
+        <div class="package-catalog-hero">
+            <div>
+                <p class="package-catalog-eyebrow">Katalog Paket Wedding</p>
+                <h1>Temukan Paket yang Pas untuk Harimu</h1>
+                <p>Bandingkan pilihan paket, simpan favorit, lalu lanjut checkout dengan mudah.</p>
+            </div>
+            <div class="package-catalog-count">
+                <i class="bi bi-box-seam"></i>{{ $packages->count() }} paket tersedia
+            </div>
+        </div>
+
+        @if (!empty($previewMode))
+        <div class="package-preview-notice">
+            <span><i class="bi bi-eye me-1"></i>Pratinjau paket dari admin. Tombol checkout dinonaktifkan dalam mode ini.</span>
+            <a href="{{ route('packages.edit', $previewPackage->uuid) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil me-1"></i>Kembali Edit
+            </a>
+        </div>
+        @endif
+
+        @if (\Illuminate\Support\Facades\Route::has('packages.wishlist.index') && \Illuminate\Support\Facades\Route::has('packages.compare.index'))
+        <div class="package-quick-links">
+            <a href="{{ route('packages.wishlist.index') }}" class="package-quick-link">
+                <i class="bi bi-heart"></i>Wishlist Saya
+            </a>
+            <a href="{{ route('packages.compare.index') }}" class="package-quick-link">
+                <i class="bi bi-list-check"></i>Bandingkan ({{ count($compareUuids) }})
+            </a>
+        </div>
+        @endif
+
         <div class="package-filter">
             <div class="package-filter-left">
-                <a href="{{ route('packages.member') }}" class="package-filter-btn {{ !request('filter') ? 'active' : '' }}">
+                <a href="{{ route('packages.member', array_filter(['sort' => request('sort'), 'guests' => request('guests'), 'budget_max' => request('budget_max')])) }}" class="package-filter-btn {{ !request('filter') ? 'active' : '' }}">
                     <i class="bi bi-grid-3x3-gap"></i> Semua Paket
                 </a>
-                <a href="{{ route('packages.member', ['filter' => 'popular', 'sort' => request('sort')]) }}" class="package-filter-btn {{ request('filter') === 'popular' ? 'active' : '' }}">
+                <a href="{{ route('packages.member', array_filter(['filter' => 'popular', 'sort' => request('sort'), 'guests' => request('guests'), 'budget_max' => request('budget_max')])) }}" class="package-filter-btn {{ request('filter') === 'popular' ? 'active' : '' }}">
                     <i class="bi bi-star-fill"></i> Paling Dipilih
                 </a>
-                <a href="{{ route('packages.member', ['filter' => 'unlimited', 'sort' => request('sort')]) }}" class="package-filter-btn {{ request('filter') === 'unlimited' ? 'active' : '' }}">
+                <a href="{{ route('packages.member', array_filter(['filter' => 'unlimited', 'sort' => request('sort'), 'guests' => request('guests'), 'budget_max' => request('budget_max')])) }}" class="package-filter-btn {{ request('filter') === 'unlimited' ? 'active' : '' }}">
                     <i class="bi bi-infinity"></i> Tanpa batas
                 </a>
             </div>
@@ -170,12 +237,41 @@
                     <i class="bi bi-funnel me-1"></i>Terapkan
                 </button>
             </div>
+
+            <div class="col-12 col-md-3">
+                <a href="{{ route('packages.member') }}" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                </a>
+            </div>
         </form>
 
         <div class="row g-4 align-items-stretch">
             @forelse ($packages as $package)
             <div class="col-xl-4 col-lg-4 col-md-6">
                 <div class="package-catalog-card {{ $package->is_popular ? 'popular' : '' }}">
+
+                    @php
+                        $isWishlisted = in_array($package->uuid, $wishlistedUuids, true);
+                        $isCompared = in_array($package->uuid, $compareUuids, true);
+
+                        $quotationParams = ['package' => $package->uuid];
+
+                        $firstOption = $package->options->first();
+
+                        if ($firstOption) {
+                            $quotationParams['option_uuid'] = $firstOption->uuid;
+                        }
+
+                        $quotationAddons = $package->addons->take(2)->pluck('uuid')->filter()->all();
+
+                        if ($quotationAddons) {
+                            $quotationParams['addon_uuids'] = $quotationAddons;
+                        }
+
+                        if (request('event_date')) {
+                            $quotationParams['event_date'] = request('event_date');
+                        }
+                    @endphp
 
                     @if ($package->is_popular)
                     <div class="popular-badge"><i class="bi bi-star-fill me-1"></i>Paling Dipilih</div>
@@ -248,17 +344,34 @@
                         @endforelse
                     </ul>
 
+                    @if (\Illuminate\Support\Facades\Route::has('packages.wishlist.toggle') && \Illuminate\Support\Facades\Route::has('packages.compare.add') && \Illuminate\Support\Facades\Route::has('packages.quotation'))
+                    <div class="package-card-tools">
+                        <form method="POST" action="{{ route('packages.wishlist.toggle', $package->uuid) }}" class="package-tool-form">
+                            @csrf
+                            <button type="submit" class="package-tool-btn {{ $isWishlisted ? 'active' : '' }}">
+                                <i class="bi bi-heart{{ $isWishlisted ? '-fill' : '' }}"></i>{{ $isWishlisted ? 'Simpan' : 'Wishlist' }}
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('packages.compare.add', $package->uuid) }}" class="package-tool-form">
+                            @csrf
+                            <button type="submit" class="package-tool-btn {{ $isCompared ? 'active' : '' }}">
+                                <i class="bi bi-list-check"></i>Bandingkan
+                            </button>
+                        </form>
+                        <a href="{{ route('packages.quotation', $quotationParams) }}" class="package-tool-link">
+                            <i class="bi bi-file-earmark-pdf"></i>Penawaran
+                        </a>
+                    </div>
+                    @endif
+
                     <div class="mt-auto package-card-actions">
-                        <button type="button" class="choose-package w-100" onclick="window.location.href='{{ route('checkout.package', $package->uuid) }}'">
+                        @if (!empty($previewMode))
+                        <button type="button" class="choose-package w-100" disabled>
                             Pilih Paket <i class="bi bi-arrow-right ms-1"></i>
                         </button>
-
-                        @if ($waNumber)
-                        @php
-                            $waText = 'Halo Admin Sagita Wedding, saya tertarik dengan paket "' . $package->name . '". Boleh saya tahu detail paket, ketersediaan tanggal, dan cara pemesanannya?';
-                        @endphp
-                        <a href="https://wa.me/{{ $waNumber }}?text={{ urlencode($waText) }}" target="_blank" rel="noopener" class="choose-package choose-package-wa w-100">
-                            <i class="bi bi-whatsapp me-1"></i>Tanya Paket Ini
+                        @else
+                        <a href="{{ route('checkout.package', $package->uuid) }}" class="choose-package w-100">
+                            Pilih Paket <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                         @endif
 
@@ -273,7 +386,7 @@
                     <div class="package-empty-icon"><i class="bi bi-box-seam"></i></div>
                     <h5 class="fw-bold">Belum Ada Paket Tersedia</h5>
                     <p>Paket wedding organizer saat ini belum tersedia.</p>
-                    @if (request('filter') || request('sort'))
+                    @if (request('filter') || request('sort') || request('guests') || request('budget_max'))
                     <div class="mt-4">
                         <a href="{{ route('packages.member') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-arrow-counterclockwise me-1"></i>Lihat Semua Paket
@@ -286,11 +399,11 @@
         </div>
 
         @if (count($packages))
-        <div class="package-compare mt-5">
-            <h4 class="fw-bold mb-1">Bandingkan Paket</h4>
-            <p class="text-muted small mb-4">Lihat perbedaan tiap paket untuk memilih yang paling sesuai.</p>
+        <details class="package-compare mt-5">
+            <summary>Bandingkan Paket</summary>
+            <p class="package-compare-summary">Lihat perbedaan tiap paket untuk memilih yang paling sesuai.</p>
 
-            <div class="table-responsive">
+            <div class="package-compare-details table-responsive">
                 <table class="table table-bordered table-hover compare-table mb-0 align-middle">
                     <thead>
                         <tr>
@@ -348,16 +461,20 @@
                             <th scope="row">Pilihan</th>
                             @foreach ($packages as $package)
                             <td class="text-center">
+                                @if (!empty($previewMode))
+                                <button type="button" class="btn btn-sm btn-outline-primary" disabled>Pilih</button>
+                                @else
                                 <a href="{{ route('checkout.package', $package->uuid) }}" class="btn btn-sm btn-outline-primary">
                                     Pilih
                                 </a>
+                                @endif
                             </td>
                             @endforeach
                         </tr>
                     </tbody>
                 </table>
             </div>
-        </div>
+        </details>
         @endif
 
     </div>

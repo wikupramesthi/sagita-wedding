@@ -65,8 +65,10 @@ class PackageController extends Controller
              * BASE QUERY
              */
             $query = Package::query()
-                ->where('is_active', true)
+                ->published()
                 ->with([
+                    'blackoutDates',
+                    'promos',
                     'options' => function ($query) {
                         $query
                             ->where('is_active', true)
@@ -293,10 +295,7 @@ class PackageController extends Controller
                     'slug',
                     $slug
                 )
-                ->where(
-                    'is_active',
-                    true
-                )
+                ->published()
                 ->with([
                     'options' => function ($query) {
                         $query

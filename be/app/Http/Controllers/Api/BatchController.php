@@ -101,14 +101,40 @@ class BatchController extends Controller
     private function home(): array
     {
         return [
+            'sliderBanners' => $this->sliderBanners(),
             'testimonials' => array_slice($this->data(
                 app(TestimonialController::class)->index(),
                 'testimonials',
-            ) ?? [], 0, 3),
+            ) ?? [], 0, 10),
             'venues' => array_slice($this->venueRecords(), 0, 4),
             'packages' => $this->packages(['per_page' => 3])['packages'] ?? [],
             'events' => $this->events(['per_page' => 3])['events'] ?? [],
         ];
+    }
+
+    private function sliderBanners(): array
+    {
+        try {
+            $request = Request::create('/api/banners', 'GET', ['kategori' => 'slider']);
+            $banners = $this->data(
+                app(BannerController::class)->index($request),
+                'banners',
+            ) ?? [];
+
+            return array_values(array_filter(
+                array_slice($banners, 0, 5),
+                fn ($banner) => is_array($banner)
+                    && ($banner['posisi'] ?? null) === 'slider'
+                    && ! empty($banner['gambar'])
+                    && ! str_contains((string) $banner['gambar'], 'default.png'),
+            ));
+        } catch (Throwable $e) {
+            Log::warning('Home slider banners unavailable', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return [];
+        }
     }
 
     private function venues(): array

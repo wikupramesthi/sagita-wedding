@@ -18,6 +18,7 @@ class Payment extends Model
 
     protected $fillable = [
         'order_uuid',
+        'kind',
         'payment_gateway',
         'transaction_id',
         'payment_type',
@@ -25,11 +26,14 @@ class Payment extends Model
         'status',
         'paid_at',
         'raw_response',
+        'proof_image_path',
+        'proof_uploaded_at',
     ];
 
     protected $casts = [
         'gross_amount' => 'decimal:2',
         'paid_at' => 'datetime',
+        'proof_uploaded_at' => 'datetime',
         'raw_response' => 'array',
     ];
 

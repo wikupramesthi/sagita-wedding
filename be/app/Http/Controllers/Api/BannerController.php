@@ -26,7 +26,15 @@ class BannerController extends Controller
                 $query->where('posisi', $request->kategori);
             }
 
-            $banners = $query->orderBy('created_at', 'asc')->get();
+            $query->orderBy('created_at', 'asc');
+            if ($request->query('kategori') === 'slider') {
+                $query
+                    ->whereNotNull('gambar')
+                    ->where('gambar', '!=', '')
+                    ->where('gambar', 'not like', '%default.png')
+                    ->limit(5);
+            }
+            $banners = $query->get();
 
             return response()->json([
                 'status' => 'success',
