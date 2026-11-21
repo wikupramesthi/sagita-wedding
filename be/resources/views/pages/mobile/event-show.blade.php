@@ -75,8 +75,8 @@
             </div>
         @endif
 
-        <a href="{{ route('schedules.index') }}" class="btn btn-sage w-100 py-2 mt-4">
-            <i class="bi bi-calendar-plus me-1"></i> Browse Class Schedules
+        <a href="{{ route('packages.member') }}" class="btn btn-sage w-100 py-2 mt-4">
+            <i class="bi bi-calendar-plus me-1"></i> Lihat Paket Wedding
         </a>
 
         <div style="height: 24px"></div>

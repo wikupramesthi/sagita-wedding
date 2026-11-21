@@ -77,12 +77,14 @@ class OrderController extends Controller
         $stats = (clone $query)->selectRaw("
             COUNT(*) as total,
             SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'partially_paid' THEN 1 ELSE 0 END) as partially_paid,
             SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid,
             SUM(CASE WHEN status IN ('failed', 'expired', 'cancelled') THEN 1 ELSE 0 END) as others,
-            COALESCE(SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END), 0) as revenue
+            COALESCE(SUM(CASE WHEN status = 'paid' THEN COALESCE(total_amount, amount, 0) WHEN status = 'partially_paid' THEN COALESCE(amount_paid, 0) ELSE 0 END), 0) as revenue,
+            COALESCE(SUM(CASE WHEN status = 'partially_paid' THEN GREATEST(COALESCE(total_amount, amount, 0) - COALESCE(amount_paid, 0), 0) ELSE 0 END), 0) as outstanding
         ")->first();
 
-        $queue = Order::packageOnly()->where('status', 'pending');
+        $queue = Order::packageOnly()->whereIn('status', ['pending','partially_paid']);
         if (! $isAdmin) {
             $queue->where('user_uuid', $user->uuid);
         }
@@ -489,10 +491,11 @@ class OrderController extends Controller
         $this->finishIdempotency($idempotencyKey, $order->uuid);
 
         try {
-            if ($stage === 'dp') {
+            if (in_array($stage, ['dp', 'installment'], true)) {
+                $label = $stage === 'dp' ? 'DP diterima.' : 'Cicilan diterima.';
                 $order->user?->notify(new \App\Notifications\OrderPaymentVerifiedNotification(
                     $order->uuid, $order->order_number,
-                    'DP diterima. Sisa pelunasan: Rp ' . number_format((float) $order->remaining_amount_value, 0, ',', '.'),
+                    $label . ' Sisa pembayaran: Rp ' . number_format((float) $order->remaining_amount_value, 0, ',', '.'),
                     'bi-cash-coin'
                 ));
             } elseif ($userPackage) {
@@ -502,23 +505,28 @@ class OrderController extends Controller
             Log::error('Membership activation notification failed: '.$e->getMessage());
         }
 
-        $success = $stage === 'dp' ? 'DP berhasil diverifikasi. Menunggu pelunasan.' : __('flash.order_approve_ok');
-        return redirect()->route('orders.show', $order->uuid)->with('success', $success);
+        $success = match ($stage) {
+            'dp' => 'DP berhasil diverifikasi. Menunggu pelunasan.',
+            'installment' => 'Cicilan berhasil diverifikasi. Menunggu sisa pembayaran.',
+            default => __('flash.order_approve_ok'),
+        };
+        return redirect()->route('orders.show', $order->uuid)->with('success', $success)->with('payment_module_focus', true);
     }
 
     /**
      * Approve a pending/partially paid order inside a single locked transaction.
-     * DP: pending -> partially_paid (no membership activation). Balance/full: -> paid + activate membership.
+     * DP: pending -> partially_paid (no membership activation). Installment/full: update ledger and activate membership only when fully paid.
      *
-     * @return array{0: Order, 1: ?UserPackage, 2: string}
+     * @return array{0: Order, 1: ?UserPackage, 2: string, 3: Payment}
      */
-    private function activatePendingOrder(string $orderUuid, ?string $note): array
+    private function activatePendingOrder(string $orderUuid, ?string $note, ?Payment $incomingPayment = null): array
     {
-        return DB::transaction(function () use ($orderUuid, $note) {
+        return DB::transaction(function () use ($orderUuid, $note, $incomingPayment) {
             $order = Order::packageOnly()->with(['packageOption', 'user', 'payments'])
                 ->where('uuid', $orderUuid)
                 ->lockForUpdate()
                 ->firstOrFail();
+            $incomingPayment = $incomingPayment ? Payment::where('uuid', $incomingPayment->uuid)->where('order_uuid', $order->uuid)->lockForUpdate()->firstOrFail() : null;
 
             if (! in_array($order->status, ['pending', 'partially_paid'], true)) {
                 throw ValidationException::withMessages(['order' => __('flash.order_only_pending_approve')]);
@@ -552,25 +560,35 @@ class OrderController extends Controller
             $isDpInitial = $order->status === 'pending' && in_array($scheme, ['dp30', 'dp50'], true);
 
             if ($isDpInitial) {
-                $payment = Payment::create([
+                $payment = $incomingPayment ?: Payment::create([
                     'order_uuid' => $order->uuid,
                     'kind' => 'dp',
                     'payment_gateway' => 'manual_transfer',
                     'payment_type' => 'Transfer Manual DP',
                     'gross_amount' => $dueNow,
+                    'amount' => $dueNow,
                     'status' => 'paid',
+                    'verification_status' => 'approved',
+                    'verified_by' => Auth::id(),
+                    'verified_at' => now(),
                     'paid_at' => now(),
                     'proof_image_path' => $order->proof_image_path,
                     'proof_uploaded_at' => $order->proof_uploaded_at,
+                    'note' => $note,
                 ]);
-                $remaining = max(0, $fullAmount - $dueNow);
+                if ($incomingPayment) {
+                    $payment->update(['status'=>'paid','verification_status'=>'approved','verified_by'=>Auth::id(),'verified_at'=>now(),'paid_at'=>now(),'kind'=>$payment->kind ?: 'dp','amount'=>$payment->amount ?: $payment->gross_amount,'note'=>$note ?: $payment->note]);
+                }
+                $dpAmount = (float) ($payment->amount ?: $payment->gross_amount ?: $dueNow);
+                $remaining = max(0, $fullAmount - $dpAmount);
                 $order->update([
                     'status' => 'partially_paid',
                     'paid_at' => null,
-                    'amount_paid' => $dueNow,
+                    'amount' => $dpAmount,
+                    'amount_paid' => $dpAmount,
                     'remaining_amount' => $remaining,
                     'total_amount' => $fullAmount,
-                    'balance_due_at' => $order->event_date ? $order->event_date->copy()->startOfDay() : $order->balance_due_at,
+                    'balance_due_at' => $order->event_date ? $order->event_date->copy()->subDays(30)->startOfDay() : $order->balance_due_at,
                     'admin_note' => $note,
                     'assigned_admin_uuid' => $order->assigned_admin_uuid ?: Auth::user()->uuid,
                     'proof_image_path' => null,
@@ -579,34 +597,59 @@ class OrderController extends Controller
                 $snapshot['payment_uuid'] = $payment->uuid;
                 $snapshot['stage'] = 'dp';
                 $order->update(['approval_snapshot' => $snapshot]);
-                $this->logOrderAction($order, 'approved_dp', ['admin_note' => $note, 'amount_paid' => $dueNow, 'remaining_amount' => $remaining]);
-                return [$order->fresh(), null, 'dp'];
+                $this->logOrderAction($order, 'approved_dp', ['admin_note' => $note, 'amount_paid' => $dpAmount, 'remaining_amount' => $remaining]);
+                return [$order->fresh(), null, 'dp', $payment->fresh()];
             }
 
-            $stage = $order->status === 'partially_paid' ? 'balance' : 'full';
-            $settleAmount = $stage === 'balance' ? max(0, $fullAmount - (float) $order->amount_paid_value) : $dueNow;
-            if ($settleAmount <= 0) { $settleAmount = $stage === 'balance' ? max(0, (float) $order->remaining_amount_value) : $dueNow; }
+            $stage = $order->status === 'partially_paid' ? ($incomingPayment && $incomingPayment->kind === 'installment' ? 'installment' : 'balance') : 'full';
+            $settleAmount = $incomingPayment
+                ? (float) ($incomingPayment->amount ?: $incomingPayment->gross_amount ?: 0)
+                : ($stage === 'balance' ? max(0, $fullAmount - (float) $order->amount_paid_value) : $dueNow);
+            if ($settleAmount <= 0) { $settleAmount = max(0, (float) $order->remaining_amount_value); }
+            $settleAmount = min($settleAmount, max(0, $fullAmount - (float) $order->amount_paid_value));
 
-            $payment = Payment::create([
+            $payment = $incomingPayment ?: Payment::create([
                 'order_uuid' => $order->uuid,
-                'kind' => $stage,
+                'kind' => $stage === 'full' ? 'full' : 'balance',
                 'payment_gateway' => 'manual_transfer',
-                'payment_type' => $stage === 'balance' ? 'Pelunasan Manual' : 'Transfer Manual',
+                'payment_type' => $stage === 'full' ? 'Transfer Manual' : 'Pelunasan Manual',
                 'gross_amount' => $settleAmount,
+                'amount' => $settleAmount,
                 'status' => 'paid',
+                'verification_status' => 'approved',
+                'verified_by' => Auth::id(),
+                'verified_at' => now(),
                 'paid_at' => now(),
                 'proof_image_path' => $order->proof_image_path,
                 'proof_uploaded_at' => $order->proof_uploaded_at,
+                'note' => $note,
             ]);
+            if ($incomingPayment) {
+                $payment->update(['status'=>'paid','verification_status'=>'approved','verified_by'=>Auth::id(),'verified_at'=>now(),'paid_at'=>now(),'amount'=>$settleAmount,'gross_amount'=>$settleAmount,'note'=>$note ?: $payment->note]);
+            }
+
+            $newPaid = min($fullAmount, (float) $order->amount_paid_value + $settleAmount);
+            $remaining = max(0, $fullAmount - $newPaid);
+            $isFullyPaid = $remaining <= 0.01;
             $order->update([
-                'status' => 'paid',
-                'paid_at' => now(),
-                'amount_paid' => $fullAmount,
-                'remaining_amount' => 0,
+                'status' => $isFullyPaid ? 'paid' : 'partially_paid',
+                'paid_at' => $isFullyPaid ? now() : null,
+                'amount_paid' => $isFullyPaid ? $fullAmount : $newPaid,
+                'remaining_amount' => $isFullyPaid ? 0 : $remaining,
                 'total_amount' => $fullAmount,
                 'admin_note' => $note,
                 'assigned_admin_uuid' => $order->assigned_admin_uuid ?: Auth::user()->uuid,
+                'proof_image_path' => $isFullyPaid ? $order->proof_image_path : null,
+                'proof_uploaded_at' => $isFullyPaid ? $order->proof_uploaded_at : null,
             ]);
+            $order = $order->fresh();
+            if (! $isFullyPaid) {
+                $snapshot['payment_uuid'] = $payment->uuid;
+                $snapshot['stage'] = 'installment';
+                $order->update(['approval_snapshot' => $snapshot]);
+                $this->logOrderAction($order, 'approved_installment', ['admin_note'=>$note,'amount_paid'=>$newPaid,'remaining_amount'=>$remaining]);
+                return [$order->fresh(), null, 'installment', $payment->fresh()];
+            }
 
             $snapshot['payment_uuid'] = $payment->uuid;
             $snapshot['stage'] = $stage;
@@ -636,7 +679,7 @@ class OrderController extends Controller
 
             $order->update(['approval_snapshot' => $snapshot]);
             $this->logOrderAction($order, $stage === 'balance' ? 'approved_balance' : 'approved', ['admin_note' => $note, 'user_package_uuid' => $userPackage->uuid, 'amount_paid' => $fullAmount]);
-            return [$order->fresh(), $userPackage, $stage];
+            return [$order->fresh(), $userPackage, $stage, $payment->fresh()];
         });
     }
 
@@ -714,74 +757,186 @@ class OrderController extends Controller
     {
         $record = Order::packageOnly()->with('package')->where('uuid', $order)->firstOrFail();
         $user = Auth::user();
-        abort_unless($record->user_uuid === $user->uuid || $user->hasAnyRole(['admin','admin-venue','super-admin']), 403);
-        abort_unless($record->status === 'partially_paid', 403, 'Pembayaran cicilan hanya untuk pesanan DP yang sudah diverifikasi.');
-        if ($record->payments()->where(function($q){$q->where('verification_status','pending')->orWhere('status','pending');})->exists()) {
-            return back()->with('error', 'Masih ada pembayaran yang menunggu verifikasi admin.');
-        }
+        $isAdmin = $user->hasAnyRole(['admin','admin-venue','super-admin']);
+        abort_unless($record->user_uuid === $user->uuid || $isAdmin, 403);
+        abort_unless(in_array($record->status, ['pending','partially_paid'], true), 403, 'Pesanan tidak dalam status pembayaran aktif.');
+
+        $validated = $request->validate([
+            'amount' => ['required','numeric','min:1'],
+            'proof' => ['nullable','image','mimes:jpg,jpeg,png,webp','max:'.config('manual_payment.proof_max_kb', 3072)],
+            'admin_note' => ['nullable','string','max:1000'],
+            'record_only' => ['nullable','boolean'],
+        ]);
 
         $remaining = (float) $record->remaining_amount_value;
-        $minInstallment = min($remaining, round((float) $record->full_amount * 0.20, 2));
-        $validated = $request->validate([
-            'payment_choice' => ['required', Rule::in(['installment20','full'])],
-            'proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.config('manual_payment.proof_max_kb', 3072)],
-        ]);
-        $amount = $validated['payment_choice'] === 'full' ? $remaining : $minInstallment;
-        if ($amount <= 0 || $amount - $remaining > 0.01) {
-            return back()->with('error', 'Nominal pembayaran tidak valid.');
+        $amount = round((float) $validated['amount'], 2);
+        if ($amount - $remaining > 0.01) {
+            return back()->withErrors(['amount' => 'Nominal melebihi sisa pembayaran.'])->withInput();
         }
 
-        $proofPath = $request->file('proof')->store('orders/proofs', 'public');
-        $payment = Payment::create([
-            'order_uuid' => $record->uuid,
-            'kind' => $amount + 0.01 >= $remaining ? 'balance' : 'installment',
-            'payment_gateway' => 'manual_transfer',
-            'payment_type' => $amount + 0.01 >= $remaining ? 'Pelunasan Manual' : 'Cicilan 20%',
-            'amount' => $amount,
-            'gross_amount' => $amount,
-            'status' => 'pending',
-            'verification_status' => 'pending',
-            'proof_image_path' => $proofPath,
-            'proof_uploaded_at' => now(),
-        ]);
-        $this->logOrderAction($record, 'payment_submitted', ['payment_uuid'=>$payment->uuid,'amount'=>$amount,'kind'=>$payment->kind]);
+        $recordOnly = $isAdmin && $request->boolean('record_only');
+        if (! $recordOnly && ! $request->hasFile('proof')) {
+            return back()->withErrors(['proof' => 'Bukti transfer wajib diunggah.'])->withInput();
+        }
 
-        try {
-            $admins = User::role(['admin', 'super-admin'])->where('is_active', true)->get();
-            $notif = new ProofUploadedNotification($record->uuid, $record->order_number, $user->name);
-            foreach ($admins as $admin) { $admin->notify($notif); }
-        } catch (Throwable $e) { Log::error('Payment submission notification failed: '.$e->getMessage()); }
+        $proofPath = $request->hasFile('proof') ? $request->file('proof')->store('orders/proofs', 'public') : null;
+        $isBalance = $amount + 0.01 >= $remaining;
+        $kind = $isBalance ? 'balance' : ((float) $record->amount_paid_value > 0 ? 'installment' : 'dp');
+        $status = $recordOnly ? 'paid' : 'pending';
+        $verification = $recordOnly ? 'approved' : 'pending';
 
-        return back()->with('success', 'Bukti pembayaran cicilan berhasil dikirim. Menunggu verifikasi admin.');
+        $payment = DB::transaction(function () use ($record, $amount, $proofPath, $kind, $status, $verification, $user, $validated, $recordOnly, $remaining) {
+            $locked = Order::packageOnly()->where('uuid', $record->uuid)->lockForUpdate()->firstOrFail();
+            $lockedRemaining = (float) $locked->remaining_amount_value;
+            if ($amount - $lockedRemaining > 0.01) {
+                throw ValidationException::withMessages(['amount' => 'Nominal melebihi sisa pembayaran.']);
+            }
+            $payment = Payment::create([
+                'order_uuid' => $locked->uuid,
+                'kind' => $kind,
+                'payment_gateway' => 'manual_transfer',
+                'payment_type' => $recordOnly ? 'Pencatatan Admin' : ($kind === 'balance' ? 'Pelunasan Manual' : ($kind === 'installment' ? 'Cicilan Manual' : 'Pembayaran Awal')),
+                'amount' => $amount,
+                'gross_amount' => $amount,
+                'status' => $status,
+                'verification_status' => $verification,
+                'verified_by' => $recordOnly ? $user->uuid : null,
+                'verified_at' => $recordOnly ? now() : null,
+                'paid_at' => $recordOnly ? now() : null,
+                'proof_image_path' => $proofPath,
+                'proof_uploaded_at' => $proofPath ? now() : null,
+                'note' => $validated['admin_note'] ?? ($recordOnly ? 'Dicatat manual oleh admin.' : null),
+            ]);
+
+            $locked->update([
+                'proof_image_path' => $proofPath,
+                'proof_uploaded_at' => $proofPath ? now() : $locked->proof_uploaded_at,
+            ]);
+
+            $this->logOrderAction($locked, $recordOnly ? 'payment_recorded' : 'payment_submitted', [
+                'payment_uuid' => $payment->uuid,
+                'amount' => $amount,
+                'kind' => $kind,
+            ]);
+
+            if ($recordOnly) {
+                $this->applyVerifiedPaymentToOrder($locked, $payment);
+            }
+
+            return $payment;
+        });
+
+        if (! $recordOnly) {
+            try {
+                $admins = User::role(['admin', 'super-admin'])->where('is_active', true)->get();
+                $notif = new ProofUploadedNotification($record->uuid, $record->order_number, $user->name);
+                foreach ($admins as $admin) { $admin->notify($notif); }
+            } catch (Throwable $e) { Log::error('Payment submission notification failed: '.$e->getMessage()); }
+        }
+
+        return back()->with('success', $recordOnly ? 'Pembayaran berhasil dicatat.' : 'Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.');
     }
 
-    public function approvePayment(Request $request, string $order, string $payment)
+        public function approvePayment(Request $request, string $order, string $payment)
     {
         abort_unless($this->canApproveOrders(), 403);
-        $validated = $request->validate(['admin_note' => ['nullable','string','max:1000'], 'idempotency_key' => ['sometimes','string','max:120']]);
+        $request->validate(['admin_note' => ['nullable','string','max:1000']]);
+        $record = Order::packageOnly()->where('uuid', $order)->firstOrFail();
         $paymentModel = Payment::where('uuid', $payment)->where('order_uuid', $order)->firstOrFail();
         try {
-            [$approved, $userPackage, $stage] = $this->activatePendingOrder($order, $validated['admin_note'] ?? null, $paymentModel);
+            [$approved] = $this->verifyPendingPayment($record, $paymentModel, $request->input('admin_note'));
         } catch (ValidationException $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', collect($e->errors())->flatten()->first() ?: $e->getMessage());
         }
-        try {
-            $user = $approved->user;
-            if ($user) {
-                if (in_array($stage, ['dp','installment'], true)) {
-                    $msg = ($stage === 'dp' ? 'DP' : 'Cicilan') . ' diterima. Sisa pembayaran: Rp ' . number_format((float) $approved->remaining_amount_value, 0, ',', '.');
-                    $user->notify(new \App\Notifications\OrderPaymentVerifiedNotification($approved->uuid, $approved->order_number, $msg, 'bi-cash-coin'));
-                } elseif ($userPackage) {
-                    $user->notify(new MemberActiveNotification($approved->uuid, $approved->order_number, $userPackage->expired_at));
-                }
-            }
-        } catch (Throwable $e) { Log::error('Payment approval notification failed: '.$e->getMessage()); }
-
-        $msg = match($stage) { 'dp'=>'DP berhasil diverifikasi.', 'installment'=>'Cicilan berhasil diverifikasi.', default=>__('flash.order_approved') };
+        $msg = $approved->isFullyPaid() ? 'Pembayaran berhasil diverifikasi. Pesanan lunas.' : 'Pembayaran berhasil diverifikasi.';
         return redirect()->route('orders.show', $approved->uuid)->with('success', $msg)->with('payment_module_focus', true);
     }
 
-    public function rejectPayment(Request $request, string $order, string $payment)
+    private function verifyPendingPayment(Order $order, Payment $payment, ?string $note = null): array
+    {
+        return DB::transaction(function () use ($order, $payment, $note) {
+            $lockedOrder = Order::packageOnly()->where('uuid', $order->uuid)->lockForUpdate()->firstOrFail();
+            $lockedPayment = Payment::where('uuid', $payment->uuid)->where('order_uuid', $lockedOrder->uuid)->lockForUpdate()->firstOrFail();
+            $pStatus = $lockedPayment->verification_status ?: $lockedPayment->status;
+            if (in_array($pStatus, ['verified','approved','paid'], true)) return [$lockedOrder->fresh(), 'already'];
+            if (in_array($pStatus, ['rejected','failed'], true)) throw ValidationException::withMessages(['payment' => 'Pembayaran ini sudah ditolak.']);
+
+            $fullAmount = (float) ($lockedOrder->full_amount ?: $lockedOrder->total_amount ?: $lockedOrder->amount ?: 0);
+            $remaining = max(0, $fullAmount - (float) $lockedOrder->amount_paid_value);
+            $amount = min($remaining, (float) ($lockedPayment->amount ?: $lockedPayment->gross_amount ?: 0));
+            if ($amount <= 0) throw ValidationException::withMessages(['payment' => 'Nominal pembayaran tidak valid.']);
+
+            $lockedPayment->update([
+                'status' => 'paid',
+                'verification_status' => 'approved',
+                'verified_by' => Auth::id(),
+                'verified_at' => now(),
+                'paid_at' => $lockedPayment->paid_at ?: now(),
+                'amount' => $amount,
+                'gross_amount' => $lockedPayment->gross_amount ?: $amount,
+                'note' => $note ?: $lockedPayment->note,
+            ]);
+
+            $this->logOrderAction($lockedOrder, 'payment_approved', ['payment_uuid'=>$lockedPayment->uuid,'amount'=>$amount]);
+            $updated = $this->applyVerifiedPaymentToOrder($lockedOrder->fresh());
+            return [$updated, $lockedPayment->kind ?: 'payment'];
+        });
+    }
+
+    private function applyVerifiedPaymentToOrder(Order $order): Order
+    {
+        $fullAmount = (float) ($order->full_amount ?: $order->total_amount ?: $order->amount ?: 0);
+        $paid = (float) Payment::where('order_uuid', $order->uuid)
+            ->where(function ($q) { $q->whereIn('verification_status', ['verified','approved'])->orWhere('status','paid'); })
+            ->sum(DB::raw('COALESCE(amount, gross_amount, 0)'));
+        $paid = min($fullAmount, round($paid, 2));
+        $remaining = max(0, round($fullAmount - $paid, 2));
+        $isFullyPaid = $remaining <= 0.01;
+        $status = $isFullyPaid ? 'paid' : ($paid > 0 ? 'partially_paid' : 'pending');
+
+        $order->update([
+            'status' => $status,
+            'amount_paid' => $isFullyPaid ? $fullAmount : $paid,
+            'remaining_amount' => $isFullyPaid ? 0 : $remaining,
+            'total_amount' => $fullAmount,
+            'paid_at' => $isFullyPaid ? ($order->paid_at ?: now()) : null,
+            'balance_due_at' => $isFullyPaid ? null : ($order->balance_due_at ?: ($order->event_date ? $order->event_date->copy()->subDays(30)->startOfDay() : null)),
+        ]);
+
+        if ($isFullyPaid) $this->activateMembershipFromOrder($order->fresh());
+        return $order->fresh();
+    }
+
+    private function activateMembershipFromOrder(Order $order): ?UserPackage
+    {
+        $snapshot = $order->approval_snapshot ?? [];
+        if (! empty($snapshot['user_package']['uuid'])) return UserPackage::where('uuid', $snapshot['user_package']['uuid'])->first();
+        $package = $order->package; $option = $order->packageOption; $user = $order->user;
+        if (! $package || ! $user) return null;
+
+        $userPackage = DB::transaction(function () use ($order, $package, $option, $user, $snapshot) {
+            $locked = Order::packageOnly()->where('uuid', $order->uuid)->lockForUpdate()->firstOrFail();
+            $approval = $locked->approval_snapshot ?? $snapshot;
+            if (! empty($approval['user_package']['uuid'])) return UserPackage::where('uuid', $approval['user_package']['uuid'])->first();
+            $expiredAt = $option ? match ($option->duration_unit) {
+                'day' => now()->addDays((int) $option->duration),
+                'week' => now()->addWeeks((int) $option->duration),
+                'month' => now()->addMonths((int) $option->duration),
+                'year' => now()->addYears((int) $option->duration),
+                default => now()->addMonth(),
+            } : now()->addMonth();
+            $userPackage = UserPackage::create([
+                'user_uuid' => $user->uuid, 'package_uuid' => $package->uuid, 'order_uuid' => $locked->uuid,
+                'quota' => $option?->quota ?? 0, 'expired_at' => $expiredAt, 'purchased_at' => now(),
+            ]);
+            $locked->update(['approval_snapshot' => array_merge($approval, ['user_package' => ['created'=>true,'uuid'=>$userPackage->uuid,'expired_at'=>$userPackage->expired_at?->toDateTimeString(),'quota'=>$userPackage->quota,'order_uuid'=>$userPackage->order_uuid]])]);
+            $this->logOrderAction($locked, 'membership_activated', ['user_package_uuid'=>$userPackage->uuid]);
+            return $userPackage;
+        });
+        try { $user->notify(new MemberActiveNotification($order->uuid, $order->order_number, $userPackage?->expired_at)); } catch (Throwable $e) { Log::error('Member activation notification failed: '.$e->getMessage()); }
+        return $userPackage;
+    }
+public function rejectPayment(Request $request, string $order, string $payment)
     {
         abort_unless($this->canRejectOrders(), 403);
         $validated = $request->validate(['admin_note' => ['required','string','max:1000']]);
@@ -994,6 +1149,9 @@ class OrderController extends Controller
                         'admin_note' => $beforeOrder['admin_note'] ?? null,
                         'assigned_admin_uuid' => $beforeOrder['assigned_admin_uuid'] ?? null,
                         'pending_key' => $beforeOrder['pending_key'] ?? null,
+                        'amount_paid' => $beforeOrder['amount_paid'] ?? 0,
+                        'remaining_amount' => $beforeOrder['remaining_amount'] ?? 0,
+                        'balance_due_at' => $beforeOrder['balance_due_at'] ?? null,
                         'approval_snapshot' => null,
                     ]);
 
@@ -1046,7 +1204,7 @@ class OrderController extends Controller
         sort($ids);
 
         $query = Order::packageOnly()
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'partially_paid'])
             ->whereNotNull('created_at')
             ->where('created_at', '<=', now()->subHours(24))
             ->with(['user', 'assignedAdmin']);
@@ -1133,7 +1291,7 @@ class OrderController extends Controller
             DB::transaction(function () use ($order): void {
                 $model = Order::packageOnly()->where('uuid', $order)->lockForUpdate()->firstOrFail();
 
-                if ($model->status !== 'pending') {
+                if (! in_array($model->status, ['pending','partially_paid'], true)) {
                     throw ValidationException::withMessages([
                         'order' => __('flash.order_only_pending_claim'),
                     ]);
@@ -1525,7 +1683,7 @@ class OrderController extends Controller
 
             'payment_scheme' => [
                 'nullable',
-                Rule::in(['dp30', 'dp50', 'full']),
+                Rule::in(['no_dp','dp30','dp50','full']),
             ],
         ]);
 
@@ -1735,15 +1893,21 @@ class OrderController extends Controller
 
         $fullAmount = max(0, $subtotal - $discount);
 
+        $bookingFee = min((int) Order::BOOKING_FEE_AMOUNT, (int) $fullAmount);
+        $netAmount = max(0, (int) $fullAmount - $bookingFee);
         $paymentSchemes = [
-            'dp30' => ['label' => 'DP 30%', 'factor' => 0.30],
-            'dp50' => ['label' => 'DP 50%', 'factor' => 0.50],
-            'full' => ['label' => 'Bayar Lunas', 'factor' => 1.00],
+            'no_dp' => ['label' => 'Tanpa DP', 'due_now' => 0],
+            'dp30' => ['label' => 'DP 30%', 'due_now' => (int) round($netAmount * 0.30)],
+            'dp50' => ['label' => 'DP 50%', 'due_now' => (int) round($netAmount * 0.50)],
+            'full' => ['label' => 'Bayar Lunas', 'due_now' => $netAmount],
         ];
 
-        $paymentScheme = $validated['payment_scheme'] ?? 'full';
+        $paymentScheme = $validated['payment_scheme'] ?? 'no_dp';
+        if (! isset($paymentSchemes[$paymentScheme])) {
+            $paymentScheme = 'no_dp';
+        }
         $schemeLabel = $paymentSchemes[$paymentScheme]['label'];
-        $amount = (int) round($fullAmount * $paymentSchemes[$paymentScheme]['factor']);
+        $amount = max(0, min($netAmount, (int) $paymentSchemes[$paymentScheme]['due_now']));
 
         /*
         |--------------------------------------------------------------------------
@@ -1802,7 +1966,11 @@ class OrderController extends Controller
                     }
                 }
 
-                $remainingAmount = max(0, (int) $fullAmount - (int) $amount);
+                $bookingFeeAmount = $bookingFee;
+                $dueNow = $bookingFeeAmount + $amount;
+                $amountPaid = 0;
+                $remainingAmount = max(0, (int) $fullAmount - $amountPaid);
+                $status = $remainingAmount <= 0 ? 'paid' : ($amountPaid > 0 ? 'partially_paid' : 'pending');
 
                 return Order::create([
 
@@ -1820,20 +1988,19 @@ class OrderController extends Controller
 
                     'event_date' => $eventDate->toDateString(),
 
-        
-                    'amount' => $amount,
+                    'amount' => $dueNow,
 
                     'payment_scheme' => $paymentScheme,
 
                     'total_amount' => $fullAmount,
 
-                    'amount_paid' => 0,
+                    'amount_paid' => $amountPaid,
 
                     'remaining_amount' => $remainingAmount,
 
-                    'balance_due_at' => $paymentScheme !== 'full' ? $eventDate->copy()->startOfDay() : null,
+                    'balance_due_at' => $remainingAmount > 0 ? $eventDate->copy()->subDays(30)->startOfDay() : null,
 
-                    'status' => 'pending',
+                    'status' => $status,
 
                     'expired_at' => now()->addHours(24),
 
@@ -1853,7 +2020,10 @@ class OrderController extends Controller
                         'payment_scheme' => $paymentScheme,
                         'scheme_label' => $schemeLabel,
                         'full_amount' => $fullAmount,
-                        'due_amount' => $amount,
+                        'booking_fee' => $bookingFeeAmount,
+                        'net_amount' => $netAmount,
+                        'scheme_due' => $amount,
+                        'due_amount' => $dueNow,
                     ],
                 ]);
             });
@@ -2171,10 +2341,11 @@ class OrderController extends Controller
     private function reportData($orders, Request $request, $user): array
     {
         $paid = $orders->where('status', 'paid');
+        $partiallyPaid = $orders->where('status', 'partially_paid');
         $decidedCount = $paid->count() + $orders->whereIn('status', ['failed', 'expired', 'cancelled'])->count();
         $withProofCount = $orders->whereNotNull('proof_image_path')->count();
         $slaBreachCount = $orders->filter(function ($order) {
-            return $order->status === 'pending'
+            return in_array($order->status, ['pending', 'partially_paid'], true)
                 && $order->created_at
                 && $order->created_at->lt(now()->subHours(24));
         })->count();
@@ -2183,14 +2354,20 @@ class OrderController extends Controller
             ->filter(fn ($order) => $order->paid_at && $order->created_at)
             ->avg(fn ($order) => $order->created_at->diffInHours($order->paid_at));
 
+        $revenueReceived = $paid->sum(fn ($o) => (float) ($o->total_amount ?: $o->amount))
+            + $partiallyPaid->sum(fn ($o) => (float) ($o->amount_paid_value ?? $o->amount_paid ?? 0));
+
         return [
             'orders' => $orders,
             'columns' => $this->exportColumns($request),
             'total' => $orders->count(),
             'pendingCount' => $orders->where('status', 'pending')->count(),
+            'partiallyPaidCount' => $orders->where('status', 'partially_paid')->count(),
             'paidCount' => $paid->count(),
+            'partiallyPaidCount' => $partiallyPaid->count(),
             'failedCount' => $orders->whereIn('status', ['failed', 'expired', 'cancelled'])->count(),
-            'revenue' => $paid->sum('amount'),
+            'revenue' => $revenueReceived,
+            'outstanding' => $partiallyPaid->sum(fn ($o) => max(0, (float) ($o->total_amount ?: $o->amount) - (float) ($o->amount_paid_value ?? $o->amount_paid ?? 0))),
             'proofUploadRate' => $orders->count() ? (int) round($withProofCount / $orders->count() * 100) : 0,
             'approvalRate' => $decidedCount ? (int) round($paid->count() / $decidedCount * 100) : 0,
             'slaBreachCount' => $slaBreachCount,

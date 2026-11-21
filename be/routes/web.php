@@ -17,9 +17,9 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\PackageInteractionController;
+use App\Http\Controllers\Admin\PackagePromoController;
 use App\Http\Controllers\Admin\PagesController;
 use App\Http\Controllers\Admin\PenggunaController;
-use App\Http\Controllers\Admin\PollController;
 use App\Http\Controllers\Admin\QuotationController;
 use App\Http\Controllers\Admin\Security\AuditLogController;
 use App\Http\Controllers\Admin\Security\FailedLoginController;
@@ -174,7 +174,6 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::resource('articles', ArticleController::class)->except(['show']);
     Route::resource('account', AccountController::class);
     Route::get('/get-kelurahan/{kecamatan_id}', [AccountController::class, 'getKelurahan']);
-    Route::resource('poll', PollController::class);
     Route::resource('pages', PagesController::class);
     Route::resource('events', EventsController::class);
     Route::resource('filedownload', FileDownloadController::class)->only(['index', 'store', 'update', 'destroy']);
@@ -234,6 +233,7 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::patch('/packages/{package}/toggle-status', [PackageController::class, 'toggleStatus'])->name('packages.toggle-status');
     Route::post('/packages/{package}/reorder', [PackageController::class, 'reorder'])->name('packages.reorder');
     Route::get('/packages/{package}/preview', [PackageController::class, 'preview'])->name('packages.preview');
+    Route::resource('package-promos', PackagePromoController::class)->except(['show','create','edit']);
     Route::resource('packages', PackageController::class);
     Route::resource('venues', VenueController::class)->except(['show']);
 Route::get('/checkout/package/{packageUuid}', [

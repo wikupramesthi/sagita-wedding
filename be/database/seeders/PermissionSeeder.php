@@ -76,6 +76,12 @@ class PermissionSeeder extends Seeder
             'permission.store',
             'permission.update',
             'permission.destroy',
+
+            // Package Promo
+            'package.promo.index',
+            'package.promo.store',
+            'package.promo.update',
+            'package.promo.destroy',
         ];
 
         foreach ($permissions as $permission) {

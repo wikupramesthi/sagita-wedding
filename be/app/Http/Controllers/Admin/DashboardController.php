@@ -418,7 +418,7 @@ class DashboardController extends Controller
             'newOrdersCount' => $newOrdersCount,
             'newMembershipCount' => $newMembershipCount,
             'revenueMonth' => $revenueMonth,
-            'revenueTotal' => (float) Order::where('status', 'paid')->get(['amount','total_amount'])->sum(fn($o)=>(float)($o->total_amount?:$o->amount)),
+            'revenueTotal' => (float) Order::whereIn('status',['paid','partially_paid'])->get(['status','amount','total_amount','amount_paid'])->sum(fn($o)=> $o->status==='paid' ? (float)($o->total_amount?:$o->amount) : (float)($o->amount_paid ?? 0)),
             'security' => [
                 'failedLogins' => (int) FailedLogin::where('created_at', '>=', now()->subDay())->count(),
                 'lockouts' => (int) LoginLockout::active()->count(),

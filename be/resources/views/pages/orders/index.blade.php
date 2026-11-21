@@ -106,21 +106,21 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             <div class="d-flex align-items-center gap-3">
                 <div class="order-revenue-icon"><i class="bi bi-wallet2"></i></div>
                 <div>
-                    <div class="order-revenue-label">Pendapatan (Lunas)</div>
+                    <div class="order-revenue-label">Pendapatan Diterima</div>
                     <div class="order-revenue-value">Rp {{ number_format($stats->revenue ?? 0, 0, ',', '.') }}</div>
                 </div>
             </div>
             <div class="d-flex flex-wrap gap-4 order-revenue-meta">
                 <div>
-                    <div class="order-revenue-meta-label">Pesanan lunas</div>
-                    <div class="order-revenue-meta-value">{{ number_format($stats->paid ?? 0) }}</div>
+                    <div class="order-revenue-meta-label">Lunas / DP</div>
+                    <div class="order-revenue-meta-value">{{ number_format($stats->paid ?? 0) }} / {{ number_format($stats->partially_paid ?? 0) }}</div>
                 </div>
                 <div>
                     <div class="order-revenue-meta-label">Total pesanan</div>
                     <div class="order-revenue-meta-value">{{ number_format($stats->total ?? 0) }}</div>
                 </div>
                 <div>
-                    <div class="order-revenue-meta-label">Menunggu verifikasi</div>
+                    <div class="order-revenue-meta-label">Outstanding DP</div>
                     <div class="order-revenue-meta-value">{{ number_format($stats->pending ?? 0) }}</div>
                 </div>
             </div>

@@ -77,7 +77,7 @@
         {{-- BOOKING HISTORY --}}
         <div class="d-flex justify-content-between align-items-end mt-4">
             <h3 class="h5 fw-semibold mb-0">{{ __('mobile.recent_classes') }}</h3>
-            <a href="{{ route('bookings.my') }}" class="btn btn-link p-0 text-terra fw-semibold text-small text-decoration-none">{{ __('mobile.view_all') }}</a>
+            <a href="{{ route('orders.index') }}" class="btn btn-link p-0 text-terra fw-semibold text-small text-decoration-none">{{ __('mobile.view_all') }}</a>
         </div>
         <div class="d-grid gap-3 mt-3">
             @forelse ($bookings as $b)
@@ -96,8 +96,8 @@
             @endforelse
         </div>
 
-        <a href="{{ route('schedules.index') }}" class="btn btn-sage w-100 py-2 mt-4">
-            <i class="bi bi-calendar-plus me-1"></i> Book a Class
+        <a href="{{ route('packages.member') }}" class="btn btn-sage w-100 py-2 mt-4">
+            <i class="bi bi-calendar-plus me-1"></i> Lihat Paket
         </a>
 
         <div style="height: 24px"></div>

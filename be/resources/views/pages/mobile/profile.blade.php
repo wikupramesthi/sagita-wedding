@@ -161,17 +161,17 @@
 
         <div class="d-flex justify-content-between align-items-end mt-4">
             <h3 class="h5 fw-semibold mb-0">{{ __('mobile.my_bookings') }}</h3>
-            <a href="{{ route('bookings.my') }}"
+            <a href="{{ route('orders.index') }}"
                 class="btn btn-link p-0 text-terra fw-semibold text-small text-decoration-none">{{ __('mobile.view_all') }}</a>
         </div>
 
         <div class="app-card overflow-hidden gap-3 mt-3">
-            <a href="{{ route('bookings.my') }}"
+            <a href="{{ route('orders.index') }}"
                 class="d-flex align-items-center gap-3 px-4 py-3 text-decoration-none text-dark">
                 <i class="bi bi-calendar-check text-sage"></i>
                 <div class="flex-fill">
                     <p class="small fw-semibold mb-0">{{ __('mobile.manage_bookings') }}</p>
-                    <p class="mb-0 m-micro text-muted2">{{ __('mobile.manage_bookings_desc') }}</p>
+                    <p class="mb-0 m-micro text-muted2">{{ __('mobile.Lihat riwayat dan status pesanan Anda') }}</p>
                 </div>
                 <i class="bi bi-chevron-right text-muted2"></i>
             </a>

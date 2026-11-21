@@ -74,6 +74,12 @@
         @endif
 
         {{-- SUMMARY --}}
+        @php
+            $fullAmount = (float) ($order->total_amount ?: $order->amount);
+            $amountPaid = (float) ($order->amount_paid_value ?? ($order->status === 'paid' ? $fullAmount : 0));
+            $remainingAmount = (float) ($order->remaining_amount_value ?? max(0, $fullAmount - $amountPaid));
+            $schemeLabel = $order->scheme_label ?? ($order->promo_snapshot['scheme_label'] ?? 'Bayar Lunas');
+        @endphp
         <div class="app-card p-3 mt-3">
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <span class="text-muted2 text-small">{{ __('mobile.order') }}</span>
@@ -89,6 +95,10 @@
                 </span>
             </div>
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <span class="text-muted2 text-small">Skema</span>
+                <span class="small fw-semibold">{{ $schemeLabel }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <span class="text-muted2 text-small">{{ __('mobile.date') }}</span>
                 <span class="small fw-semibold">{{ $order->created_at?->format('d M Y') ?? '-' }}</span>
             </div>
@@ -101,10 +111,7 @@
             @if ($order->promo_code)
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                     <span class="text-muted2 text-small">Promo</span>
-                    <span class="small fw-semibold text-end">
-                        {{ $order->promo_code }}
-                        (Hemat Rp {{ number_format((int) $order->promo_discount, 0, ',', '.') }})
-                    </span>
+                    <span class="small fw-semibold text-end">{{ $order->promo_code }} (Hemat Rp {{ number_format((int) $order->promo_discount, 0, ',', '.') }})</span>
                 </div>
             @endif
             @if (!empty($order->addons))
@@ -118,11 +125,69 @@
                     @endforeach
                 </div>
             @endif
-            <div class="d-flex justify-content-between align-items-center py-2">
-                <span class="text-muted2 text-small">{{ __('mobile.amount') }}</span>
-                <span class="small fw-semibold">Rp {{ number_format($order->amount, 0, ',', '.') }}</span>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <span class="text-muted2 text-small">Total Paket</span>
+                <span class="small fw-semibold">Rp {{ number_format($fullAmount, 0, ',', '.') }}</span>
             </div>
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <span class="text-muted2 text-small">Sudah Dibayar</span>
+                <span class="small fw-semibold text-success">Rp {{ number_format($amountPaid, 0, ',', '.') }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2">
+                <span class="text-muted2 text-small">Sisa</span>
+                <span class="small fw-semibold {{ $remainingAmount > 0 ? 'text-danger' : 'text-success' }}">Rp {{ number_format($remainingAmount, 0, ',', '.') }}</span>
+            </div>
+            @if($order->balance_due_at)
+            <div class="pt-1 m-micro text-muted2">Batas pelunasan: {{ $order->balance_due_at->translatedFormat('d M Y') }}</div>
+            @endif
         </div>
+
+        {{-- ADD PAYMENT --}}
+        @if ($isOwner && in_array($order->status, ['pending','partially_paid'], true))
+            @php
+                $pendingPayment = $order->payments->firstWhere('verification_status', 'pending') ?? $order->payments->firstWhere('status', 'pending');
+                $hasPendingPayment = (bool) $pendingPayment;
+            @endphp
+            <div class="app-card p-3 mt-3">
+                <h3 class="h6 fw-semibold mb-2">Tambah Pembayaran</h3>
+                <div class="m-meta text-muted2 mb-2">Sisa pembayaran: <strong class="text-danger">Rp {{ number_format($remainingAmount,0,',','.') }}</strong></div>
+                @if($hasPendingPayment)
+                    <div class="alert alert-warning small mb-0">Bukti pembayaran Rp {{ number_format((float)($pendingPayment->amount ?? $pendingPayment->gross_amount),0,',','.') }} sedang menunggu verifikasi admin.</div>
+                @else
+                    <form action="{{ route('orders.payments.store', $order->uuid) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <label class="form-label small mb-1">Nominal pembayaran</label>
+                        <input type="number" name="amount" class="form-control mb-2" min="1" max="{{ (int)$remainingAmount }}" value="{{ (int)$remainingAmount }}" required>
+                        <label class="form-label small mb-1">Bukti transfer</label>
+                        <input type="file" name="proof" class="form-control mb-2" accept="image/jpeg,image/png,image/webp" required>
+                        <button class="btn btn-sage w-100"><i class="bi bi-upload me-1"></i>Kirim Bukti Pembayaran</button>
+                    </form>
+                @endif
+            </div>
+        @endif
+
+        {{-- PAYMENT HISTORY --}}
+        @if($order->payments->isNotEmpty())
+            <div class="app-card p-3 mt-3">
+                <h3 class="h6 fw-semibold mb-2">Riwayat Pembayaran</h3>
+                @foreach($order->payments->sortByDesc('created_at') as $p)
+                    @php $pStatus = $p->verification_status ?: $p->status; @endphp
+                    <div class="py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                        <div class="d-flex justify-content-between gap-2">
+                            <div>
+                                <div class="small fw-semibold">{{ ucfirst($p->kind ?: 'payment') }} - Rp {{ number_format((float)($p->amount ?? $p->gross_amount),0,',','.') }}</div>
+                                <div class="m-micro text-muted2">{{ ($p->paid_at ?: $p->created_at)?->format('d M Y H:i') }}</div>
+                            </div>
+                            <span class="badge {{ $pStatus==='verified'||$p->status==='paid'?'bg-success-subtle text-success':($pStatus==='pending'?'bg-warning-subtle text-warning-emphasis':'bg-danger-subtle text-danger') }} align-self-start">{{ $pStatus }}</span>
+                        </div>
+                        @if($p->proof_image_path)
+                            <a href="{{ asset('storage/'.$p->proof_image_path) }}" target="_blank" class="small">Lihat bukti</a>
+                        @endif
+                        @if($p->note)<div class="m-micro text-muted2">{{ $p->note }}</div>@endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
 
         {{-- PAYMENT INSTRUCTIONS --}}
         @if ($order->status === 'pending')

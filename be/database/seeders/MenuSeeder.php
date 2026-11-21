@@ -88,5 +88,21 @@ class MenuSeeder extends Seeder
             'position' => 3,
         ]);
 
+
+        // Ensure package/promo menu items exist for Paket & Layanan group
+        $menuPackage = MenuGroup::where('permission_name', 'package.member')->first();
+        if ($menuPackage) {
+            $packageItems = [
+                ['name' => 'Paket Wedding Organizer', 'icon' => 'fas fa-box-open', 'route' => 'packages.index', 'status' => 1, 'permission_name' => 'package.index', 'position' => 1, 'menu_group_id' => $menuPackage->id],
+                ['name' => 'Promo', 'icon' => 'fas fa-ticket-alt', 'route' => 'package-promos.index', 'status' => 1, 'permission_name' => 'package.promo.index', 'position' => 2, 'menu_group_id' => $menuPackage->id],
+                ['name' => 'Paket Organizer', 'icon' => 'fas fa-handshake', 'route' => 'packages.member', 'status' => 1, 'permission_name' => 'package.member', 'position' => 3, 'menu_group_id' => $menuPackage->id],
+            ];
+            foreach ($packageItems as $item) {
+                MenuItem::updateOrCreate(
+                    ['menu_group_id' => $item['menu_group_id'], 'route' => $item['route']],
+                    $item
+                );
+            }
+        }
     }
 }

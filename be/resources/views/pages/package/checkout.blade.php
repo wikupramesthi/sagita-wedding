@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Pemesanan Paket')
+@section('title', 'Pembayaran Paket')
 @section('content')
 
 @php
@@ -105,27 +105,13 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                     </div>
                     @endif
 
-                    <div class="checkout-event-meta mt-2">
-                        <span>
-                            <i class="bi bi-calendar2-check me-1"></i>
-                            Pemesanan minimal <strong>{{ $leadTimeDays }} hari</strong> sebelum tanggal acara.
-                        </span>
-
-                        @if ($blackoutDates->count())
-                        <span>
-                            <i class="bi bi-calendar-x me-1"></i>
-                            Tanggal tidak tersedia:
-                            <strong>{{ $blackoutDates->pluck('date')->map(fn ($date) => $date?->format('d M Y'))->implode(', ') }}</strong>
-                        </span>
-                        @endif
-                    </div>
 
                 </div>
 
             </div>
 
 
-            {{-- Choose Option --}}
+            {{-- Pilih Opsi --}}
             <div class="card border-0 shadow-sm mb-4">
 
                 <div class="card-header bg-transparent border-0 pt-4 px-4">
@@ -424,9 +410,9 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                         <i class="bi bi-check-circle-fill text-success mt-1"></i>
 
                         <p class="text-muted mb-0">
-                            Kuota paket
+                            Paket yang sudah dipesan
                             <strong class="text-dark">
-                                tidak dapat dialihkan, diperpanjang, maupun ditukar.
+                                tidak dapat dialihkan, diperpanjang, atau ditukar.
                             </strong>
                         </p>
                     </div>
@@ -446,24 +432,31 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
                     <div class="checkout-scheme-options">
                         <label class="checkout-scheme-option">
+                            <input type="radio" name="payment_scheme" value="no_dp" form="checkoutForm" class="payment-scheme-input" checked>
+                            <span class="checkout-scheme-body">
+                                <strong>Tanpa DP</strong>
+                                <small>Bayar booking fee sekarang, sisa setelah booking fee</small>
+                            </span>
+                        </label>
+                        <label class="checkout-scheme-option">
                             <input type="radio" name="payment_scheme" value="dp30" form="checkoutForm" class="payment-scheme-input">
                             <span class="checkout-scheme-body">
                                 <strong>DP 30%</strong>
-                                <small>Bayar sebagian di awal</small>
+                                <small>Dari sisa setelah booking fee</small>
                             </span>
                         </label>
                         <label class="checkout-scheme-option">
                             <input type="radio" name="payment_scheme" value="dp50" form="checkoutForm" class="payment-scheme-input">
                             <span class="checkout-scheme-body">
                                 <strong>DP 50%</strong>
-                                <small>Setengah dari total paket</small>
+                                <small>Dari sisa setelah booking fee</small>
                             </span>
                         </label>
                         <label class="checkout-scheme-option">
-                            <input type="radio" name="payment_scheme" value="full" form="checkoutForm" class="payment-scheme-input" checked>
+                            <input type="radio" name="payment_scheme" value="full" form="checkoutForm" class="payment-scheme-input">
                             <span class="checkout-scheme-body">
                                 <strong>Bayar Lunas</strong>
-                                <small>Langsung lunasi seluruh paket</small>
+                                <small>Lunasi sisa setelah booking fee</small>
                             </span>
                         </label>
                     </div>
@@ -672,38 +665,30 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
                         <div class="summary-divider"></div>
 
-
                         <div class="d-flex justify-content-between align-items-end">
-
-                            <span class="fw-bold">
-                                Total
-                            </span>
-
-                            <strong
-                                id="summaryTotal"
-                                class="summary-total">
-
+                            <span class="text-muted small">Total Paket</span>
+                            <strong id="summaryTotal" class="summary-total">
                                 @if ($package->options->first())
                                 Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}
                                 @else
                                 Rp 0
                                 @endif
-
                             </strong>
+                        </div>
 
+                        <div class="d-flex justify-content-between align-items-end mt-2">
+                            <span class="text-muted small">Booking Fee (wajib)</span>
+                            <div id="summaryBookingFee" class="summary-price">Rp 2.000.000</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-end mt-2">
+                            <span class="text-muted small">Sisa setelah booking fee</span>
+                            <div id="summaryNetAmount" class="summary-price">Rp 0</div>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-end checkout-due-row">
-                            <span class="text-muted small">
-                                Dibayar sekarang
-                            </span>
-                            <strong id="summaryDue" class="summary-total">
-                                @if ($package->options->first())
-                                Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}
-                                @else
-                                Rp 0
-                                @endif
-                            </strong>
+                            <span class="fw-semibold">Dibayar sekarang</span>
+                            <strong id="summaryDue" class="summary-total">Rp 2.000.000</strong>
                         </div>
 
                     </div>
@@ -792,7 +777,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             </div>
 
 
-            {{-- Secure Checkout --}}
+            {{-- Pemesanan Aman --}}
             <div class="secure-checkout">
 
                 <div class="secure-icon">
@@ -864,7 +849,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
 <style>
     /* =========================================================
-   CHECKOUT
+   PEMBAYARAN
 ========================================================= */
 
     .package-checkout {
@@ -1892,14 +1877,19 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             }
 
 
-            const total = Math.max(0, price + addonTotal - discount);
-            const scheme = selectedPaymentScheme();
+                const total = Math.max(0, price + addonTotal - discount);
+    const bookingFee = Math.min(BOOKING_FEE, total);
+    const netAmount = Math.max(0, total - bookingFee);
+    const scheme = selectedPaymentScheme();
+    const schemeDue = Math.max(0, Math.round(netAmount * scheme.factor));
+    const dueNow = Math.max(0, Math.min(total, bookingFee + schemeDue));
 
-            summaryTotal.textContent = formatRupiah(total);
-
-            if (summaryDue) {
-                summaryDue.textContent = formatRupiah(Math.round(total * scheme.factor));
-            }
+    summaryTotal.textContent = formatRupiah(total);
+    const summaryBookingFee = document.getElementById('summaryBookingFee');
+    const summaryNetAmount = document.getElementById('summaryNetAmount');
+    if (summaryBookingFee) summaryBookingFee.textContent = formatRupiah(bookingFee);
+    if (summaryNetAmount) summaryNetAmount.textContent = formatRupiah(netAmount);
+    if (summaryDue) summaryDue.textContent = formatRupiah(dueNow);
 
 
             if (addonUuidInputs) {

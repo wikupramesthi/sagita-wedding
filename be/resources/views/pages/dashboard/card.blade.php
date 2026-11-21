@@ -502,23 +502,32 @@
             </div>
             <div class="col-lg-4">
                 <div class="card h-100">
-                    <div class="card-header bg-transparent"><h5 class="card-title h6 mb-0">Acara mendatang</h5></div>
-                    <div class="card-body">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="card-title h6 mb-0">Acara mendatang</h5>
+                        <a href="{{ route('events.index') }}" class="small text-decoration-none">Lihat semua</a>
+                    </div>
+                    <div class="card-body p-0">
                         @forelse ($events as $event)
-                            <div class="d-flex gap-3 {{ $loop->last ? '' : 'border-bottom pb-3 mb-3' }}">
-                                <div class="text-center" style="min-width:52px;">
-                                    <div class="fw-extrabold fs-4 lh-1">{{ optional($event->tanggal)->format('d') }}</div>
-                                    <div class="small text-muted text-uppercase">{{ optional($event->tanggal)->translatedFormat('M') }}</div>
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="fw-semibold small text-truncate">{{ $event->judul ?? $event->title ?? '-' }}</div>
-                                    <div class="small text-muted">{{ $event->waktu_mulai ?? '' }}</div>
+                            <div class="px-4 py-3 {{ $loop->last ? '' : 'border-bottom' }}">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-3 text-center flex-shrink-0" style="width:52px;padding:.45rem .25rem;background:rgba(115,129,97,.1);color:#5f6f52;">
+                                        <div class="fw-bold lh-1" style="font-size:1.05rem">{{ optional($event->tanggal)->format('d') }}</div>
+                                        <div class="text-uppercase" style="font-size:.62rem;letter-spacing:.04em">{{ optional($event->tanggal)->translatedFormat('M') }}</div>
+                                    </div>
+                                    <div class="min-w-0 flex-grow-1">
+                                        <div class="fw-semibold small text-truncate">{{ $event->judul ?? $event->title ?? $event->nama_event ?? '-' }}</div>
+                                        <div class="small text-muted text-truncate">
+                                            <i class="bi bi-clock me-1"></i>{{ $event->waktu_mulai ? \Illuminate\Support\Str::of($event->waktu_mulai)->limit(5,'') : '-' }}
+                                            @if($event->lokasi)<span class="mx-1">•</span><i class="bi bi-geo-alt me-1"></i>{{ $event->lokasi }}@endif
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light-secondary text-capitalize flex-shrink-0">{{ $event->status ?? 'draft' }}</span>
                                 </div>
                             </div>
                         @empty
-                            <div class="text-center text-muted py-4">
+                            <div class="text-center text-muted py-4 px-3">
                                 <i class="bi bi-calendar-x fs-2 d-block mb-2 opacity-50"></i>
-                                <p class="mb-0 fw-semibold">Belum ada acara</p>
+                                <p class="mb-1 fw-semibold">Belum ada acara</p>
                                 <p class="small mb-0"><a href="{{ route('events.create') }}">Buat acara baru</a></p>
                             </div>
                         @endforelse

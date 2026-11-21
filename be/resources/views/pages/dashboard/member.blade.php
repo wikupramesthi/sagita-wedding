@@ -252,174 +252,31 @@
             <div class="card border-0 h-100">
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0" style="color:var(--bs-heading-color);">
-                            Paket Rekomendasi
-                        </h6>
-                    </div>
-
-                    <div class="text-center py-5">
-                        <div class="mb-3">
-                            <i class="bi bi-box-seam"
-                                style="font-size: 2rem; color: var(--bs-secondary-color);"></i>
-                        </div>
-                        <h6 class="fw-semibold mb-1" style="color: var(--bs-heading-color);">
-                            Temukan Paket Wedding
-                        </h6>
-                        <p class="small text-secondary mb-3">
-                            Jelajahi paket yang sesuai kebutuhan acara Anda.
-                        </p>
-                        <a href="{{ route('packages.member') }}" class="btn btn-sm btn-dark rounded-3 px-3">
-                            <i class="bi bi-search me-1"></i>
-                            Lihat Paket
-                        </a>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- Membership -->
-        <div class="col-lg-5" id="membership">
-            <div class="membership-card h-100">
-
-                <div class="membership-header">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="membership-icon">
-                            <i class="bi bi-gem"></i>
-                        </div>
-
-                        <div>
-                            <h6 class="fw-bold mb-0">Membership Plan</h6>
-                            <small class="text-secondary">Your current membership</small>
-                        </div>
-                    </div>
-
-                    <span class="membership-status">
-                        <i class="bi bi-check-circle me-1"></i>
-                        {{ $activePackage ? ucfirst($activePackage->status) : 'No Plan' }}
-                    </span>
-                </div>
-
-                <div class="membership-plan">
-                    <div>
-                        <small class="text-secondary">Current Plan</small>
-                        <div class="membership-plan-name">
-                            {{ $activePackage?->package?->name ?? 'No Active Plan' }}
-                        </div>
-                    </div>
-
-                    <i class="bi bi-stars membership-stars"></i>
-
-                    <div class="small text-secondary mt-2">
-                        <i class="bi bi-calendar3 me-1"></i>
-                        @if ($activePackage?->expired_at)
-                        Valid until {{ $activePackage->expired_at->format('d F Y') }}
-                        @else
-                        No expiry date
-                        @endif
-                    </div>
-                </div>
-
-                <div class="membership-credit">
-                    <div class="d-flex justify-content-between small mb-2">
-                        <span class="text-secondary">
-                            <i class="bi bi-ticket-perforated me-1"></i>
-                            Status
-                        </span>
-
-                        <span class="fw-bold">{{ $activePackage ? ucfirst($activePackage->status) : 'Inactive' }}</span>
-                    </div>
-
-                    <div class="small text-secondary mt-2">
-                        @if (! $activePackage)
-                        Choose a plan to start your yoga journey
-                        @elseif (is_null($activePackage->quota))
-                        Unlimited class credits
-                        @else
-                        {{ $activePackage->quota }} class credits remaining
-                        @endif
-                    </div>
-                </div>
-
-                <a href="{{ route('packages.member') }}" class="membership-button">
-                    <i class="bi bi-arrow-repeat me-2 spin-icon"></i>
-                    {{ $activePackage ? 'Renew Membership' : 'Choose Membership' }}
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4 mb-4">
-        <div class="col-lg-8" id="jadwal">
-            <div class="card border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0" style="color:var(--bs-heading-color);">Today’s Schedule</h6>
-                        <div class="d-flex gap-3">
-                            <a href="{{ route('bookings.my') }}"
-                                class="small fw-semibold text-decoration-none">My Bookings</a>
-                            <a href="{{ route('schedules.index') }}"
-                                class="small fw-semibold text-decoration-none">View All</a>
-                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0" style="color:var(--bs-heading-color);">Event Mendatang</h6>
+                        <a href="{{ route('events.index') }}" class="small fw-semibold text-decoration-none">Lihat Semua</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Class</th>
-                                    <th>Day &amp; Time</th>
-                                    <th>Vendor</th>
-                                    <th>Level</th>
+                                    <th>Event</th>
+                                    <th>Tanggal</th>
+                                    <th>Lokasi</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($todaySchedules as $schedule)
-                                @php
-                                $booked = $schedule->bookings_count;
-                                $remaining = max(0, $schedule->capacity - $booked);
-                                @endphp
-
+                                @forelse (($events ?? collect()) as $event)
                                 <tr>
-                                    <td class="fw-semibold">
-                                        {{ $schedule->class?->name ?? '-' }}
-                                    </td>
-
-                                    <td>
-                                        {{ ucfirst($schedule->day) }},
-                                        {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }}
-                                    </td>
-
-                                    <td>
-                                        {{ $schedule->class?->vendor?->name ?? '-' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $schedule->class?->level ?? '-' }}
-                                    </td>
-
-                                    <td>
-                                        @if ($remaining <= 0)
-                                            <span class="badge bg-danger-subtle text-danger-emphasis">
-                                            Full
-                                            </span>
-                                            @elseif ($remaining <= 3)
-                                                <span class="badge bg-warning-subtle text-warning-emphasis">
-                                                {{ $remaining }} Slots
-                                                </span>
-                                                @else
-                                                <span class="badge bg-secondary-subtle text-secondary-emphasis">
-                                                    Available
-                                                </span>
-                                                @endif
-                                    </td>
+                                    <td class="fw-semibold">{{ $event->nama_event ?? '-' }}</td>
+                                    <td>{{ optional($event->tanggal)->format('d M Y') ?? '-' }}</td>
+                                    <td>{{ $event->lokasi ?? '-' }}</td>
+                                    <td><span class="badge bg-secondary-subtle text-secondary-emphasis">{{ ucfirst($event->status ?? 'draft') }}</span></td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">
-                                        There are no classes scheduled today.
-                                    </td>
+                                    <td colspan="4" class="text-center py-4 text-muted">Belum ada event mendatang.</td>
                                 </tr>
                                 @endforelse
                             </tbody>

@@ -107,7 +107,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
 
         {{-- =====================================================
-             CHOOSE OPTION
+             PILIH OPSI
         ====================================================== --}}
 
         <div class="d-flex justify-content-between align-items-end mb-2">
@@ -358,24 +358,25 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             <h3 class="h6 fw-semibold mb-1">Skema Pembayaran</h3>
             <p class="small text-muted2 mb-3">Pilih jumlah yang dibayar sekarang.</p>
 
-            <div class="checkout-scheme-options">
+                        <div class="checkout-scheme-options">
+                <label class="checkout-scheme-option">
+                    <input type="radio" name="payment_scheme" value="no_dp" form="checkoutForm" class="payment-scheme-input" checked>
+                    <span><strong>Tanpa DP</strong><small>Bayar booking fee sekarang</small></span>
+                </label>
                 <label class="checkout-scheme-option">
                     <input type="radio" name="payment_scheme" value="dp30" form="checkoutForm" class="payment-scheme-input">
-                    <span><strong>DP 30%</strong><small>Bayar sebagian di awal</small></span>
+                    <span><strong>DP 30%</strong><small>Dari sisa setelah booking fee</small></span>
                 </label>
                 <label class="checkout-scheme-option">
                     <input type="radio" name="payment_scheme" value="dp50" form="checkoutForm" class="payment-scheme-input">
-                    <span><strong>DP 50%</strong><small>Setengah dari total paket</small></span>
+                    <span><strong>DP 50%</strong><small>Dari sisa setelah booking fee</small></span>
                 </label>
                 <label class="checkout-scheme-option">
-                    <input type="radio" name="payment_scheme" value="full" form="checkoutForm" class="payment-scheme-input" checked>
-                    <span><strong>Bayar Lunas</strong><small>Lunasi seluruh paket</small></span>
+                    <input type="radio" name="payment_scheme" value="full" form="checkoutForm" class="payment-scheme-input">
+                    <span><strong>Bayar Lunas</strong><small>Lunasi sisa setelah booking fee</small></span>
                 </label>
             </div>
-        </div>
-
-
-        {{-- =====================================================
+        </div>{{-- =====================================================
              INCLUDED
         ====================================================== --}}
 
@@ -454,7 +455,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
 
     {{-- =========================================================
-         BOTTOM CHECKOUT BAR
+         BILAH PEMBAYARAN BAWAH
     ========================================================== --}}
 
     <div class="checkout-bottom-bar">
@@ -471,13 +472,20 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             </div>
 
             <div class="d-flex justify-content-between">
-                <span>Total</span>
+                <span>Total Paket</span>
                 <span id="summaryTotal">Rp 0</span>
             </div>
-
+            <div class="d-flex justify-content-between">
+                <span>Booking Fee</span>
+                <span id="summaryBookingFee">Rp 2.000.000</span>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span>Sisa setelah booking fee</span>
+                <span id="summaryNetAmount">Rp 0</span>
+            </div>
             <div class="d-flex justify-content-between checkout-due-row">
                 <span>Dibayar sekarang</span>
-                <span id="summaryDue">Rp 0</span>
+                <span id="summaryDue">Rp 2.000.000</span>
             </div>
 
         </div>
@@ -561,7 +569,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
 
     {{-- =========================================================
-         CONFIRMATION SHEET
+         LEMBAR KONFIRMASI
     ========================================================== --}}
 
     <div class="checkout-confirm-overlay" id="checkoutConfirmOverlay" aria-hidden="true">
@@ -607,7 +615,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
 <style>
     /* =========================================================
-   CHECKOUT MOBILE
+   PEMBAYARAN MOBILE
 ========================================================= */
 
     #checkout {

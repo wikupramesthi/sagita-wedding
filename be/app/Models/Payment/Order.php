@@ -159,24 +159,37 @@ class Order extends Model
             : null;
     }
 
+    public const BOOKING_FEE_AMOUNT = 2000000;
+
     public function getPaymentSchemeAttribute($value): string
     {
         $scheme = $value ?: (string) data_get($this->promo_snapshot, 'payment_scheme', 'full');
-        return in_array($scheme, ['dp30', 'dp50', 'full'], true) ? $scheme : 'full';
+        return in_array($scheme, ['booking_fee', 'dp30', 'dp50', 'full'], true) ? $scheme : 'full';
     }
 
     public function getSchemeLabelAttribute(): string
     {
-        $labels = ['dp30' => 'DP 30%', 'dp50' => 'DP 50%', 'full' => 'Bayar Lunas'];
+        $labels = [
+            'no_dp' => 'Tanpa DP',
+            'dp30' => 'DP 30%',
+            'dp50' => 'DP 50%',
+            'full' => 'Bayar Lunas',
+        ];
         $scheme = $this->payment_scheme;
         return $labels[$scheme] ?? (string) data_get($this->promo_snapshot, 'scheme_label', 'Bayar Lunas');
     }
 
     public function getFullAmountAttribute($value): float
     {
-        $full = $value ?? data_get($this->promo_snapshot, 'full_amount');
-        $full = (float) ($full ?: $this->amount ?: 0);
-        return $full > 0 ? $full : (float) ($this->amount ?: 0);
+        $full = $value ?? $this->attributes['total_amount'] ?? data_get($this->promo_snapshot, 'full_amount');
+        $full = (float) ($full ?: 0);
+        if ($full > 0) {
+            return $full;
+        }
+        $amount = (float) ($this->amount ?: 0);
+        $paid = (float) ($this->attributes['amount_paid'] ?? 0);
+        $remaining = (float) ($this->attributes['remaining_amount'] ?? 0);
+        return max($amount, $paid + $remaining, $amount + $remaining);
     }
 
     public function getAmountPaidValueAttribute(): float

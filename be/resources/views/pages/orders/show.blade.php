@@ -58,7 +58,7 @@
         </div>
 
         <div class="order-detail-layout">
-            <aside class="order-detail-side">
+            <div class="order-detail-main">
 
         {{-- Admin verification (manual transfer) --}}
         @php
@@ -66,48 +66,42 @@
             $hasPendingVerification = $pendingPayment || ($order->proof_image_path && in_array($order->status, ['pending','partially_paid'], true));
         @endphp
         @if ($isAdmin && $hasPendingVerification && in_array($order->status, ['pending','partially_paid']))
-            <div class="card border-warning mb-4">
-                <div class="card-header bg-warning bg-opacity-10 fw-bold">
-                    <i class="bi bi-shield-check me-1"></i> Verifikasi Admin
+            <div class="card border-warning mb-4" id="payment-module-focus">
+                <div class="card-header bg-warning bg-opacity-10 fw-bold d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                    <span><i class="bi bi-shield-check me-1"></i> Verifikasi Pembayaran</span>
+                    <span class="badge text-bg-warning">Perlu tindakan</span>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted small">
+                    <p class="text-muted small mb-3">
                         @if($order->status === 'partially_paid')
-                            Verifikasi pembayaran cicilan/pelunasan untuk <strong>{{ $order->order_number }}</strong>. Sisa saat ini: <strong>Rp {{ number_format((float)$remainingAmount, 0, ',', '.') }}</strong>.
+                            Verifikasi cicilan/pelunasan untuk <strong>{{ $order->order_number }}</strong>. Sisa saat ini: <strong>Rp {{ number_format((float)$remainingAmount, 0, ',', '.') }}</strong>.
                         @elseif($isDp)
-                            Verifikasi pembayaran <strong>DP</strong> untuk <strong>{{ $order->order_number }}</strong>. Menyetujui DP akan mencatat pembayaran dan <strong>belum</strong> mengaktifkan keanggotaan sampai lunas.
+                            Verifikasi pembayaran <strong>DP</strong> untuk <strong>{{ $order->order_number }}</strong>. Pembayaran yang diterima akan masuk ke modul pembayaran dan riwayat. Keanggotaan aktif otomatis setelah pesanan lunas.
                         @else
-                            Verifikasi transfer untuk <strong>{{ $order->order_number }}</strong>. Menyetujui akan mencatat pembayaran dan mengaktifkan keanggotaan jika sudah lunas.
+                            Verifikasi transfer untuk <strong>{{ $order->order_number }}</strong>. Pembayaran yang diterima akan masuk ke modul pembayaran dan riwayat. Keanggotaan aktif otomatis setelah pesanan lunas.
                         @endif
                     </p>
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <form action="{{ route('orders.approve', $order->uuid) }}" method="POST" data-orders-decision>
+                        <div class="col-lg-6">
+                            <form action="{{ route('orders.approve', $order->uuid) }}" method="POST" data-orders-decision class="h-100">
                                 @csrf
                                 <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
-                                <label class="form-label small fw-semibold" for="approveNote">Catatan (opsional)</label>
-                                <textarea name="admin_note" id="approveNote" rows="2" class="form-control mb-2"
-                                    placeholder="mis. Transfer terverifikasi, BCA ...1234"></textarea>
-                                <button type="submit" class="btn btn-success w-100">
-                                    <i class="bi bi-check-lg me-1"></i> Setujui
-                                </button>
+                                <label class="form-label small fw-semibold" for="approveNote">Catatan persetujuan (opsional)</label>
+                                <textarea name="admin_note" id="approveNote" rows="3" class="form-control mb-2" placeholder="mis. Transfer terverifikasi, BCA ...1234"></textarea>
+                                <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-lg me-1"></i> Terima Pembayaran</button>
                             </form>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-lg-6">
                             @if($order->status === 'pending')
-                            <form action="{{ route('orders.reject', $order->uuid) }}" method="POST" data-orders-decision>
+                            <form action="{{ route('orders.reject', $order->uuid) }}" method="POST" data-orders-decision class="h-100">
                                 @csrf
                                 <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
                                 <label class="form-label small fw-semibold" for="rejectNote">Alasan penolakan <span class="text-danger">*</span></label>
-                                <textarea name="admin_note" id="rejectNote" rows="2" class="form-control mb-2" required
-                                    placeholder="mis. Transfer tidak diterima"></textarea>
-                                <button type="submit" class="btn btn-outline-danger w-100"
-                                    onclick="return confirm('Tolak pesanan ini?')">
-                                    <i class="bi bi-x-lg me-1"></i> Tolak Pesanan
-                                </button>
+                                <textarea name="admin_note" id="rejectNote" rows="3" class="form-control mb-2" required placeholder="mis. Nominal/bukti tidak sesuai"></textarea>
+                                <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Tolak pesanan ini?')"><i class="bi bi-x-lg me-1"></i> Tolak Pesanan</button>
                             </form>
                             @else
-                            <div class="alert alert-info small mb-0"><i class="bi bi-info-circle me-1"></i>Pesanan sudah memiliki pembayaran terverifikasi. Tolak otomatis dinonaktifkan; gunakan penyesuaian manual bila diperlukan.</div>
+                            <div class="alert alert-info small mb-0 h-100 d-flex align-items-center"><div><i class="bi bi-info-circle me-1"></i>Pesanan sudah memiliki pembayaran terverifikasi. Penolakan otomatis dinonaktifkan; gunakan penyesuaian manual bila diperlukan.</div></div>
                             @endif
                         </div>
                     </div>
@@ -115,194 +109,43 @@
             </div>
         @endif
 
-        @if ($isAdmin)
-            <div class="card border-light mb-4">
-                <div class="card-header bg-light fw-bold">
-                    <i class="bi bi-info-square me-1"></i> Ringkasan Admin
-                </div>
-                <div class="card-body">
-                    <div class="row g-3 small">
-                        <div class="col-md-4">
-                            <div class="text-muted">Nomor pesanan</div>
-                            <div class="fw-semibold font-monospace">{{ $order->order_number }}</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-muted">Paket</div>
-                            <div class="fw-semibold">{{ $order->package?->name ?? '-' }}</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-muted">Dibuat</div>
-                            <div class="fw-semibold">{{ $order->created_at?->translatedFormat('d F Y, H:i') ?? '-' }}</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-muted">Kedaluwarsa</div>
-                            <div class="fw-semibold {{ $order->status === 'pending' && $order->expired_at?->isPast() ? 'text-danger' : '' }}">
-                                {{ $order->expired_at?->translatedFormat('d F Y, H:i') ?? '-' }}
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-muted">Metode pembayaran</div>
-                            <div class="fw-semibold">{{ $order->payment?->payment_type ?? 'Transfer Manual' }}</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-muted">Bukti transfer</div>
-                            <div class="fw-semibold">
-                                @if ($order->proof_image_path)
-                                    <button type="button" class="btn btn-sm btn-outline-primary js-proof-lightbox"
-                                        data-proof-src="{{ $order->proofUrl() }}">
-                                        <i class="bi bi-file-earmark-image me-1"></i>Lihat bukti
-                                    </button>
-                                @else
-                                    <span class="text-warning">Belum diunggah</span>
-                                @endif
-                            </div>
-                        </div>
-                        @if ($order->user?->phone || $order->user?->whatsapp)
-                            <div class="col-md-4">
-                                <div class="text-muted">Kontak pelanggan</div>
-                                <div class="fw-semibold">{{ $order->user->phone ?? $order->user->whatsapp }}</div>
-                            </div>
-                        @endif
-                        @if ($order->event_date)
-                            <div class="col-md-4">
-                                <div class="text-muted">Tanggal Acara</div>
-                                <div class="fw-semibold">{{ $order->event_date->translatedFormat('d F Y') }}</div>
-                            </div>
-                        @endif
-                        @if ($order->promo_code)
-                            <div class="col-md-4">
-                                <div class="text-muted">Promo</div>
-                                <div class="fw-semibold">
-                                    {{ $order->promo_code }}
-                                    (Hemat Rp {{ number_format((int) $order->promo_discount, 0, ',', '.') }})
-                                </div>
-                            </div>
-                        @endif
-                        @if (!empty($order->addons))
-                            <div class="col-12">
-                                <div class="text-muted mb-1">Layanan tambahan</div>
-                                @foreach ($order->addons as $addon)
-                                    <div class="d-flex justify-content-between gap-3 border-bottom py-1">
-                                        <span class="fw-semibold">
-                                            {{ $addon['name'] ?? '-' }} x{{ (int) ($addon['quantity'] ?? 1) }}
-                                        </span>
-                                        <span>Rp {{ number_format((int) ($addon['line_total'] ?? $addon['price'] ?? 0), 0, ',', '.') }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                        @if ($userPackage)
-                            <div class="col-md-4">
-                                <div class="text-muted">Keanggotaan terkait</div>
-                                <div class="fw-semibold">
-                                    {{ $userPackage->package?->name ?? '-' }} —
-                                    {{ $userPackage->quota === null ? 'tanpa batas' : 'sisa ' . $userPackage->quota . ' kelas' }}
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            @if ($auditLogs->count())
-                <div class="card border-light mb-4">
-                    <div class="card-header bg-light fw-bold">
-                        <i class="bi bi-clock-history me-1"></i> Riwayat Verifikasi
-                    </div>
-                    <div class="card-body">
-                        <div class="timeline-admin">
-                            @foreach ($auditLogs as $log)
-                                <div class="timeline-item-admin">
-                                    <div class="timeline-dot-admin {{ $log->event === 'approved' ? 'bg-success' : ($log->event === 'rejected' ? 'bg-danger' : 'bg-info') }}"></div>
-                                    <div>
-                                        <div class="small fw-semibold">{{ $log->event_label }}</div>
-                                        <div class="text-muted small">
-                                            {{ $log->user_name ?? 'Sistem' }} —
-                                            {{ $log->created_at?->translatedFormat('d M Y H:i') ?? '-' }}
-                                        </div>
-                                        @if ($log->new_values && is_array($log->new_values) && !empty($log->new_values['admin_note']))
-                                            <div class="small fst-italic mt-1">"{{ $log->new_values['admin_note'] }}"</div>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endif
-        @endif
-
         @if ($isAdmin && $order->admin_note)
-            <div class="alert alert-info">
-                <strong>Catatan admin:</strong> {{ $order->admin_note }}
-            </div>
+            <div class="alert alert-info mb-4"><strong>Catatan admin:</strong> {{ $order->admin_note }}</div>
         @endif
 
         @if ($userPackage)
-            <div class="alert alert-success d-flex align-items-center gap-2">
+            <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
                 <i class="bi bi-check-circle-fill"></i>
-                <div>
-                    Keanggotaan aktif
-                    @if ($userPackage->quota === null)
-                        (tanpa batas)
-                    @else
-                        (sisa {{ $userPackage->quota }} kelas)
-                    @endif
-                    sampai {{ $userPackage->expired_at?->translatedFormat('d F Y') ?? '-' }}.
-                </div>
+                <div>Keanggotaan aktif @if ($userPackage->quota === null)(tanpa batas)@else(sisa {{ $userPackage->quota }} kelas)@endif sampai {{ $userPackage->expired_at?->translatedFormat('d F Y') ?? '-' }}.</div>
             </div>
         @endif
 
-            </aside>
-            <div class="order-detail-main">
-
+        @php
+            $isOwner = $order->user_uuid === auth()->user()->uuid;
+            $bankName = config('manual_payment.bank_name');
+            $bankAccount = config('manual_payment.bank_account');
+            $bankHolder = config('manual_payment.bank_holder');
+            $waNumber = preg_replace('/\D/', '', (string) config('manual_payment.admin_whatsapp'));
+            $waText = 'Halo Admin Sagita Wedding Organizer, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
+        @endphp
         @if ($order->status === 'pending')
-            @php
-                $isOwner = $order->user_uuid === auth()->user()->uuid;
-                $bankName = config('manual_payment.bank_name');
-                $bankAccount = config('manual_payment.bank_account');
-                $bankHolder = config('manual_payment.bank_holder');
-                $waNumber = preg_replace('/\D/', '', (string) config('manual_payment.admin_whatsapp'));
-                $waText = 'Halo Admin Sagita Wedding Organizer, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
-            @endphp
             <div class="card border-primary mb-4 order-detail-payment">
                 <div class="card-header bg-primary bg-opacity-10 fw-bold">
-                    <i class="bi bi-bank me-1"></i> Selesaikan Pembayaran — Transfer Manual
+                    <i class="bi bi-bank me-1"></i> Selesaikan Pembayaran â€” Transfer Manual
                 </div>
                 <div class="card-body">
                     <ol class="small mb-3 ps-3">
                         <li>Transfer jumlah yang tertera ke rekening bank kami.</li>
                         <li>Unggah bukti transfer (atau konfirmasi melalui WhatsApp).</li>
-                        <li>Admin akan memverifikasi — keanggotaan aktif otomatis setelah disetujui.</li>
+                        <li>Admin akan memverifikasi â€” keanggotaan aktif otomatis setelah disetujui.</li>
                     </ol>
 
-                    @php
-                        $schemeLabel = $order->promo_snapshot['scheme_label'] ?? 'Bayar Lunas';
-                        $fullAmount = $order->promo_snapshot['full_amount'] ?? $order->amount;
-                    @endphp
-                    <div class="alert alert-light border small mb-3">
-                        <div>Skema pembayaran: <strong>{{ $schemeLabel }}</strong></div>
-                        @if ((int) $fullAmount !== (int) $order->amount)
-                        <div class="text-muted">Total paket Rp {{ number_format($fullAmount, 0, ',', '.') }} — dibayar sekarang Rp {{ number_format($order->amount, 0, ',', '.') }}.</div>
-                        @endif
+                    <div class="alert border small mb-3 bg-white text-dark">
+                        <div class="fw-semibold mb-1">Ringkasan Pembayaran</div>
+                        <div class="d-flex justify-content-between"><span class="text-muted">Total paket</span><span>Rp {{ number_format($fullAmount, 0, ',', '.') }}</span></div>
+                        <div class="d-flex justify-content-between"><span class="text-muted">Dibayar sekarang</span><span class="fw-semibold text-primary">Rp {{ number_format((float)$order->amount, 0, ',', '.') }}</span></div>
+                        <div class="d-flex justify-content-between"><span class="text-muted">Sisa</span><span class="fw-semibold {{ $remainingAmount > 0 ? 'text-danger' : 'text-success' }}">Rp {{ number_format($remainingAmount, 0, ',', '.') }}</span></div>
                     </div>
-
-                    @if ($bankAccount)
-                        <div class="p-3 rounded-3 bg-light mb-3">
-                            <div class="small text-muted">BANK</div>
-                            <div class="fw-bold fs-5">{{ $bankName }}</div>
-                            <div class="d-flex align-items-center gap-2 mt-1">
-                                <span class="font-monospace fs-5 fw-bold" id="bankAccountNumber">{{ $bankAccount }}</span>
-                            </div>
-                            @if ($bankHolder)
-                                <div class="small text-muted">Atas nama: {{ $bankHolder }}</div>
-                            @endif
-                            <div class="d-flex flex-wrap gap-3 mt-2">
-                                <span>Jumlah: <strong>Rp {{ number_format($order->amount, 0, ',', '.') }}</strong></span>
-                                <span>Pesanan: <strong>{{ $order->order_number }}</strong></span>
-                            </div>
-                        </div>
-                    @endif
 
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         @if ($waNumber)
@@ -325,7 +168,7 @@
                                     <i class="bi bi-check-circle me-1"></i>Bukti diunggah
                                 </div>
                                 <div class="text-muted">
-                                    {{ $order->proof_uploaded_at?->translatedFormat('d F Y H:i') ?? '' }} — menunggu verifikasi admin.
+                                    {{ $order->proof_uploaded_at?->translatedFormat('d F Y H:i') ?? '' }} â€” menunggu verifikasi admin.
                                 </div>
                                 @if ($isOwner)
                                     <div class="text-muted">Unggah ulang di bawah untuk menggantinya.</div>
@@ -360,27 +203,24 @@
         <div class="card border-0 shadow-sm mb-4" id="payment-module">
             <div class="card-header bg-transparent fw-bold d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-cash-stack me-1"></i> Modul Pembayaran</span>
-                <span class="badge bg-light text-dark">{{ $schemeLabel }}</span>
+                <span class="badge bg-primary-subtle text-primary border">{{ $order->scheme_label ?? $schemeLabel }}</span>
             </div>
             <div class="card-body">
-                <div class="row g-3 mb-3">
+                <div class="row g-3 mb-3 payment-module-summary">
                     <div class="col-md-4"><div class="p-3 rounded-3 bg-light"><div class="small text-muted">Total Paket</div><div class="fw-bold">Rp {{ number_format($fullAmount,0,',','.') }}</div></div></div>
                     <div class="col-md-4"><div class="p-3 rounded-3 bg-light"><div class="small text-muted">Sudah Dibayar</div><div class="fw-bold text-success">Rp {{ number_format($amountPaid,0,',','.') }}</div></div></div>
                     <div class="col-md-4"><div class="p-3 rounded-3 bg-light"><div class="small text-muted">Sisa</div><div class="fw-bold {{ $remainingAmount>0?'text-danger':'text-success' }}">Rp {{ number_format($remainingAmount,0,',','.') }}</div>@if($order->balance_due_at)<div class="small text-muted">Batas pelunasan: {{ $order->balance_due_at->translatedFormat('d M Y') }}</div>@endif</div></div>
                 </div>
 
-                @if($isOwner && $order->status === 'partially_paid')
+                @if(in_array($order->status, ['pending','partially_paid'], true) && ($isOwner || $isAdmin))
                     @php $pendingPayment = $order->payments->firstWhere('verification_status', 'pending') ?? $order->payments->firstWhere('status', 'pending'); $hasPendingPayment = (bool)$pendingPayment; $minInstallment = min($remainingAmount, round($fullAmount * 0.20, 2)); @endphp
                     @if($hasPendingPayment)
                         <div class="alert alert-warning small">Bukti pembayaran Rp {{ number_format((float)($pendingPayment->amount ?? $pendingPayment->gross_amount),0,',','.') }} sedang menunggu verifikasi admin.</div>
                     @else
                         <form action="{{ route('orders.payments.store', $order->uuid) }}" method="POST" enctype="multipart/form-data" class="border rounded-3 p-3 mb-3">
                             @csrf
-                            <div class="fw-semibold mb-2">Bayar Cicilan / Pelunasan</div>
-                            <div class="d-flex flex-wrap gap-3 mb-2 small">
-                                <label class="form-check"><input class="form-check-input" type="radio" name="payment_choice" value="installment20" checked> <span class="form-check-label">Bayar 20% (Rp {{ number_format($minInstallment,0,',','.') }})</span></label>
-                                <label class="form-check"><input class="form-check-input" type="radio" name="payment_choice" value="full"> <span class="form-check-label">Lunas sisa (Rp {{ number_format($remainingAmount,0,',','.') }})</span></label>
-                            </div>
+                            <div class="fw-semibold mb-2">{{ $isAdmin ? 'Catat / Tambah Pembayaran' : 'Tambah Pembayaran' }}</div>
+                            <div class="row g-2 mb-2"><div class="col-md-8"><label class="form-label small mb-1">Nominal pembayaran</label><input type="number" name="amount" class="form-control" min="1" max="{{ (int)$remainingAmount }}" value="{{ (int)$remainingAmount }}" required></div><div class="col-md-4 d-flex align-items-end"><div class="small text-muted">Sisa: Rp {{ number_format($remainingAmount,0,",",".") }}</div></div></div>
                             <div class="row g-2 align-items-end">
                                 <div class="col-md-8"><input type="file" name="proof" class="form-control" accept="image/jpeg,image/png,image/webp" required></div>
                                 <div class="col-md-4"><button class="btn btn-primary w-100"><i class="bi bi-upload me-1"></i>Kirim Bukti</button></div>
@@ -403,7 +243,7 @@
                                 <td>@if($p->proof_image_path)<a href="{{ asset('storage/'.$p->proof_image_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Lihat</a>@endif</td>
                                 <td>
                                     @if($isAdmin && $pStatus === 'pending')
-                                        <form action="{{ route('orders.payments.approve', [$order->uuid, $p->uuid]) }}" method="POST" class="d-inline">@csrf<button class="btn btn-sm btn-success">Setujui</button></form>
+                                        <form action="{{ route('orders.payments.approve', [$order->uuid, $p->uuid]) }}" method="POST" class="d-inline">@csrf<button class="btn btn-sm btn-success">Terima</button></form>
                                         <form action="{{ route('orders.payments.reject', [$order->uuid, $p->uuid]) }}" method="POST" class="d-inline">@csrf<input type="hidden" name="admin_note" value="Bukti tidak valid"><button class="btn btn-sm btn-outline-danger" onclick="return confirm('Tolak pembayaran ini?')">Tolak</button></form>
                                     @elseif($p->note)
                                         <span class="small text-muted">{{ $p->note }}</span>
@@ -418,6 +258,7 @@
                 </div>
             </div>
         </div>
+
 
         {{-- Receipt --}}
         <div class="receipt-card">
@@ -603,6 +444,19 @@
                 </div>
 
 
+                @if (!empty($order->addons))
+                <div class="receipt-block">
+                    <div class="receipt-label">Layanan tambahan</div>
+                    @foreach ($order->addons as $addon)
+                        <div class="d-flex justify-content-between gap-3 py-1 border-bottom" style="font-size:12px;">
+                            <span class="fw-semibold">{{ $addon['name'] ?? '-' }} x{{ (int) ($addon['quantity'] ?? 1) }}</span>
+                            <span>Rp {{ number_format((int) ($addon['line_total'] ?? $addon['price'] ?? 0), 0, ',', '.') }}</span>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="receipt-divider"></div>
+                @endif
+
                 {{-- Payment --}}
                 <div class="receipt-payment-grid">
 
@@ -716,25 +570,38 @@
                 </div>
 
                 @endif
-
-            </div>
-
-
-            {{-- Footer --}}
-            <div class="receipt-footer">
-
-                <div class="footer-brand">
-                    Sagita Wedding Organizer
+            <aside class="order-detail-side">
+                <div class="card">
+                    <div class="card-header bg-white fw-semibold">Ringkasan Pembayaran</div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Skema</span><span class="small fw-semibold">{{ $order->scheme_label ?? $schemeLabel }}</span></div>
+                        <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Total paket</span><span class="small fw-semibold">Rp {{ number_format($fullAmount,0,',','.') }}</span></div>
+                        <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Sudah dibayar</span><span class="small fw-semibold text-success">Rp {{ number_format($amountPaid,0,',','.') }}</span></div>
+                        <div class="d-flex justify-content-between"><span class="text-muted small">Sisa</span><span class="small fw-semibold {{ $remainingAmount>0?'text-danger':'text-success' }}">Rp {{ number_format($remainingAmount,0,',','.') }}</span></div>
+                        @if($order->balance_due_at)
+                        <div class="small text-muted mt-2">Batas pelunasan: {{ $order->balance_due_at->translatedFormat('d M Y') }}</div>
+                        @endif
+                    </div>
                 </div>
-
-                <div>
-                    Wujudkan pernikahan impian Anda bersama kami.
+                <div class="card">
+                    <div class="card-header bg-white fw-semibold">Info Pesanan</div>
+                    <div class="card-body small">
+                        <div class="mb-2"><div class="text-muted">Pelanggan</div><div class="fw-semibold">{{ $order->user?->name ?? '-' }}</div></div>
+                        <div class="mb-2"><div class="text-muted">Paket</div><div class="fw-semibold">{{ $order->package?->name ?? '-' }}</div></div>
+                        <div class="mb-2"><div class="text-muted">Tanggal acara</div><div class="fw-semibold">{{ $order->event_date?->translatedFormat('d M Y') ?? '-' }}</div></div>
+                        <div><div class="text-muted">Status</div><span class="badge {{ $order->status==='paid'?'bg-success':($order->status==='partially_paid'?'bg-primary':($order->status==='pending'?'bg-warning text-dark':'bg-secondary')) }}">{{ $statusLabels[$order->status] ?? $order->status }}</span></div>
+                    </div>
                 </div>
-
-            </div>
-
-        </div>
-            </div>
+                @if($isAdmin)
+                <div class="card">
+                    <div class="card-header bg-white fw-semibold">Tindakan Cepat</div>
+                    <div class="card-body d-grid gap-2">
+                        <a href="#payment-module" class="btn btn-outline-primary btn-sm"><i class="bi bi-cash-stack me-1"></i>Modul Pembayaran</a>
+                        <a href="{{ route('orders.whatsapp', $order->uuid) }}" class="btn btn-outline-success btn-sm"><i class="bi bi-whatsapp me-1"></i>WhatsApp</a>
+                    </div>
+                </div>
+                @endif
+            </aside>
         </div>
 
     </div>
@@ -754,13 +621,13 @@
 
     .receipt-wrapper {
         width: 100%;
-        max-width: 1320px;
+        max-width: 1380px;
         margin: 0 auto;
     }
 
     .order-detail-layout {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 340px;
+        grid-template-columns: minmax(0, 1fr) 320px;
         gap: 22px;
         align-items: start;
     }
@@ -891,7 +758,7 @@
        RECEIPT CARD
     ========================================================= */
 
-    .receipt-card {
+     .order-detail-side .card-body{padding:16px;} .payment-module-summary .p-3{border:1px solid var(--bs-border-color); background:#fff !important;} .receipt-card {
         overflow: hidden;
         background: var(--bs-body-bg);
         border: 1px solid var(--bs-border-color);
@@ -1387,7 +1254,7 @@
             max-width: none;
         }
 
-        .receipt-card {
+         .order-detail-side .card-body{padding:16px;} .payment-module-summary .p-3{border:1px solid var(--bs-border-color); background:#fff !important;} .receipt-card {
             border: 0;
             border-radius: 0;
             box-shadow: none;

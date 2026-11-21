@@ -2,7 +2,6 @@ import { Router } from "express";
 import { clearSessionCache } from "../middleware/locals.js";
 import { getSessionUser, logoutSession } from "../services/authService.js";
 import { getPageBatch } from "../services/batchService.js";
-import { getClassSchedules } from "../services/classScheduleService.js";
 import { getClasses } from "../services/classService.js";
 import { getContactCaptcha, sendContact } from "../services/contactService.js";
 import type { NextFunction, Request, Response } from "../types/index.js";
