@@ -1,8 +1,8 @@
 import type { BackendPayload, ContactPayload } from "../types/index.js";
 import apiRequest from "./apiClient.js";
 
-export async function getContactCaptcha(): Promise<BackendPayload> {
-	return await apiRequest("/contact/captcha");
+export async function getContactCaptcha(lang = "id"): Promise<BackendPayload> {
+	return await apiRequest(`/contact/captcha?lang=${encodeURIComponent(lang)}`);
 }
 
 export async function sendContact(

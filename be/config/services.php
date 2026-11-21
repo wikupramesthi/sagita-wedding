@@ -14,7 +14,6 @@ return [
     |
     */
 
-
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
@@ -42,14 +41,8 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URL'),
     ],
 
-    'nocaptcha' => [
-        'sitekey' => env('NOCAPTCHA_SITEKEY'),
-        'secret' => env('NOCAPTCHA_SECRET'),
-    ],
-
     'frontend_api' => [
         'key' => env('FRONTEND_API_KEY'),
     ],
-
 
 ];

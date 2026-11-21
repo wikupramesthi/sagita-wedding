@@ -16,7 +16,8 @@ vi.mock("../src/services/siteIdentityService.js", () => ({
 
 const CAPTCHA = {
 	captcha_id: "cf4e35eb-36da-4de1-b0d9-4f36d3a618d8",
-	question: "How much is the result of 5 + 12?",
+	question: "Enter the 4-digit code shown.",
+	image: "data:image/svg+xml;base64,PHN2Zy8+",
 };
 
 const EVENTS_PAGE = {
@@ -179,7 +180,7 @@ describe("POST /api/contact", () => {
 		no_telp: "081234567890",
 		isi: "Halo",
 		captcha_id: CAPTCHA.captcha_id,
-		captcha_answer: "17",
+		captcha_answer: "0042",
 	};
 
 	it("menolak request lintas origin (CSRF)", async () => {
@@ -208,7 +209,22 @@ describe("GET /api/contact/captcha", () => {
 		const res = await request(app).get("/api/contact/captcha");
 		expect(res.status).toBe(200);
 		expect(res.body.captcha_id).toBe(CAPTCHA.captcha_id);
+		expect(res.body.question).toBe(CAPTCHA.question);
+		expect(res.body.image).toBe(CAPTCHA.image);
 		expect(res.headers["cache-control"]).toBe("no-store");
+	});
+});
+
+describe("consultation form", () => {
+	it("loads the four-digit local CAPTCHA and versioned page script", async () => {
+		const res = await request(app).get("/formulir-konsultasi");
+
+		expect(res.status).toBe(200);
+		expect(res.text).toContain('id="consultationCaptchaCode"');
+		expect(res.text).toContain('pattern="[0-9]{4}"');
+		expect(res.text).toMatch(
+			/\/js\/pages\/consultation-form\.js\?v=[^"]+-localcaptchaimage1/,
+		);
 	});
 });
 

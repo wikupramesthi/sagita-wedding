@@ -31,8 +31,10 @@ class OrderCreated extends Notification
             'amount' => $this->order->amount,
             'status' => $this->order->status,
 
-            'title' => 'Pesanan Baru',
+            'judul_kegiatan' => 'Pesanan baru diterima',
             'message' => "Pesanan #{$this->order->order_number} berhasil dibuat dan menunggu pembayaran.",
+            'path' => route('orders.show', $this->order->uuid, false),
+            'icon' => 'bi-receipt',
         ];
     }
 }

@@ -82,7 +82,7 @@
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <span class="text-muted2 text-small">{{ __('mobile.package') }}</span>
                 <span class="small fw-semibold text-end" style="max-width:60%;">
-                    {{ $order->package?->name ?? 'Kelas Tunggal' }}
+                    {{ $order->package?->name ?? '-' }}
                     @if ($order->packageOption?->name)
                         <small class="d-block text-muted2 fw-normal">{{ $order->packageOption->name }}</small>
                     @endif

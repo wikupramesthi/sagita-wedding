@@ -41,31 +41,67 @@
         </div>
     </div>
 
+    <div class="alert alert-light border small mb-4">
+        <i class="bi bi-info-circle me-1"></i>
+        Ekspor dibatasi maks. 10.000 baris untuk CSV dan 1.000 baris untuk PDF.
+        Gunakan filter periode/status jika hasil terlalu besar.
+    </div>
+
     {{-- Ringkasan --}}
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-3 order-report-stats">
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="card border-0 shadow-sm h-100 report-stat report-stat-total"><div class="card-body">
                 <div class="text-muted small">Total Pesanan</div>
                 <div class="fs-4 fw-bold">{{ number_format($total) }}</div>
             </div></div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="card border-0 shadow-sm h-100 report-stat report-stat-pending"><div class="card-body">
                 <div class="text-muted small">Menunggu</div>
                 <div class="fs-4 fw-bold text-warning">{{ number_format($pendingCount) }}</div>
             </div></div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm"><div class="card-body">
+            <div class="card border-0 shadow-sm h-100 report-stat report-stat-paid"><div class="card-body">
                 <div class="text-muted small">Lunas</div>
                 <div class="fs-4 fw-bold text-success">{{ number_format($paidCount) }}</div>
             </div></div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm"><div class="card-body">
-                <div class="text-muted small">Pendapatan (Lunas)</div>
-                <div class="fs-5 fw-bold text-primary">Rp {{ number_format($revenue, 0, ',', '.') }}</div>
+            <div class="card border-0 shadow-sm h-100 report-stat report-stat-failed"><div class="card-body">
+                <div class="text-muted small">Gagal / Kedaluwarsa</div>
+                <div class="fs-4 fw-bold text-danger">{{ number_format($failedCount) }}</div>
             </div></div>
+        </div>
+    </div>
+
+    <div class="card order-report-revenue mb-4">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="order-report-revenue-icon"><i class="bi bi-wallet2"></i></div>
+                <div>
+                    <div class="order-report-revenue-label">Pendapatan (Lunas)</div>
+                    <div class="order-report-revenue-value">Rp {{ number_format($revenue, 0, ',', '.') }}</div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-4">
+                <div>
+                    <div class="text-muted small">Tingkat persetujuan</div>
+                    <div class="fw-bold">{{ $approvalRate }}%</div>
+                </div>
+                <div>
+                    <div class="text-muted small">Bukti terunggah</div>
+                    <div class="fw-bold">{{ $proofUploadRate }}%</div>
+                </div>
+                <div>
+                    <div class="text-muted small">Rata-rata verifikasi</div>
+                    <div class="fw-bold">{{ $averageVerificationHours }} jam</div>
+                </div>
+                <div>
+                    <div class="text-muted small">Melewati SLA 24 jam</div>
+                    <div class="fw-bold text-danger">{{ number_format($slaBreachCount) }}</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -75,7 +111,6 @@
                 <i class="bi bi-funnel-fill text-primary"></i> Filter
             </span>
             <span>Status: <strong class="text-dark">{{ $filterStatus }}</strong></span>
-            <span>Tipe: <strong class="text-dark">{{ $filterType }}</strong></span>
             @if (!empty($search))
                 <span>Pencarian: <strong class="text-dark">{{ $search }}</strong></span>
             @endif
@@ -115,7 +150,7 @@
                                     </td>
                                 @endif
                                 <td>
-                                    <span class="d-block">{{ $order->package?->name ?? 'Kelas Tunggal' }}</span>
+                                    <span class="d-block">{{ $order->package?->name ?? '-' }}</span>
                                     <small class="text-muted">{{ $order->packageOption?->name ?? '' }}</small>
                                 </td>
                                 <td class="text-end">Rp {{ number_format($order->amount, 0, ',', '.') }}</td>
@@ -164,5 +199,20 @@
     </div>
 
 </div>
+
+@push('after-style')
+<style>
+    .report-stat { position: relative; overflow: hidden; border-radius: 16px !important; }
+    .report-stat::after { content: ''; position: absolute; inset: auto 0 0; height: 3px; background: var(--report-accent, #5b7cfa); }
+    .report-stat-total { --report-accent: #5b7cfa; }
+    .report-stat-pending { --report-accent: #f59e0b; }
+    .report-stat-paid { --report-accent: #10b981; }
+    .report-stat-failed { --report-accent: #ef4444; }
+    .order-report-revenue { border-radius: 16px; border: 1px solid #dfe7ff; background: linear-gradient(110deg, #f7f9ff, #fff 58%, #f5fffb); }
+    .order-report-revenue-icon { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; color: #fff; background: linear-gradient(135deg, #5b7cfa, #7c5cfa); }
+    .order-report-revenue-label { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #667085; font-weight: 600; }
+    .order-report-revenue-value { font-size: 24px; font-weight: 700; color: #101828; }
+</style>
+@endpush
 
 @endsection

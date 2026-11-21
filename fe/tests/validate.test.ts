@@ -167,14 +167,13 @@ describe("validateContact", () => {
 		no_telp: "081234567890",
 		isi: "Halo",
 		captcha_id: "cf4e35eb-36da-4de1-b0d9-4f36d3a618d8",
-		captcha_answer: "17",
+		captcha_answer: "0042",
 	};
 
 	it("menerima payload valid", () => {
 		const out = validateContact(valid);
 		expect(out.nama).toBe("Budi");
-		// string dari FormData harus di-coerce jadi integer
-		expect(out.captcha_answer).toBe(17);
+		expect(out.captcha_answer).toBe("0042");
 	});
 
 	it("menolak nomor telepon rusak", () => {
@@ -189,12 +188,18 @@ describe("validateContact", () => {
 		).toBe(400);
 	});
 
-	it("menolak jawaban captcha di luar 0..100", () => {
+	it("menolak jawaban captcha yang bukan tepat empat angka", () => {
 		expect(
-			statusOf(() => validateContact({ ...valid, captcha_answer: "101" })),
+			statusOf(() => validateContact({ ...valid, captcha_answer: "" })),
 		).toBe(400);
 		expect(
-			statusOf(() => validateContact({ ...valid, captcha_answer: "-1" })),
+			statusOf(() => validateContact({ ...valid, captcha_answer: "123" })),
+		).toBe(400);
+		expect(
+			statusOf(() => validateContact({ ...valid, captcha_answer: "12345" })),
+		).toBe(400);
+		expect(
+			statusOf(() => validateContact({ ...valid, captcha_answer: "12a4" })),
 		).toBe(400);
 	});
 

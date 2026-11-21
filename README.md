@@ -27,10 +27,10 @@ Panduan lengkap untuk developer baru: arsitektur, instalasi, konfigurasi, alur k
 
 Proyek ini adalah **monorepo** dengan dua aplikasi yang berjalan terpisah:
 
-| Folder | Peran | Teknologi | Port default |
-| --- | --- | --- | --- |
-| `be/` | Backend + panel admin + JSON API | Laravel 13 (PHP 8.3), Blade, Tailwind 3, Vite | `8000` |
-| `fe/` | Website publik (front-end) | Express 5, EJS, TypeScript, Tailwind 4, esbuild | `3000` |
+| Folder | Peran                            | Teknologi                                       | Port default |
+| ------ | -------------------------------- | ----------------------------------------------- | ------------ |
+| `be/`  | Backend + panel admin + JSON API | Laravel 13 (PHP 8.3), Blade, Tailwind 3, Vite   | `8000`       |
+| `fe/`  | Website publik (front-end)       | Express 5, EJS, TypeScript, Tailwind 4, esbuild | `3000`       |
 
 Alurnya:
 
@@ -178,6 +178,7 @@ php artisan migrate          # pastikan tidak ada migrasi yang tertinggal
 ```
 
 **Opsi B — Migrasi + seeder dari kosong:**
+
 ```bash
 php artisan migrate --seed
 ```
@@ -208,7 +209,7 @@ API_URL=http://127.0.0.1:8000/api
 API_KEY=secret-bersama-anda      # HARUS sama dengan FRONTEND_API_KEY di be/.env
 SITE_URL=http://localhost:3000
 GOOGLE_AUTH_URL=http://localhost:8000/auth/google
-WHATSAPP_NUMBER=6281321221270
+WHATSAPP_NUMBER=6281380760095
 PORT=3000
 ASSET_V=20261007a
 HTML_MINIFY=1
@@ -218,22 +219,22 @@ Untuk mode produksi: `npm run build` lalu `npm start`.
 
 ### 5.3 Akses setelah berjalan
 
-| URL | Keterangan |
-| --- | --- |
-| `http://localhost:3000` | Website publik |
-| `http://localhost:8000/backend/dashboard` | Panel admin (butuh login) |
-| `http://localhost:8000/auth/login` | Login admin |
-| `http://localhost:8000/api/batch/home` | Contoh respons API |
-| `http://localhost:3000/healthz` / `/readyz` | Health check |
-| `http://localhost:3000/sitemap.xml` / `/robots.txt` | SEO |
+| URL                                                 | Keterangan                |
+| --------------------------------------------------- | ------------------------- |
+| `http://localhost:3000`                             | Website publik            |
+| `http://localhost:8000/backend/dashboard`           | Panel admin (butuh login) |
+| `http://localhost:8000/auth/login`                  | Login admin               |
+| `http://localhost:8000/api/batch/home`              | Contoh respons API        |
+| `http://localhost:3000/healthz` / `/readyz`         | Health check              |
+| `http://localhost:3000/sitemap.xml` / `/robots.txt` | SEO                       |
 
 <details>
 <summary><strong>Akun default dari seeder</strong> (klik untuk membuka)</summary>
 
-| Email | Password | Role |
-| --- | --- | --- |
+| Email             | Password   | Role                        |
+| ----------------- | ---------- | --------------------------- |
 | `super@admin.com` | `password` | `super-admin` (akses penuh) |
-| `user@user.com` | `password` | `user` |
+| `user@user.com`   | `password` | `user`                      |
 
 > [!WARNING]
 > Ganti password default di lingkungan selain lokal.
@@ -249,20 +250,20 @@ Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Menu`, `Role`, `Route`, 
 > [!IMPORTANT]
 > `API_KEY` di `fe/.env` **harus identik** dengan `FRONTEND_API_KEY` di `be/.env`. Jika berbeda, semua request `/api/*` akan ditolak.
 
-| Variabel | Lokasi | Aturan |
-| --- | --- | --- |
-| `FRONTEND_API_KEY` | `be/.env` | Shared secret untuk middleware `VerifyApiKey` pada semua `/api/*` |
-| `API_KEY` | `fe/.env` | **Nilainya harus identik** dengan `FRONTEND_API_KEY` |
-| `API_URL` | `fe/.env` | Base URL API Laravel, contoh `http://127.0.0.1:8000/api` |
-| `FRONTEND_URL` | `be/.env` | Dipakai untuk canonical URL & redirect setelah OAuth |
-| `CORS_ALLOWED_ORIGINS` | `be/.env` | Harus mengizinkan origin `fe` (`localhost:3000`, `127.0.0.1:3000`) |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | `be/.env` | Kredensial OAuth Google Cloud Console |
-| `GOOGLE_REDIRECT_URL` | `be/.env` | Harus **persis** sama dengan Authorized Redirect URI di Google. `localhost` ≠ `127.0.0.1` bagi Google |
-| `GOOGLE_AUTH_URL` | `fe/.env` | Host harus konsisten dengan redirect URL di atas |
-| `NOCAPTCHA_SITEKEY` / `NOCAPTCHA_SECRET` | `be/.env` | Captcha form kontak |
-| `MANUAL_BANK_*`, `MANUAL_ADMIN_WA` | `be/.env` | Pembayaran transfer manual & nomor WA admin |
-| `ASSET_V` | `fe/.env` | Cache-buster aset (`?v=`), naikkan setelah deploy aset statis |
-| `HTML_MINIFY` | `fe/.env` | `1` = HTML di-minify; `0` = readable saat debug |
+| Variabel                                    | Lokasi    | Aturan                                                                                                |
+| ------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------- |
+| `FRONTEND_API_KEY`                          | `be/.env` | Shared secret untuk middleware `VerifyApiKey` pada semua `/api/*`                                     |
+| `API_KEY`                                   | `fe/.env` | **Nilainya harus identik** dengan `FRONTEND_API_KEY`                                                  |
+| `API_URL`                                   | `fe/.env` | Base URL API Laravel, contoh `http://127.0.0.1:8000/api`                                              |
+| `FRONTEND_URL`                              | `be/.env` | Dipakai untuk canonical URL & redirect setelah OAuth                                                  |
+| `CORS_ALLOWED_ORIGINS`                      | `be/.env` | Harus mengizinkan origin `fe` (`localhost:3000`, `127.0.0.1:3000`)                                    |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | `be/.env` | Kredensial OAuth Google Cloud Console                                                                 |
+| `GOOGLE_REDIRECT_URL`                       | `be/.env` | Harus **persis** sama dengan Authorized Redirect URI di Google. `localhost` ≠ `127.0.0.1` bagi Google |
+| `GOOGLE_AUTH_URL`                           | `fe/.env` | Host harus konsisten dengan redirect URL di atas                                                      |
+| `NOCAPTCHA_SITEKEY` / `NOCAPTCHA_SECRET`    | `be/.env` | Captcha form kontak                                                                                   |
+| `MANUAL_BANK_*`, `MANUAL_ADMIN_WA`          | `be/.env` | Pembayaran transfer manual & nomor WA admin                                                           |
+| `ASSET_V`                                   | `fe/.env` | Cache-buster aset (`?v=`), naikkan setelah deploy aset statis                                         |
+| `HTML_MINIFY`                               | `fe/.env` | `1` = HTML di-minify; `0` = readable saat debug                                                       |
 
 > [!WARNING]
 > Jangan pernah commit file `.env` (keduanya sudah ada di `.gitignore`). Gunakan `.env.example` sebagai referensi.
@@ -413,17 +414,17 @@ npm run dev                   # aset Vite panel admin (atau: npm run build)
 
 ## 11. Troubleshooting
 
-| Gejala | Penyebab umum & solusi |
-| --- | --- |
-| Halaman publik kosong / error fetch | Backend belum jalan, atau `API_URL` salah. Cek `http://127.0.0.1:8000/api/batch/home`. |
-| Respons API `401/403` dari `/api/*` | `API_KEY` (fe) tidak sama dengan `FRONTEND_API_KEY` (be). Samakan, lalu restart kedua server. |
-| Error CORS di browser | `CORS_ALLOWED_ORIGINS` belum memasukkan origin `fe`, atau port berbeda. |
+| Gejala                                       | Penyebab umum & solusi                                                                                                           |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Halaman publik kosong / error fetch          | Backend belum jalan, atau `API_URL` salah. Cek `http://127.0.0.1:8000/api/batch/home`.                                           |
+| Respons API `401/403` dari `/api/*`          | `API_KEY` (fe) tidak sama dengan `FRONTEND_API_KEY` (be). Samakan, lalu restart kedua server.                                    |
+| Error CORS di browser                        | `CORS_ALLOWED_ORIGINS` belum memasukkan origin `fe`, atau port berbeda.                                                          |
 | Login Google gagal / `redirect_uri_mismatch` | `GOOGLE_REDIRECT_URL` tidak persis sama dengan Authorized Redirect URI di Google Console. Perhatikan `localhost` vs `127.0.0.1`. |
-| Gambar upload tidak tampil | Jalankan `php artisan storage:link` dan pastikan `FILESYSTEM_DISK=public` / izin folder `storage`. |
-| Tabel tidak ada setelah import SQL | Pastikan database bernama `sagita` dan `DB_DATABASE` di `.env` sesuai, lalu `php artisan migrate`. |
-| CSS/JS tidak berubah setelah deploy | Naikkan `ASSET_V` di `fe/.env`, lalu `npm run build:css && npm run build:js`. |
-| Error `Class "PDO" not found` / ekstensi PHP | Aktifkan ekstensi PHP yang dibutuhkan di `php.ini` XAMPP, restart Apache. |
-| Port 3000/8000 sudah dipakai | Ubah `PORT` di `fe/.env` atau jalankan `php artisan serve --port=8080` (sesuaikan `API_URL`). |
+| Gambar upload tidak tampil                   | Jalankan `php artisan storage:link` dan pastikan `FILESYSTEM_DISK=public` / izin folder `storage`.                               |
+| Tabel tidak ada setelah import SQL           | Pastikan database bernama `sagita` dan `DB_DATABASE` di `.env` sesuai, lalu `php artisan migrate`.                               |
+| CSS/JS tidak berubah setelah deploy          | Naikkan `ASSET_V` di `fe/.env`, lalu `npm run build:css && npm run build:js`.                                                    |
+| Error `Class "PDO" not found` / ekstensi PHP | Aktifkan ekstensi PHP yang dibutuhkan di `php.ini` XAMPP, restart Apache.                                                        |
+| Port 3000/8000 sudah dipakai                 | Ubah `PORT` di `fe/.env` atau jalankan `php artisan serve --port=8080` (sesuaikan `API_URL`).                                    |
 
 ---
 

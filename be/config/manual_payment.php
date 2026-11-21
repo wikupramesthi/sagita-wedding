@@ -17,7 +17,7 @@ return [
     'bank_account' => env('MANUAL_BANK_ACCOUNT', ''),
     'bank_holder' => env('MANUAL_BANK_HOLDER', ''),
 
-    'admin_whatsapp' => env('MANUAL_ADMIN_WA', '6281321221270'),
+    'admin_whatsapp' => env('MANUAL_ADMIN_WA', '6281380760095'),
 
     'proof_max_kb' => (int) env('MANUAL_PROOF_MAX_KB', 3072),
     'proof_disk' => env('MANUAL_PROOF_DISK', 'local'),

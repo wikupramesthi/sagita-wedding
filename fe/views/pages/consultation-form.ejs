@@ -221,7 +221,8 @@
                 <span class="consultation-captcha-label"><%= copy.captcha %></span>
                 <p id="consultationCaptchaQuestion"><%= copy.captchaLoading %></p>
               </div>
-              <input id="consultationCaptchaAnswer" name="captcha_answer" type="number" inputmode="numeric" min="0" max="100" aria-label="<%= copy.captcha %>" placeholder="?" required>
+              <img id="consultationCaptchaCode" class="consultation-captcha-code" alt="<%= copy.captcha %>" width="160" height="48">
+              <input id="consultationCaptchaAnswer" name="captcha_answer" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" aria-label="<%= copy.captcha %>" placeholder="Ketik di sini" required>
               <input id="consultationCaptchaId" name="captcha_id" type="hidden">
               <button id="consultationCaptchaReload" type="button" aria-label="<%= copy.captchaRetry %>" title="<%= copy.captchaRetry %>">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 7v5h-5M4.6 9a7.5 7.5 0 0 1 12.7-2L20 12M4 17v-5h5m6.8 2a7.5 7.5 0 0 1-12.7 2L4 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>

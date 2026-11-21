@@ -3,19 +3,26 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
+use App\Models\OrderSavedFilter;
 use App\Models\Package\PackageOption;
 use App\Models\Payment\Order;
 use App\Models\Payment\Payment;
 use App\Models\User;
 use App\Models\UserPackage;
 use App\Services\MembershipService;
+use App\Support\ImageShrinker;
 use App\Notifications\MemberActiveNotification;
 use App\Notifications\OrderBaruNotification;
+use App\Notifications\OrderRejectedNotification;
 use App\Notifications\ProofUploadedNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -26,12 +33,29 @@ use Throwable;
 
 class OrderController extends Controller
 {
+    public function __construct()
+    {
+        app()->setLocale('id');
+    }
+
     /**
      * Display a listing of orders.
      */
     public function index(Request $request)
     {
         $user = Auth::user();
+        $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
+
+        $savedFilters = OrderSavedFilter::where('user_uuid', $user->uuid)
+            ->latest()
+            ->get();
+
+        if (
+            ! $request->hasAny(['search', 'status', 'proof', 'start_date', 'end_date', 'per_page', 'sort', 'all'])
+            && $defaultFilter = $savedFilters->firstWhere('is_default', true)
+        ) {
+            $request->merge($defaultFilter->filters ?? []);
+        }
 
         $query = $this->filteredOrders($request, $user);
 
@@ -49,6 +73,23 @@ class OrderController extends Controller
             COALESCE(SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END), 0) as revenue
         ")->first();
 
+        $queue = Order::packageOnly()->where('status', 'pending');
+        if (!$isAdmin) {
+            $queue->where('user_uuid', $user->uuid);
+        }
+
+        $queueCounts = [
+            'all' => (clone $queue)->count(),
+            'uploaded' => (clone $queue)->whereNotNull('proof_image_path')->count(),
+            'missing' => (clone $queue)->whereNull('proof_image_path')->count(),
+        ];
+
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50], true) ? $perPage : 10;
+
+        $sort = (string) $request->input('sort', 'latest');
+        $sort = in_array($sort, ['latest', 'oldest', 'amount_desc', 'amount_asc'], true) ? $sort : 'latest';
+
         /*
         |--------------------------------------------------------------------------
         | Get Orders
@@ -61,26 +102,35 @@ class OrderController extends Controller
                 'package',
                 'packageOption',
                 'payment',
-            ])
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            ]);
 
-        $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
+        match ($sort) {
+            'oldest' => $orders->orderBy('created_at', 'asc'),
+            'amount_desc' => $orders->orderBy('amount', 'desc'),
+            'amount_asc' => $orders->orderBy('amount', 'asc'),
+            default => $orders->orderBy('created_at', 'desc'),
+        };
+
+        $orders = $orders->paginate($perPage)->withQueryString();
+
+        $filters = [
+            'search' => $request->input('search'),
+            'status' => $request->input('status'),
+            'proof' => $request->input('proof'),
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
+            'per_page' => $perPage,
+            'sort' => $sort,
+        ];
 
         // Member: laptop/desktop = view desktop, HP = phone-frame mobile.
         if (!$isAdmin && \App\Support\MemberView::isMobile()) {
             return view('pages.mobile.orders', [
                 'orders' => $orders,
                 'stats' => $stats,
-                'filters' => [
-                    'search' => $request->input('search'),
-                    'type' => $request->input('type'),
-                    'status' => $request->input('status'),
-                    'proof' => $request->input('proof'),
-                    'start_date' => $request->input('start_date'),
-                    'end_date' => $request->input('end_date'),
-                ],
+                'queueCounts' => $queueCounts,
+                'filters' => $filters,
+                'savedFilters' => $savedFilters,
             ]);
         }
 
@@ -88,15 +138,136 @@ class OrderController extends Controller
             'orders' => $orders,
             'stats' => $stats,
             'isAdmin' => $isAdmin,
-            'filters' => [
-                'search' => $request->input('search'),
-                'type' => $request->input('type'),
-                'status' => $request->input('status'),
-                'proof' => $request->input('proof'),
-                'start_date' => $request->input('start_date'),
-                'end_date' => $request->input('end_date'),
-            ],
+            'queueCounts' => $queueCounts,
+            'filters' => $filters,
+            'savedFilters' => $savedFilters,
         ]);
+    }
+
+    public function savedFilters()
+    {
+        abort_unless($this->canManageSavedFilters(), 403);
+
+        return response()->json(
+            OrderSavedFilter::where('user_uuid', Auth::user()->uuid)
+                ->latest()
+                ->get(['uuid', 'name', 'filters', 'is_default'])
+        );
+    }
+
+    public function storeSavedFilter(Request $request)
+    {
+        abort_unless($this->canManageSavedFilters(), 403);
+
+        $filters = $request->input('filters');
+
+        if (is_string($filters)) {
+            $filters = json_decode($filters, true) ?: [];
+        }
+
+        $request->merge(['filters' => is_array($filters) ? $this->normalizeOrderFilters($filters) : []]);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:80'],
+            'filters' => ['array'],
+            'is_default' => ['sometimes', 'boolean'],
+        ]);
+
+        $existing = OrderSavedFilter::where('user_uuid', Auth::user()->uuid)
+            ->where('name', $validated['name'])
+            ->first();
+
+        $isDefault = array_key_exists('is_default', $validated)
+            ? (bool) $validated['is_default']
+            : (bool) ($existing?->is_default ?? false);
+
+        DB::transaction(function () use ($validated, $isDefault): void {
+            if ($isDefault) {
+                OrderSavedFilter::where('user_uuid', Auth::user()->uuid)
+                    ->update(['is_default' => false]);
+            }
+
+            OrderSavedFilter::updateOrCreate(
+                [
+                    'user_uuid' => Auth::user()->uuid,
+                    'name' => $validated['name'],
+                ],
+                [
+                    'filters' => $validated['filters'] ?? [],
+                    'is_default' => $isDefault,
+                ]
+            );
+        });
+
+        return back()->with('success', __('flash.order_saved_filter_saved'));
+    }
+
+    public function setDefaultSavedFilter(Request $request, OrderSavedFilter $savedFilter)
+    {
+        abort_unless($this->canManageSavedFilters(), 403);
+        abort_unless($savedFilter->user_uuid === Auth::user()->uuid, 404);
+
+        DB::transaction(function () use ($savedFilter): void {
+            OrderSavedFilter::where('user_uuid', Auth::user()->uuid)
+                ->update(['is_default' => false]);
+
+            $savedFilter->update(['is_default' => true]);
+        });
+
+        return back()->with('success', __('flash.order_saved_filter_default'));
+    }
+
+    public function applySavedFilter(OrderSavedFilter $savedFilter)
+    {
+        abort_unless($this->canManageSavedFilters(), 403);
+        abort_unless($savedFilter->user_uuid === Auth::user()->uuid, 404);
+
+        return redirect()->route('orders.index', $this->normalizeOrderFilters($savedFilter->filters ?? []));
+    }
+
+    public function deleteSavedFilter(OrderSavedFilter $savedFilter)
+    {
+        abort_unless($this->canManageSavedFilters(), 403);
+        abort_unless($savedFilter->user_uuid === Auth::user()->uuid, 404);
+
+        $savedFilter->delete();
+
+        return back()->with('success', __('flash.order_saved_filter_deleted'));
+    }
+
+    private function normalizeOrderFilters(array $filters): array
+    {
+        $normalized = [];
+
+        foreach (['search'] as $key) {
+            if (isset($filters[$key]) && is_scalar($filters[$key]) && (string) $filters[$key] !== '') {
+                $normalized[$key] = (string) $filters[$key];
+            }
+        }
+
+        if (in_array($filters['status'] ?? null, ['pending', 'paid', 'failed', 'expired', 'cancelled'], true)) {
+            $normalized['status'] = (string) $filters['status'];
+        }
+
+        if (in_array($filters['proof'] ?? null, ['uploaded', 'missing'], true)) {
+            $normalized['proof'] = (string) $filters['proof'];
+        }
+
+        foreach (['start_date', 'end_date'] as $key) {
+            $value = $filters[$key] ?? null;
+
+            if (is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+                $normalized[$key] = $value;
+            }
+        }
+
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $normalized['per_page'] = in_array($perPage, [10, 25, 50], true) ? $perPage : 10;
+
+        $sort = (string) ($filters['sort'] ?? 'latest');
+        $normalized['sort'] = in_array($sort, ['latest', 'oldest', 'amount_desc', 'amount_asc'], true) ? $sort : 'latest';
+
+        return $normalized;
     }
 
 
@@ -107,7 +278,7 @@ class OrderController extends Controller
     {
         $user = Auth::user();
 
-        $order = Order::with([
+        $order = Order::packageOnly()->with([
             'user',
             'package',
             'packageOption',
@@ -135,19 +306,45 @@ class OrderController extends Controller
             ->with('package')
             ->first();
 
+        $auditLogs = $isAdmin
+            ? AuditLog::where('auditable_type', Order::class)
+                ->where('auditable_id', (string) $order->uuid)
+                ->latest()
+                ->limit(8)
+                ->get()
+            : collect();
+
         $isMobile = \App\Support\MemberView::isMobile();
 
         if (!$isAdmin && $isMobile) {
             return view(
                 'pages.mobile.order-show',
-                compact('order', 'isAdmin', 'userPackage')
+                compact('order', 'isAdmin', 'userPackage', 'auditLogs')
             );
         }
 
         return view(
             'pages.orders.show',
-            compact('order', 'isAdmin', 'userPackage')
+            compact('order', 'isAdmin', 'userPackage', 'auditLogs')
         );
+    }
+
+    public function quickView(string $uuid)
+    {
+        abort_unless($this->canQuickViewOrders(), 403);
+
+        $user = Auth::user();
+        $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
+
+        $order = Order::packageOnly()->with(['user', 'package', 'packageOption', 'payment'])
+            ->where('uuid', $uuid)
+            ->firstOrFail();
+
+        if (!$isAdmin && $order->user_uuid !== $user->uuid) {
+            abort(404);
+        }
+
+        return view('pages.orders.partials.quick-view', compact('order', 'isAdmin'));
     }
 
 
@@ -157,14 +354,24 @@ class OrderController extends Controller
      */
     public function approve(Request $request, string $order)
     {
-        abort_unless(
-            Auth::user()->hasAnyRole(['super-admin', 'admin']),
-            403
-        );
+        abort_unless($this->canApproveOrders(), 403);
 
         $validated = $request->validate([
             'admin_note' => ['nullable', 'string', 'max:1000'],
+            'idempotency_key' => ['sometimes', 'string', 'max:120'],
         ]);
+
+        $idempotencyKey = $this->idempotencyKey($request, 'approve', (string) $order);
+
+        if ($cachedOrder = $this->cachedIdempotencyResult($idempotencyKey)) {
+            return redirect()
+                ->route('orders.show', $cachedOrder)
+                ->with('success', __('flash.order_approve_ok'));
+        }
+
+        if (! $this->beginIdempotency($idempotencyKey)) {
+            return back()->with('error', __('flash.order_action_in_progress'));
+        }
 
         try {
             [$order, $userPackage] = $this->activatePendingOrder(
@@ -172,8 +379,16 @@ class OrderController extends Controller
                 $validated['admin_note'] ?? null
             );
         } catch (ValidationException $e) {
+            $this->forgetIdempotency($idempotencyKey);
+
             return back()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            $this->forgetIdempotency($idempotencyKey);
+
+            throw $e;
         }
+
+        $this->finishIdempotency($idempotencyKey, $order->uuid);
 
         try {
             $order->user?->notify(new MemberActiveNotification(
@@ -199,7 +414,7 @@ class OrderController extends Controller
     private function activatePendingOrder(string $orderUuid, ?string $note): array
     {
         return DB::transaction(function () use ($orderUuid, $note) {
-            $order = Order::with(['packageOption', 'user'])
+            $order = Order::packageOnly()->with(['packageOption', 'user'])
                 ->where('uuid', $orderUuid)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -210,19 +425,38 @@ class OrderController extends Controller
                 ]);
             }
 
+            if ($order->expired_at?->isPast()) {
+                throw ValidationException::withMessages([
+                    'order' => __('flash.order_expired_cannot_process'),
+                ]);
+            }
+
             if (!$order->package_option_uuid || !$order->packageOption) {
                 throw ValidationException::withMessages([
                     'order' => __('flash.order_no_option'),
                 ]);
             }
 
+            $snapshot = [
+                'order' => [
+                    'status' => $order->status,
+                    'paid_at' => $order->paid_at?->toDateTimeString(),
+                    'admin_note' => $order->admin_note,
+                    'assigned_admin_uuid' => $order->assigned_admin_uuid,
+                    'pending_key' => $order->pending_key,
+                ],
+                'payment_uuid' => null,
+                'user_package' => null,
+            ];
+
             $order->update([
                 'status' => 'paid',
                 'paid_at' => now(),
                 'admin_note' => $note,
+                'assigned_admin_uuid' => $order->assigned_admin_uuid ?: Auth::user()->uuid,
             ]);
 
-            Payment::create([
+            $payment = Payment::create([
                 'order_uuid' => $order->uuid,
                 'payment_gateway' => 'manual_transfer',
                 'payment_type' => 'Transfer Manual',
@@ -230,6 +464,8 @@ class OrderController extends Controller
                 'status' => 'paid',
                 'paid_at' => now(),
             ]);
+
+            $snapshot['payment_uuid'] = $payment->uuid;
 
             $option = $order->packageOption;
             $started = now();
@@ -244,6 +480,14 @@ class OrderController extends Controller
                 ->first();
 
             if ($existing) {
+                $snapshot['user_package'] = [
+                    'created' => false,
+                    'uuid' => $existing->uuid,
+                    'expired_at' => $existing->expired_at?->toDateTimeString(),
+                    'quota' => $existing->quota,
+                    'order_uuid' => $existing->order_uuid,
+                ];
+
                 $base = $existing->expired_at && $existing->expired_at->isFuture()
                     ? $existing->expired_at->copy()
                     : $started->copy();
@@ -265,6 +509,7 @@ class OrderController extends Controller
                 }
 
                 $existing->update([
+                    'order_uuid' => $order->uuid,
                     'expired_at' => $expired,
                     'quota' => $quota,
                 ]);
@@ -287,7 +532,19 @@ class OrderController extends Controller
                     'expired_at' => $expired,
                     'status' => 'active',
                 ]);
+
+                $snapshot['user_package'] = [
+                    'created' => true,
+                    'uuid' => $userPackage->uuid,
+                ];
             }
+
+            $order->update(['approval_snapshot' => $snapshot]);
+
+            $this->logOrderAction($order, 'approved', [
+                'admin_note' => $note,
+                'user_package_uuid' => $userPackage->uuid,
+            ]);
 
             return [$order, $userPackage];
         });
@@ -299,19 +556,45 @@ class OrderController extends Controller
      */
     public function reject(Request $request, string $order)
     {
-        abort_unless(
-            Auth::user()->hasAnyRole(['super-admin', 'admin']),
-            403
-        );
+        abort_unless($this->canRejectOrders(), 403);
 
         $validated = $request->validate([
-            'admin_note' => ['nullable', 'string', 'max:1000'],
-        ]);
+            'admin_note' => ['required', 'string', 'max:1000'],
+            'idempotency_key' => ['sometimes', 'string', 'max:120'],
+        ], $this->orderValidationMessages());
+
+        $idempotencyKey = $this->idempotencyKey($request, 'reject', (string) $order);
+
+        if ($this->cachedIdempotencyResult($idempotencyKey)) {
+            return back()->with('success', __('flash.order_rejected'));
+        }
+
+        if (! $this->beginIdempotency($idempotencyKey)) {
+            return back()->with('error', __('flash.order_action_in_progress'));
+        }
 
         try {
-            $this->rejectPendingOrder($order, $validated['admin_note'] ?? null);
+            $rejected = $this->rejectPendingOrder($order, $validated['admin_note']);
         } catch (ValidationException $e) {
+            $this->forgetIdempotency($idempotencyKey);
+
             return back()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            $this->forgetIdempotency($idempotencyKey);
+
+            throw $e;
+        }
+
+        $this->finishIdempotency($idempotencyKey, $rejected->uuid);
+
+        try {
+            $rejected->user?->notify(new OrderRejectedNotification(
+                $rejected->uuid,
+                $rejected->order_number,
+                $validated['admin_note'],
+            ));
+        } catch (\Throwable $e) {
+            Log::error('Order rejection notification failed: ' . $e->getMessage());
         }
 
         return back()->with('success', __('flash.order_rejected'));
@@ -320,10 +603,10 @@ class OrderController extends Controller
     /**
      * Reject a pending order inside a single transaction.
      */
-    private function rejectPendingOrder(string $orderUuid, ?string $note): void
+    private function rejectPendingOrder(string $orderUuid, string $note): Order
     {
-        DB::transaction(function () use ($orderUuid, $note) {
-            $order = Order::where('uuid', $orderUuid)
+        return DB::transaction(function () use ($orderUuid, $note) {
+            $order = Order::packageOnly()->where('uuid', $orderUuid)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -336,9 +619,14 @@ class OrderController extends Controller
             $order->update([
                 'status' => 'failed',
                 'admin_note' => $note,
+                'assigned_admin_uuid' => $order->assigned_admin_uuid ?: Auth::user()->uuid,
             ]);
 
             $order->payment?->update(['status' => 'failed']);
+
+            $this->logOrderAction($order, 'rejected', ['admin_note' => $note]);
+
+            return $order;
         });
     }
 
@@ -347,23 +635,52 @@ class OrderController extends Controller
      */
     public function bulkAction(Request $request)
     {
-        abort_unless(
-            Auth::user()->hasAnyRole(['super-admin', 'admin']),
-            403
-        );
+        abort_unless($this->canBulkOrders(), 403);
 
         $validated = $request->validate([
             'action' => ['required', Rule::in(['approve', 'reject'])],
             'ids' => ['required', 'array', 'min:1', 'max:50'],
             'ids.*' => ['required', 'string'],
-            'admin_note' => ['nullable', 'string', 'max:1000'],
-        ]);
+            'admin_note' => [
+                Rule::requiredIf($request->input('action') === 'reject'),
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+            'idempotency_key' => ['sometimes', 'string', 'max:120'],
+        ], $this->orderValidationMessages());
+
+        $idempotencyKey = $this->idempotencyKey(
+            $request,
+            'bulk-' . $validated['action'],
+            implode(',', $validated['ids'])
+        );
+
+        if ($cachedResult = $this->cachedIdempotencyResult($idempotencyKey)) {
+            $response = back()->with('error', __('flash.order_action_already_done'));
+
+            if ($cachedResult !== 'done') {
+                $response->with('undo_token', $cachedResult)
+                    ->with('undo_message', 'Tindakan massal dapat dibatalkan dalam 10 menit.');
+            }
+
+            return $response;
+        }
+
+        if (! $this->beginIdempotency($idempotencyKey)) {
+            return back()->with('error', __('flash.order_action_in_progress'));
+        }
 
         $berhasil = 0;
         $gagal = 0;
+        $gagalRincian = [];
+        $undoSnapshot = [];
+        $undoToken = Str::random(24);
 
         foreach (array_unique($validated['ids']) as $orderUuid) {
             try {
+                $before = Order::packageOnly()->where('uuid', $orderUuid)->first()?->getAttributes() ?? [];
+
                 if ($validated['action'] === 'approve') {
                     [$order, $userPackage] = $this->activatePendingOrder(
                         $orderUuid,
@@ -379,13 +696,40 @@ class OrderController extends Controller
                     } catch (\Throwable $e) {
                         Log::error('Membership activation notification failed: ' . $e->getMessage());
                     }
+
+                    $undoSnapshot[] = [
+                        'type' => 'approve',
+                        'uuid' => $order->uuid,
+                        'snapshot' => $order->approval_snapshot,
+                    ];
                 } else {
-                    $this->rejectPendingOrder($orderUuid, $validated['admin_note'] ?? null);
+                    $rejected = $this->rejectPendingOrder($orderUuid, $validated['admin_note']);
+
+                    try {
+                        $rejected->user?->notify(new OrderRejectedNotification(
+                            $rejected->uuid,
+                            $rejected->order_number,
+                            $validated['admin_note'],
+                        ));
+                    } catch (\Throwable $e) {
+                        Log::error('Order rejection notification failed: ' . $e->getMessage());
+                    }
+
+                    $undoSnapshot[] = [
+                        'type' => 'reject',
+                        'uuid' => $rejected->uuid,
+                        'status' => $before['status'] ?? 'pending',
+                        'admin_note' => $before['admin_note'] ?? null,
+                        'paid_at' => $before['paid_at'] ?? null,
+                        'assigned_admin_uuid' => $before['assigned_admin_uuid'] ?? null,
+                        'pending_key' => $before['pending_key'] ?? null,
+                    ];
                 }
 
                 $berhasil++;
             } catch (Throwable $e) {
                 $gagal++;
+                $gagalRincian[] = $orderUuid . ': ' . $e->getMessage();
                 Log::warning('Bulk order action failed: ' . $e->getMessage(), ['order' => $orderUuid]);
             }
         }
@@ -393,9 +737,213 @@ class OrderController extends Controller
         $pesan = $berhasil . ' pesanan berhasil ' . ($validated['action'] === 'approve' ? 'disetujui' : 'ditolak') . '.';
         if ($gagal > 0) {
             $pesan .= ' ' . $gagal . ' pesanan gagal diproses.';
+            $pesan .= ' Rincian: ' . implode(' | ', array_slice($gagalRincian, 0, 3)) . '.';
         }
 
+        if ($undoSnapshot !== []) {
+            Cache::put(
+                'orders.bulk_undo.' . Auth::user()->uuid . '.' . $undoToken,
+                $undoSnapshot,
+                now()->addMinutes(10)
+            );
+
+            $this->finishIdempotency($idempotencyKey, $undoToken);
+
+            return back()
+                ->with($gagal > 0 ? 'error' : 'success', $pesan)
+                ->with('undo_token', $undoToken)
+                ->with('undo_message', 'Tindakan massal dapat dibatalkan dalam 10 menit.');
+        }
+
+        $this->finishIdempotency($idempotencyKey, 'done');
+
         return back()->with($gagal > 0 ? 'error' : 'success', $pesan);
+    }
+
+    public function bulkUndo(Request $request)
+    {
+        abort_unless($this->canBulkUndoOrders(), 403);
+
+        $validated = $request->validate([
+            'undo_token' => ['required', 'string'],
+        ]);
+
+        $key = 'orders.bulk_undo.' . Auth::user()->uuid . '.' . $validated['undo_token'];
+        $snapshot = Cache::get($key);
+
+        if (!$snapshot) {
+            return back()->with('error', __('flash.order_bulk_undo_expired'));
+        }
+
+        try {
+            DB::transaction(function () use ($snapshot): void {
+                foreach ($snapshot as $item) {
+                    $order = Order::packageOnly()->where('uuid', $item['uuid'])->lockForUpdate()->firstOrFail();
+
+                    if (($item['type'] ?? 'reject') === 'reject') {
+                        $order->update([
+                            'status' => $item['status'],
+                            'admin_note' => $item['admin_note'],
+                            'paid_at' => $item['paid_at'],
+                            'assigned_admin_uuid' => $item['assigned_admin_uuid'] ?? null,
+                            'pending_key' => $item['pending_key'] ?? null,
+                        ]);
+
+                        Payment::where('order_uuid', $order->uuid)->update(['status' => 'pending']);
+                        $this->logOrderAction($order, 'rejection_reverted');
+
+                        continue;
+                    }
+
+                    $approval = $item['snapshot'] ?? [];
+                    $beforeOrder = $approval['order'] ?? [];
+                    $userPackageBefore = $approval['user_package'] ?? [];
+
+                    $order->update([
+                        'status' => $beforeOrder['status'] ?? 'pending',
+                        'paid_at' => $beforeOrder['paid_at'] ?? null,
+                        'admin_note' => $beforeOrder['admin_note'] ?? null,
+                        'assigned_admin_uuid' => $beforeOrder['assigned_admin_uuid'] ?? null,
+                        'pending_key' => $beforeOrder['pending_key'] ?? null,
+                        'approval_snapshot' => null,
+                    ]);
+
+                    if (!empty($approval['payment_uuid'])) {
+                        Payment::where('uuid', $approval['payment_uuid'])->delete();
+                    }
+
+                    if (!empty($userPackageBefore['created'])) {
+                        UserPackage::where('uuid', $userPackageBefore['uuid'])->delete();
+                    } elseif (!empty($userPackageBefore['uuid'])) {
+                        UserPackage::where('uuid', $userPackageBefore['uuid'])->update([
+                            'expired_at' => $userPackageBefore['expired_at'] ?? null,
+                            'quota' => $userPackageBefore['quota'] ?? null,
+                            'order_uuid' => $userPackageBefore['order_uuid'] ?? null,
+                        ]);
+                    }
+
+                    $this->logOrderAction($order, 'approval_reverted');
+                }
+            });
+        } catch (Throwable $e) {
+            Log::warning('Order bulk undo failed: ' . $e->getMessage());
+
+            return back()->with('error', __('flash.order_bulk_undo_failed'));
+        }
+
+        Cache::forget($key);
+
+        return back()->with('success', __('flash.order_bulk_undo_ok'));
+    }
+
+    public function claim(string $order)
+    {
+        abort_unless(Gate::forUser(Auth::user())->allows('assign', Order::class), 403);
+
+        try {
+            DB::transaction(function () use ($order): void {
+                $model = Order::packageOnly()->where('uuid', $order)->lockForUpdate()->firstOrFail();
+
+                if ($model->status !== 'pending') {
+                    throw ValidationException::withMessages([
+                        'order' => __('flash.order_only_pending_claim'),
+                    ]);
+                }
+
+                if ($model->assigned_admin_uuid && $model->assigned_admin_uuid !== Auth::user()->uuid) {
+                    throw ValidationException::withMessages([
+                        'order' => __('flash.order_already_claimed'),
+                    ]);
+                }
+
+                $model->update(['assigned_admin_uuid' => Auth::user()->uuid]);
+                $this->logOrderAction($model, 'assigned');
+            });
+        } catch (ValidationException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', __('flash.order_claimed'));
+    }
+
+    public function exportAudit(Request $request)
+    {
+        abort_unless(Gate::forUser(Auth::user())->allows('audit', Order::class), 403);
+
+        $query = AuditLog::query()
+            ->where('auditable_type', Order::class)
+            ->whereIn('event', [
+                'approved',
+                'rejected',
+                'proof_uploaded',
+                'whatsapp_opened',
+                'assigned',
+                'approval_reverted',
+                'rejection_reverted',
+                'sla_reminded',
+            ])
+            ->latest();
+
+        if ($request->filled('order')) {
+            $query->where('auditable_id', $request->input('order'));
+        }
+
+        if ($request->filled('event')) {
+            $query->where('event', $request->input('event'));
+        }
+
+        $logs = $query->limit(5000)->get();
+
+        $fileName = 'order-audit-' . now()->format('Ymd-His') . '.csv';
+
+        return response()->streamDownload(function () use ($logs): void {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['Waktu', 'No. Pesanan', 'Aktivitas', 'Admin', 'Catatan', 'Alamat IP']);
+
+            foreach ($logs as $log) {
+                $values = $log->new_values ?? [];
+                $note = $values['admin_note'] ?? ($values['note'] ?? '');
+
+                fputcsv($handle, [
+                    optional($log->created_at)->format('d/m/Y H:i'),
+                    $log->auditable_label,
+                    $log->event_label,
+                    $log->user_name ?: '-',
+                    is_scalar($note) ? (string) $note : '',
+                    $log->ip_address ?: '-',
+                ]);
+            }
+
+            fclose($handle);
+        }, $fileName, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    public function whatsapp(Order $order)
+    {
+        abort_unless(Gate::forUser(Auth::user())->allows('whatsapp', Order::class), 403);
+
+        $order->loadMissing('user');
+
+        $phone = preg_replace('/\D+/', '', (string) ($order->user?->no_hp ?? '')) ?: '';
+        if (str_starts_with($phone, '0')) {
+            $phone = '62' . substr($phone, 1);
+        } elseif (!str_starts_with($phone, '62')) {
+            $phone = '62' . $phone;
+        }
+
+        if (!Str::length($phone) || $phone === '62') {
+            return back()->with('error', __('flash.order_whatsapp_number_missing'));
+        }
+
+        $message = 'Halo ' . ($order->user?->name ?? 'Pelanggan') . ', kami dari Sagita Wedding Organizer ingin mengonfirmasi pesanan '
+            . $order->order_number . '. Mohon ditindaklanjuti, terima kasih.';
+
+        $this->logOrderAction($order, 'whatsapp_opened', [
+            'phone' => preg_replace('/\d/', 'x', substr($phone, -4)),
+        ]);
+
+        return redirect()->away('https://wa.me/' . $phone . '?text=' . rawurlencode($message));
     }
 
     /**
@@ -403,6 +951,8 @@ class OrderController extends Controller
      */
     public function exportCsv(Request $request)
     {
+        abort_unless($this->canExportOrders(), 403);
+
         $user = Auth::user();
 
         $orders = $this->filteredOrders($request, $user)
@@ -425,7 +975,7 @@ class OrderController extends Controller
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, [
                 'No', 'Tanggal', 'No. Pesanan', 'Pelanggan', 'Email', 'Paket',
-                'Opsi Paket', 'Tipe', 'Jumlah (Rp)', 'Status', 'Bukti Transfer', 'Catatan Admin',
+                'Opsi Paket', 'Jumlah (Rp)', 'Status', 'Bukti Transfer', 'Catatan Admin',
             ]);
 
             foreach ($orders as $i => $order) {
@@ -435,9 +985,8 @@ class OrderController extends Controller
                     $order->order_number,
                     $order->user?->name ?? '-',
                     $order->user?->email ?? '-',
-                    $order->package?->name ?? 'Kelas Tunggal',
+                    $order->package?->name ?? '-',
                     $order->packageOption?->name ?? '-',
-                    $order->type === 'package' ? 'Paket' : 'Kelas',
                     $order->amount,
                     $statusLabels[$order->status] ?? ucfirst($order->status),
                     $order->proof_image_path ? 'Sudah diunggah' : 'Belum diunggah',
@@ -458,7 +1007,7 @@ class OrderController extends Controller
      */
     public function uploadProof(Request $request, string $order)
     {
-        $order = Order::where('uuid', $order)->firstOrFail();
+        $order = Order::packageOnly()->where('uuid', $order)->firstOrFail();
 
         if ($order->user_uuid !== Auth::user()->uuid) {
             abort(403);
@@ -482,6 +1031,8 @@ class OrderController extends Controller
 
         $path = $request->file('proof')->store($dir, $disk);
 
+        ImageShrinker::shrink(Storage::disk($disk)->path($path), 1280, 82);
+
         if ($order->proof_image_path) {
             Storage::disk($disk)->delete($order->proof_image_path);
         }
@@ -490,6 +1041,8 @@ class OrderController extends Controller
             'proof_image_path' => $path,
             'proof_uploaded_at' => now(),
         ]);
+
+        $this->logOrderAction($order, 'proof_uploaded', ['proof_image_path' => $path]);
 
         try {
             $order->loadMissing('user');
@@ -519,7 +1072,7 @@ class OrderController extends Controller
      */
     public function showProof(Request $request, string $order)
     {
-        $order = Order::where('uuid', $order)->firstOrFail();
+        $order = Order::packageOnly()->where('uuid', $order)->firstOrFail();
 
         $user = Auth::user();
         $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
@@ -671,11 +1224,12 @@ class OrderController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $order = DB::transaction(function () use (
-            $user,
-            $option,
-            $amount
-        ) {
+        try {
+            $order = DB::transaction(function () use (
+                $user,
+                $option,
+                $amount
+            ) {
 
             return Order::create([
 
@@ -712,7 +1266,10 @@ class OrderController extends Controller
                 'paid_at' =>
                 null,
             ]);
-        });
+            });
+        } catch (QueryException $e) {
+            return back()->with('error', __('flash.order_pending_exists'));
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -750,7 +1307,7 @@ class OrderController extends Controller
      */
     public function reorder(Request $request, string $order)
     {
-        $old = Order::where('uuid', $order)->firstOrFail();
+        $old = Order::packageOnly()->where('uuid', $order)->firstOrFail();
 
         $user = Auth::user();
         $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
@@ -805,21 +1362,25 @@ class OrderController extends Controller
                 ->with('success', __('flash.order_pending_exists'));
         }
 
-        $newOrder = DB::transaction(function () use ($owner, $option, $amount) {
-            return Order::create([
-                'uuid' => (string) Str::uuid(),
-                'user_uuid' => $owner->uuid,
-                'order_number' => 'ORD-' . strtoupper(Str::random(10)),
-                'type' => 'package',
-                'package_uuid' => $option->package_uuid,
-                'package_option_uuid' => $option->uuid,
-                'class_schedule_uuid' => null,
-                'amount' => $amount,
-                'status' => 'pending',
-                'expired_at' => now()->addHours(24),
-                'paid_at' => null,
-            ]);
-        });
+        try {
+            $newOrder = DB::transaction(function () use ($owner, $option, $amount) {
+                return Order::create([
+                    'uuid' => (string) Str::uuid(),
+                    'user_uuid' => $owner->uuid,
+                    'order_number' => 'ORD-' . strtoupper(Str::random(10)),
+                    'type' => 'package',
+                    'package_uuid' => $option->package_uuid,
+                    'package_option_uuid' => $option->uuid,
+                    'class_schedule_uuid' => null,
+                    'amount' => $amount,
+                    'status' => 'pending',
+                    'expired_at' => now()->addHours(24),
+                    'paid_at' => null,
+                ]);
+            });
+        } catch (QueryException $e) {
+            return back()->with('error', __('flash.order_pending_exists'));
+        }
 
         $this->notifyAdmins($newOrder);
 
@@ -833,6 +1394,8 @@ class OrderController extends Controller
      */
     public function report(Request $request)
     {
+        abort_unless($this->canExportOrders(), 403);
+
         $user = Auth::user();
 
         $orders = $this->filteredOrders($request, $user)
@@ -857,6 +1420,8 @@ class OrderController extends Controller
      */
     public function exportPdf(Request $request)
     {
+        abort_unless($this->canExportOrders(), 403);
+
         $user = Auth::user();
 
         $orders = $this->filteredOrders($request, $user)
@@ -883,7 +1448,7 @@ class OrderController extends Controller
      */
     private function filteredOrders(Request $request, $user)
     {
-        $query = Order::query();
+        $query = Order::packageOnly();
 
         /*
         |--------------------------------------------------------------------------
@@ -900,10 +1465,6 @@ class OrderController extends Controller
         | Filter
         |--------------------------------------------------------------------------
         */
-
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -933,7 +1494,11 @@ class OrderController extends Controller
             $request->filled('search') &&
             $user->hasAnyRole(['super-admin', 'admin'])
         ) {
-            $search = $request->input('search');
+            $search = trim((string) $request->input('search'));
+
+            if (Str::length($search) < 2) {
+                return $query->whereRaw('1 = 0');
+            }
 
             $query->where(function ($query) use ($search) {
 
@@ -977,6 +1542,17 @@ class OrderController extends Controller
     private function reportData($orders, Request $request, $user): array
     {
         $paid = $orders->where('status', 'paid');
+        $decidedCount = $paid->count() + $orders->whereIn('status', ['failed', 'expired', 'cancelled'])->count();
+        $withProofCount = $orders->whereNotNull('proof_image_path')->count();
+        $slaBreachCount = $orders->filter(function ($order) {
+            return $order->status === 'pending'
+                && $order->created_at
+                && $order->created_at->lt(now()->subHours(24));
+        })->count();
+
+        $averageVerificationHours = $paid
+            ->filter(fn ($order) => $order->paid_at && $order->created_at)
+            ->avg(fn ($order) => $order->created_at->diffInHours($order->paid_at));
 
         return [
             'orders' => $orders,
@@ -985,9 +1561,12 @@ class OrderController extends Controller
             'paidCount' => $paid->count(),
             'failedCount' => $orders->whereIn('status', ['failed', 'expired', 'cancelled'])->count(),
             'revenue' => $paid->sum('amount'),
+            'proofUploadRate' => $orders->count() ? (int) round($withProofCount / $orders->count() * 100) : 0,
+            'approvalRate' => $decidedCount ? (int) round($paid->count() / $decidedCount * 100) : 0,
+            'slaBreachCount' => $slaBreachCount,
+            'averageVerificationHours' => $averageVerificationHours === null ? '-' : number_format((float) $averageVerificationHours, 1),
             'periode' => $this->reportPeriod($request),
             'filterStatus' => $request->input('status') ?: 'Semua',
-            'filterType' => $request->input('type') ?: 'Semua',
             'search' => $request->input('search'),
             'isAdmin' => $user->hasAnyRole(['super-admin', 'admin']),
             'dicetakOleh' => $user->name ?? 'Sistem',
@@ -1046,5 +1625,129 @@ class OrderController extends Controller
         } catch (\Throwable $e) {
             Log::error('Order admin notification failed: ' . $e->getMessage());
         }
+    }
+
+    private function idempotencyKey(Request $request, string $action, string $subject): ?string
+    {
+        $provided = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+
+        if (!is_string($provided) || trim($provided) === '') {
+            return null;
+        }
+
+        return 'orders.idempotency.' . Auth::user()->uuid . '.' . $action . '.' . sha1($subject . '|' . $provided);
+    }
+
+    private function cachedIdempotencyResult(?string $key): ?string
+    {
+        if (!$key) {
+            return null;
+        }
+
+        $value = Cache::get($key);
+
+        return is_string($value) && $value !== 'processing' ? $value : null;
+    }
+
+    private function beginIdempotency(?string $key): bool
+    {
+        if (!$key) {
+            return true;
+        }
+
+        return Cache::add($key, 'processing', now()->addMinutes(10));
+    }
+
+    private function finishIdempotency(?string $key, string $result): void
+    {
+        if ($key) {
+            Cache::put($key, $result, now()->addMinutes(10));
+        }
+    }
+
+    private function forgetIdempotency(?string $key): void
+    {
+        if ($key) {
+            Cache::forget($key);
+        }
+    }
+
+    private function canApproveOrders(): bool
+    {
+        return Gate::forUser(Auth::user())->allows('approve', Order::class);
+    }
+
+    private function canRejectOrders(): bool
+    {
+        return Gate::forUser(Auth::user())->allows('reject', Order::class);
+    }
+
+    private function canBulkOrders(): bool
+    {
+        return Gate::forUser(Auth::user())->allows('bulk', Order::class);
+    }
+
+    private function canBulkUndoOrders(): bool
+    {
+        return Gate::forUser(Auth::user())->allows('bulkUndo', Order::class);
+    }
+
+    private function canManageSavedFilters(): bool
+    {
+        return Gate::forUser(Auth::user())->allows('savedFilter', Order::class);
+    }
+
+    private function canQuickViewOrders(): bool
+    {
+        return Gate::forUser(Auth::user())->allows('quickView', Order::class);
+    }
+
+    private function canExportOrders(): bool
+    {
+        return Gate::forUser(Auth::user())->allows('export', Order::class);
+    }
+
+    private function orderValidationMessages(): array
+    {
+        return [
+            'admin_note.required' => 'Alasan penolakan wajib diisi.',
+            'admin_note.required_if' => 'Alasan penolakan wajib diisi.',
+        ];
+    }
+
+    private function logOrderAction(Order $order, string $event, array $newValues = []): void
+    {
+        $user = Auth::user();
+
+        try {
+            AuditLog::create([
+                'user_uuid' => $user?->uuid,
+                'user_name' => $user?->name ?? 'Sistem',
+                'user_email' => $user?->email,
+                'event' => $event,
+                'auditable_type' => Order::class,
+                'auditable_id' => (string) $order->uuid,
+                'auditable_label' => $order->order_number,
+                'new_values' => $this->maskAuditValues($newValues),
+                'url' => request()->fullUrl(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Order audit log failed: ' . $e->getMessage(), ['order' => $order->uuid]);
+        }
+    }
+
+    private function maskAuditValues(array $values): array
+    {
+        if (!empty($values['admin_note'])) {
+            $values['admin_note'] = preg_replace(
+                ['/[\w.+-]+@[\w.-]+\.\w+/', '/(08|\+?628)\d{6,}/'],
+                ['[email]', '[nomor]'],
+                (string) $values['admin_note']
+            );
+        }
+
+        return $values;
     }
 }

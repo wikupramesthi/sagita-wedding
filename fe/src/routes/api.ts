@@ -134,14 +134,17 @@ router.post("/booking", (req: Request, res: Response) => {
 	});
 });
 
-router.get("/contact/captcha", async (_req: Request, res: Response) => {
+router.get("/contact/captcha", async (req: Request, res: Response) => {
 	try {
-		const captcha = await getContactCaptcha();
+		const captcha = await getContactCaptcha(
+			req.query.lang === "en" ? "en" : "id",
+		);
 		res.set("Cache-Control", "no-store");
 		res.json({
 			success: true,
 			captcha_id: String(captcha?.captcha_id ?? ""),
 			question: String(captcha?.question ?? ""),
+			image: String(captcha?.image ?? ""),
 		});
 	} catch {
 		res.status(503).json({

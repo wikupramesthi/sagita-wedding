@@ -235,7 +235,6 @@ class BatchController extends Controller
     private function contactPage(): array
     {
         return [
-            'captcha' => $this->data(app(ContactController::class)->captcha(), 'captcha'),
             'faqs' => $this->data(app(FaqController::class)->index(), 'faqs') ?? [],
         ];
     }

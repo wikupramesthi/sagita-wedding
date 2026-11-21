@@ -22,7 +22,7 @@ class ProfileController extends Controller
 
         // Member: laptop/desktop = view desktop, HP = phone-frame mobile.
         if ($user->hasRole('user') && MemberView::isMobile()) {
-            $orders = Order::where('user_uuid', $user->uuid)
+            $orders = Order::packageOnly()->where('user_uuid', $user->uuid)
                 ->with(['package', 'packageOption'])
                 ->latest()
                 ->take(3)

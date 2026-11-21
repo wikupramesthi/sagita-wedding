@@ -223,7 +223,17 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::get('orders/report', [OrderController::class, 'report'])->name('orders.report');
     Route::get('orders/export-pdf', [OrderController::class, 'exportPdf'])->name('orders.exportPdf');
     Route::get('orders/export-csv', [OrderController::class, 'exportCsv'])->name('orders.exportCsv');
+    Route::get('orders/audit', [OrderController::class, 'exportAudit'])->name('orders.audit');
+    Route::get('orders/saved-filters', [OrderController::class, 'savedFilters'])->name('orders.saved-filters');
+    Route::post('orders/saved-filters', [OrderController::class, 'storeSavedFilter'])->name('orders.saved-filters.store');
+    Route::get('orders/saved-filters/{savedFilter}/apply', [OrderController::class, 'applySavedFilter'])->name('orders.saved-filters.apply');
+    Route::post('orders/saved-filters/{savedFilter}/default', [OrderController::class, 'setDefaultSavedFilter'])->name('orders.saved-filters.default');
+    Route::delete('orders/saved-filters/{savedFilter}', [OrderController::class, 'deleteSavedFilter'])->name('orders.saved-filters.destroy');
     Route::post('orders/bulk', [OrderController::class, 'bulkAction'])->name('orders.bulk');
+Route::post('orders/bulk/undo', [OrderController::class, 'bulkUndo'])->name('orders.bulk-undo');
+Route::post('orders/{order}/claim', [OrderController::class, 'claim'])->name('orders.claim');
+Route::get('orders/{order}/quick-view', [OrderController::class, 'quickView'])->name('orders.quick-view');
+Route::get('orders/{order}/whatsapp', [OrderController::class, 'whatsapp'])->name('orders.whatsapp');
     Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
     Route::post('orders/{order}/reject', [OrderController::class, 'reject'])->name('orders.reject');
     Route::get('orders/{order}/proof', [OrderController::class, 'showProof'])->name('orders.proof.show');

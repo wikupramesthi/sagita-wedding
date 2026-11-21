@@ -267,8 +267,8 @@
             <td>: {{ $dicetakOleh }}</td>
         </tr>
         <tr>
-            <td>Filter Tipe</td>
-            <td>: {{ $filterType }}</td>
+            <td>Periode</td>
+            <td>: {{ $periode }}</td>
             <td>Waktu Cetak</td>
             <td>: {{ $waktuCetak }} WIB</td>
         </tr>
@@ -338,7 +338,7 @@
                 @if ($isAdmin)
                 <td>{{ $order->user?->name ?? '-' }}<br><small style="color:#6b7280;">{{ $order->user?->email ?? '-' }}</small></td>
                 @endif
-                <td>{{ $order->package?->name ?? 'Kelas Tunggal' }}<br><small style="color:#6b7280;">{{ $order->packageOption?->name ?? '' }}</small></td>
+                <td>{{ $order->package?->name ?? '-' }}<br><small style="color:#6b7280;">{{ $order->packageOption?->name ?? '' }}</small></td>
                 <td style="text-align:right;">Rp {{ number_format($order->amount, 0, ',', '.') }}</td>
                 <td><span class="badge badge-{{ $order->status }}">{{ $statusLabels[$order->status] ?? ucfirst($order->status) }}</span></td>
                 <td>{{ $order->proof_image_path ? 'Diunggah' : '-' }}</td>

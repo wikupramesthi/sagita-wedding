@@ -14,6 +14,11 @@ return new class extends Migration
         'orders.exportCsv',
     ];
 
+    private array $routePermissions = [
+        'orders.report' => 'orders.exportCsv',
+        'orders.exportPdf' => 'orders.exportCsv',
+    ];
+
     public function up(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -23,11 +28,16 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('routes')) {
-            foreach ($this->permissions as $route) {
+            $routes = array_merge(
+                array_combine($this->permissions, $this->permissions),
+                $this->routePermissions
+            );
+
+            foreach ($routes as $route => $permission) {
                 DB::table('routes')->updateOrInsert(
                     ['route' => $route],
                     [
-                        'permission_name' => $route,
+                        'permission_name' => $permission,
                         'status' => true,
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -48,7 +58,9 @@ return new class extends Migration
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         if (Schema::hasTable('routes')) {
-            DB::table('routes')->whereIn('route', $this->permissions)->delete();
+            DB::table('routes')
+                ->whereIn('route', array_merge($this->permissions, array_keys($this->routePermissions)))
+                ->delete();
         }
 
         if (Schema::hasTable('permissions')) {

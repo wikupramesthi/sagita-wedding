@@ -39,6 +39,13 @@ class AuditLog extends Model
             'deleted' => 'Dihapus',
             'restored' => 'Dipulihkan',
             'whatsapp_opened' => 'WhatsApp Dibuka',
+            'approved' => 'Pesanan Disetujui',
+            'rejected' => 'Pesanan Ditolak',
+            'proof_uploaded' => 'Bukti Diunggah',
+            'assigned' => 'Pesanan Diambil Alih',
+            'approval_reverted' => 'Persetujuan Dibatalkan',
+            'rejection_reverted' => 'Penolakan Dibatalkan',
+            'sla_reminded' => 'Pengingat SLA Dikirim',
             default => 'Lainnya',
         };
     }
@@ -50,6 +57,14 @@ class AuditLog extends Model
             'updated' => 'bg-warning-subtle text-warning',
             'deleted' => 'bg-danger-subtle text-danger',
             'restored' => 'bg-info-subtle text-info',
+            'approved' => 'bg-success-subtle text-success',
+            'rejected' => 'bg-danger-subtle text-danger',
+            'proof_uploaded' => 'bg-info-subtle text-info',
+            'whatsapp_opened' => 'bg-success-subtle text-success',
+            'assigned' => 'bg-primary-subtle text-primary',
+            'approval_reverted' => 'bg-warning-subtle text-warning',
+            'rejection_reverted' => 'bg-info-subtle text-info',
+            'sla_reminded' => 'bg-warning-subtle text-warning',
             default => 'bg-secondary-subtle text-secondary',
         };
     }

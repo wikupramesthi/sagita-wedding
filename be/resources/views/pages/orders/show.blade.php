@@ -5,7 +5,13 @@
 @section('content')
 
 @php
-    $typeLabels = ['package' => 'Paket', 'class' => 'Kelas'];
+    $statusLabels = [
+        'pending' => 'Menunggu Verifikasi',
+        'paid' => 'Lunas',
+        'failed' => 'Gagal',
+        'expired' => 'Kedaluwarsa',
+        'cancelled' => 'Dibatalkan',
+    ];
 @endphp
 
 <div class="receipt-page">
@@ -13,24 +19,40 @@
 
         {{-- Top Navigation --}}
         <div class="receipt-topbar">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ route('orders.index') }}" class="back-link" aria-label="Kembali ke pesanan">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <div class="order-detail-eyebrow">Detail Pesanan</div>
+                    <div class="order-detail-title">{{ $order->order_number }}</div>
+                </div>
+            </div>
 
-            <a
-                href="{{ route('orders.index') }}"
-                class="back-link">
-                <i class="bi bi-arrow-left"></i>
-                <span>Kembali ke Pesanan</span>
-            </a>
-
-            <button
-                type="button"
-                onclick="window.print()"
-                class="print-button">
-                <i class="bi bi-printer"></i>
-                <span>Cetak Bukti</span>
-            </button>
-
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="order-status-pill status-{{ $order->status }}">
+                    <i class="bi bi-circle-fill me-1"></i>{{ $statusLabels[$order->status] ?? ucfirst($order->status) }}
+                </span>
+                <button type="button" class="print-button js-copy-order" data-copy="{{ $order->order_number }}"
+                    title="Salin nomor pesanan">
+                    <i class="bi bi-copy"></i>
+                    <span>Salin</span>
+                </button>
+                @if ($isAdmin)
+                    <a href="{{ route('orders.whatsapp', $order->uuid) }}" class="print-button text-decoration-none">
+                        <i class="bi bi-whatsapp"></i>
+                        <span>Hubungi WhatsApp</span>
+                    </a>
+                @endif
+                <button type="button" onclick="window.print()" class="print-button print-button-primary">
+                    <i class="bi bi-printer"></i>
+                    <span>Cetak Bukti</span>
+                </button>
+            </div>
         </div>
 
+        <div class="order-detail-layout">
+            <aside class="order-detail-side">
 
         {{-- Admin verification (manual transfer) --}}
         @if ($isAdmin && $order->status === 'pending')
@@ -58,9 +80,9 @@
                         <div class="col-md-6">
                             <form action="{{ route('orders.reject', $order->uuid) }}" method="POST">
                                 @csrf
-                                <label class="form-label small fw-semibold" for="rejectNote">Alasan penolakan</label>
-                                <textarea name="admin_note" id="rejectNote" rows="2" class="form-control mb-2"
-                                    placeholder="mis.Transfer tidak diterima"></textarea>
+                                <label class="form-label small fw-semibold" for="rejectNote">Alasan penolakan <span class="text-danger">*</span></label>
+                                <textarea name="admin_note" id="rejectNote" rows="2" class="form-control mb-2" required
+                                    placeholder="mis. Transfer tidak diterima"></textarea>
                                 <button type="submit" class="btn btn-outline-danger w-100"
                                     onclick="return confirm('Tolak pesanan ini?')">
                                     <i class="bi bi-x-lg me-1"></i> Tolak Pesanan
@@ -70,6 +92,95 @@
                     </div>
                 </div>
             </div>
+        @endif
+
+        @if ($isAdmin)
+            <div class="card border-light mb-4">
+                <div class="card-header bg-light fw-bold">
+                    <i class="bi bi-info-square me-1"></i> Ringkasan Admin
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 small">
+                        <div class="col-md-4">
+                            <div class="text-muted">Nomor pesanan</div>
+                            <div class="fw-semibold font-monospace">{{ $order->order_number }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted">Paket</div>
+                            <div class="fw-semibold">{{ $order->package?->name ?? '-' }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted">Dibuat</div>
+                            <div class="fw-semibold">{{ $order->created_at?->translatedFormat('d F Y, H:i') ?? '-' }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted">Kedaluwarsa</div>
+                            <div class="fw-semibold {{ $order->status === 'pending' && $order->expired_at?->isPast() ? 'text-danger' : '' }}">
+                                {{ $order->expired_at?->translatedFormat('d F Y, H:i') ?? '-' }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted">Metode pembayaran</div>
+                            <div class="fw-semibold">{{ $order->payment?->payment_type ?? 'Transfer Manual' }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted">Bukti transfer</div>
+                            <div class="fw-semibold">
+                                @if ($order->proof_image_path)
+                                    <button type="button" class="btn btn-sm btn-outline-primary js-proof-lightbox"
+                                        data-proof-src="{{ $order->proofUrl() }}">
+                                        <i class="bi bi-file-earmark-image me-1"></i>Lihat bukti
+                                    </button>
+                                @else
+                                    <span class="text-warning">Belum diunggah</span>
+                                @endif
+                            </div>
+                        </div>
+                        @if ($order->user?->phone || $order->user?->whatsapp)
+                            <div class="col-md-4">
+                                <div class="text-muted">Kontak pelanggan</div>
+                                <div class="fw-semibold">{{ $order->user->phone ?? $order->user->whatsapp }}</div>
+                            </div>
+                        @endif
+                        @if ($userPackage)
+                            <div class="col-md-4">
+                                <div class="text-muted">Keanggotaan terkait</div>
+                                <div class="fw-semibold">
+                                    {{ $userPackage->package?->name ?? '-' }} —
+                                    {{ $userPackage->quota === null ? 'tanpa batas' : 'sisa ' . $userPackage->quota . ' kelas' }}
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            @if ($auditLogs->count())
+                <div class="card border-light mb-4">
+                    <div class="card-header bg-light fw-bold">
+                        <i class="bi bi-clock-history me-1"></i> Riwayat Verifikasi
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline-admin">
+                            @foreach ($auditLogs as $log)
+                                <div class="timeline-item-admin">
+                                    <div class="timeline-dot-admin {{ $log->event === 'approved' ? 'bg-success' : ($log->event === 'rejected' ? 'bg-danger' : 'bg-info') }}"></div>
+                                    <div>
+                                        <div class="small fw-semibold">{{ $log->event_label }}</div>
+                                        <div class="text-muted small">
+                                            {{ $log->user_name ?? 'Sistem' }} —
+                                            {{ $log->created_at?->translatedFormat('d M Y H:i') ?? '-' }}
+                                        </div>
+                                        @if ($log->new_values && is_array($log->new_values) && !empty($log->new_values['admin_note']))
+                                            <div class="small fst-italic mt-1">"{{ $log->new_values['admin_note'] }}"</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
         @endif
 
         @if ($isAdmin && $order->admin_note)
@@ -93,6 +204,8 @@
             </div>
         @endif
 
+            </aside>
+            <div class="order-detail-main">
 
         @if ($order->status === 'pending')
             @php
@@ -103,7 +216,7 @@
                 $waNumber = preg_replace('/\D/', '', (string) config('manual_payment.admin_whatsapp'));
                 $waText = 'Halo Admin Sagita Wedding Organizer, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
             @endphp
-            <div class="card border-primary mb-4">
+            <div class="card border-primary mb-4 order-detail-payment">
                 <div class="card-header bg-primary bg-opacity-10 fw-bold">
                     <i class="bi bi-bank me-1"></i> Selesaikan Pembayaran — Transfer Manual
                 </div>
@@ -142,10 +255,11 @@
 
                     @if ($order->proof_image_path)
                         <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light mb-3">
-                            <a href="{{ $order->proofUrl() }}" target="_blank" rel="noopener">
+                            <button type="button" class="proof-thumb js-proof-lightbox"
+                                data-proof-src="{{ $order->proofUrl() }}" aria-label="Perbesar bukti transfer">
                                 <img src="{{ $order->proofUrl() }}" alt="Bukti transfer"
                                     class="rounded-3 border" style="height:110px;width:auto;object-fit:cover;">
-                            </a>
+                            </button>
                             <div class="small">
                                 <div class="fw-bold text-success">
                                     <i class="bi bi-check-circle me-1"></i>Bukti diunggah
@@ -441,7 +555,7 @@
                         </span>
 
                         <small>
-                            PESANAN {{ strtoupper($typeLabels[$order->type] ?? $order->type) }}
+                            PESANAN PAKET
                         </small>
                     </div>
 
@@ -497,6 +611,8 @@
             </div>
 
         </div>
+            </div>
+        </div>
 
     </div>
 
@@ -515,8 +631,90 @@
 
     .receipt-wrapper {
         width: 100%;
-        max-width: 850px;
+        max-width: 1320px;
         margin: 0 auto;
+    }
+
+    .order-detail-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 22px;
+        align-items: start;
+    }
+
+    .order-detail-main {
+        min-width: 0;
+    }
+
+    .order-detail-side {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .order-detail-side .card {
+        border: 1px solid var(--bs-border-color);
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(16,24,40,.05);
+        overflow: hidden;
+    }
+
+    .order-detail-side .card-header {
+        border-bottom: 1px solid var(--bs-border-color);
+        font-size: 13px;
+        letter-spacing: .01em;
+    }
+
+    .order-detail-eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--bs-secondary-color);
+    }
+
+    .order-detail-title {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -.02em;
+    }
+
+    .order-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        background: #eef2ff;
+        color: #3538cd;
+    }
+
+    .order-status-pill i { font-size: 7px; }
+    .order-status-pill.status-paid { background: #ecfdf3; color: #067647; }
+    .order-status-pill.status-pending { background: #fffaeb; color: #b54708; }
+    .order-status-pill.status-failed,
+    .order-status-pill.status-expired,
+    .order-status-pill.status-cancelled { background: #fef3f2; color: #b42318; }
+
+    .print-button-primary {
+        background: var(--bs-primary);
+        border-color: var(--bs-primary);
+        color: #fff;
+    }
+
+    .print-button-primary:hover {
+        color: #fff;
+        filter: brightness(.95);
+    }
+
+    .proof-thumb {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: zoom-in;
+        line-height: 0;
     }
 
 
@@ -969,6 +1167,65 @@
     }
 
 
+    .timeline-admin {
+        position: relative;
+        padding-left: 18px;
+    }
+
+    .timeline-admin::before {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 4px;
+        bottom: 4px;
+        width: 2px;
+        background: #e9ecef;
+    }
+
+    .timeline-item-admin {
+        position: relative;
+        padding-bottom: 14px;
+    }
+
+    .timeline-item-admin:last-child {
+        padding-bottom: 0;
+    }
+
+    .timeline-dot-admin {
+        position: absolute;
+        left: -17px;
+        top: 4px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px #fff;
+    }
+
+    @media (max-width: 991.98px) {
+        .order-detail-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .order-detail-side {
+            order: 2;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .receipt-page {
+            padding: 18px 12px 40px;
+        }
+
+        .receipt-topbar {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .order-detail-title {
+            font-size: 16px;
+        }
+    }
+
     /* =========================================================
        PRINT
     ========================================================= */
@@ -990,6 +1247,17 @@
 
         .receipt-topbar {
             display: none !important;
+        }
+
+        .receipt-wrapper > .card,
+        .order-detail-side,
+        .order-detail-payment {
+            display: none !important;
+        }
+
+        .order-detail-layout,
+        .order-detail-main {
+            display: block !important;
         }
 
         .receipt-wrapper {
@@ -1015,5 +1283,63 @@
 
     }
 </style>
+
+<div class="modal fade" id="proofLightbox" tabindex="-1" aria-labelledby="proofLightboxLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="proofLightboxLabel">Bukti Transfer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body text-center bg-light">
+                <img id="proofLightboxImage" src="" alt="Bukti transfer" class="img-fluid rounded"
+                    style="max-height: 75vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('after-script')
+<script>
+    (function() {
+        var lightboxEl = document.getElementById('proofLightbox');
+        var lightboxImage = document.getElementById('proofLightboxImage');
+        var proofButtons = document.querySelectorAll('.js-proof-lightbox');
+
+        if (lightboxEl && lightboxImage && proofButtons.length && window.bootstrap) {
+            var lightbox = new bootstrap.Modal(lightboxEl);
+
+            proofButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    lightboxImage.src = button.getAttribute('data-proof-src') || '';
+                    lightbox.show();
+                });
+            });
+
+            lightboxEl.addEventListener('hidden.bs.modal', function() {
+                lightboxImage.src = '';
+            });
+        }
+
+        document.querySelectorAll('.js-copy-order').forEach(function(button) {
+            button.addEventListener('click', async function() {
+                try {
+                    await navigator.clipboard.writeText(button.getAttribute('data-copy') || '');
+                    var label = button.querySelector('span');
+
+                    if (label) {
+                        label.textContent = 'Tersalin';
+                        setTimeout(function() {
+                            label.textContent = 'Salin';
+                        }, 1500);
+                    }
+                } catch (error) {
+                    window.location.href = 'mailto:?subject=' + encodeURIComponent(button.getAttribute('data-copy') || '');
+                }
+            });
+        });
+    })();
+</script>
+@endpush
 
 @endsection

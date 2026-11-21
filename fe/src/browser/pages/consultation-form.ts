@@ -5,10 +5,11 @@ const submitButton = document.querySelector<HTMLButtonElement>(
 const captchaId = document.querySelector<HTMLInputElement>(
 	"#consultationCaptchaId",
 );
+const captchaQuestion = document.getElementById("consultationCaptchaQuestion");
+const captchaCode = document.getElementById("consultationCaptchaCode");
 const captchaAnswer = document.querySelector<HTMLInputElement>(
 	"#consultationCaptchaAnswer",
 );
-const captchaQuestion = document.getElementById("consultationCaptchaQuestion");
 const captchaReload = document.querySelector<HTMLButtonElement>(
 	"#consultationCaptchaReload",
 );
@@ -24,15 +25,17 @@ if (
 	form &&
 	submitButton &&
 	captchaId &&
-	captchaAnswer &&
 	captchaQuestion &&
+	captchaCode &&
+	captchaAnswer &&
 	success &&
 	whatsappConfirm
 ) {
 	const button = submitButton;
 	const captchaIdField = captchaId;
-	const captchaAnswerField = captchaAnswer;
 	const captchaQuestionText = captchaQuestion;
+	const captchaCodeText = captchaCode;
+	const captchaAnswerField = captchaAnswer;
 	const successDialog = success;
 	const whatsappConfirmLink = whatsappConfirm;
 	const submitLabel = button.querySelector("span")?.textContent?.trim() || "";
@@ -54,36 +57,46 @@ if (
 		button.disabled = true;
 		captchaQuestionText.textContent =
 			document.documentElement.lang === "en"
-				? "Preparing a quick verification…"
+				? "Preparing verification…"
 				: "Menyiapkan verifikasi…";
 		try {
-			const response = await fetch("/api/contact/captcha", {
-				headers: { Accept: "application/json" },
-			});
+			const response = await fetch(
+				`/api/contact/captcha?lang=${document.documentElement.lang === "en" ? "en" : "id"}`,
+				{ headers: { Accept: "application/json" } },
+			);
 			const result = (await response.json()) as {
 				success?: boolean;
 				captcha_id?: string;
+				image?: string;
 				question?: string;
 				message?: string;
 			};
-			if (!response.ok || !result.success || !result.captcha_id) {
+			if (
+				!response.ok ||
+				!result.success ||
+				!result.captcha_id ||
+				!result.image
+			) {
 				throw new Error(result.message || "Verification is unavailable.");
 			}
 			captchaIdField.value = result.captcha_id;
+			captchaCodeText.setAttribute("src", result.image);
 			captchaQuestionText.textContent = result.question || "";
 			captchaAnswerField.value = "";
 			captchaReady = true;
 			button.disabled = false;
 			return true;
-		} catch {
+		} catch (error) {
 			captchaQuestionText.textContent =
 				document.documentElement.lang === "en"
 					? "Verification could not be loaded."
 					: "Verifikasi tidak dapat dimuat.";
 			showMessage(
-				document.documentElement.lang === "en"
-					? "Please reload the verification before sending your request."
-					: "Muat ulang verifikasi sebelum mengirim formulir.",
+				error instanceof Error
+					? error.message
+					: document.documentElement.lang === "en"
+						? "Please reload the verification before sending your request."
+						: "Muat ulang verifikasi sebelum mengirim formulir.",
 				true,
 			);
 			return false;
@@ -155,7 +168,7 @@ if (
 			);
 			return;
 		}
-
+		button.disabled = true;
 		button.disabled = true;
 		const label = button.querySelector("span");
 		if (label) label.textContent = loadingLabel;
@@ -168,7 +181,7 @@ if (
 			no_telp: String(data.get("no_telp") || "").trim(),
 			isi: buildConsultationMessage(data),
 			captcha_id: captchaIdField.value,
-			captcha_answer: String(data.get("captcha_answer") || ""),
+			captcha_answer: captchaAnswerField.value,
 		};
 
 		try {

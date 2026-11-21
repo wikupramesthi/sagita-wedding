@@ -87,10 +87,10 @@
         </div>
 
         @if ($activePackage)
-            <a data-bs-toggle="modal" data-bs-target="#activePackageModal" href="#"
-                class="text-decoration-none d-block"
-                style="cursor:pointer;">
-        @endif
+        <a data-bs-toggle="modal" data-bs-target="#activePackageModal" href="#"
+            class="text-decoration-none d-block"
+            style="cursor:pointer;">
+            @endif
             <div class="app-card d-flex align-items-center gap-3 p-3 mt-4">
                 <div
                     class="grad-sage d-flex align-items-center justify-content-center"
@@ -99,80 +99,80 @@
                 </div>
                 <div class="flex-fill">
                     @if ($activePackage)
-                        <p class="mb-0 small fw-semibold text-dark">{{ $activePackage->package?->name ?? __('mobile.membership') }}</p>
+                    <p class="mb-0 small fw-semibold text-dark">{{ $activePackage->package?->name ?? __('mobile.membership') }}</p>
                     <p class="mb-1 text-muted2 text-small">
                         @if ($activePackage->quota === null)
-                            {{ __('mobile.unlimited_classes') }}
+                        {{ __('mobile.unlimited_classes') }}
                         @else
-                            {{ $activePackage->quota == 1 ? __('mobile.class_left', ['count' => $activePackage->quota]) : __('mobile.classes_left', ['count' => $activePackage->quota]) }}
+                        {{ $activePackage->quota == 1 ? __('mobile.class_left', ['count' => $activePackage->quota]) : __('mobile.classes_left', ['count' => $activePackage->quota]) }}
                         @endif
                         @if ($activePackage->expired_at)
-                            · {{ __('mobile.until', ['date' => $activePackage->expired_at->format('d M Y')]) }}
+                        · {{ __('mobile.until', ['date' => $activePackage->expired_at->format('d M Y')]) }}
                         @endif
                     </p>
                     @if ($activePackage->expired_at && $activePackage->started_at)
-                        @php
-                            $total = max(1, $activePackage->started_at->diffInSeconds($activePackage->expired_at));
-                            $remaining = max(0, now()->diffInSeconds($activePackage->expired_at, false));
-                            $pct = min(100, max(0, $remaining / $total * 100));
-                        @endphp
+                    @php
+                    $total = max(1, $activePackage->started_at->diffInSeconds($activePackage->expired_at));
+                    $remaining = max(0, now()->diffInSeconds($activePackage->expired_at, false));
+                    $pct = min(100, max(0, $remaining / $total * 100));
+                    @endphp
+                    <div
+                        class="progress"
+                        style="height: 6px; background: var(--sage-soft)">
                         <div
-                            class="progress"
-                            style="height: 6px; background: var(--sage-soft)">
-                            <div
-                                class="progress-bar"
-                                style="width: {{ $pct }}%; background-image: var(--grad-sage)"></div>
-                        </div>
+                            class="progress-bar"
+                            style="width: {{ $pct }}%; background-image: var(--grad-sage)"></div>
+                    </div>
                     @endif
-                @else
+                    @else
                     <p class="mb-0 small fw-semibold">{{ __('mobile.no_active_package') }}</p>
                     <p class="mb-1 text-muted2 text-small">{{ __('mobile.pick_membership') }}</p>
                     <a href="{{ route('packages.member') }}"
                         class="btn btn-link p-0 text-terra fw-semibold text-decoration-none text-small">
                         {{ __('mobile.browse_packages') }} →
                     </a>
-                @endif
+                    @endif
+                </div>
             </div>
-            </div>
-        @if ($activePackage)
-            </a>
+            @if ($activePackage)
+        </a>
 
-            {{-- Active Package Detail Modal --}}
-            <div class="modal fade" id="activePackageModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 rounded-4 overflow-hidden">
-                        <div class="modal-body p-4">
-                            <span class="chip bg-sage-soft text-sage text-uppercase m-micro">{{ __('mobile.active_package') }}</span>
-                            <h5 class="fw-bold mt-2 mb-1">{{ $activePackage->package?->name }}</h5>
+        {{-- Active Package Detail Modal --}}
+        <div class="modal fade" id="activePackageModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 rounded-4 overflow-hidden">
+                    <div class="modal-body p-4">
+                        <span class="chip bg-sage-soft text-sage text-uppercase m-micro">{{ __('mobile.active_package') }}</span>
+                        <h5 class="fw-bold mt-2 mb-1">{{ $activePackage->package?->name }}</h5>
 
-                            @if ($activePackage->package?->description)
-                                <p class="text-muted2 mb-3" style="font-size:13px;line-height:1.6">
-                                    {{ $activePackage->package->description }}
-                                </p>
-                            @endif
+                        @if ($activePackage->package?->description)
+                        <p class="text-muted2 mb-3" style="font-size:13px;line-height:1.6">
+                            {{ $activePackage->package->description }}
+                        </p>
+                        @endif
 
-                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                <span class="text-muted2 text-small">{{ __('mobile.quota') }}</span>
-                                <span class="small fw-semibold">
-                                    {{ $activePackage->quota === null ? __('mobile.unlimited') : __('mobile.classes_left', ['count' => $activePackage->quota]) }}
-                                </span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                <span class="text-muted2 text-small">{{ __('mobile.started') }}</span>
-                                <span class="small fw-semibold">{{ $activePackage->started_at?->format('d M Y') ?? '-' }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                <span class="text-muted2" style="font-size:12px">{{ __('mobile.expires') }}</span>
-                                <span class="small fw-semibold">{{ $activePackage->expired_at?->format('d M Y') ?? '-' }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center py-2">
-                                <span class="text-muted2" style="font-size:12px">{{ __('mobile.attended_sessions') }}</span>
-                                <span class="small fw-semibold">{{ $attendedCount ?? 0 }}</span>
-                            </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted2 text-small">{{ __('mobile.quota') }}</span>
+                            <span class="small fw-semibold">
+                                {{ $activePackage->quota === null ? __('mobile.unlimited') : __('mobile.classes_left', ['count' => $activePackage->quota]) }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted2 text-small">{{ __('mobile.started') }}</span>
+                            <span class="small fw-semibold">{{ $activePackage->started_at?->format('d M Y') ?? '-' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted2" style="font-size:12px">{{ __('mobile.expires') }}</span>
+                            <span class="small fw-semibold">{{ $activePackage->expired_at?->format('d M Y') ?? '-' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <span class="text-muted2" style="font-size:12px">{{ __('mobile.attended_sessions') }}</span>
+                            <span class="small fw-semibold">{{ $attendedCount ?? 0 }}</span>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
         @endif
 
         <div class="d-flex justify-content-between align-items-end mt-4">
@@ -242,40 +242,40 @@
                 </div>
 
                 <div class="d-flex flex-column align-items-end gap-2 flex-shrink-0">
-                @if ($remaining <= 0)
-                    <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis text-nowrap">{{ __('mobile.full') }}</span>
-                    @elseif ($remaining <= 3)
-                        <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis text-nowrap">
-                        {{ __('mobile.slots_left', ['count' => $remaining]) }}
-                        </span>
-                        @else
-                        <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis text-nowrap">
+                    @if ($remaining <= 0)
+                        <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis text-nowrap">{{ __('mobile.full') }}</span>
+                        @elseif ($remaining <= 3)
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis text-nowrap">
                             {{ __('mobile.slots_left', ['count' => $remaining]) }}
-                        </span>
-                        @endif
+                            </span>
+                            @else
+                            <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis text-nowrap">
+                                {{ __('mobile.slots_left', ['count' => $remaining]) }}
+                            </span>
+                            @endif
 
-                @php $myBooking = ($myBookings ?? collect())->get($schedule->uuid . '|' . ($todayDate ?? now()->format('Y-m-d'))); @endphp
+                            @php $myBooking = ($myBookings ?? collect())->get($schedule->uuid . '|' . ($todayDate ?? now()->format('Y-m-d'))); @endphp
 
-                @if ($myBooking && $myBooking->status === 'attended')
-                    <span class="badge rounded-pill bg-success-subtle text-success-emphasis">{{ __('mobile.done') }}</span>
-                @elseif ($myBooking && $myBooking->status === 'waiting_list')
-                    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">{{ __('mobile.waiting') }}</span>
-                @elseif ($myBooking && $myBooking->status === 'confirmed')
-                    <form action="{{ route('class-bookings.checkin', $myBooking->uuid) }}" method="POST" class="m-0">
-                        @csrf
-                        <button type="submit" class="btn btn-warm btn-sm text-nowrap">{{ __('mobile.check_in') }}</button>
-                    </form>
-                @elseif (!empty($activePackage))
-                    <form action="{{ route('class-bookings.store') }}" method="POST" class="m-0">
-                        @csrf
-                        <input type="hidden" name="class_schedule_uuid" value="{{ $schedule->uuid }}">
-                        <input type="hidden" name="booking_date" value="{{ $todayDate ?? now()->format('Y-m-d') }}">
-                        <input type="hidden" name="checkin" value="1">
-                        <button type="submit" class="btn btn-warm btn-sm text-nowrap">{{ $remaining <= 0 ? __('mobile.waitlist') : __('mobile.book_and_in') }}</button>
-                    </form>
-                @else
-                    <a href="{{ route('packages.member') }}" class="btn btn-sm btn-outline-secondary text-nowrap">{{ __('mobile.join') }}</a>
-                @endif
+                            @if ($myBooking && $myBooking->status === 'attended')
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis">{{ __('mobile.done') }}</span>
+                            @elseif ($myBooking && $myBooking->status === 'waiting_list')
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">{{ __('mobile.waiting') }}</span>
+                            @elseif ($myBooking && $myBooking->status === 'confirmed')
+                            <form action="{{ route('class-bookings.checkin', $myBooking->uuid) }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-warm btn-sm text-nowrap">{{ __('mobile.check_in') }}</button>
+                            </form>
+                            @elseif (!empty($activePackage))
+                            <form action="{{ route('class-bookings.store') }}" method="POST" class="m-0">
+                                @csrf
+                                <input type="hidden" name="class_schedule_uuid" value="{{ $schedule->uuid }}">
+                                <input type="hidden" name="booking_date" value="{{ $todayDate ?? now()->format('Y-m-d') }}">
+                                <input type="hidden" name="checkin" value="1">
+                                <button type="submit" class="btn btn-warm btn-sm text-nowrap">{{ $remaining <= 0 ? __('mobile.waitlist') : __('mobile.book_and_in') }}</button>
+                            </form>
+                            @else
+                            <a href="{{ route('packages.member') }}" class="btn btn-sm btn-outline-secondary text-nowrap">{{ __('mobile.join') }}</a>
+                            @endif
                 </div>
 
             </div>
@@ -366,20 +366,20 @@
                     @php $upBooking = ($myBookings ?? collect())->get($schedule->uuid . '|' . ($tomorrowDate ?? now()->addDay()->format('Y-m-d'))); @endphp
 
                     @if ($upBooking && $upBooking->status === 'attended')
-                        <span class="badge rounded-pill bg-success-subtle text-success-emphasis flex-shrink-0">{{ __('mobile.done') }}</span>
+                    <span class="badge rounded-pill bg-success-subtle text-success-emphasis flex-shrink-0">{{ __('mobile.done') }}</span>
                     @elseif ($upBooking && $upBooking->status === 'waiting_list')
-                        <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis flex-shrink-0">{{ __('mobile.waiting') }}</span>
+                    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis flex-shrink-0">{{ __('mobile.waiting') }}</span>
                     @elseif ($upBooking && $upBooking->status === 'confirmed')
-                        <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis flex-shrink-0">{{ __('mobile.booked') }}</span>
+                    <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis flex-shrink-0">{{ __('mobile.booked') }}</span>
                     @elseif (!empty($activePackage))
-                        <form action="{{ route('class-bookings.store') }}" method="POST" class="m-0 flex-shrink-0">
-                            @csrf
-                            <input type="hidden" name="class_schedule_uuid" value="{{ $schedule->uuid }}">
-                            <input type="hidden" name="booking_date" value="{{ $tomorrowDate ?? now()->addDay()->format('Y-m-d') }}">
-                            <button type="submit" class="btn-pill flex-shrink-0">{{ __('mobile.join') }}</button>
-                        </form>
+                    <form action="{{ route('class-bookings.store') }}" method="POST" class="m-0 flex-shrink-0">
+                        @csrf
+                        <input type="hidden" name="class_schedule_uuid" value="{{ $schedule->uuid }}">
+                        <input type="hidden" name="booking_date" value="{{ $tomorrowDate ?? now()->addDay()->format('Y-m-d') }}">
+                        <button type="submit" class="btn-pill flex-shrink-0">{{ __('mobile.join') }}</button>
+                    </form>
                     @else
-                        <a href="{{ route('packages.member') }}" class="btn-pill flex-shrink-0 text-decoration-none text-center">{{ __('mobile.join') }}</a>
+                    <a href="{{ route('packages.member') }}" class="btn-pill flex-shrink-0 text-decoration-none text-center">{{ __('mobile.join') }}</a>
                     @endif
 
                 </div>
@@ -455,7 +455,7 @@
             ?? null;
 
             if ($timing) {
-            $timing = strip_tags(str_ireplace(['<br>', '<br />', '<br/>'], ' · ', $timing));
+            $timing = strip_tags(str_ireplace(['<br>', '<br />', '<br />'], ' · ', $timing));
             }
             @endphp
 
@@ -754,7 +754,7 @@
                 Have questions? Chat with us directly on WhatsApp.
             </p>
 
-            <a href="https://api.whatsapp.com/send/?phone=6281321221270&text=Hi%2C%20I%20found%20you%20through%20your%20website%20and%20would%20like%20more%20information%20about%20your%20classes.%20Thank%20you%21&app_absent=0"
+            <a href="https://api.whatsapp.com/send/?phone=6281380760095&text=Hi%2C%20I%20found%20you%20through%20your%20website%20and%20would%20like%20more%20information%20about%20your%20classes.%20Thank%20you%21&app_absent=0"
                 target="_blank"
                 class="btn btn-sage w-100 py-2">
                 <i class="bi bi-whatsapp me-2"></i>

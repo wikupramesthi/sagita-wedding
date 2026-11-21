@@ -101,14 +101,8 @@ export function validateContact(
 	const captcha_id = String(body.captcha_id ?? "").trim();
 	if (!UUID_RE.test(captcha_id))
 		throw bad("Verification expired, please reload the page");
-	const captcha_answer = Number.parseInt(String(body.captcha_answer ?? ""), 10);
-	if (
-		!Number.isInteger(captcha_answer) ||
-		captcha_answer < 0 ||
-		captcha_answer > 100
-	) {
-		throw bad("Invalid verification answer");
-	}
+	const captcha_answer = String(body.captcha_answer ?? "");
+	if (!/^\d{4}$/.test(captcha_answer)) throw bad("Invalid verification answer");
 	if (!nama || !isi) throw bad("Name, email, and message are required");
 	return { nama, email, no_telp, isi, captcha_id, captcha_answer };
 }

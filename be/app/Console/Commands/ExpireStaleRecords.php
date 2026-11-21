@@ -29,7 +29,7 @@ class ExpireStaleRecords extends Command
      */
     public function handle(): int
     {
-        $staleOrders = Order::with('user')
+        $staleOrders = Order::packageOnly()->with('user')
             ->where('status', 'pending')
             ->whereNotNull('expired_at')
             ->where('expired_at', '<', now())

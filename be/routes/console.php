@@ -12,7 +12,9 @@ Artisan::command('inspire', function () {
 Schedule::command('records:expire')->hourly();
 Schedule::command('bookings:remind')->everyThirtyMinutes();
 Schedule::command('consultations:remind-followups')->everyThirtyMinutes();
+Schedule::command('orders:remind-sla')->everyThirtyMinutes();
 Schedule::command('bookings:mark-noshow')->hourly();
+Schedule::command('orders:prune-audit')->weeklyOn(0, '03:15');
 Schedule::call(fn () => DB::table('site_visits')->where('visited_at', '<', now()->subMonths(13))->delete())
     ->dailyAt('02:30')
     ->name('site-visits:prune');

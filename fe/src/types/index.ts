@@ -170,10 +170,11 @@ export interface CmsPage {
 	featured_image?: string;
 }
 
-/** Captcha matematika untuk form kontak. */
+/** Local arithmetic CAPTCHA for contact forms. */
 export interface ContactCaptcha {
 	question?: string;
-	captcha_id?: string | number;
+	captcha_id?: string;
+	image?: string;
 }
 
 /** Payload form kontak setelah validasi (src/utils/validate.ts). */
@@ -183,7 +184,7 @@ export interface ContactPayload {
 	no_telp: string;
 	isi: string;
 	captcha_id: string;
-	captcha_answer: number;
+	captcha_answer: string;
 }
 
 /** Payload booking dummy setelah validasi. */

@@ -1,6 +1,6 @@
 <?php
 // Generate PWA icons from the best available source. Run: php gen_icons.php
-$srcCandidates = [__DIR__ . '/public/img/fav.png', __DIR__ . '/public/img/logo-yogaroots.png'];
+$srcCandidates = [__DIR__ . '/public/img/fav.png', __DIR__ . '/public/img/logo.webp'];
 $src = null;
 foreach ($srcCandidates as $c) {
     if (!file_exists($c)) continue;

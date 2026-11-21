@@ -69,6 +69,7 @@ router.get("/formulir-konsultasi", (_req: Request, res: Response) => {
 		metaDescription: isID
 			? "Konsultasikan rencana pernikahan dengan Sagita Wedding Planner. Bahas layanan Wedding Organizer, paket, koordinasi hari pernikahan, vendor, dan anggaran."
 			: "Plan your wedding with Sagita Wedding Planner. Discuss wedding planning, day-of coordination, vendor recommendations, packages, and budget.",
+		assetV: `${res.locals.assetV}-localcaptchaimage1`,
 		pageScript: "consultation-form",
 	});
 });

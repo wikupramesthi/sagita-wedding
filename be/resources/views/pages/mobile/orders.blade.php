@@ -47,13 +47,13 @@
                     <div class="d-flex align-items-start gap-3">
                         <div class="rounded-3 d-flex align-items-center justify-content-center bg-sage-soft text-sage flex-shrink-0"
                             style="width:42px;height:42px;">
-                            <i class="bi {{ $order->type === 'package' ? 'bi-flower1' : 'bi-calendar-event' }}"></i>
+                            <i class="bi bi-flower1"></i>
                         </div>
                         <div class="flex-fill">
                             <div class="d-flex justify-content-between align-items-start gap-2">
                                 <div>
                                     <p class="small fw-semibold mb-1">
-                                        {{ $order->package?->name ?? 'Kelas Tunggal' }}
+                                        {{ $order->package?->name ?? '-' }}
                                         @if ($order->packageOption?->name)
                                             <small class="d-block text-muted2 fw-normal">{{ $order->packageOption->name }}</small>
                                         @endif

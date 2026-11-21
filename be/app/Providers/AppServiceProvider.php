@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Listeners\RecordFailedLogin;
 use App\Listeners\RecordLoginActivity;
+use App\Models\Payment\Order;
 use App\Observers\AuditObserver;
+use App\Policies\OrderPolicy;
 use App\Services\EmailSettingService;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
@@ -12,6 +14,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -31,6 +34,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(Order::class, OrderPolicy::class);
+
         EmailSettingService::apply();
 
         RateLimiter::for('api', function (Request $request) {

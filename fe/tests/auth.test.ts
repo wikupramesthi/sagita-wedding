@@ -53,7 +53,11 @@ vi.mock("../src/services/classScheduleService.js", () => ({
 	getClassSchedule: async () => null,
 }));
 vi.mock("../src/services/contactService.js", () => ({
-	getContactCaptcha: async () => ({ captcha_id: "x", question: "y" }),
+	getContactCaptcha: async () => ({
+		captcha_id: "x",
+		question: "Enter the 4-digit code shown.",
+		code: "0042",
+	}),
 	sendContact: async () => ({ message: "ok" }),
 }));
 vi.mock("../src/services/eventService.js", () => ({

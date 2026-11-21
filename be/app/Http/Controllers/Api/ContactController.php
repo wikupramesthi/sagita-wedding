@@ -13,18 +13,15 @@ class ContactController extends Controller
 {
     private const CAPTCHA_TTL_MINUTES = 10;
 
-    private const CAPTCHA_MAX_ATTEMPTS = 3;
-
-    public function captcha()
+    public function captcha(Request $request)
     {
-        $a = random_int(1, 20);
-        $b = random_int(1, 20);
+        $answer = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        $english = $request->query('lang') === 'en';
 
         $captchaId = Str::uuid()->toString();
-
         Cache::put(
             'contact_captcha_'.$captchaId,
-            ['answer' => $a + $b, 'attempts' => 0],
+            ['answer' => $answer],
             now()->addMinutes(self::CAPTCHA_TTL_MINUTES)
         );
 
@@ -32,9 +29,56 @@ class ContactController extends Controller
             'status' => 'success',
             'data' => [
                 'captcha_id' => $captchaId,
-                'question' => "Berapakah hasil dari {$a} + {$b}?",
+                'question' => $english
+                    ? 'Enter the 4-digit code shown.'
+                    : 'Masukkan 4 angka berikut.',
+                'image' => $this->captchaImage($answer),
             ],
         ]);
+    }
+
+    private function captchaImage(string $answer): string
+    {
+        $segments = [
+            '0' => ['a', 'b', 'c', 'd', 'e', 'f'],
+            '1' => ['b', 'c'],
+            '2' => ['a', 'b', 'g', 'e', 'd'],
+            '3' => ['a', 'b', 'g', 'c', 'd'],
+            '4' => ['f', 'g', 'b', 'c'],
+            '5' => ['a', 'f', 'g', 'c', 'd'],
+            '6' => ['a', 'f', 'g', 'e', 'c', 'd'],
+            '7' => ['a', 'b', 'c'],
+            '8' => ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+            '9' => ['a', 'b', 'c', 'd', 'f', 'g'],
+        ];
+        $lines = [
+            'a' => [4, 2, 20, 2],
+            'b' => [21, 3, 21, 17],
+            'c' => [21, 21, 21, 35],
+            'd' => [4, 36, 20, 36],
+            'e' => [3, 21, 3, 35],
+            'f' => [3, 3, 3, 17],
+            'g' => [4, 19, 20, 19],
+        ];
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="48" viewBox="0 0 160 48">';
+        $svg .= '<rect width="160" height="48" rx="8" fill="#fffefd"/>';
+
+        for ($i = 0; $i < 4; $i++) {
+            $svg .= '<g transform="translate('.(7 + $i * 38).' 5) rotate('.random_int(-9, 9).' 12 19)" stroke="#403a34" stroke-width="3.5" stroke-linecap="round">';
+            foreach ($segments[$answer[$i]] as $segment) {
+                $svg .= '<line x1="'.$lines[$segment][0].'" y1="'.$lines[$segment][1].'" x2="'.$lines[$segment][2].'" y2="'.$lines[$segment][3].'"/>';
+            }
+            $svg .= '</g>';
+        }
+
+        for ($i = 0; $i < 4; $i++) {
+            $svg .= '<path d="M'.random_int(0, 160).' '.random_int(0, 48).' l'.random_int(-18, 18).' '.random_int(-8, 8).'" stroke="#b79f80" stroke-width="1" opacity=".55"/>';
+        }
+
+        $svg .= '</svg>';
+
+        return 'data:image/svg+xml;base64,'.base64_encode($svg);
     }
 
     public function store(Request $request)
@@ -45,7 +89,7 @@ class ContactController extends Controller
             'no_telp' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{6,20}$/'],
             'isi' => 'required|string|max:5000',
             'captcha_id' => 'required|uuid',
-            'captcha_answer' => 'required|integer|min:0|max:100',
+            'captcha_answer' => ['required', 'string', 'regex:/^\d{4}$/'],
         ]);
 
         if ($validator->fails()) {
@@ -57,45 +101,46 @@ class ContactController extends Controller
         }
 
         $cacheKey = 'contact_captcha_'.$request->input('captcha_id');
-        $captcha = Cache::get($cacheKey);
-
-        if (! is_array($captcha) || ! isset($captcha['answer'])) {
+        $challengeLock = Cache::lock('contact_captcha_lock_'.$request->input('captcha_id'), 60);
+        if (! $challengeLock->get()) {
             return response()->json([
                 'success' => false,
-                'message' => 'CAPTCHA sudah kedaluwarsa. Silakan muat ulang halaman.',
+                'message' => 'Verifikasi sedang diproses. Silakan coba kembali.',
             ], 422);
         }
 
-        if ((int) $request->input('captcha_answer') !== (int) $captcha['answer']) {
-            $captcha['attempts'] = ($captcha['attempts'] ?? 0) + 1;
-
-            if ($captcha['attempts'] >= self::CAPTCHA_MAX_ATTEMPTS) {
-                Cache::forget($cacheKey);
-            } else {
-                Cache::put($cacheKey, $captcha, now()->addMinutes(self::CAPTCHA_TTL_MINUTES));
+        try {
+            $captcha = Cache::pull($cacheKey);
+            if (! is_array($captcha) || ! array_key_exists('answer', $captcha)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Verifikasi sudah kedaluwarsa atau telah digunakan. Silakan muat ulang.',
+                ], 422);
             }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Jawaban CAPTCHA salah.',
-            ], 422);
+            if (! hash_equals((string) $captcha['answer'], (string) $request->input('captcha_answer'))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jawaban verifikasi salah. Silakan muat ulang.',
+                ], 422);
+            }
+
+            $fullName = strip_tags((string) $request->input('nama'));
+            $whatsapp = (string) $request->input('no_telp');
+            $concept = strip_tags((string) $request->input('isi'));
+
+            Consultation::create([
+                'full_name' => $fullName,
+                'email' => strtolower((string) $request->input('email')),
+                'whatsapp' => $whatsapp,
+                'wedding_concept' => $concept,
+                'consultation_status' => 'Pending',
+                'lead_status' => 'New',
+                'source' => 'website',
+            ]);
+        } finally {
+            $challengeLock->release();
         }
-
-        Cache::forget($cacheKey);
-
-        $fullName = strip_tags((string) $request->input('nama'));
-        $whatsapp = (string) $request->input('no_telp');
-        $concept = strip_tags((string) $request->input('isi'));
-
-        Consultation::create([
-            'full_name' => $fullName,
-            'email' => strtolower((string) $request->input('email')),
-            'whatsapp' => $whatsapp,
-            'wedding_concept' => $concept,
-            'consultation_status' => 'Pending',
-            'lead_status' => 'New',
-            'source' => 'website',
-        ]);
 
         return response()->json([
             'success' => true,

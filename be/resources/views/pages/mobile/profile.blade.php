@@ -111,7 +111,7 @@
                             <div class="d-flex justify-content-between align-items-start gap-2">
                                 <div>
                                     <p class="small fw-semibold mb-1">
-                                        {{ $order->package?->name ?? 'Kelas Tunggal' }}
+                                        {{ $order->package?->name ?? '-' }}
                                         @if ($order->packageOption?->name)
                                             <small class="d-block text-muted2 fw-normal">{{ $order->packageOption->name }}</small>
                                         @endif

@@ -33,6 +33,12 @@ class MembershipSeeder extends Seeder
             'orders.proof',
             'orders.bulk',
             'orders.exportCsv',
+            'orders.audit',
+            'orders.whatsapp',
+            'orders.assign',
+            'orders.savedFilters',
+            'orders.bulkUndo',
+            'orders.quickView',
         ];
 
         $memberPermissions = [
@@ -93,6 +99,18 @@ class MembershipSeeder extends Seeder
             'orders.proof.show' => 'orders.proof',
             'orders.bulk' => 'orders.bulk',
             'orders.exportCsv' => 'orders.exportCsv',
+            'orders.report' => 'orders.exportCsv',
+            'orders.exportPdf' => 'orders.exportCsv',
+            'orders.audit' => 'orders.audit',
+            'orders.whatsapp' => 'orders.whatsapp',
+            'orders.saved-filters' => 'orders.savedFilters',
+            'orders.saved-filters.store' => 'orders.savedFilters',
+            'orders.saved-filters.apply' => 'orders.savedFilters',
+            'orders.saved-filters.default' => 'orders.savedFilters',
+            'orders.saved-filters.destroy' => 'orders.savedFilters',
+            'orders.bulk-undo' => 'orders.bulkUndo',
+            'orders.claim' => 'orders.assign',
+            'orders.quick-view' => 'orders.quickView',
         ];
 
         foreach ($routes as $route => $permission) {

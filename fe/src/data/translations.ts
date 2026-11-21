@@ -1,38 +1,38 @@
 import { LOCALES } from "../config/locales.js";
 
 const contactPageEn = {
-  badge: "Replies within 24 hours",
+  badge: "A thoughtful first conversation",
   titleA: "Let's",
   titleB: "connect",
   heroDesc:
-    "Questions about classes, packages, or schedules? Tell us what you need — our team is here to listen and help you find the right practice.",
-  waCta: "Chat on WhatsApp",
-  mailCta: "Email",
-  infoTitle: "Contact Info",
-  infoDesc: "Or reach us directly through any channel below.",
-  addressLabel: "Venue Address",
-  directions: "Get directions",
-  formTitle: "Send Us a Message",
+    "Planning a wedding or exploring your options? Tell us what matters most. Our team is here to listen and help you find a thoughtful way forward.",
+  waCta: "Talk to us on WhatsApp",
+  mailCta: "Send us an email",
+  infoTitle: "We’re here to help",
+  infoDesc: "Choose the way that feels easiest to start a conversation.",
+  addressLabel: "Our address",
+  directions: "View directions",
+  formTitle: "Tell us about your plans",
   namePh: "Full Name",
   emailPh: "Email Address",
-  phonePh: "Active WhatsApp Number",
-  msgPh: "Tell us how we can help...",
-  captchaPh: "Enter your answer",
-  captchaUnavailable: "Verification unavailable",
-  sendBtn: "Send Message",
-  sendingBtn: "Sending...",
-  mapCardTitle: "YogaRoots Studio",
-  faqEyebrow: "FAQ",
-  faqTitle: "Frequently asked questions",
-  faqEmpty: "No questions have been added yet.",
+  phonePh: "WhatsApp number",
+  msgPh: "Share your ideas, priorities, or questions…",
+  captchaPh: "Enter the 4-digit code",
+  captchaUnavailable: "Verification is temporarily unavailable",
+  sendBtn: "Send your message",
+  sendingBtn: "Sending your message…",
+  mapCardTitle: "Sagita Wedding Planner",
+  faqEyebrow: "A LITTLE MORE CLARITY",
+  faqTitle: "Questions before we begin?",
+  faqEmpty: "Our FAQs are being prepared. Please get in touch if we can help.",
 };
 
 const faqPageEn = {
-  badge: "Let’s Bring Your Special Day to Life",
+  badge: "Thoughtful planning, from the very first step",
   titleA: "Your wedding,",
   titleB: "thoughtfully planned",
   heroDesc:
-    "Explore our planning process, service packages, payment arrangements, vendor coordination, and the support we provide on your wedding day.",
+    "Find clear answers about our planning process, services, payment options, vendor coordination, and wedding-day support.",
   searchLabel: "Search FAQs",
   searchPh: "Enter a question, keyword, or topic...",
   topicsLabel: "Browse by category",
@@ -43,10 +43,10 @@ const faqPageEn = {
   emptyTitle: "No matching questions",
   emptyDesc: "Try another search term or explore a different category.",
   reset: "Clear filters",
-  stillTitle: "Let’s make your day unforgettable.",
+  stillTitle: "Your day deserves a plan that feels like you.",
   stillDesc:
-    "Share a little about your vision, and our team will be happy to guide you through the next steps.",
-  stillBtn: "Chat with us on WhatsApp",
+    "Tell us what you have in mind. We’ll listen, answer your questions, and help you decide what comes next.",
+  stillBtn: "Talk with our team",
 };
 
 const vendorsPageEn = {
@@ -54,34 +54,34 @@ const vendorsPageEn = {
   titleA: "The right people",
   titleB: "for your day",
   description:
-    "Explore wedding vendors and services to help bring your celebration together. Tell us what you have in mind, and our team can help you take the next step.",
-  consultationCta: "Plan Your Wedding",
-  directoryEyebrow: "OUR VENDOR DIRECTORY",
-  directoryTitle: "Meet the vendors",
+    "Discover wedding vendors and services for your celebration. Share what you’re looking for, and our team can help you explore the options.",
+  consultationCta: "Discuss your plans",
+  directoryEyebrow: "THE PEOPLE BEHIND YOUR DAY",
+  directoryTitle: "Explore our vendor directory",
   directoryDescription:
-    "Browse vendor profiles by category and find services to discuss with our planning team.",
-  visualTitle: "A thoughtful team for your celebration",
+    "Browse vendors by category and find services to discuss with our planning team.",
+  visualTitle: "The right people, thoughtfully brought together",
   visualDescription:
-    "Every wedding is personal. Find services that fit the day you have in mind.",
+    "Every celebration is personal. Explore services that suit the day you have in mind.",
   filterLabel: "Browse by category",
   allVendors: "All categories",
   vendorCount: "vendors",
   vendorLabel: "Vendor",
   cardDescription:
-    "Discuss this vendor's services with our team and see how they could fit your wedding plans.",
-  cardCta: "Ask for details",
+    "Ask our team about this vendor and how their services might fit your plans.",
+  cardCta: "Ask about this vendor",
   vendorMessage:
     "Hello Sagita Wedding Planner, I'd like to know more about {vendor} and whether their services could be a good fit for my wedding.",
-  noResultsTitle: "No vendors in this category",
-  noResultsDesc: "Try another category or browse all available vendors.",
-  clearFilter: "View all vendors",
-  emptyTitle: "Vendor profiles are coming soon",
+  noResultsTitle: "No vendors in this category yet",
+  noResultsDesc: "Try another category or browse the full directory.",
+  clearFilter: "Browse all vendors",
+  emptyTitle: "Our vendor directory is taking shape",
   emptyDescription:
-    "Our team can still help you explore options for your wedding. Start a consultation to tell us what you need.",
-  closingTitle: "Looking for the right vendors?",
+    "Tell us what you need and our team can help you explore options for your celebration.",
+  closingTitle: "Looking for the right people for your day?",
   closingDescription:
-    "Share your plans with Sagita Wedding Planner. We'll help you explore your options and coordinate the next steps.",
-  closingCta: "Start Your Consultation",
+    "Share your plans with Sagita Wedding Planner. We’ll help you consider your options and decide on the next step.",
+  closingCta: "Start a consultation",
 };
 
 const artOfLivingEn = {
@@ -209,11 +209,11 @@ const rawTranslations = {
     viewSchedule: "View schedule",
     bookingSignedInTitle: "Welcome back",
     bookingSignedInDesc:
-      "You're signed in. Talk with our team about your wedding plans.",
-    bookingSignedOutTitle: "Plan Your Special Day",
+    "You’re signed in. Talk with our team about your wedding plans.",
+    bookingSignedOutTitle: "Let’s plan your wedding",
     bookingSignedOutDesc:
-      "Sign in with Google to discuss your wedding plans with our team.",
-    syncedNote: "Your name and email will be shared with our team.",
+    "Sign in with Google to continue the conversation with our team.",
+    syncedNote: "Your name and email will be shared with our team to follow up.",
     loginWithGoogle: "Sign in with Google",
     closeModal: "Close",
 
@@ -337,12 +337,12 @@ const rawTranslations = {
     eventsTitleItalic: "Announcements",
 
     // Final CTA
-    readyTitle: "Ready to Start Planning",
-    readyTitleItalic: "Your Dream Wedding",
+    readyTitle: "Ready to plan",
+    readyTitleItalic: "your wedding day?",
     ctaDesc:
-      "Start planning your wedding with Sagita Wedding Planner. Chat with us on WhatsApp to discuss your plans, explore our wedding planning packages, and find the services that are right for your celebration.",
-    chatWhatsApp: "Chat with Us on WhatsApp",
-    consultationCta: "Start Your Consultation",
+      "Tell us what matters to you. We’ll help you explore the right services, understand your options, and shape a plan around your celebration.",
+    chatWhatsApp: "Talk to us on WhatsApp",
+    consultationCta: "Start a consultation",
 
     // Pages header
     classesEyebrow: "CLASS SCHEDULE",
@@ -517,11 +517,11 @@ const rawTranslations = {
     footerGetInTouch: "Get in Touch",
     footerCommunity: "Our Partners",
     siteDesc:
-      "Thoughtful wedding planning, vendor coordination, and on-the-day support to help you celebrate with confidence.",
-    ctaHelpTitle: "Not sure where to start planning your wedding?",
+      "Thoughtful wedding planning, trusted vendor coordination, and attentive support on the day—so you can be fully present for your celebration.",
+    ctaHelpTitle: "Not sure where to begin?",
     ctaHelpDesc:
-      "Talk with the Sagita Wedding Planner team about your wedding plans. We're here to help bring your special day to life.",
-    ctaHelpBtn: "Chat on WhatsApp →",
+      "Tell Sagita Wedding Planner a little about your celebration. We’ll listen and help you work out a next step that feels right.",
+    ctaHelpBtn: "Talk with our team →",
     whatsappAdmin: "Chat with Sagita Wedding Planner on WhatsApp",
     copyright: "All rights reserved.",
     privacyPolicy: "Privacy Policy",

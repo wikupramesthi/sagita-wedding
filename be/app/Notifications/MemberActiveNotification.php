@@ -40,9 +40,9 @@ class MemberActiveNotification extends Notification
             : '';
 
         return [
-            'judul_kegiatan' => 'Membership diaktifkan',
+            'judul_kegiatan' => 'Keanggotaan diaktifkan',
             'message' => 'Pembayaran untuk '.$this->orderNumber
-                .' telah diverifikasi. Membership kamu sekarang aktif.'.$expiry,
+                .' telah diverifikasi. Keanggotaan kamu sekarang aktif.'.$expiry,
             'path' => route('orders.show', $this->orderUuid, false),
             'icon' => 'bi-check-circle',
         ];
