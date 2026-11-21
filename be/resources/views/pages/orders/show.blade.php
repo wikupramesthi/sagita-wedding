@@ -214,12 +214,49 @@
 
                 @if(in_array($order->status, ['pending','partially_paid'], true) && ($isOwner || $isAdmin))
                     @php $pendingPayment = $order->payments->firstWhere('verification_status', 'pending') ?? $order->payments->firstWhere('status', 'pending'); $hasPendingPayment = (bool)$pendingPayment; $minInstallment = min($remainingAmount, round($fullAmount * 0.20, 2)); @endphp
-                    @if($hasPendingPayment)
+                    @if($hasPendingPayment && !$isAdmin)
                         <div class="alert alert-warning small">Bukti pembayaran Rp {{ number_format((float)($pendingPayment->amount ?? $pendingPayment->gross_amount),0,',','.') }} sedang menunggu verifikasi admin.</div>
+                    @elseif($isAdmin)
+                        @if($hasPendingPayment)
+                            <div class="alert alert-warning small">Bukti pembayaran Rp {{ number_format((float)($pendingPayment->amount ?? $pendingPayment->gross_amount),0,',','.') }} masih menunggu verifikasi. Catat pembayaran admin di bawah hanya jika ada pembayaran lain yang sudah diterima.</div>
+                        @endif
+                        <form action="{{ route('orders.payments.store', $order->uuid) }}" method="POST" enctype="multipart/form-data" class="payment-settlement-form p-3 mb-3">
+                            @csrf
+                            <input type="hidden" name="record_only" value="1">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                <div>
+                                    <div class="fw-semibold">Catat pembayaran diterima</div>
+                                    <div class="small text-muted">Masukkan nominal yang benar-benar sudah diterima. Setiap pencatatan akan masuk ke riwayat pembayaran.</div>
+                                </div>
+                                <span class="badge text-bg-success">Sisa tagihan Rp {{ number_format($remainingAmount,0,',','.') }}</span>
+                            </div>
+                            <div class="payment-entry-fields">
+                                <div>
+                                    <label class="form-label small fw-semibold mb-1" for="adminPaymentAmount">Nominal diterima</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="number" name="amount" id="adminPaymentAmount" class="form-control" min="1" max="{{ (int)$remainingAmount }}" step="1" value="{{ (int)$remainingAmount }}" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label small fw-semibold mb-1" for="adminPaymentProof">Bukti pembayaran <span class="fw-normal text-muted">(opsional)</span></label>
+                                    <input type="file" name="proof" id="adminPaymentProof" class="form-control" accept="image/jpeg,image/png,image/webp">
+                                </div>
+                            </div>
+                            <div class="payment-entry-footer">
+                                <div class="payment-entry-note">
+                                    <label class="form-label small fw-semibold mb-1" for="adminPaymentNote">Catatan <span class="fw-normal text-muted">(opsional)</span></label>
+                                    <input type="text" name="admin_note" id="adminPaymentNote" class="form-control" maxlength="1000" placeholder="Contoh: Transfer bank diterima tanggal ...">
+                                </div>
+                                <button type="submit" class="btn btn-success text-nowrap" onclick="return confirm('Catat pembayaran sebesar Rp ' + new Intl.NumberFormat('id-ID').format(document.getElementById('adminPaymentAmount').value) + ' sebagai pembayaran yang sudah diterima?')">
+                                    <i class="bi bi-check-circle me-1"></i>Catat pembayaran
+                                </button>
+                            </div>
+                        </form>
                     @else
                         <form action="{{ route('orders.payments.store', $order->uuid) }}" method="POST" enctype="multipart/form-data" class="border rounded-3 p-3 mb-3">
                             @csrf
-                            <div class="fw-semibold mb-2">{{ $isAdmin ? 'Catat / Tambah Pembayaran' : 'Tambah Pembayaran' }}</div>
+                            <div class="fw-semibold mb-2">Tambah Pembayaran</div>
                             <div class="row g-2 mb-2"><div class="col-md-8"><label class="form-label small mb-1">Nominal pembayaran</label><input type="number" name="amount" class="form-control" min="1" max="{{ (int)$remainingAmount }}" value="{{ (int)$remainingAmount }}" required></div><div class="col-md-4 d-flex align-items-end"><div class="small text-muted">Sisa: Rp {{ number_format($remainingAmount,0,",",".") }}</div></div></div>
                             <div class="row g-2 align-items-end">
                                 <div class="col-md-8"><input type="file" name="proof" class="form-control" accept="image/jpeg,image/png,image/webp" required></div>
@@ -696,6 +733,45 @@
 
     .order-detail-main > .card > .card-body {
         padding: 20px;
+    }
+
+    .payment-settlement-form {
+        border: 1px solid rgba(22, 163, 74, .22);
+        border-radius: 12px;
+        background: #f0fdf4;
+    }
+
+    .payment-entry-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .payment-entry-footer {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+    }
+
+    .payment-entry-note {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .payment-entry-footer .btn {
+        min-height: 38px;
+    }
+
+    @media (max-width: 575.98px) {
+        .payment-entry-fields {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-entry-footer {
+            align-items: stretch;
+            flex-direction: column;
+        }
     }
 
     .order-detail-eyebrow {

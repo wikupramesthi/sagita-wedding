@@ -218,65 +218,35 @@
     </div>
 
     <!-- Stats -->
-    <div class="row g-3 mb-4 ml-stats">
-        <div class="col-6 col-lg-3 col-md-6">
-            <div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat">
-                <div class="ml-stat-icon ic-primary"><i class="bx bx-group"></i></div>
-                <div><div class="ml-stat-value">{{ $jumlahMembers }}</div><div class="ml-stat-label">Total Members</div></div>
-            </div></div></div>
-        </div>
-        <div class="col-6 col-lg-3 col-md-6">
-            <div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat">
-                <div class="ml-stat-icon ic-success"><i class="bx bx-calendar-event"></i></div>
-                <div><div class="ml-stat-value">{{ $totalEvents }}</div><div class="ml-stat-label">Total Events</div></div>
-            </div></div></div>
-        </div>
-        <div class="col-6 col-lg-3 col-md-6">
-            <div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat">
-                <div class="ml-stat-icon ic-warning"><i class="bx bx-user-voice"></i></div>
-                <div><div class="ml-stat-value">{{ $jumlahVendor }}</div><div class="ml-stat-label">Total Vendors</div></div>
-            </div></div></div>
-        </div>
-        <div class="col-6 col-lg-3 col-md-6">
-            <div class="card shadow-sm h-100"><div class="card-body py-2 px-3"><div class="ml-stat">
-                <div class="ml-stat-icon ic-violet"><i class="bx bx-package"></i></div>
-                <div><div class="ml-stat-value">{{ $totalPackages ?? 0 }}</div><div class="ml-stat-label">Total Packages</div></div>
-            </div></div></div>
-        </div>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3"><div class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:46px;height:46px;font-size:1.3rem"><i class="bi bi-bag-check"></i></div><div><div class="fw-bold fs-4 lh-1">{{ $totalPackages ?? 0 }}</div><div class="small text-muted">Paket Tersedia</div></div></div></div></div>
+        <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3"><div class="rounded-3 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:46px;height:46px;font-size:1.3rem"><i class="bi bi-calendar-event"></i></div><div><div class="fw-bold fs-4 lh-1">{{ $totalEvents }}</div><div class="small text-muted">Event</div></div></div></div></div>
+        <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3"><div class="rounded-3 bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width:46px;height:46px;font-size:1.3rem"><i class="bi bi-shop"></i></div><div><div class="fw-bold fs-4 lh-1">{{ $jumlahVendor }}</div><div class="small text-muted">Vendor</div></div></div></div></div>
+        <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3"><div class="rounded-3 bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width:46px;height:46px;font-size:1.3rem"><i class="bi bi-people"></i></div><div><div class="fw-bold fs-4 lh-1">{{ $jumlahMembers }}</div><div class="small text-muted">Member</div></div></div></div></div>
     </div>
 
     <div class="row g-4 mb-4">
-        <!-- Kelas berikutnya -->
-        <div class="col-lg-7">
-            <div class="card border-0 h-100">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0" style="color:var(--bs-heading-color);">Event Mendatang</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Event Mendatang</h6>
                         <a href="{{ route('events.index') }}" class="small fw-semibold text-decoration-none">Lihat Semua</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Event</th>
-                                    <th>Tanggal</th>
-                                    <th>Lokasi</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
+                            <thead class="table-light"><tr><th>Event</th><th>Tanggal</th><th>Lokasi</th><th>Status</th><th class="text-end">Aksi</th></tr></thead>
                             <tbody>
                                 @forelse (($events ?? collect()) as $event)
                                 <tr>
-                                    <td class="fw-semibold">{{ $event->nama_event ?? '-' }}</td>
-                                    <td>{{ optional($event->tanggal)->format('d M Y') ?? '-' }}</td>
+                                    <td class="fw-semibold">{{ $event->judul ?? '-' }}</td>
+                                    <td>{{ optional($event->tanggal)->format('d M Y') ?? '-' }}@if($event->waktu_mulai) <span class="text-muted small">• {{ \Carbon\Carbon::parse($event->waktu_mulai)->format('H:i') }}</span>@endif</td>
                                     <td>{{ $event->lokasi ?? '-' }}</td>
                                     <td><span class="badge bg-secondary-subtle text-secondary-emphasis">{{ ucfirst($event->status ?? 'draft') }}</span></td>
+                                    <td class="text-end"><button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#eventModal{{ $event->uuid }}">Detail</button></td>
                                 </tr>
                                 @empty
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">Belum ada event mendatang.</td>
-                                </tr>
+                                <tr><td colspan="5" class="text-center py-4 text-muted">Belum ada event mendatang.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -284,128 +254,26 @@
                 </div>
             </div>
         </div>
-
-        <!-- Progress -->
-        <div class="col-lg-4" id="progress">
-            <div class="card border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0" style="color:var(--bs-heading-color);">
-                            Event Mendatang
-                        </h6>
-                    </div>
-
-                    <!-- Event 1 -->
-                    @foreach ($events as $event)
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                        <div>
-                            <div class="fw-semibold">
-                                {{ $event->judul }}
-                            </div>
-
-                            <small class="text-secondary">
-                                {{ \Carbon\Carbon::parse($event->tanggal)->format('d F Y') }}
-
-                                @if ($event->waktu_mulai)
-                                Â· {{ \Carbon\Carbon::parse($event->waktu_mulai)->format('H:i') }}
-                                @endif
-                            </small>
-                        </div>
-
-                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                            data-bs-target="#eventModal{{ $event->uuid }}">
-                            Detail
-                        </button>
-                    </div>
-                    @endforeach
-                </div>
-
-                <!-- Modal Event 1 -->
-                @foreach ($events as $event)
-                <div class="modal fade" id="eventModal{{ $event->uuid }}" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content">
-
-                            {{-- Gambar Event --}}
-                            @if ($event->gambar)
-                            <img src="{{ asset('storage/' . $event->gambar) }}" class="img-fluid"
-                                alt="{{ $event->judul }}" style="max-height: 300px; object-fit: cover;">
-                            @endif
-
-                            <div class="modal-header">
-                                <h5 class="modal-title">
-                                    {{ $event->judul }}
-                                </h5>
-
-                                <button type="button" class="btn-close" data-bs-dismiss="modal">
-                                </button>
-                            </div>
-
-                            <div class="modal-body">
-
-                                <p class="mb-2">
-                                    <strong>Tanggal:</strong>
-                                    {{ \Carbon\Carbon::parse($event->tanggal)->format('d F Y') }}
-                                </p>
-
-                                <p class="mb-2">
-                                    <strong>Waktu:</strong>
-
-                                    @if ($event->waktu_mulai)
-                                    {{ \Carbon\Carbon::parse($event->waktu_mulai)->format('H:i') }}
-
-                                    @if ($event->waktu_selesai)
-                                    - {{ \Carbon\Carbon::parse($event->waktu_selesai)->format('H:i') }}
-                                    @endif
-                                    @else
-                                    -
-                                    @endif
-                                </p>
-
-                                <p class="mb-2">
-                                    <strong>Lokasi:</strong>
-                                    {{ $event->lokasi ?? '-' }}
-                                </p>
-
-                                @if ($event->kapasitas)
-                                <p class="mb-2">
-                                    <strong>Kapasitas:</strong>
-                                    {{ $event->kapasitas }} orang
-                                </p>
-                                @endif
-
-                                @if ($event->deskripsi)
-                                <div class="mt-3">
-                                    {!! $event->deskripsi !!}
-                                </div>
-                                @elseif ($event->excerpt)
-                                <p class="mt-3 mb-0">
-                                    {{ $event->excerpt }}
-                                </p>
-                                @endif
-
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                    Close
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-
-
     </div>
 
+    @foreach (($events ?? collect()) as $event)
+    <div class="modal fade" id="eventModal{{ $event->uuid }}" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
+        @if ($event->gambar)<img src="{{ asset('storage/' . $event->gambar) }}" class="img-fluid" alt="{{ $event->judul }}" style="max-height:300px;object-fit:cover;">@endif
+        <div class="modal-header"><h5 class="modal-title">{{ $event->judul }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <p class="mb-2"><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($event->tanggal)->format('d F Y') }}</p>
+            <p class="mb-2"><strong>Waktu:</strong> @if ($event->waktu_mulai){{ \Carbon\Carbon::parse($event->waktu_mulai)->format('H:i') }}@if ($event->waktu_selesai) - {{ \Carbon\Carbon::parse($event->waktu_selesai)->format('H:i') }}@endif @else - @endif</p>
+            <p class="mb-2"><strong>Lokasi:</strong> {{ $event->lokasi ?? '-' }}</p>
+            @if ($event->kapasitas)<p class="mb-2"><strong>Kapasitas:</strong> {{ $event->kapasitas }} orang</p>@endif
+            @if ($event->deskripsi)<div class="mt-3">{!! $event->deskripsi !!}</div>@elseif ($event->excerpt)<p class="mt-3 mb-0">{{ $event->excerpt }}</p>@endif
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button></div>
+    </div></div></div>
+    @endforeach
     <div class="row g-4 mb-4">
 
         <!-- Kelas berikutnya -->
-        <!-- Art of Living Courses -->
+        <!-- Kursus Art of Livings -->
         <div class="col-lg-12">
             <div class="card border-0 h-100">
                 <div class="card-body">
@@ -422,7 +290,7 @@
                         </div>
 
                         <span class="badge bg-primary-subtle text-primary">
-                            {{ count($courses) }} Courses
+                            {{ count($courses) }} Kursus
                         </span>
                     </div>
 
@@ -430,7 +298,7 @@
                     @forelse ($courses as $course)
 
                     @php
-                    $title = $course['title'] ?? 'Art of Living Course';
+                    $title = $course['title'] ?? 'Kursus Art of Living';
 
                     $startDate = !empty($course['start_date'])
                     ? \Carbon\Carbon::parse($course['start_date'])

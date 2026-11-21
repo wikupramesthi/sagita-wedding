@@ -174,8 +174,16 @@ class DashboardController extends Controller
         ];
 
         if ($isMember) {
+            $myOrders = Order::where('user_uuid', $user->uuid)->latest();
             $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
-            $data['courses'] = $this->artOfLivingCourses();
+            $data['courses'] = [];
+            $data['myOrders'] = (clone $myOrders)->with(['package:uuid,name', 'packageOption:uuid,name'])->take(5)->get();
+            $data['myOrderStats'] = [
+                'total' => (clone $myOrders)->count(),
+                'pending' => (clone $myOrders)->whereIn('status', ['pending','partially_paid'])->count(),
+                'paid' => (clone $myOrders)->where('status', 'paid')->count(),
+                'active_package' => $activePackage ? 1 : 0,
+            ];
 
             if (MemberView::isMobile()) {
                 return view('pages.mobile.home', $data + [

@@ -154,4 +154,69 @@ class PaymentFlowFeatureTest extends TestCase
         $this->assertSame('paid', $order->status);
         $this->assertEquals(0.0, (float) $order->remaining_amount_value);
     }
+
+    public function test_admin_can_mark_remaining_balance_as_received(): void
+    {
+        Storage::fake('public');
+        $order = Order::create([
+            'order_number' => 'ORD-TEST-'.uniqid(),
+            'user_uuid' => $this->member->uuid,
+            'package_uuid' => $this->package->uuid,
+            'package_option_uuid' => $this->option->uuid,
+            'amount' => 10000000,
+            'total_amount' => 10000000,
+            'amount_paid' => 0,
+            'remaining_amount' => 10000000,
+            'payment_scheme' => 'full',
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.payments.store', $order->uuid), [
+                'amount' => 3000000,
+                'record_only' => 1,
+                'admin_note' => 'Pembayaran pertama diterima.',
+                'proof' => UploadedFile::fake()->image('transfer.jpg'),
+            ])
+            ->assertRedirect();
+
+        $order->refresh();
+        $this->assertSame('partially_paid', $order->status);
+        $this->assertEquals(3000000.0, (float) $order->amount_paid_value);
+        $this->assertEquals(7000000.0, (float) $order->remaining_amount_value);
+        $firstPayment = Payment::where('order_uuid', $order->uuid)->firstOrFail();
+        $this->assertSame('approved', $firstPayment->verification_status);
+        $this->assertNotNull($firstPayment->proof_image_path);
+        Storage::disk('public')->assertExists($firstPayment->proof_image_path);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.payments.store', $order->uuid), [
+                'amount' => 7000000,
+                'record_only' => 1,
+                'admin_note' => 'Pelunasan diterima tanpa bukti unggahan.',
+            ])
+            ->assertRedirect();
+
+        $order->refresh();
+        $this->assertSame('paid', $order->status);
+        $this->assertEquals(10000000.0, (float) $order->amount_paid_value);
+        $this->assertEquals(0.0, (float) $order->remaining_amount_value);
+        $this->assertSame(2, Payment::where('order_uuid', $order->uuid)->count());
+        $this->assertDatabaseHas('payments', [
+            'order_uuid' => $order->uuid,
+            'amount' => 3000000,
+            'status' => 'paid',
+            'verification_status' => 'approved',
+            'kind' => 'dp',
+            'payment_type' => 'Pencatatan Admin',
+        ]);
+        $this->assertDatabaseHas('payments', [
+            'order_uuid' => $order->uuid,
+            'amount' => 7000000,
+            'status' => 'paid',
+            'verification_status' => 'approved',
+            'kind' => 'balance',
+            'payment_type' => 'Pencatatan Admin',
+        ]);
+    }
 }
