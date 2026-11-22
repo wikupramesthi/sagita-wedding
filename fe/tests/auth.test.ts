@@ -36,14 +36,6 @@ vi.mock("../src/services/siteIdentityService.js", () => ({
 		email: "e@e.com",
 	}),
 }));
-
-vi.mock("../src/services/articleService.js", () => ({
-	getArticles: async () => [],
-	getArticle: async () => null,
-}));
-vi.mock("../src/services/bannerService.js", () => ({
-	getBanners: async () => [],
-}));
 const { env } = await import("../src/config/env.js");
 const { clearSessionCache } = await import("../src/middleware/locals.js");
 

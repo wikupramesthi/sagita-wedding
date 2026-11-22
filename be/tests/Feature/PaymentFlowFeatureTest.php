@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
+use App\Models\Payment\EventDateReservation;
 use App\Models\Payment\Order;
 use App\Models\Payment\Payment;
 use App\Models\User;
@@ -107,12 +108,19 @@ class PaymentFlowFeatureTest extends TestCase
             'user_uuid' => $this->member->uuid,
             'package_uuid' => $this->package->uuid,
             'package_option_uuid' => $this->option->uuid,
+            'event_date' => today()->addMonths(6)->toDateString(),
             'amount' => 3000000,
             'total_amount' => 10000000,
             'amount_paid' => 0,
             'remaining_amount' => 10000000,
             'payment_scheme' => 'dp30',
             'status' => 'pending',
+        ]);
+        EventDateReservation::create([
+            'event_date' => $order->event_date->toDateString(),
+            'order_uuid' => $order->uuid,
+            'status' => 'held',
+            'expires_at' => now()->addHours(24),
         ]);
 
         Payment::create([
@@ -132,6 +140,12 @@ class PaymentFlowFeatureTest extends TestCase
         $this->assertSame('partially_paid', $order->status);
         $this->assertEquals(3000000.0, (float) $order->amount_paid);
         $this->assertEquals(7000000.0, (float) $order->remaining_amount_value);
+        $this->assertDatabaseHas('event_date_reservations', [
+            'event_date' => $order->event_date->toDateString(),
+            'order_uuid' => $order->uuid,
+            'status' => 'confirmed',
+            'expires_at' => null,
+        ]);
 
         $this->actingAs($this->member)
             ->post(route('orders.payments.store', $order->uuid), [

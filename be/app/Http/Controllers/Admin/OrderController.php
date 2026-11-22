@@ -963,6 +963,10 @@ class OrderController extends Controller
             'balance_due_at' => $isFullyPaid ? null : ($order->balance_due_at ?: ($order->event_date ? $order->event_date->copy()->subDays(30)->startOfDay() : null)),
         ]);
 
+        if ($paid > 0) {
+            app(EventDateReservationService::class)->confirmForOrder($order->uuid);
+        }
+
         if ($isFullyPaid) {
             $this->activateMembershipFromOrder($order->fresh());
         }

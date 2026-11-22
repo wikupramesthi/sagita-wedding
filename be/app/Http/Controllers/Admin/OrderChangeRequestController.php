@@ -36,10 +36,6 @@ class OrderChangeRequestController extends Controller
 
     public function store(Request $request, string $order)
     {
-        $record = Order::packageOnly()->where('uuid', $order)->firstOrFail();
-        abort_unless($record->user_uuid === Auth::user()->uuid, 403);
-        abort_if(! $record->event_date || $record->event_date->lt(today()), 403);
-
         $validated = $request->validate([
             'change_type' => ['required', 'in:event_date,addon'],
             'requested_event_date' => ['exclude_unless:change_type,event_date', 'required', 'date', 'after_or_equal:tomorrow'],
@@ -48,50 +44,62 @@ class OrderChangeRequestController extends Controller
             'customer_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        if (OrderChangeRequest::where('order_uuid', $record->uuid)->where('status', 'pending')->exists()) {
-            throw ValidationException::withMessages([
-                'change_type' => 'Masih ada permintaan perubahan yang menunggu persetujuan admin.',
+        DB::transaction(function () use ($validated, $order): void {
+            $record = Order::packageOnly()->where('uuid', $order)->lockForUpdate()->firstOrFail();
+            abort_unless($record->user_uuid === Auth::user()->uuid, 403);
+            abort_if(
+                ! $record->event_date
+                    || $record->event_date->lt(today())
+                    || ! in_array($record->status, ['pending', 'partially_paid', 'paid'], true)
+                    || ($record->status === 'pending' && $record->expired_at?->isPast()),
+                403
+            );
+
+            if (OrderChangeRequest::where('order_uuid', $record->uuid)->where('status', 'pending')->exists()) {
+                throw ValidationException::withMessages([
+                    'change_type' => 'Masih ada permintaan perubahan yang menunggu persetujuan admin.',
+                ]);
+            }
+
+            $addon = null;
+            $quantity = null;
+            $requestedPrice = 0;
+            if ($validated['change_type'] === 'addon') {
+                $addon = PackageAddon::where('uuid', $validated['addon_uuid'])
+                    ->where('package_uuid', $record->package_uuid)
+                    ->where('is_active', true)
+                    ->firstOrFail();
+                $quantity = (int) $validated['addon_quantity'];
+                $min = max(1, (int) ($addon->min_quantity ?? 1));
+                $max = $addon->max_quantity === null ? 99 : min(99, (int) $addon->max_quantity);
+                $existingLine = collect($record->addons ?? [])->firstWhere('uuid', $addon->uuid);
+                $alreadySelected = (int) ($existingLine['quantity'] ?? 0);
+                if ($quantity < $min || $alreadySelected + $quantity > max($min, $max)) {
+                    throw ValidationException::withMessages([
+                        'addon_quantity' => 'Jumlah add-on tidak boleh melebihi '.max($min, $max).'.',
+                    ]);
+                }
+                if ($addon->requires_addon_uuid && ! collect($record->addons ?? [])->contains(
+                    fn (array $line) => ($line['uuid'] ?? null) === $addon->requires_addon_uuid
+                )) {
+                    throw ValidationException::withMessages([
+                        'addon_uuid' => 'Add-on ini membutuhkan layanan tambahan lain yang belum ada di pesanan.',
+                    ]);
+                }
+                $requestedPrice = (int) $addon->final_price * $quantity;
+            }
+
+            OrderChangeRequest::create([
+                'order_uuid' => $record->uuid,
+                'requested_by_uuid' => Auth::user()->uuid,
+                'change_type' => $validated['change_type'],
+                'requested_event_date' => $validated['requested_event_date'] ?? null,
+                'addon_uuid' => $addon?->uuid,
+                'addon_quantity' => $quantity,
+                'requested_price' => $requestedPrice,
+                'customer_note' => $validated['customer_note'] ?? null,
             ]);
-        }
-
-        $addon = null;
-        $quantity = null;
-        $requestedPrice = 0;
-        if ($validated['change_type'] === 'addon') {
-            $addon = PackageAddon::where('uuid', $validated['addon_uuid'])
-                ->where('package_uuid', $record->package_uuid)
-                ->where('is_active', true)
-                ->firstOrFail();
-            $quantity = (int) $validated['addon_quantity'];
-            $min = max(1, (int) ($addon->min_quantity ?? 1));
-            $max = $addon->max_quantity === null ? 99 : min(99, (int) $addon->max_quantity);
-            $existingLine = collect($record->addons ?? [])->firstWhere('uuid', $addon->uuid);
-            $alreadySelected = (int) ($existingLine['quantity'] ?? 0);
-            if ($quantity < $min || $alreadySelected + $quantity > max($min, $max)) {
-                throw ValidationException::withMessages([
-                    'addon_quantity' => 'Jumlah add-on tidak boleh melebihi '.max($min, $max).'.',
-                ]);
-            }
-            if ($addon->requires_addon_uuid && ! collect($record->addons ?? [])->contains(
-                fn (array $line) => ($line['uuid'] ?? null) === $addon->requires_addon_uuid
-            )) {
-                throw ValidationException::withMessages([
-                    'addon_uuid' => 'Add-on ini membutuhkan layanan tambahan lain yang belum ada di pesanan.',
-                ]);
-            }
-            $requestedPrice = (int) $addon->final_price * $quantity;
-        }
-
-        OrderChangeRequest::create([
-            'order_uuid' => $record->uuid,
-            'requested_by_uuid' => Auth::user()->uuid,
-            'change_type' => $validated['change_type'],
-            'requested_event_date' => $validated['requested_event_date'] ?? null,
-            'addon_uuid' => $addon?->uuid,
-            'addon_quantity' => $quantity,
-            'requested_price' => $requestedPrice,
-            'customer_note' => $validated['customer_note'] ?? null,
-        ]);
+        });
 
         return back()->with('success', 'Permintaan perubahan telah dikirim dan menunggu persetujuan admin.');
     }
@@ -114,6 +122,9 @@ class OrderChangeRequestController extends Controller
             $order = Order::packageOnly()->where('uuid', $change->order_uuid)->lockForUpdate()->firstOrFail();
             if (! in_array($order->status, ['pending', 'partially_paid', 'paid'], true)) {
                 throw ValidationException::withMessages(['decision' => 'Pesanan ini tidak lagi aktif.']);
+            }
+            if ($order->status === 'pending' && $order->expired_at?->isPast()) {
+                throw ValidationException::withMessages(['decision' => 'Pesanan ini sudah kedaluwarsa.']);
             }
 
             if ($validated['decision'] === 'approved') {

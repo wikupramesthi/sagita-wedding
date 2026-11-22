@@ -66,6 +66,15 @@ class EventDateReservationService
         ])->save();
     }
 
+    public function confirmForOrder(string $orderUuid): void
+    {
+        EventDateReservation::where('order_uuid', $orderUuid)->update([
+            'status' => 'confirmed',
+            'expires_at' => null,
+            'updated_at' => now(),
+        ]);
+    }
+
     public function releaseForOrder(string $orderUuid): void
     {
         EventDateReservation::where('order_uuid', $orderUuid)->update([
