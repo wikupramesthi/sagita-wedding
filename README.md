@@ -195,6 +195,14 @@ php artisan storage:link
 php artisan serve      # http://localhost:8000
 ```
 
+Karena `QUEUE_CONNECTION=database`, jalankan worker agar pengingat `OrderBalanceDueNotification` terkirim:
+
+```bash
+php artisan queue:work --tries=3 --stop-when-empty
+```
+
+Untuk produksi, jalankan worker tersebut sebagai layanan Supervisor/systemd.
+
 ### 5.2 Frontend (`fe/`)
 
 ```bash

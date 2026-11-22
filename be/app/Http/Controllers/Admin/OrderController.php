@@ -2468,8 +2468,58 @@ class OrderController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (! $option || ! $option->package || $option->package->is_active !== 'active') {
+        if (! $option || ! $option->package || $option->package->is_active !== 'active' || ! $option->package->is_published) {
             return back()->with('error', __('flash.package_unavailable_now'));
+        }
+
+        if ($old->event_date) {
+            $eventDate = Carbon::parse($old->event_date)->startOfDay();
+            $leadTimeDays = (int) ($option->package->lead_time_days ?? 0);
+            $earliestEventDate = now()->startOfDay()->addDays($leadTimeDays);
+
+            if ($eventDate->lt($earliestEventDate)) {
+                return back()->withErrors([
+                    'event_date' => __('flash.event_date_too_soon', ['count' => $leadTimeDays]),
+                ]);
+            }
+
+            if (PackageBlackoutDate::where('package_uuid', $option->package_uuid)
+                ->whereDate('date', $eventDate->toDateString())
+                ->exists()
+            ) {
+                return back()->withErrors(['event_date' => __('flash.event_date_blackout')]);
+            }
+        }
+
+        $addonUuids = collect((array) ($old->addons ?? []))
+            ->pluck('uuid')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($addonUuids !== []) {
+            $activeAddons = PackageAddon::whereIn('uuid', $addonUuids)
+                ->where('package_uuid', $option->package_uuid)
+                ->where('is_active', true)
+                ->get();
+
+            if ($activeAddons->count() !== count($addonUuids)) {
+                return back()->withErrors([
+                    'addon_uuids' => __('validation.exists', [
+                        'attribute' => __('validation.attributes.addon_uuids'),
+                    ]),
+                ]);
+            }
+
+            foreach ($activeAddons as $addon) {
+                if (
+                    $addon->requires_addon_uuid &&
+                    ! in_array($addon->requires_addon_uuid, $addonUuids, true)
+                ) {
+                    return back()->withErrors(['addon_uuids' => __('flash.addon_dependency_missing')]);
+                }
+            }
         }
 
         $owner = $isAdmin ? $old->user : $user;

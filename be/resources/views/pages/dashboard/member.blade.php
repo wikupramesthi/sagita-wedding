@@ -1,11 +1,24 @@
 <div class="member-dashboard container-fluid pb-5">
+    @php
+        $memberNow = now('Asia/Jakarta');
+        $memberHour = $memberNow->hour;
+        $memberGreeting = $memberHour < 11 ? 'Selamat pagi' : ($memberHour < 15 ? 'Selamat siang' : ($memberHour < 18 ? 'Selamat sore' : 'Selamat malam'));
+        $memberRoleName = auth()->user()->getRoleNames()->first();
+        $memberRoleLabel = $memberRoleName ?: 'pengguna';
+    @endphp
     <div class="member-hero mb-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
-                <span class="member-hero-date"><i class="bi bi-calendar2-week me-1"></i>{{ now()->translatedFormat('l, j F Y') }}</span>
-                <h1>Halo, {{ auth()->user()->name }}</h1>
-                <p>Kelola pesanan, pantau status pembayaran, dan temukan paket wedding terbaik untuk acara Anda.</p>
+                <p class="member-hero-eyebrow">{{ $memberGreeting }}, <strong>{{ $memberRoleLabel }}</strong></p>
+                <h1>Selamat datang di dashboard {{ $brandName ?? 'Sagita Wedding' }}</h1>
+                <p>Pantau operasional, verifikasi pembayaran, dan kelola konten dari satu tempat.</p>
+                <span class="member-hero-date"><i class="bi bi-calendar3"></i>{{ $memberNow->translatedFormat('l, j F Y') }}</span>
             </div>
+        </div>
+        <div class="member-hero-decoration" aria-hidden="true">
+            <span class="member-hero-orbit member-hero-orbit--one"></span>
+            <span class="member-hero-orbit member-hero-orbit--two"></span>
+            <i class="bi bi-stars"></i>
         </div>
     </div>
 

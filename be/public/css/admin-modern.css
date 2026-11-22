@@ -5949,37 +5949,84 @@ form.d-flex.flex-wrap > div,
 
 #main-content .member-dashboard .member-hero {
     position: relative;
+    min-height: 196px;
+    display: flex;
+    align-items: center;
     overflow: hidden;
-    padding: 1.5rem;
-    border-radius: 1.1rem !important;
-    background: linear-gradient(120deg, #373477 0%, #5b52c8 55%, #7766df 100%);
-    box-shadow: 0 16px 34px rgba(67, 56, 160, .16);
+    padding: 24px 26px;
+    border-radius: 16px !important;
+    background: linear-gradient(112deg, #5664ea 0%, #765bdf 46%, #b05fd5 72%, #ef5cae 100%);
+    box-shadow: 0 14px 32px rgba(126, 78, 196, 0.2);
     color: #fff;
+}
+
+#main-content .member-dashboard .member-hero .d-flex {
+    position: relative;
+    z-index: 1;
+}
+
+#main-content .member-dashboard .member-hero-eyebrow {
+    margin: 0 0 8px;
+    color: rgba(255, 255, 255, .95) !important;
+    font-size: 1.05rem !important;
+    font-weight: 700;
 }
 
 #main-content .member-dashboard .member-hero-date {
     display: inline-flex;
     align-items: center;
-    padding: .4rem .75rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .16);
-    font-size: .78rem;
+    gap: .4rem;
+    margin-top: 12px;
+    color: rgba(255, 255, 255, .82);
+    font-size: .9rem;
     font-weight: 600;
 }
 
 #main-content .member-dashboard .member-hero h1 {
-    margin: .75rem 0 .35rem;
-    font-size: clamp(1.45rem, 2.1vw, 2rem);
+    margin: 0 0 8px;
+    color: #fff;
+    font-size: clamp(1.75rem, 2.35vw, 2.25rem);
     font-weight: 800;
-    letter-spacing: -.03em;
+    line-height: 1.15;
+    letter-spacing: -.02em;
 }
 
 #main-content .member-dashboard .member-hero p {
     max-width: 720px;
     margin: 0;
-    color: rgba(255, 255, 255, .78);
-    font-size: .92rem;
-    line-height: 1.55;
+    color: rgba(255, 255, 255, .9) !important;
+    font-size: 1.02rem;
+    line-height: 1.35;
+}
+
+#main-content .member-dashboard .member-hero-decoration {
+    position: absolute;
+    top: 50%;
+    right: 7%;
+    display: grid;
+    width: 128px;
+    height: 128px;
+    place-items: center;
+    color: rgba(255, 255, 255, .85);
+    font-size: 1.8rem;
+    transform: translateY(-50%);
+}
+
+#main-content .member-dashboard .member-hero-orbit {
+    position: absolute;
+    display: block;
+    border: 1px solid rgba(255, 255, 255, .27);
+    border-radius: 50%;
+}
+
+#main-content .member-dashboard .member-hero-orbit--one {
+    width: 96px;
+    height: 96px;
+}
+
+#main-content .member-dashboard .member-hero-orbit--two {
+    width: 128px;
+    height: 128px;
 }
 
 #main-content .member-dashboard .member-card {

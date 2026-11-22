@@ -41,7 +41,7 @@ class PaymentFlowFeatureTest extends TestCase
             'package.index', 'package.store', 'package.update', 'package.destroy', 'package.member',
             'package.promo.index', 'package.promo.store', 'package.promo.update', 'package.promo.destroy',
             'order.index', 'order.report', 'order.update',
-            'orders.store', 'orders.approve',
+            'orders.index', 'orders.store', 'orders.approve',
         ] as $perm) {
             Permission::findOrCreate($perm, 'web');
         }
@@ -55,6 +55,7 @@ class PaymentFlowFeatureTest extends TestCase
 
         foreach ([
             'orders.approve' => 'orders.approve',
+            'orders.reorder' => 'orders.index',
             'orders.payments.store' => 'orders.store',
             'orders.payments.approve' => 'orders.approve',
         ] as $routeName => $permissionName) {
@@ -337,5 +338,35 @@ class PaymentFlowFeatureTest extends TestCase
 
         $this->assertSame('pending', $payment->fresh()->verification_status);
         $this->assertEquals(0.0, (float) $order->fresh()->amount_paid);
+    }
+
+    public function test_reorder_revalidates_event_date_lead_time(): void
+    {
+        $this->package->update(['is_published' => true, 'lead_time_days' => 30]);
+        $order = $this->makePendingOrder([
+            'status' => 'failed',
+            'event_date' => today()->addDays(7)->toDateString(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.reorder', $order->uuid))
+            ->assertSessionHasErrors('event_date');
+
+        $this->assertSame(1, Order::where('user_uuid', $this->member->uuid)->count());
+    }
+
+    public function test_reorder_rejects_unpublished_package(): void
+    {
+        $this->package->update(['is_published' => false, 'lead_time_days' => 0]);
+        $order = $this->makePendingOrder([
+            'status' => 'failed',
+            'event_date' => today()->addDays(7)->toDateString(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.reorder', $order->uuid))
+            ->assertSessionHas('error', __('flash.package_unavailable_now'));
+
+        $this->assertSame(1, Order::where('user_uuid', $this->member->uuid)->count());
     }
 }
