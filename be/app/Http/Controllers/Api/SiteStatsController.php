@@ -19,8 +19,12 @@ class SiteStatsController extends Controller
         try {
             $data = Cache::remember('site-stats:public', 3600, function () {
                 return [
-                    'members' => User::role('user')->count(),
-                    'vendors' => User::role('vendor')->count(),
+                    'members' => User::query()
+                        ->whereHas('roles', fn ($query) => $query->where('name', 'user'))
+                        ->count(),
+                    'vendors' => User::query()
+                        ->whereHas('roles', fn ($query) => $query->where('name', 'vendor'))
+                        ->count(),
                 ];
             });
 

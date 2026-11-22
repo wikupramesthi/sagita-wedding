@@ -11,11 +11,6 @@ $blackoutDateStrings = $blackoutDates
     ->filter()
     ->values()
     ->all();
-$blackoutDateStrings = $blackoutDates
-    ->map(fn ($blackout) => $blackout->date?->format('Y-m-d'))
-    ->filter()
-    ->values()
-    ->all();
 $initialOption = $package->options->first();
 $firstFinalPrice = $initialOption
     ? (int) ($initialOption->discount_price !== null && $initialOption->discount_price < $initialOption->price

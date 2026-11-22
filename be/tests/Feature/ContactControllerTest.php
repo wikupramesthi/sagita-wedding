@@ -107,4 +107,54 @@ class ContactControllerTest extends TestCase
 
         $this->assertDatabaseCount('consultations', 0);
     }
+
+    public function test_honeypot_field_rejects_bot_submission(): void
+    {
+        $captchaId = (string) Str::uuid();
+        cache()->put('contact_captcha_'.$captchaId, ['answer' => '0042'], now()->addMinutes(10));
+
+        $this->withHeader('X-Api-Key', self::API_KEY)
+            ->postJson('/api/contact', [
+                'nama' => 'Test User',
+                'email' => 'bot@example.test',
+                'no_telp' => '081234567890',
+                'isi' => 'Consultation request',
+                'captcha_id' => $captchaId,
+                'captcha_answer' => '0042',
+                'website' => 'https://spam.test',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonPath('success', false)
+            ->assertJsonStructure(['errors' => ['website']]);
+
+        $this->assertDatabaseCount('consultations', 0);
+        $this->assertIsArray(cache()->get('contact_captcha_'.$captchaId));
+    }
+
+    public function test_duplicate_contact_is_not_stored_twice(): void
+    {
+        $payload = [
+            'nama' => 'Test User',
+            'email' => 'duplicate@example.test',
+            'no_telp' => '081234567890',
+            'isi' => 'Consultation request',
+            'captcha_answer' => '0042',
+        ];
+
+        foreach ([false, true] as $isDuplicate) {
+            $captchaId = (string) Str::uuid();
+            cache()->put('contact_captcha_'.$captchaId, ['answer' => '0042'], now()->addMinutes(10));
+
+            $this->withHeader('X-Api-Key', self::API_KEY)
+                ->postJson('/api/contact', [
+                    ...$payload,
+                    'captcha_id' => $captchaId,
+                ])
+                ->assertCreated()
+                ->assertJsonPath('success', true)
+                ->assertJsonPath('duplicate', $isDuplicate);
+        }
+
+        $this->assertDatabaseCount('consultations', 1);
+    }
 }

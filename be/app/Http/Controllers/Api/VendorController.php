@@ -20,7 +20,8 @@ class VendorController extends Controller
         $perPage = (int) ($validated['per_page'] ?? 20);
 
         try {
-            $vendors = User::role('vendor')
+            $vendors = User::query()
+                ->whereHas('roles', fn ($query) => $query->where('name', 'vendor'))
                 ->with('vendors_categories')
                 ->orderBy('name')
                 ->paginate($perPage);

@@ -160,8 +160,12 @@ class BatchController extends Controller
     {
         return [
             'stats' => [
-                'members' => User::role('user')->count(),
-                'vendors' => User::role('vendor')->count(),
+                'members' => User::query()
+                    ->whereHas('roles', fn ($query) => $query->where('name', 'user'))
+                    ->count(),
+                'vendors' => User::query()
+                    ->whereHas('roles', fn ($query) => $query->where('name', 'vendor'))
+                    ->count(),
             ],
             'articles' => array_slice($this->articles(), 0, 3),
         ];

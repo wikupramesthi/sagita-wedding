@@ -8,6 +8,10 @@ use App\Models\Package\PackageBlackoutDate;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
 use App\Models\Payment\Order;
+use App\Notifications\OrderBalanceDueNotification;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -449,12 +453,102 @@ class PackageWeddingFeatureTest extends TestCase
         $this->assertSame('DP 30%', $order->promo_snapshot['scheme_label']);
         $this->assertSame(4500000, (int) $order->promo_snapshot['full_amount']);
         $this->assertSame(2750000, (int) $order->promo_snapshot['due_now']);
+        $this->assertSame(1750000, array_sum(array_column($order->installment_schedule['installments'], 'amount')));
+        $this->assertSame(now()->toDateString(), $order->installment_schedule['installments'][0]['due_at']);
 
         $this->actingAs($this->admin)
             ->get(route('orders.show', $order->uuid))
             ->assertOk()
             ->assertSee('DP 30%')
-            ->assertSee('4.500.000');
+            ->assertSee('4.500.000')
+            ->assertSee('Jadwal sisa pembayaran')
+            ->assertSee('Progres Pesanan');
+
+        $this->actingAs($this->member)
+            ->get(route('orders.show', $order->uuid).'?view=mobile')
+            ->assertOk()
+            ->assertViewIs('pages.mobile.order-show')
+            ->assertSee('Jadwal sisa pembayaran')
+            ->assertSee('Progres Pesanan');
+
+        $this->actingAs($this->member)
+            ->get(route('checkout.package', ['packageUuid' => $package->uuid, 'view' => 'desktop']))
+            ->assertOk()
+            ->assertSee('Anda masih memiliki checkout aktif untuk paket ini.')
+            ->assertSee('Lihat riwayat checkout');
+
+        $this->actingAs($this->member)
+            ->get(route('checkout.package', ['packageUuid' => $package->uuid, 'view' => 'mobile']))
+            ->assertOk()
+            ->assertViewIs('pages.mobile.checkout')
+            ->assertSee('Checkout aktif untuk paket ini');
+    }
+
+    public function test_checkout_saves_three_rounded_installments_for_event_more_than_ninety_days_away(): void
+    {
+        $package = $this->createPackage('Paket Jadwal', 'paket-jadwal', 4500001, null, 150);
+        $option = $package->options()->firstOrFail();
+        $eventDate = $this->eventDate(120);
+
+        $this->actingAs($this->member)
+            ->post(route('orders.store'), [
+                'type' => 'package',
+                'package_option_uuid' => $option->uuid,
+                'event_date' => $eventDate,
+                'payment_scheme' => 'no_dp',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $order = Order::where('user_uuid', $this->member->uuid)
+            ->where('package_option_uuid', $option->uuid)
+            ->firstOrFail();
+        $installments = $order->installment_schedule['installments'];
+
+        $this->assertCount(3, $installments);
+        $this->assertSame([833334, 833334, 833333], array_column($installments, 'amount'));
+        $this->assertSame([
+            now()->startOfDay()->addDays(30)->toDateString(),
+            now()->startOfDay()->addDays(60)->toDateString(),
+            now()->startOfDay()->addDays(90)->toDateString(),
+        ], array_column($installments, 'due_at'));
+        $this->assertSame(2500001, array_sum(array_column($installments, 'amount')));
+    }
+
+    public function test_installment_reminders_are_sent_once_at_thirty_seven_and_one_day(): void
+    {
+        $package = $this->createPackage('Paket Pengingat', 'paket-pengingat', 4500001, null, 150);
+        $option = $package->options()->firstOrFail();
+
+        $this->actingAs($this->member)
+            ->post(route('orders.store'), [
+                'type' => 'package',
+                'package_option_uuid' => $option->uuid,
+                'event_date' => $this->eventDate(120),
+                'payment_scheme' => 'no_dp',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $order = Order::where('user_uuid', $this->member->uuid)
+            ->where('package_option_uuid', $option->uuid)
+            ->firstOrFail();
+        $order->update(['status' => 'partially_paid']);
+        Notification::fake();
+
+        $firstDueDate = Carbon::parse($order->installment_schedule['installments'][0]['due_at']);
+        foreach ([30, 7, 1] as $daysBeforeDue) {
+            Carbon::setTestNow($firstDueDate->copy()->subDays($daysBeforeDue)->setTime(8, 0));
+            $this->artisan('orders:remind-balance-due')->assertExitCode(0);
+        }
+
+        Carbon::setTestNow();
+        $sent = Notification::sent($this->member, OrderBalanceDueNotification::class);
+        $this->assertCount(3, $sent);
+        $this->assertSame([30, 7, 1], $sent->map(fn ($notification) => $notification->reminderDays)->all());
+
+        Carbon::setTestNow($firstDueDate->copy()->subDay()->setTime(8, 0));
+        $this->artisan('orders:remind-balance-due')->assertExitCode(0);
+        Carbon::setTestNow();
+        $this->assertCount(3, Notification::sent($this->member, OrderBalanceDueNotification::class));
     }
 
     public function test_checkout_rejects_invalid_payment_scheme(): void

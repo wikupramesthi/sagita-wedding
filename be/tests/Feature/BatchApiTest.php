@@ -139,4 +139,31 @@ class BatchApiTest extends TestCase
             ->getJson('/api/batch/home')
             ->assertStatus(304);
     }
+
+    public function test_all_supported_batch_pages_are_reachable(): void
+    {
+        $detailPages = ['blog-detail', 'package-detail', 'page-detail'];
+
+        foreach ([
+            'home',
+            'venues',
+            'about',
+            'blog',
+            'blog-detail',
+            'packages',
+            'package-detail',
+            'vendors',
+            'events',
+            'gallery',
+            'contact',
+            'faq',
+            'page-detail',
+        ] as $page) {
+            $isDetail = in_array($page, $detailPages, true);
+            $response = $this->api()->getJson('/api/batch/'.$page);
+
+            self::assertSame($isDetail ? 422 : 200, $response->status(), $page);
+            $response->assertJsonPath('status', $isDetail ? 'error' : 'success');
+        }
+    }
 }
