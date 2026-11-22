@@ -49,7 +49,7 @@ Poin penting:
 - **Backend hanya menyajikan panel admin dan API.** Halaman publik disajikan oleh Express.
 - **Frontend memakai pola BFF (Backend for Frontend)**: setiap halaman publik mengambil semua datanya lewat **satu** request `GET /api/batch/{page}` ke Laravel, bukan puluhan request per resource.
 - Kedua aplikasi **harus berjalan bersamaan** agar website publik menampilkan data.
-- Repo masih dalam masa transisi branding: sebagian konten/kode masih memakai nama **YogaRoots / yoga** (kelas, vendor, jadwal), sementara migrasi terbaru mengarah ke **venue & vendor wedding** (`studios` → `venues`, `specializations` → `vendors_categories`).
+- Repo masih dalam masa transisi branding: sebagian konten/kode masih memakai nama **Sagita Wedding / yoga** (kelas, vendor, jadwal), sementara migrasi terbaru mengarah ke **venue & vendor wedding** (`studios` → `venues`, `specializations` → `vendors_categories`).
 
 ---
 

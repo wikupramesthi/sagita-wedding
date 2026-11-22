@@ -65,24 +65,18 @@
         </div>
         @endif
 
-        <div class="row g-3 mt-1 text-center">
-            <div class="col-4">
-                <div class="app-card py-3">
-                    <p class="mb-0 fw-semibold text-sage">{{ $jumlahVendor }}</p>
-                    <p class="mb-0 text-muted2 text-small">Vendor</p>
-                </div>
+        <div class="d-flex gap-2 mt-3 text-center">
+            <div class="app-card flex-fill py-3" style="min-width:0">
+                <p class="mb-0 fw-semibold text-sage">{{ $jumlahVendor }}</p>
+                <p class="mb-0 text-muted2 text-small">Vendor</p>
             </div>
-            <div class=" col-4">
-                <div class="app-card py-3">
-                    <p class="mb-0 fw-semibold text-sage">{{ $totalPackages ?? 0 }}</p>
-                    <p class="mb-0 text-muted2 text-small">Paket</p>
-                </div>
+            <div class="app-card flex-fill py-3" style="min-width:0">
+                <p class="mb-0 fw-semibold text-sage">{{ $totalPackages ?? 0 }}</p>
+                <p class="mb-0 text-muted2 text-small">Paket</p>
             </div>
-            <div class="col-4">
-                <div class="app-card py-3">
-                    <p class="mb-0 fw-semibold text-sage">{{ $totalEvents }}</p>
-                    <p class="mb-0 text-muted2 text-small">{{ __('mobile.events') }}</p>
-                </div>
+            <div class="app-card flex-fill py-3" style="min-width:0">
+                <p class="mb-0 fw-semibold text-sage">{{ $totalEvents }}</p>
+                <p class="mb-0 text-muted2 text-small">{{ __('mobile.events') }}</p>
             </div>
         </div>
 
@@ -228,7 +222,7 @@
 
             <div class="app-card p-3 mt-3">
                 <h3 class="h6 fw-semibold mb-1">Rekap pembayaran</h3>
-                <p class="small text-muted2 mb-3">Pembayaran yang disetujui mengurangi kekurangan tagihan.</p>
+                <p class="small text-muted2 mb-3">Rekap 5 pesanan paket terbaru. Pembayaran disetujui mengurangi kekurangan tagihan.</p>
                 <div class="progress mb-3" style="height:6px">
                     <div class="progress-bar bg-success" role="progressbar" style="width:{{ $paymentProgress }}%" aria-valuenow="{{ $paymentProgress }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
@@ -298,203 +292,6 @@
                 @include('pages.dashboard.partials.package-recommendations')
             </div>
         </section>
-        {{-- =========================
-    Art Of Living
-========================= --}}
-
-        <div class="d-flex justify-content-between align-items-center mt-4">
-            <h3 class="h5 fw-semibold mb-0">
-                Art of Living
-            </h3>
-
-            <span class="badge bg-sage-soft text-sage">
-                {{ __('mobile.courses_count', ['count' => count($courses)]) }}
-            </span>
-        </div>
-
-        <div class="d-grid gap-2 mt-3">
-
-            @forelse ($courses as $course)
-
-            @php
-            $title = $course['title'] ?? __('mobile.aol_course');
-
-            $startDate = !empty($course['start_date'])
-            ? \Carbon\Carbon::parse($course['start_date'])
-            : null;
-
-            $city = $course['city'] ?? '-';
-
-            $teachers = $course['teachers'] ?? [];
-
-            $teacher = is_array($teachers) && count($teachers)
-            ? implode(', ', $teachers)
-            : null;
-
-            $fee = (int) ($course['course_fee'] ?? 0);
-
-            $registerUrl = $course['register_url'] ?? null;
-
-            $isFull = ($course['is_event_capacity_full'] ?? '0') == '1';
-
-            $isClosed = !empty($course['is_registration_closed']);
-
-            $endDate = !empty($course['end_date'])
-            ? \Carbon\Carbon::parse($course['end_date'])
-            : null;
-
-            $timing = $course['course_complex_timing']
-            ?? $course['complex_timings']
-            ?? $course['weekday_timings']
-            ?? null;
-
-            if ($timing) {
-            $timing = strip_tags(str_ireplace(['<br>', '<br />', '<br />'], ' · ', $timing));
-            }
-            @endphp
-
-
-            <div class="app-card p-3">
-
-                <div class="d-flex gap-3">
-
-                    {{-- DATE --}}
-                    <div
-                        class="d-flex flex-column align-items-center justify-content-center bg-sage-soft flex-shrink-0"
-                        style="
-                        width:52px;
-                        height:52px;
-                        border-radius:15px;
-                    ">
-                        @if ($startDate)
-
-                        <span
-                            class="fw-bold text-sage"
-                            style="font-size:17px; line-height:1;">
-                            {{ $startDate->format('d') }}
-                        </span>
-
-                        <span
-                            class="text-muted2 text-uppercase mt-1 m-tiny">
-                            {{ $startDate->format('M') }}
-                        </span>
-
-                        @else
-
-                        <span class="fw-bold text-muted2">
-                            -
-                        </span>
-
-                        @endif
-                    </div>
-
-
-                    {{-- CONTENT --}}
-                    <div class="flex-fill" style="min-width:0">
-
-                        {{-- TITLE --}}
-                        <div
-                            class="fw-semibold small"
-                            style="word-break:break-word">
-                            {{ $title }}
-                        </div>
-
-
-                        {{-- LOCATION --}}
-                        <div class="d-flex align-items-start gap-2 mt-1 m-meta text-muted2">
-                            <i class="bi bi-geo-alt flex-shrink-0" style="width:14px"></i>
-                            <span class="text-truncate">{{ $city }}</span>
-                        </div>
-
-                        {{-- TEACHER --}}
-                        @if ($teacher)
-                        <div class="d-flex align-items-start gap-2 mt-1 m-meta text-muted2">
-                            <i class="bi bi-person flex-shrink-0" style="width:14px"></i>
-                            <span class="text-truncate">{{ $teacher }}</span>
-                        </div>
-                        @endif
-
-                        {{-- DATE --}}
-                        <div class="d-flex align-items-start gap-2 mt-1 m-meta text-muted2">
-                            <i class="bi bi-calendar3 flex-shrink-0" style="width:14px"></i>
-                            <span>
-                                @if ($startDate)
-                                {{ $startDate->format('d M Y') }}
-                                @if ($endDate && $startDate->format('Y-m-d') !== $endDate->format('Y-m-d'))
-                                – {{ $endDate->format('d M Y') }}
-                                @endif
-                                @endif
-                            </span>
-                        </div>
-
-                        @if ($timing)
-                        <div class="d-flex align-items-start gap-2 mt-1 m-meta text-muted2">
-                            <i class="bi bi-clock flex-shrink-0" style="width:14px"></i>
-                            <span style="word-break:break-word">{{ $timing }}</span>
-                        </div>
-                        @endif
-
-                        {{-- PRICE + REGISTER --}}
-                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2" style="margin-left:22px">
-
-                            @if ($isFull)
-
-                            <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis m-tiny">{{ __('mobile.full') }}</span>
-
-                            @elseif ($isClosed)
-
-                            <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis m-tiny">{{ __('mobile.closed') }}</span>
-
-                            @elseif ($fee > 0)
-
-                            <span class="fw-semibold text-small">
-                                Rp {{ number_format($fee, 0, ',', '.') }}
-                            </span>
-
-                            @else
-
-                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis m-tiny">{{ __('mobile.free') }}</span>
-
-                            @endif
-
-                            @if ($registerUrl && !$isFull && !$isClosed)
-
-                            <a
-                                href="{{ $registerUrl }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="btn btn-sm btn-success rounded-pill px-3 py-1 m-micro text-nowrap flex-shrink-0">{{ __('mobile.register') }}</a>
-
-                            @else
-
-                            <span></span>
-
-                            @endif
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            @empty
-
-            <div class="app-card text-center p-3">
-
-                <i class="bi bi-calendar2-week text-muted2 fs-4"></i>
-
-                <p class="mb-0 mt-1 small fw-semibold">
-                    {{ __('mobile.no_courses') }}
-                </p>
-
-            </div>
-
-            @endforelse
-
-        </div>
-
         <div class="d-flex justify-content-between align-items-end mt-4">
             <h3 class="h5 fw-semibold mb-0">{{ __('mobile.upcoming_events') }}</h3>
             <a href="{{ route('events.index') }}"

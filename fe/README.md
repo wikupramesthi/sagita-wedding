@@ -1,6 +1,6 @@
-# YogaRoots FE — Theme (Tailwind CSS v4 + EJS + Express)
+# Sagita Wedding FE — Theme (Tailwind CSS v4 + EJS + Express)
 
-Theme frontend YogaRoots. Konten dinamis diambil dari backend Laravel via `src/services/`.
+Theme frontend Sagita Wedding. Konten dinamis diambil dari backend Laravel via `src/services/`.
 
 ## Cara jalan
 

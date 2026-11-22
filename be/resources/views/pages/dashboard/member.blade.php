@@ -573,7 +573,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <h2 class="fw-bold mb-1 member-section-title">Rekap Pembayaran dan Bukti Transfer</h2>
-                            <div class="small text-muted">Pembayaran yang disetujui mengurangi sisa tagihan. Status bukti terlihat per pesanan.</div>
+                            <div class="small text-muted">Rekap 5 pesanan paket terbaru. Pembayaran yang disetujui mengurangi sisa tagihan.</div>
                         </div>
                         <a href="{{ route('orders.index') }}" class="small fw-semibold text-decoration-none">Riwayat lengkap</a>
                     </div>

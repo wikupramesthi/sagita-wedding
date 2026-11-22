@@ -993,6 +993,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         }
 
         syncPackageSelection();
+    }
 
     const hasViewParam = {{ $hasViewParam ? 'true' : 'false' }};
     if (!hasViewParam && window.innerWidth < 992) {

@@ -18,7 +18,7 @@ return new class extends Migration
         Schema::create('website_identities', function (Blueprint $table) {
             $table->uuid('uuid')->primary();
             // Informasi Umum
-            $table->string('site_name', 255)->default('YogaRoots');
+            $table->string('site_name', 255)->default('Sagita Wedding');
             $table->string('site_title', 255)->nullable();
             $table->string('tagline', 255)->nullable();
             $table->text('short_description')->nullable();

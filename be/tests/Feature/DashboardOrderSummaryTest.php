@@ -53,6 +53,26 @@ class DashboardOrderSummaryTest extends TestCase
         ]);
     }
 
+    private function membershipOrder(User $member): Order
+    {
+        $package = $this->publishedMembershipPackage('Studio Class Membership', 250000);
+        $packageOption = $package->options()->firstOrFail();
+
+        return Order::create([
+            'user_uuid' => $member->uuid,
+            'order_number' => 'ORD-'.Str::upper(Str::random(10)),
+            'type' => 'package',
+            'package_uuid' => $package->uuid,
+            'package_option_uuid' => $packageOption->uuid,
+            'event_date' => '2027-08-21',
+            'amount' => 250000,
+            'total_amount' => 250000,
+            'amount_paid' => 0,
+            'remaining_amount' => 250000,
+            'status' => 'pending',
+        ]);
+    }
+
     private function publishedPackage(string $name, int $price, ?int $discountPrice = null): Package
     {
         $package = Package::create([
@@ -205,6 +225,7 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertOk()
             ->assertViewIs('pages.mobile.home')
             ->assertSee('Rencana pernikahan')
+            ->assertDontSee('Art of Living')
             ->assertSee($order->order_number)
             ->assertSee('Timeline persiapan')
             ->assertSee('Paket Harmoni')
@@ -270,5 +291,23 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertSee($member->name)
             ->assertSee($order->order_number)
             ->assertSee('21 Agt 2027');
+    }
+
+    public function test_membership_orders_are_excluded_from_wedding_planning_and_admin_upcoming_orders(): void
+    {
+        $member = $this->userWithRole('user');
+        $admin = $this->userWithRole('admin');
+        $membershipOrder = $this->membershipOrder($member);
+
+        $this->actingAs($member)
+            ->get(route('dashboard.index'))
+            ->assertOk()
+            ->assertViewHas('planningOrders', fn ($orders) => $orders->isEmpty())
+            ->assertSee($membershipOrder->order_number);
+
+        $this->actingAs($admin)
+            ->get(route('dashboard.index'))
+            ->assertOk()
+            ->assertViewHas('upcomingWeddingOrders', fn ($orders) => $orders->isEmpty());
     }
 }

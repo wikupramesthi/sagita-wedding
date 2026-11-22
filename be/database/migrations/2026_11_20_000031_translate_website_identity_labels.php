@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    private const LEGACY_NAME = 'YogaRoots';
+    private const LEGACY_NAME = 'Sagita Wedding';
 
     private const NEW_NAME = 'Sagita Wedding';
 

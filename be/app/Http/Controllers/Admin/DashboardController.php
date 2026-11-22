@@ -27,8 +27,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 class DashboardController extends Controller
@@ -201,14 +199,9 @@ class DashboardController extends Controller
                 ])
                 ->orderBy('event_date')
                 ->get();
-            $paymentOrders = (clone $myOrders)
-                ->where('type', 'package')
-                ->whereIn('status', ['pending', 'partially_paid', 'paid'])
-                ->get();
-            $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
-            $data['courses'] = [];
             $data['myOrders'] = (clone $myOrders)
                 ->where('type', 'package')
+                ->whereIn('status', ['pending', 'partially_paid', 'paid'])
                 ->with([
                     'package:uuid,name',
                     'packageOption:uuid,name',
@@ -216,6 +209,7 @@ class DashboardController extends Controller
                 ])
                 ->take(5)
                 ->get();
+            $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
             $data['recentPaymentProofs'] = $data['myOrders']
                 ->flatMap(fn (Order $order) => $order->payments
                     ->filter(fn ($payment) => $payment->proof_image_path)
@@ -223,8 +217,8 @@ class DashboardController extends Controller
                 ->sortByDesc(fn (array $proof) => $proof['payment']->proof_uploaded_at ?? $proof['payment']->created_at)
                 ->take(5)
                 ->values();
-            $data['paymentOrderTotal'] = $paymentOrders->sum(fn (Order $order) => (float) $order->full_amount);
-            $data['paymentPaidTotal'] = $paymentOrders->sum(fn (Order $order) => (float) $order->amount_paid_value);
+            $data['paymentOrderTotal'] = $data['myOrders']->sum(fn (Order $order) => (float) $order->full_amount);
+            $data['paymentPaidTotal'] = $data['myOrders']->sum(fn (Order $order) => (float) $order->amount_paid_value);
             $data['paymentRemainingTotal'] = max(0, $data['paymentOrderTotal'] - $data['paymentPaidTotal']);
             $data['paymentProgress'] = $data['paymentOrderTotal'] > 0
                 ? (int) min(100, round($data['paymentPaidTotal'] / $data['paymentOrderTotal'] * 100))
@@ -320,7 +314,6 @@ class DashboardController extends Controller
 
             if (MemberView::isMobile()) {
                 return view('pages.mobile.home', $data + [
-                    'courses' => array_slice($data['courses'], 0, 6),
                     'myBookings' => collect(),
                     'todayDate' => now()->format('Y-m-d'),
                     'tomorrowDate' => now()->addDay()->format('Y-m-d'),
@@ -905,50 +898,6 @@ class DashboardController extends Controller
                 (int) ($deviceRows['tablet'] ?? 0),
             ],
         ];
-    }
-
-    /**
-     * Daftar course dari API Art of Living (hanya dipakai tampilan member).
-     */
-    protected function artOfLivingCourses(): array
-    {
-        $key = 'dashboard.artofliving.courses';
-
-        if (Cache::has($key)) {
-            return Cache::get($key, []);
-        }
-
-        try {
-            $response = Http::timeout(10)
-                ->withHeaders([
-                    'Accept' => 'application/json',
-                    'User-Agent' => 'Mozilla/5.0',
-                ])
-                ->get('https://unity.artofliving.org/csapi/courses', [
-                    'type' => 'country',
-                    'limit' => 100,
-                    'distance' => 50,
-                    'language' => 'id-id',
-                    'country' => 'id',
-                    'order_by' => 'start_date',
-                ]);
-
-            if ($response->successful()) {
-                $courses = $response->json('courses', []);
-                Cache::put($key, $courses, now()->addHours(6));
-                Log::info('Art of Living Courses synced', ['total' => count($courses)]);
-
-                return $courses;
-            }
-
-            Log::warning('Art of Living API Error', ['status' => $response->status()]);
-        } catch (\Throwable $e) {
-            Log::error('Art of Living API Exception', ['message' => $e->getMessage()]);
-        }
-
-        Cache::put($key, [], now()->addMinutes(5));
-
-        return [];
     }
 
     public function submitSumber(Request $request)

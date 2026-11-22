@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('website_identities', function (Blueprint $table) {
             $table->uuid('uuid')->primary();
-            $table->string('nama_website', 255)->default('YogaRoots');
+            $table->string('nama_website', 255)->default('Sagita Wedding');
             $table->string('slogan', 255)->nullable();
             $table->text('deskripsi')->nullable();
             $table->string('logo', 255)->nullable();

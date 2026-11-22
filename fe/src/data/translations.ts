@@ -113,7 +113,7 @@ const artOfLivingEn = {
   kriyaTitle: "Sudarshan Kriya™ (SKY)",
   kriyaDesc:
     "Gurudev’s signature breathing technique — documented by independent medical research to ease stress, calm the mind, and strengthen immunity.",
-  exploreClasses: "Explore YogaRoots classes",
+  exploreClasses: "Explore Sagita Wedding classes",
   // Teks untuk area kosong di panorama gurudev-hero.webp
   missionEyebrow: "Our Mission",
   mission: "Towards a stress-free, violence-free society.",
@@ -259,7 +259,7 @@ const rawTranslations = {
     whatsIncluded: "What's Included",
     chooseYourPackage: "Choose Your Package",
     chooseYourPackageDesc:
-      "Find the option that works best for your practice and make every session at YogaRoots count.",
+      "Find the option that works best for your practice and make every session at Sagita Wedding count.",
     quotaClasses: "classes",
     perMonth: "/month",
     durationDay: "day",
@@ -394,7 +394,7 @@ const rawTranslations = {
     classesEyebrow: "CLASS SCHEDULE",
     classesTitle: "Find your flow",
     classesDesc:
-      "Choose a class, pick your preferred time, and book your next practice at YogaRoots.",
+      "Choose a class, pick your preferred time, and book your next practice at Sagita Wedding.",
     classGuideEyebrow: "OUR CLASSES",
     classGuideTitle: "Class",
     classGuideTitleItalic: "Guide",
@@ -430,7 +430,7 @@ const rawTranslations = {
     packagesTitleA: "Membership",
     packagesTitleB: "Packages",
     packagesDesc:
-      "Find the membership that fits your practice, your pace, and your goals. Explore flexible packages designed to make every Yogaroots session more meaningful.",
+      "Find the membership that fits your practice, your pace, and your goals. Explore flexible packages designed to make every Sagita Wedding session more meaningful.",
     blogTitleA: "Tips &",
     blogTitleB: "Inspiration",
     blogDesc:
@@ -457,7 +457,7 @@ const rawTranslations = {
       titleA: "Rooted in",
       titleB: "Practice",
       heroDesc:
-        "YogaRoots was born from a simple belief: everyone deserves a space to slow down, breathe, and return to themselves.",
+        "Sagita Wedding was born from a simple belief: everyone deserves a space to slow down, breathe, and return to themselves.",
       storyEyebrow: "About us",
       storyTitle: "More than a studio",
       storyP1:
@@ -489,7 +489,7 @@ const rawTranslations = {
       ],
       quote:
         "You don't have to live with stress and pain. Living can be a joyful adventure instead.",
-      quoteAuthor: "— The YogaRoots Team",
+      quoteAuthor: "— The Sagita Wedding Team",
       heroBadge: "Est. 2023",
       journeyEyebrow: "Our journey",
       journeyTitle: "Milestones",
@@ -498,7 +498,7 @@ const rawTranslations = {
         {
           year: "2023",
           title: "A small beginning",
-          desc: "YogaRoots opens as a single room studio with a handful of mats and a big intention.",
+          desc: "Sagita Wedding opens as a single room studio with a handful of mats and a big intention.",
         },
         {
           year: "2024",
@@ -516,7 +516,7 @@ const rawTranslations = {
           desc: "Over 12,000 members practice with us, and every class still feels like coming home.",
         },
       ],
-      whyEyebrow: "Why YogaRoots",
+      whyEyebrow: "Why Sagita Wedding",
       whyTitle: "A practice that meets you",
       whyTitleItalic: "where you are",
       whyDesc:
@@ -652,7 +652,7 @@ const rawTranslations = {
     whatsIncluded: "Yang Didapatkan",
     chooseYourPackage: "Pilih Paketmu",
     chooseYourPackageDesc:
-      "Temukan opsi yang paling cocok untuk praktikmu dan pastikan setiap sesi di YogaRoots berarti.",
+      "Temukan opsi yang paling cocok untuk praktikmu dan pastikan setiap sesi di Sagita Wedding berarti.",
     quotaClasses: "kelas",
     perMonth: "/bulan",
     durationDay: "hari",
@@ -788,7 +788,7 @@ const rawTranslations = {
     classesEyebrow: "JADWAL KELAS",
     classesTitle: "Temukan ritme",
     classesDesc:
-      "Pilih kelas, tentukan waktu favoritmu, dan pesan latihanmu berikutnya di YogaRoots.",
+      "Pilih kelas, tentukan waktu favoritmu, dan pesan latihanmu berikutnya di Sagita Wedding.",
     classGuideEyebrow: "KELAS KAMI",
     classGuideTitle: "Panduan",
     classGuideTitleItalic: "Kelas",
@@ -824,7 +824,7 @@ const rawTranslations = {
     packagesTitleA: "Paket",
     packagesTitleB: "Membership",
     packagesDesc:
-      "Temukan membership yang sesuai dengan praktikmu, ritmemu, dan tujuanmu. Jelajahi paket fleksibel yang dirancang untuk membuat setiap sesi YogaRoots lebih bermakna.",
+      "Temukan membership yang sesuai dengan praktikmu, ritmemu, dan tujuanmu. Jelajahi paket fleksibel yang dirancang untuk membuat setiap sesi Sagita Wedding lebih bermakna.",
     blogTitleA: "Tips &",
     blogTitleB: "Inspirasi",
     blogDesc:
@@ -852,7 +852,7 @@ const rawTranslations = {
       titleA: "Berakar pada",
       titleB: "Praktik",
       heroDesc:
-        "YogaRoots lahir dari keyakinan sederhana: setiap orang layak mendapatkan ruang untuk melambat, bernapas, dan kembali pada dirinya sendiri.",
+        "Sagita Wedding lahir dari keyakinan sederhana: setiap orang layak mendapatkan ruang untuk melambat, bernapas, dan kembali pada dirinya sendiri.",
       storyEyebrow: "Tentang kami",
       storyTitle: "Lebih dari sekadar studio",
       storyP1:
@@ -884,7 +884,7 @@ const rawTranslations = {
       ],
       quote:
         "Anda tidak harus hidup dengan stres dan rasa sakit. Hidup bisa menjadi petualangan yang menyenangkan.",
-      quoteAuthor: "— Tim YogaRoots",
+      quoteAuthor: "— Tim Sagita Wedding",
       heroBadge: "Berdiri 2023",
       journeyEyebrow: "Perjalanan kami",
       journeyTitle: "Tonggak",
@@ -893,7 +893,7 @@ const rawTranslations = {
         {
           year: "2023",
           title: "Awal yang kecil",
-          desc: "YogaRoots dibuka sebagai studio satu ruangan dengan beberapa matras dan niat yang besar.",
+          desc: "Sagita Wedding dibuka sebagai studio satu ruangan dengan beberapa matras dan niat yang besar.",
         },
         {
           year: "2024",
@@ -911,7 +911,7 @@ const rawTranslations = {
           desc: "Lebih dari 12.000 member berlatih bersama kami, dan setiap kelas tetap terasa seperti pulang.",
         },
       ],
-      whyEyebrow: "Mengapa YogaRoots",
+      whyEyebrow: "Mengapa Sagita Wedding",
       whyTitle: "Praktik yang menemui Anda",
       whyTitleItalic: "di mana pun Anda berada",
       whyDesc:
@@ -1079,7 +1079,7 @@ const rawTranslations = {
       kriyaTitle: "Sudarshan Kriya™ (SKY)",
       kriyaDesc:
         "Teknik pernapasan khas Gurudev yang terbukti membantu meredakan stres, menenangkan pikiran, dan memperkuat daya tahan tubuh — didokumentasikan oleh riset medis independen dari institusi ternama.",
-      exploreClasses: "Lihat kelas YogaRoots",
+      exploreClasses: "Lihat kelas Sagita Wedding",
       // Teks untuk area kosong di panorama gurudev-hero.webp
       missionEyebrow: "Misi Kami",
       mission: "Menuju masyarakat bebas stres dan bebas kekerasan.",
