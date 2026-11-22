@@ -301,6 +301,19 @@ const rawTranslations = {
 		heroSlidePrevious: "Previous slide",
 		heroSlideNext: "Next slide",
 		scroll: "Scroll",
+		homePlanningTitle:
+			"Wedding planning feels lighter when every detail works together.",
+		homePlanningDescription:
+			"Sagita helps bring your concept, vendors, budget, and event flow into one considered plan—from preparation through the celebration.",
+		homePlanningPlanTitle: "One clear plan",
+		homePlanningPlanDescription:
+			"Bring priorities, schedules, and preparations together in a plan you can follow.",
+		homePlanningCoordinationTitle: "Everyone on the same page",
+		homePlanningCoordinationDescription:
+			"Align communication between you, your family, and your selected vendors.",
+		homePlanningBudgetTitle: "A budget with direction",
+		homePlanningBudgetDescription:
+			"Discuss priorities and needs early to guide decisions within your agreed budget.",
 
 		venuesEyebrow: "A PLACE FOR YOUR STORY",
 		venuesTitle: "Find a venue",
@@ -706,6 +719,19 @@ const rawTranslations = {
 		heroSlidePrevious: "Slide sebelumnya",
 		heroSlideNext: "Slide berikutnya",
 		scroll: "Gulir",
+		homePlanningTitle:
+			"Persiapan pernikahan terasa lebih ringan saat setiap detail saling terhubung.",
+		homePlanningDescription:
+			"Tim Sagita membantu menyelaraskan konsep, vendor, anggaran, dan alur acara—mulai dari persiapan hingga hari perayaan.",
+		homePlanningPlanTitle: "Rencana yang lebih jelas",
+		homePlanningPlanDescription:
+			"Kebutuhan, prioritas, dan jadwal persiapan dirangkai dalam satu rencana.",
+		homePlanningCoordinationTitle: "Semua pihak tetap selaras",
+		homePlanningCoordinationDescription:
+			"Komunikasi antara Anda, keluarga, dan vendor pilihan dikoordinasikan bersama.",
+		homePlanningBudgetTitle: "Anggaran lebih terarah",
+		homePlanningBudgetDescription:
+			"Prioritas dan kebutuhan dibahas sejak awal agar keputusan tetap sesuai anggaran.",
 
 		venuesEyebrow: "VENUE PILIHAN UNTUK PERAYAAN ANDA",
 		venuesTitle: "Temukan venue",

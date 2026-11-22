@@ -486,7 +486,14 @@ describe("pageScript wiring", () => {
 
 	it("beranda menampilkan venue dari data batch", async () => {
 		const res = await request(app).get("/").set("Cookie", "locale=id");
-		expect(res.text).toContain('href="#home-approach"');
+		expect(res.text).toContain('href="#home-planning-summary"');
+		expect(res.text).toContain('id="home-planning-summary"');
+		expect(res.text).toContain(
+			"Persiapan pernikahan terasa lebih ringan saat setiap detail saling terhubung.",
+		);
+		expect(res.text.indexOf('id="home-planning-summary"')).toBeLessThan(
+			res.text.indexOf('id="home-venues"'),
+		);
 		expect(res.text).toContain('id="home-venues"');
 		expect(res.text).toContain("VENUE PILIHAN UNTUK PERAYAAN ANDA");
 		expect(res.text).toContain("untuk hari istimewa Anda");
@@ -525,8 +532,10 @@ describe("pageScript wiring", () => {
 		expect(res.text).not.toContain('id="home-venues"');
 		expect(res.text).not.toContain('id="eventsData"');
 		expect(res.text).not.toContain('class="home-testimonials-section');
-		expect(res.text).toContain('id="home-approach"');
-		expect(res.text).toContain('href="#home-approach" class="scroll-indicator');
+		expect(res.text).toContain('id="home-planning-summary"');
+		expect(res.text).toContain(
+			'href="#home-planning-summary" class="scroll-indicator',
+		);
 		expect(res.text).toContain("Pendampingan Hari Pernikahan");
 	});
 
@@ -675,7 +684,9 @@ describe("pageScript wiring", () => {
 		expect(slideUrls).not.toContain("slide-6.webp");
 		expect(res.text).toContain('fetchpriority="high"');
 		expect(res.text).toContain("data-home-slide-image");
-		expect(res.text).toContain('href="#home-approach" class="scroll-indicator');
+		expect(res.text).toContain(
+			'href="#home-planning-summary" class="scroll-indicator',
+		);
 		expect(res.text).toContain("text-sm font-semibold tracking-[0.18em]");
 		expect(res.text).not.toContain("bg-white/90 px-4 py-2");
 		expect(res.text).toMatch(

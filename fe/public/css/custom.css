@@ -1999,21 +1999,25 @@ header[data-home] .nav-text:hover {
 	}
 }
 
-/* Login controls use the same cocoa and gold palette on every page. */
+/* Keep the sign-in action prominent across the shared header. */
 header[data-home] .nav-login {
-	border-color: rgba(137, 116, 95, 0.3);
-	color: #6c5a4a;
-	background: transparent;
+	border-color: #15803d;
+	color: #fff;
+	background: #15803d;
 	transition: all 0.2s ease;
 }
 header[data-home] .nav-login:hover {
-	background: #f8f6f2;
-	border-color: #b79f80;
+	background: #166534;
+	border-color: #166534;
 }
 header[data-home].scrolled .nav-login {
-	border-color: rgba(137, 116, 95, 0.3);
-	background: transparent;
-	color: #6c5a4a;
+	border-color: #15803d;
+	background: #15803d;
+	color: #fff;
+}
+header[data-home].scrolled .nav-login:hover {
+	border-color: #166534;
+	background: #166534;
 }
 
 header[data-home] .nav-hamburger {
@@ -2032,14 +2036,18 @@ header[data-home][data-hero-overlay]:not(.scrolled) .nav-hamburger {
 }
 
 header[data-home][data-hero-overlay]:not(.scrolled) .nav-link-active,
-header[data-home][data-hero-overlay]:not(.scrolled) .nav-link:hover,
-header[data-home][data-hero-overlay]:not(.scrolled) .nav-login:hover {
+header[data-home][data-hero-overlay]:not(.scrolled) .nav-link:hover {
 	background: rgba(255, 255, 255, 0.14);
 	color: #fff;
 }
 
 header[data-home][data-hero-overlay]:not(.scrolled) .nav-login {
-	border-color: rgba(255, 255, 255, 0.55);
+	border-color: #15803d;
+	background: #15803d;
+}
+header[data-home][data-hero-overlay]:not(.scrolled) .nav-login:hover {
+	border-color: #166534;
+	background: #166534;
 }
 
 header[data-home][data-hero-overlay].scrolled .logo-main {
@@ -2259,7 +2267,7 @@ header[data-home] .mobile-drawer {
 	height: 3.125rem;
 	flex: 0 0 auto;
 	place-items: center;
-	border-radius: 0.9rem;
+	border-radius: 9999px;
 	transition:
 		transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
 		box-shadow 0.35s ease;
@@ -2272,23 +2280,23 @@ header[data-home] .mobile-drawer {
 }
 
 .home-venue-icon--0 {
-	background: #f3e8e2;
-	color: #89745f;
+	background: #ddf7ee;
+	color: #00a878;
 }
 
 .home-venue-icon--1 {
-	background: #e8eee8;
-	color: #536b59;
+	background: #fde3e0;
+	color: #e95746;
 }
 
 .home-venue-icon--2 {
-	background: #eee8df;
-	color: #786246;
+	background: #e0f0f8;
+	color: #428bb2;
 }
 
 .home-venue-icon--3 {
-	background: #f2e7e1;
-	color: #895c4a;
+	background: #eeebff;
+	color: #7357e8;
 }
 
 .home-venue-card__title {
