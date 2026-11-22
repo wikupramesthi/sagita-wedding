@@ -148,7 +148,7 @@
                 $pendingPayment = $order->payments->firstWhere('verification_status', 'pending') ?? $order->payments->firstWhere('status', 'pending');
                 $hasPendingPayment = (bool) $pendingPayment;
             @endphp
-            <div class="app-card p-3 mt-3">
+            <div class="app-card p-3 mt-3" id="add-payment">
                 <h3 class="h6 fw-semibold mb-2">Tambah Pembayaran</h3>
                 <div class="m-meta text-muted2 mb-2">Sisa pembayaran: <strong class="text-danger">Rp {{ number_format($remainingAmount,0,',','.') }}</strong></div>
                 @if($hasPendingPayment)
@@ -246,47 +246,10 @@
                     </div>
                 @endif
 
-                @if ($isOwner)
-                    <form action="{{ route('orders.proof', $order->uuid) }}" method="POST"
-                        enctype="multipart/form-data" id="proofForm">
-                        @csrf
-                        <label class="m-meta fw-semibold" for="proofInput">
-                            {{ __('mobile.proof_hint', ['size' => number_format(config('manual_payment.proof_max_kb', 3072) / 1024, 1)]) }}
-                        </label>
-                        <input type="file" name="proof" id="proofInput" class="form-control mt-1"
-                            accept="image/jpeg,image/png,image/webp" required>
-                        <img id="proofPreview" alt="" class="rounded-3 border w-100 mt-2 d-none" style="max-height:200px;object-fit:cover;">
-                        <p id="proofError" class="text-danger m-meta mt-1 mb-0 d-none"></p>
-                        <button type="submit" class="btn btn-sage w-100 mt-2" id="proofSubmit">
-                            <i class="bi bi-upload me-1"></i>
-                            {{ $order->proof_image_path ? __('mobile.replace_proof') : __('mobile.upload_proof') }}
-                        </button>
-                    </form>
-                    <script>
-                        (function () {
-                            var input = document.getElementById('proofInput');
-                            var preview = document.getElementById('proofPreview');
-                            var err = document.getElementById('proofError');
-                            var maxKb = {{ (int) config('manual_payment.proof_max_kb', 3072) }};
-                            var tooLargeTpl = @json(__('mobile.file_too_large', ['size' => '__SIZE__']));
-                            if (!input) return;
-                            input.addEventListener('change', function () {
-                                err.classList.add('d-none');
-                                var f = input.files && input.files[0];
-                                if (!f) { preview.classList.add('d-none'); return; }
-                                if (f.size > maxKb * 1024) {
-                                    err.textContent = tooLargeTpl.replace('__SIZE__', (maxKb / 1024).toFixed(1));
-                                    err.classList.remove('d-none');
-                                    input.value = '';
-                                    preview.classList.add('d-none');
-                                    return;
-                                }
-                                var r = new FileReader();
-                                r.onload = function (e) { preview.src = e.target.result; preview.classList.remove('d-none'); };
-                                r.readAsDataURL(f);
-                            });
-                        })();
-                    </script>
+                @if ($isOwner && in_array($order->status, ['pending', 'partially_paid'], true))
+                    <a href="#add-payment" class="btn btn-sm btn-outline-success w-100">
+                        <i class="bi bi-cash-stack me-1"></i>Kirim/Ganti bukti di Tambah Pembayaran
+                    </a>
                 @endif
             </div>
         @endif
@@ -307,13 +270,16 @@
 
 @if ($order->status === 'pending')
     <script>
-        // Auto-refresh ringan: cek status tiap 45 detik, hanya saat tab terlihat
-        // dan user tidak sedang memilih file bukti transfer.
+        // Auto-refresh ringan: jangan reload saat user sedang mengisi form pembayaran.
         (function () {
             setInterval(function () {
                 if (document.visibilityState !== 'visible') return;
-                var input = document.getElementById('proofInput');
-                if (input && input.files && input.files.length) return;
+                var focused = document.activeElement;
+                if (focused && /^(INPUT|TEXTAREA|SELECT)$/.test(focused.tagName)) return;
+                var files = document.querySelectorAll('input[type="file"]');
+                for (var i = 0; i < files.length; i++) {
+                    if (files[i].files && files[i].files.length) return;
+                }
                 window.location.reload();
             }, 45000);
         })();

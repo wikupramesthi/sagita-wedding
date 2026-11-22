@@ -752,23 +752,23 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
 
     .package-page .package-stat-card { position: relative; overflow: hidden; border-radius: 16px; border-color: #eef0f4; transition: transform .18s ease, box-shadow .18s ease; }
     .package-page .package-stat-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(16,24,40,.1); }
-    .package-page .package-stat-card::after { content: ''; position: absolute; inset: auto 0 0; height: 3px; background: var(--stat-accent, #5b7cfa); }
-    .package-page .stat-primary { --stat-accent: #5b7cfa; }
+    .package-page .package-stat-card::after { content: ''; position: absolute; inset: auto 0 0; height: 3px; background: var(--stat-accent, #4b6b52); }
+    .package-page .stat-primary { --stat-accent: #4b6b52; }
     .package-page .stat-success { --stat-accent: #10b981; }
     .package-page .stat-secondary { --stat-accent: #98a2b3; }
     .package-page .stat-info { --stat-accent: #0ea5e9; }
-    .package-page .stat-violet { --stat-accent: #7c5cfa; }
+    .package-page .stat-violet { --stat-accent: #6b8f6f; }
 
     .package-page .package-toolbar-card { border-radius: 16px; border: 1px solid #eef0f4; box-shadow: 0 8px 24px rgba(16,24,40,.05); overflow: hidden; }
     .package-page .package-toolbar-head { padding: 16px 20px; border-bottom: 1px solid #eef0f4; background: linear-gradient(90deg, #fbfcff, #fff); }
-    .package-page .package-toolbar-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #5b7cfa; background: #eef2ff; font-size: 18px; }
+    .package-page .package-toolbar-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #4b6b52; background: #eef3ee; font-size: 18px; }
     .package-page .package-toolbar-title { font-size: 15px; font-weight: 700; color: #101828; }
     .package-page .package-toolbar-subtitle { font-size: 12px; color: #98a2b3; }
     .package-page .package-shortcut-hint { margin-left: 6px; color: #98a2b3; font-weight: 400; }
     .package-page .package-shortcut-hint kbd { padding: 1px 5px; border: 1px solid #d0d5dd; border-bottom-width: 2px; border-radius: 5px; background: #fff; color: #344054; font-family: inherit; font-size: 10px; font-weight: 600; line-height: 1.2; }
-    .package-page .package-toolbar-badge { font-size: 12px; font-weight: 600; color: #3538cd; background: #eef2ff; border-radius: 999px; padding: 6px 12px; white-space: nowrap; }
+    .package-page .package-toolbar-badge { font-size: 12px; font-weight: 600; color: #4b6b52; background: #eef3ee; border-radius: 999px; padding: 6px 12px; white-space: nowrap; }
     .package-page .package-toolbar-body { padding: 20px; }
-    .package-page .package-view-switch .btn.active { color: #fff; background-color: #5b7cfa; border-color: #5b7cfa; }
+    .package-page .package-view-switch .btn.active { color: #fff; background-color: #4b6b52; border-color: #4b6b52; }
 
     .package-page .package-filter-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px 14px; align-items: end; padding: 16px; border: 1px solid #eef0f4; border-radius: 14px; background: #fbfcff; }
     .package-page .package-filter-grid .field-search { grid-column: span 4; }
@@ -795,19 +795,19 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         box-shadow: 0 12px 28px rgba(16,24,40,.12);
         backdrop-filter: blur(8px);
     }
-    .package-page .package-bulk-icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: #3538cd; background: #eef2ff; }
+    .package-page .package-bulk-icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: #4b6b52; background: #eef3ee; }
     .package-page .package-bulk-title { font-size: 12px; font-weight: 700; color: #101828; }
     .package-page .package-bulk-subtitle { font-size: 11px; color: #667085; }
 
     .package-page .package-active-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
     .package-page .package-active-label { font-size: 12px; font-weight: 700; color: #475467; }
-    .package-page .package-filter-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #dfe7ff; border-radius: 999px; background: #fff; color: #3538cd; font-size: 11px; font-weight: 500; text-decoration: none; }
-    .package-page .package-filter-chip:hover { background: #eef2ff; color: #3538cd; }
+    .package-page .package-filter-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #d8e6da; border-radius: 999px; background: #fff; color: #4b6b52; font-size: 11px; font-weight: 500; text-decoration: none; }
+    .package-page .package-filter-chip:hover { background: #eef3ee; color: #4b6b52; }
     .package-page .package-chip-clear { font-size: 11px; font-weight: 600; color: #98a2b3; text-decoration: underline; }
     .package-page .package-chip-clear:hover { color: #f04438; }
 
     .package-page .package-list-header { border-bottom: 1px solid #eef0f4; background: #fff; }
-    .package-page .package-list-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #5b7cfa; background: #eef2ff; font-size: 16px; }
+    .package-page .package-list-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #4b6b52; background: #eef3ee; font-size: 16px; }
     .package-page .package-list-header h6 { font-size: 14px; font-weight: 700; color: #101828; }
     .package-page .package-list-subtitle { font-size: 11px; color: #98a2b3; }
     .package-page .package-table-card,
@@ -831,7 +831,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .package-page .pkg-name { max-width: 180px; }
     .package-page .package-sort-link { color: inherit; text-decoration: none; white-space: nowrap; }
     .package-page .package-sort-link:hover,
-    .package-page .package-sort-link.active { color: #3538cd; }
+    .package-page .package-sort-link.active { color: #4b6b52; }
     .package-page .package-status-toggle { cursor: pointer; }
     .package-page .package-pagination-title { font-size: 12px; font-weight: 700; color: #344054; }
     .package-page .package-pagination-subtitle { font-size: 11px; color: #98a2b3; }
@@ -848,20 +848,20 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         box-shadow: none;
         transition: all .15s ease;
     }
-    .package-page .package-pagination .page-item .page-link:hover { border-color: #5b7cfa; color: #3538cd; background: #f5f7ff; }
-    .package-page .package-pagination .page-item.active .page-link { border-color: #5b7cfa; background: #5b7cfa; color: #fff; box-shadow: 0 4px 10px rgba(91,124,250,.28); }
+    .package-page .package-pagination .page-item .page-link:hover { border-color: #4b6b52; color: #4b6b52; background: #f6faf7; }
+    .package-page .package-pagination .page-item.active .page-link { border-color: #4b6b52; background: #4b6b52; color: #fff; box-shadow: 0 4px 10px rgba(75,107,82,.28); }
     .package-page .package-pagination .page-item.disabled .page-link { border-color: #eef0f4; background: #fafbfc; color: #b2b7c3; }
 
     .package-page .package-item-card { border-color: #e4e7ec; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform .18s ease, box-shadow .18s ease; }
     .package-page .package-item-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(16,24,40,.09); }
-    .package-page .package-card-cover { position: relative; height: 120px; overflow: hidden; background: linear-gradient(120deg, #eef2ff, #f5fffb); }
+    .package-page .package-card-cover { position: relative; height: 120px; overflow: hidden; background: linear-gradient(120deg, #eef3ee, #f5fffb); }
     .package-page .package-card-cover img { width: 100%; height: 100%; object-fit: cover; }
     .package-page .package-card-cover-empty { width: 100%; height: 100%; display: grid; place-items: center; font-size: 26px; color: #b2b7c3; }
     .package-page .package-card-badges { position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
     .package-page .package-card-badges .badge { box-shadow: 0 4px 10px rgba(16,24,40,.12); }
     .package-page .package-card-check { position: absolute; top: 10px; right: 10px; z-index: 2; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px; background: rgba(255,255,255,.94); box-shadow: 0 4px 10px rgba(16,24,40,.14); cursor: pointer; }
     .package-page .package-card-check .form-check-input { margin: 0; cursor: pointer; }
-    .package-page .package-item-card.is-selected { border-color: #5b7cfa; box-shadow: 0 0 0 2px rgba(91,124,250,.2); }
+    .package-page .package-item-card.is-selected { border-color: #4b6b52; box-shadow: 0 0 0 2px rgba(75,107,82,.2); }
     .package-page .package-card-content { padding: 14px; color: #475467; font-size: 13px; }
     .package-page .package-card-title { font-size: 14px; font-weight: 700; color: #101828; }
     .package-page .package-card-desc { font-size: 12px; color: #667085; line-height: 1.5; }
@@ -888,7 +888,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .package-page .package-drawer-gallery { margin-top: 0; }
     .package-page .package-drawer-gallery-strip { display: flex; gap: 8px; margin-top: 8px; }
     .package-page .package-drawer-thumb { width: 52px; height: 52px; display: grid; place-items: center; overflow: hidden; border: 1px solid #d0d5dd; border-radius: 10px; background: #f9fafb; color: #667085; }
-    .package-page .package-drawer-thumb.active { border-color: #3538cd; box-shadow: 0 0 0 2px #eef2ff; }
+    .package-page .package-drawer-thumb.active { border-color: #4b6b52; box-shadow: 0 0 0 2px #eef3ee; }
     .package-page .package-drawer-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .package-page .package-drawer-cover-empty { height: 90px; display: grid; place-items: center; border: 1px dashed #d0d5dd; border-radius: 12px; color: #98a2b3; background: #f9fafb; font-size: 22px; }
     .package-page .package-drawer-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }

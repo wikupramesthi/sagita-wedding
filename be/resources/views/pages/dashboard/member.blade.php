@@ -175,7 +175,7 @@
         top: 5px;
         width: 10px;
         height: 10px;
-        border: 2px solid #6758d6;
+        border: 2px solid #4b6b52;
         border-radius: 50%;
         background: #fff;
     }
@@ -274,8 +274,8 @@
         color: #fff;
         font-size: 19px;
         background: linear-gradient(135deg,
-                #4f46e5,
-                #7c3aed);
+                #4b6b52,
+                #6b8f6f);
         box-shadow: 0 5px 12px rgba(79, 70, 229, 0.25);
     }
 
@@ -300,13 +300,13 @@
         margin-bottom: 18px;
         border-radius: 15px;
         background: linear-gradient(135deg,
-                #eef2ff,
+                #eef3ee,
                 #f5f3ff);
     }
 
     .membership-plan-name {
         margin-top: 3px;
-        color: #5b4ce1;
+        color: #4b6b52;
         font-size: 20px;
         font-weight: 700;
     }
@@ -315,7 +315,7 @@
         position: absolute;
         top: 12px;
         right: 16px;
-        color: #7c3aed;
+        color: #6b8f6f;
         font-size: 42px;
         opacity: 0.12;
     }
@@ -340,7 +340,7 @@
         height: 100%;
         border-radius: 20px;
         background: linear-gradient(90deg,
-                #4f46e5,
+                #4b6b52,
                 #8b5cf6);
     }
 
@@ -356,8 +356,8 @@
         border-radius: 12px;
         color: #fff;
         background: linear-gradient(135deg,
-                #4f46e5,
-                #7c3aed);
+                #4b6b52,
+                #6b8f6f);
         font-weight: 600;
         text-decoration: none;
         transition: all 0.25s ease;
@@ -416,8 +416,8 @@
                 </p>
             </div>
             <div class="col-lg-3 text-lg-end mt-3 mt-lg-0" style="position: relative;z-index: 1;">
-                <a href="{{ route('packages.member') }}" class="btn btn-light fw-bold px-4"><i
-                        class="bi bi-box-seam me-1"></i> Lihat Paket</a>
+                <a href="#package-recommendation" class="btn btn-light fw-bold px-4"><i
+                        class="bi bi-search me-1"></i> Cari Paket Sesuai Budget</a>
             </div>
         </div>
     </div>
@@ -439,8 +439,8 @@
                 <h2 id="wedding-preparation-title" class="fw-bold mb-1">Ringkasan persiapan</h2>
                 <p class="small text-muted mb-0">Tanggal, langkah persiapan, paket, dan pembayaran mengikuti pesanan Anda.</p>
             </div>
-            <a href="{{ route('packages.member') }}" class="btn btn-outline-primary d-none d-md-inline-flex">
-                <i class="bi bi-search me-1"></i> Jelajahi Paket
+            <a href="#package-recommendation" class="btn btn-outline-primary d-none d-md-inline-flex">
+                <i class="bi bi-search me-1"></i> Cari Sesuai Budget
             </a>
         </div>
 
@@ -650,7 +650,7 @@
                                     <td class="text-end"><a href="{{ route('orders.show', $o->uuid) }}" class="btn btn-sm btn-outline-primary">Detail</a></td>
                                 </tr>
                                 @empty
-                                <tr><td colspan="7" class="text-center py-5 text-muted">Belum ada pesanan. <a href="{{ route('packages.member') }}" class="fw-semibold text-decoration-none">Pilih paket wedding</a>.</td></tr>
+                                <tr><td colspan="7" class="text-center py-5 text-muted">Belum ada pesanan. <a href="#package-recommendation" class="fw-semibold text-decoration-none">Cari paket sesuai budget</a>.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -664,7 +664,7 @@
                     <h2 class="fw-bold mb-1 member-section-title">Mulai dari sini</h2>
                     <p class="small text-muted mb-3">Akses cepat untuk mengelola rencana pernikahan Anda.</p>
                     <div class="d-grid gap-2">
-                        <a href="{{ route('packages.member') }}" class="btn btn-primary"><i class="bi bi-box-seam me-1"></i> Jelajahi Paket Wedding</a>
+                        <a href="#package-recommendation" class="btn btn-primary"><i class="bi bi-search me-1"></i> Cari Paket Sesuai Budget</a>
                         <a href="{{ route('orders.index') }}" class="btn btn-outline-primary"><i class="bi bi-receipt me-1"></i> Pesanan & Pembayaran</a>
                         <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary"><i class="bi bi-person me-1"></i> Profil Saya</a>
                     </div>

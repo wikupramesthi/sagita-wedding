@@ -177,22 +177,10 @@
                         </div>
                     @endif
 
-                    @if ($isOwner)
-                        <form action="{{ route('orders.proof', $order->uuid) }}" method="POST"
-                            enctype="multipart/form-data" class="d-flex flex-wrap align-items-end gap-2">
-                            @csrf
-                            <div class="flex-fill" style="min-width: 220px;">
-                                <label class="form-label small fw-semibold" for="proofInput">
-                                    Unggah bukti transfer (JPG/PNG/WebP, maks {{ number_format(config('manual_payment.proof_max_kb', 3072) / 1024, 1) }} MB)
-                                </label>
-                                <input type="file" name="proof" id="proofInput" class="form-control"
-                                    accept="image/jpeg,image/png,image/webp" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-upload me-1"></i>
-                                {{ $order->proof_image_path ? 'Ganti Bukti' : 'Unggah Bukti' }}
-                            </button>
-                        </form>
+                    @if ($isOwner && in_array($order->status, ['pending', 'partially_paid'], true))
+                        <a href="#payment-module" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-cash-stack me-1"></i>Kirim/Ganti bukti di Modul Pembayaran
+                        </a>
                     @endif
                 </div>
             </div>

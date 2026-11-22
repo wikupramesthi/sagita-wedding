@@ -819,13 +819,13 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
 <style>
     .order-stats .order-stat-card { position: relative; overflow: hidden; border-radius: 16px; transition: transform .18s ease, box-shadow .18s ease; }
     .order-stats .order-stat-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(16,24,40,.1); }
-    .order-stats .order-stat-card::after { content: ''; position: absolute; inset: auto 0 0; height: 3px; background: var(--stat-accent, #5b7cfa); }
-    .order-stats .stat-total { --stat-accent: #5b7cfa; }
+    .order-stats .order-stat-card::after { content: ''; position: absolute; inset: auto 0 0; height: 3px; background: var(--stat-accent, #4b6b52); }
+    .order-stats .stat-total { --stat-accent: #4b6b52; }
     .order-stats .stat-pending { --stat-accent: #f59e0b; }
     .order-stats .stat-paid { --stat-accent: #10b981; }
     .order-stats .stat-failed { --stat-accent: #ef4444; }
-    .order-revenue-card { border-radius: 16px; border: 1px solid #dfe7ff; background: linear-gradient(110deg, #f7f9ff 0%, #fff 58%, #f5fffb 100%); box-shadow: 0 8px 24px rgba(16,24,40,.05); }
-    .order-revenue-icon { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; color: #fff; background: linear-gradient(135deg, #5b7cfa, #7c5cfa); box-shadow: 0 8px 16px rgba(91,124,250,.25); }
+    .order-revenue-card { border-radius: 16px; border: 1px solid #d8e6da; background: linear-gradient(110deg, #f7f9ff 0%, #fff 58%, #f5fffb 100%); box-shadow: 0 8px 24px rgba(16,24,40,.05); }
+    .order-revenue-icon { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; color: #fff; background: linear-gradient(135deg, #4b6b52, #6b8f6f); box-shadow: 0 8px 16px rgba(75,107,82,.25); }
     .order-revenue-label { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #667085; font-weight: 600; }
     .order-revenue-value { font-size: 24px; font-weight: 700; color: #101828; letter-spacing: -.02em; }
     .order-revenue-meta-label { font-size: 11px; color: #98a2b3; }
@@ -833,10 +833,10 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .order-undo-bar { border-radius: 14px; border: 1px solid #b9d7ff; }
     .order-toolbar-card { border-radius: 16px; border: 1px solid #eef0f4; box-shadow: 0 8px 24px rgba(16,24,40,.05); overflow: hidden; }
     .order-toolbar-head { padding: 16px 20px; border-bottom: 1px solid #eef0f4; background: linear-gradient(90deg, #fbfcff, #fff); }
-    .order-toolbar-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #5b7cfa; background: #eef2ff; font-size: 18px; }
+    .order-toolbar-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #4b6b52; background: #eef3ee; font-size: 18px; }
     .order-toolbar-title { font-size: 15px; font-weight: 700; color: #101828; }
     .order-toolbar-subtitle { font-size: 12px; color: #98a2b3; }
-    .order-toolbar-badge { font-size: 12px; font-weight: 600; color: #3538cd; background: #eef2ff; border-radius: 999px; padding: 6px 12px; }
+    .order-toolbar-badge { font-size: 12px; font-weight: 600; color: #4b6b52; background: #eef3ee; border-radius: 999px; padding: 6px 12px; }
     .order-toolbar-body { padding: 20px; }
     .order-filter-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px 14px; align-items: end; padding: 16px; border: 1px solid #eef0f4; border-radius: 14px; background: #fbfcff; }
     .order-filter-grid .field-search { grid-column: span 4; }
@@ -847,7 +847,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .order-filter-grid .form-control, .order-filter-grid .form-select { font-size: 13px; height: 38px; border-color: #e4e7ec; border-radius: 10px; }
     .order-saved-panel { margin-top: 20px; padding: 16px; border-radius: 14px; border: 1px dashed #d0d5dd; background: #f8fafc; }
     .order-saved-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 700; color: #344054; }
-    .order-saved-count { font-size: 11px; font-weight: 700; color: #5b7cfa; background: #fff; border: 1px solid #dfe7ff; border-radius: 999px; padding: 2px 8px; }
+    .order-saved-count { font-size: 11px; font-weight: 700; color: #4b6b52; background: #fff; border: 1px solid #d8e6da; border-radius: 999px; padding: 2px 8px; }
     .order-saved-hint { font-size: 12px; font-weight: 400; color: #98a2b3; }
     .order-saved-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
     .order-saved-filters .btn-group form { margin: 0; }
@@ -872,8 +872,8 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .order-date-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
     .order-date-presets-label { font-size: 12px; font-weight: 700; color: #475467; }
     .order-date-preset { padding: 5px 10px; border: 1px solid #d0d5dd; border-radius: 999px; background: #fff; color: #475467; font-size: 11px; font-weight: 600; }
-    .order-date-preset:hover { border-color: #5b7cfa; color: #3538cd; }
-    .order-date-preset.active { border-color: #5b7cfa; background: #eef2ff; color: #3538cd; }
+    .order-date-preset:hover { border-color: #4b6b52; color: #4b6b52; }
+    .order-date-preset.active { border-color: #4b6b52; background: #eef3ee; color: #4b6b52; }
     .order-date-presets-hint { font-size: 11px; color: #98a2b3; }
     .order-sticky-bar {
         position: sticky;
@@ -960,8 +960,8 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     }
 
     .order-view-switch .btn.active {
-        background: #5b7cfa;
-        border-color: #5b7cfa;
+        background: #4b6b52;
+        border-color: #4b6b52;
         color: #fff;
     }
 
@@ -985,8 +985,8 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         gap: 8px;
         padding: 5px 10px;
         border-radius: 999px;
-        background: #eef2ff;
-        color: #3538cd;
+        background: #eef3ee;
+        color: #4b6b52;
         font-size: 12px;
         font-weight: 600;
     }
@@ -1042,8 +1042,8 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         border-radius: 10px;
         display: grid;
         place-items: center;
-        color: #5b7cfa;
-        background: #eef2ff;
+        color: #4b6b52;
+        background: #eef3ee;
     }
 
     .orders-table-tools-title {
@@ -1065,7 +1065,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         gap: 12px;
         margin-bottom: 16px;
         padding: 12px 14px;
-        border: 1px solid #dfe7ff;
+        border: 1px solid #d8e6da;
         border-radius: 12px;
         background: linear-gradient(100deg, #f7f9ff, #fff);
     }
@@ -1076,8 +1076,8 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         border-radius: 10px;
         display: grid;
         place-items: center;
-        color: #3538cd;
-        background: #eef2ff;
+        color: #4b6b52;
+        background: #eef3ee;
     }
 
     .orders-bulk-title {
@@ -1243,8 +1243,8 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     }
 
     .orders-pagination .page-item.active .page-link {
-        border-color: #5b7cfa;
-        background: #5b7cfa;
+        border-color: #4b6b52;
+        background: #4b6b52;
         color: #fff;
     }
 

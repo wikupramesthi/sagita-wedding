@@ -62,8 +62,8 @@
                             @forelse ($actionQueue['orders'] as $order)
                                 <div class="d-flex align-items-center gap-2 {{ $loop->last ? '' : 'border-bottom pb-2 mb-2' }}">
                                     <div class="flex-grow-1 min-w-0">
-                                        <div class="fw-semibold small text-truncate">{{ $order->order_number }}</div>
-                                        <div class="small text-muted text-truncate">{{ $order->user->name ?? '-' }} · Rp {{ number_format($order->amount, 0, ',', '.') }}</div>
+                                        <div class="fw-semibold small text-truncate" title="{{ $order->order_number }}">{{ $order->order_number }}</div>
+                                        <div class="small text-muted text-truncate" title="{{ ($order->user->name ?? '-').' · Rp '.number_format($order->amount, 0, ',', '.') }}">{{ $order->user->name ?? '-' }} · Rp {{ number_format($order->amount, 0, ',', '.') }}</div>
                                     </div>
                                     <a href="{{ $order->proof_image_path ? route('orders.proof.show', $order->uuid) : route('orders.show', $order->uuid) }}" class="btn btn-sm btn-info" title="Lihat bukti pembayaran">
                                         <i class="bi bi-eye"></i>
@@ -94,10 +94,10 @@
                             @forelse ($actionQueue['messages'] as $message)
                                 <div class="d-flex align-items-center gap-2 {{ $loop->last ? '' : 'border-bottom pb-2 mb-2' }}">
                                     <div class="flex-grow-1 min-w-0">
-                                        <div class="fw-semibold small text-truncate">{{ $message->full_name }} <span class="text-muted fw-normal">· {{ $message->email ?: $message->whatsapp }}</span></div>
+                                        <div class="fw-semibold small text-truncate" title="{{ $message->full_name }} · {{ $message->email ?: $message->whatsapp }}">{{ $message->full_name }} <span class="text-muted fw-normal">· {{ $message->email ?: $message->whatsapp }}</span></div>
                                         <div class="d-flex align-items-center gap-2 small text-muted">
                                             <span class="badge {{ $message->lead_status_badge_class }}">{{ $message->lead_status_label }}</span>
-                                            <span class="text-truncate">Jatuh tempo {{ optional($message->follow_up_at)->translatedFormat('d M Y') }}</span>
+                                            <span class="text-truncate" title="Jatuh tempo {{ optional($message->follow_up_at)->translatedFormat('d M Y') }}">Jatuh tempo {{ optional($message->follow_up_at)->translatedFormat('d M Y') }}</span>
                                         </div>
                                     </div>
                                     <a href="{{ route('konsultasi.show', $message->uuid) }}" class="btn btn-sm btn-info"><i class="bi bi-arrow-right"></i></a>

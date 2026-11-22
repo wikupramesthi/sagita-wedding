@@ -237,13 +237,13 @@
 @push('after-style')
 <style>
     .report-stat { position: relative; overflow: hidden; border-radius: 16px !important; }
-    .report-stat::after { content: ''; position: absolute; inset: auto 0 0; height: 3px; background: var(--report-accent, #5b7cfa); }
-    .report-stat-total { --report-accent: #5b7cfa; }
+    .report-stat::after { content: ''; position: absolute; inset: auto 0 0; height: 3px; background: var(--report-accent, #4b6b52); }
+    .report-stat-total { --report-accent: #4b6b52; }
     .report-stat-pending { --report-accent: #f59e0b; }
     .report-stat-paid { --report-accent: #10b981; }
     .report-stat-failed { --report-accent: #ef4444; }
     .order-report-revenue { border-radius: 16px; border: 1px solid #dfe7ff; background: linear-gradient(110deg, #f7f9ff, #fff 58%, #f5fffb); }
-    .order-report-revenue-icon { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; color: #fff; background: linear-gradient(135deg, #5b7cfa, #7c5cfa); }
+    .order-report-revenue-icon { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; color: #fff; background: linear-gradient(135deg, #4b6b52, #6b8f6f); }
     .order-report-revenue-label { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: #667085; font-weight: 600; }
     .order-report-revenue-value { font-size: 24px; font-weight: 700; color: #101828; }
 </style>

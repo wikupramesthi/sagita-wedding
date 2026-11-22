@@ -237,8 +237,8 @@ class DashboardController extends Controller
                         ? $planningOrders->count().' pesanan paket aktif'
                         : 'Pilih paket agar tanggal dan biaya acara terhubung di sini.',
                     'done' => $hasPlanningOrders,
-                    'url' => $hasPlanningOrders ? route('orders.index') : route('packages.member'),
-                    'action' => $hasPlanningOrders ? 'Lihat pesanan' : 'Jelajahi paket',
+                    'url' => $hasPlanningOrders ? route('orders.index') : '#package-recommendation',
+                    'action' => $hasPlanningOrders ? 'Lihat pesanan' : 'Cari paket',
                 ],
                 [
                     'label' => 'Tentukan tanggal acara',
@@ -246,8 +246,8 @@ class DashboardController extends Controller
                         ? Carbon::parse($data['planningEventDate'])->translatedFormat('d F Y')
                         : 'Tanggal acara tercatat bersama pesanan paket.',
                     'done' => $data['planningEventDate'] !== null,
-                    'url' => $hasPlanningOrders ? route('orders.index') : route('packages.member'),
-                    'action' => $data['planningEventDate'] ? 'Lihat pesanan' : 'Pilih paket',
+                    'url' => $hasPlanningOrders ? route('orders.index') : '#package-recommendation',
+                    'action' => $data['planningEventDate'] ? 'Lihat pesanan' : 'Cari paket',
                 ],
                 [
                     'label' => 'Selesaikan pembayaran',
@@ -255,8 +255,8 @@ class DashboardController extends Controller
                         ? 'Status pembayaran akan muncul setelah memilih paket.'
                         : ($allPlanningOrdersPaid ? 'Semua pesanan aktif sudah lunas.' : 'Masih ada pembayaran yang perlu diselesaikan.'),
                     'done' => $allPlanningOrdersPaid,
-                    'url' => $hasPlanningOrders ? route('orders.index') : route('packages.member'),
-                    'action' => $hasPlanningOrders ? 'Cek pembayaran' : 'Jelajahi paket',
+                    'url' => $hasPlanningOrders ? route('orders.index') : '#package-recommendation',
+                    'action' => $hasPlanningOrders ? 'Cek pembayaran' : 'Cari paket',
                 ],
             ];
             $completedPlanningSteps = count(array_filter(

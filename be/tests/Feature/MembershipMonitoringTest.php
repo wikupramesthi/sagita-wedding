@@ -250,7 +250,7 @@ class MembershipMonitoringTest extends TestCase
 
         $this->actingAs($member)
             ->get(route('memberships.export'))
-            ->assertForbidden();
+            ->assertNotFound();
     }
 
     public function test_payment_proof_is_visible_to_owner_and_admin_only(): void
@@ -426,6 +426,7 @@ class MembershipMonitoringTest extends TestCase
     {
         $vendor = $this->userWithRole('vendor');
         $package = $this->package();
+        $package->forceFill(['is_published' => false])->save();
 
         $this->actingAs($vendor)
             ->get(route('packages.preview', $package->uuid))

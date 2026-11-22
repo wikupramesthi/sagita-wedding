@@ -12,15 +12,17 @@
     <section class="row">
         <div class="col-12">
 
-            @role('user')
-            <div class="mb-3 text-end">
-                <a href="{{ route('member-view', 'mobile') }}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-phone me-1"></i> Mobile view
-                </a>
-            </div>
-            @include('pages.dashboard.member')
+            @if (auth()->user()->hasAnyRole(['super-admin', 'admin']))
+                @include('pages.dashboard.card')
             @else
-            @include('pages.dashboard.card')
+                @role('user')
+                <div class="mb-3 text-end">
+                    <a href="{{ route('member-view', 'mobile') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-phone me-1"></i> Mobile view
+                    </a>
+                </div>
+                @endrole
+                @include('pages.dashboard.member')
             @endif
 
         </div>

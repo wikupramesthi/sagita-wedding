@@ -234,15 +234,15 @@ $rupiah = fn ($value) => 'Rp ' . number_format((float) $value, 0, ',', '.');
 
 @push('after-style')
 <style>
-    .ms-mobile-finance { background: linear-gradient(130deg, #f7f9ff, #fff 60%, #f4fdf8); }
+    .ms-mobile-finance { background: linear-gradient(130deg, #f6faf7, #fff 60%, #fdf8f4); }
     .ms-mobile-finance-icon, .ms-mobile-reminder-icon {
         width: 36px; height: 36px; flex-shrink: 0; border-radius: 12px; display: grid; place-items: center;
-        font-size: 16px; color: #fff; background: linear-gradient(135deg, #5b7cfa, #7c5cfa);
+        font-size: 16px; color: #fff; background: linear-gradient(135deg, #4b6b52, #6b8f6f);
     }
-    .ms-mobile-reminder-icon { background: linear-gradient(135deg, #7c5cfa, #a78bfa); }
-    .ms-mobile-progress { height: 6px; border-radius: 999px; background: #edf0f5; overflow: hidden; }
+    .ms-mobile-reminder-icon { background: linear-gradient(135deg, #c4703c, #dc9064); }
+    .ms-mobile-progress { height: 6px; border-radius: 999px; background: #e6ece7; overflow: hidden; }
     .ms-mobile-progress .progress-bar { border-radius: 999px; }
-    .ms-mobile-event { background: rgba(91,124,250,.08); color: #3538cd; }
+    .ms-mobile-event { background: rgba(75,107,82,.08); color: #4b6b52; }
 </style>
 @endpush
 

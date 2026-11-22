@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\Payment\Order;
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
+use App\Models\Payment\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -112,15 +112,18 @@ class DashboardOrderSummaryTest extends TestCase
     {
         $member = $this->userWithRole('user');
         $order = $this->packageOrder($member);
+        $recommendedPackage = $this->publishedPackage('Paket Harmoni', 5000000);
 
         $this->actingAs($member)
             ->withHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36')
-            ->get(route('dashboard.index'))
+            ->get(route('dashboard.index', ['budget_max' => 6000000]))
             ->assertOk()
             ->assertSee('21 Agustus 2027')
             ->assertSee('Rp 120.000.000')
             ->assertSee('Rp 30.000.000')
-            ->assertSee($order->order_number);
+            ->assertSee($order->order_number)
+            ->assertSee('Paket Harmoni')
+            ->assertSee(route('checkout.package', $recommendedPackage->uuid), false);
     }
 
     public function test_admin_dashboard_reads_the_same_upcoming_member_orders(): void
