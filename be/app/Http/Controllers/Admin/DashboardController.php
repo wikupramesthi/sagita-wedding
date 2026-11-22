@@ -15,6 +15,7 @@ use App\Models\Payment\Order;
 use App\Models\User;
 use App\Models\UserPackage;
 use App\Models\Venue;
+use App\Models\WeddingPlan;
 use App\Models\WebsiteIdentity;
 use App\Support\DashboardCache;
 use App\Support\MemberView;
@@ -175,9 +176,31 @@ class DashboardController extends Controller
 
         if ($isMember) {
             $myOrders = Order::where('user_uuid', $user->uuid)->latest();
+            $weddingPlan = WeddingPlan::where('user_uuid', $user->uuid)->first();
             $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
             $data['courses'] = [];
             $data['myOrders'] = (clone $myOrders)->with(['package:uuid,name', 'packageOption:uuid,name'])->take(5)->get();
+            $data['weddingPlan'] = $weddingPlan;
+            $data['planningEventDate'] = $weddingPlan?->event_date
+                ?: (clone $myOrders)
+                    ->whereIn('status', ['pending', 'partially_paid', 'paid'])
+                    ->whereNotNull('event_date')
+                    ->orderByDesc('event_date')
+                    ->value('event_date');
+            $data['planningTimeline'] = $data['planningEventDate']
+                ? collect([
+                    ['label' => 'Tentukan konsep & anggaran', 'months_before' => 12],
+                    ['label' => 'Pilih venue dan vendor utama', 'months_before' => 9],
+                    ['label' => 'Finalisasi daftar tamu dan undangan', 'months_before' => 6],
+                    ['label' => 'Finalisasi dekorasi dan busana', 'months_before' => 3],
+                    ['label' => 'Konfirmasi vendor dan susunan acara', 'months_before' => 1],
+                    ['label' => 'Hari pernikahan', 'months_before' => 0],
+                ])->map(fn (array $milestone) => [
+                    'label' => $milestone['label'],
+                    'date' => \Carbon\Carbon::parse($data['planningEventDate'])
+                        ->subMonthsNoOverflow($milestone['months_before']),
+                ])
+                : collect();
             $data['myOrderStats'] = [
                 'total' => (clone $myOrders)->count(),
                 'pending' => (clone $myOrders)->whereIn('status', ['pending','partially_paid'])->count(),
@@ -194,7 +217,7 @@ class DashboardController extends Controller
                 ]);
             }
 
-            return view('pages.dashboard.member', $data);
+            return view('pages.dashboard.index', $data);
         }
 
         return view('pages.dashboard.index', $data);

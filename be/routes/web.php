@@ -40,6 +40,7 @@ use App\Http\Controllers\ManagementAccess\RoleController;
 use App\Http\Controllers\ManagementAccess\RouteController;
 use App\Http\Controllers\ManagementAccess\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WeddingPlanningController;
 use App\Http\Middleware\InvalidateDashboardCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -112,6 +113,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/wedding-planning', [WeddingPlanningController::class, 'update'])->name('wedding-planning.update');
+    Route::patch('/wedding-planning/tasks/{task}', [WeddingPlanningController::class, 'updateTask'])
+        ->name('wedding-planning.tasks.update');
     // Keep-alive to reset the idle timer (called via JS when the user clicks "Stay signed in")
     Route::post('/keep-alive', function (Request $request) {
         $request->session()->put('last_activity', time());

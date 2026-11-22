@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -244,6 +245,21 @@ class User extends Authenticatable implements MustVerifyEmail
                 $user->uuid = Str::uuid()->toString();
             }
         });
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar) {
+            return null;
+        }
+
+        if (Str::startsWith($this->avatar, ['http://', 'https://'])) {
+            return $this->avatar;
+        }
+
+        $path = ltrim($this->avatar, '/');
+
+        return Storage::disk('public')->exists($path) ? asset('storage/'.$path) : null;
     }
 
     public function getProspectStatusLabelAttribute(): string

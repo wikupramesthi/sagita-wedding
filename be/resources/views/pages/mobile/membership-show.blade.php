@@ -2,6 +2,11 @@
 @section('title', __('mobile.membership_detail'))
 @section('content')
 
+@php
+$rupiah = fn ($value) => 'Rp ' . number_format((float) $value, 0, ',', '.');
+$avatar = $membership->user?->avatar_url;
+@endphp
+
 <section class="screen active" id="membership-detail">
     <div class="px-4 pt-4">
 
@@ -22,8 +27,12 @@
         {{-- QUOTA CARD --}}
         <div class="app-card d-flex align-items-center gap-3 p-3 mt-3">
             <div class="grad-sage d-flex align-items-center justify-content-center flex-shrink-0"
-                style="height: 48px; width: 48px; border-radius: 18px">
-                <i class="bi bi-flower1 text-white"></i>
+                style="height: 48px; width: 48px; border-radius: 18px; overflow: hidden">
+                @if ($avatar)
+                    <img src="{{ $avatar }}" alt="{{ $membership->user->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                @else
+                    <span class="text-white fw-semibold">{{ strtoupper(substr($membership->user?->name ?? '?', 0, 1)) }}</span>
+                @endif
             </div>
             <div class="flex-fill">
                 <p class="mb-0 small fw-semibold">
@@ -52,6 +61,27 @@
             </div>
         @endif
 
+        {{-- PEMBAYARAN --}}
+        <div class="app-card p-3 mt-3">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <p class="mb-0 small fw-semibold"><i class="bi bi-wallet2 me-1 text-terra"></i>{{ __('mobile.monitoring') }}</p>
+                <span class="badge rounded-pill {{ $membership->payment_progress >= 100 ? 'bg-success-subtle text-success-emphasis' : 'bg-warning-subtle text-warning-emphasis' }}">
+                    {{ __('mobile.payment_status_label.' . $membership->payment_status_label) ?? $membership->payment_status_label }}
+                </span>
+            </div>
+            <p class="mb-1 text-muted2 m-meta">{{ __('mobile.full_amount') }} <b class="text-dark">{{ $rupiah($membership->total_amount_value) }}</b></p>
+            <div class="d-flex justify-content-between gap-2">
+                <span class="text-muted2 m-meta">{{ __('mobile.paid') }} <b class="text-success">{{ $rupiah($membership->amount_paid_value) }}</b></span>
+                <span class="text-muted2 m-meta">{{ __('mobile.remaining') }} <b class="{{ $membership->remaining_amount_value > 0 ? 'text-danger' : 'text-success' }}">{{ $rupiah($membership->remaining_amount_value) }}</b></span>
+            </div>
+            <div class="progress mt-2" style="height: 6px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ $membership->payment_progress }}%; background: var(--sage);"></div>
+            </div>
+            @if ($membership->order?->scheme_label)
+                <p class="mb-0 mt-2 text-muted2 m-meta">{{ $membership->order->scheme_label }}</p>
+            @endif
+        </div>
+
         {{-- DETAIL --}}
         <div class="app-card p-3 mt-3">
             <div class="d-flex justify-content-between py-2 border-bottom">
@@ -64,6 +94,21 @@
                     <span class="small fw-semibold text-terra">#{{ $membership->order->order_number }} →</span>
                 </a>
             @endif
+            <div class="d-flex justify-content-between py-2 border-bottom">
+                <span class="text-muted2 text-small">{{ __('mobile.event_date') }}</span>
+                @if ($membership->event_date)
+                    <span class="small fw-semibold text-end">
+                        {{ $membership->event_date->format('d M Y') }}
+                        @if ($membership->days_to_event > 0)
+                            <small class="d-block text-terra">{{ __('mobile.days_left', ['count' => $membership->days_to_event]) }}</small>
+                        @elseif ($membership->days_to_event === 0)
+                            <small class="d-block text-terra">{{ __('mobile.event_today') }}</small>
+                        @endif
+                    </span>
+                @else
+                    <span class="small fw-semibold">{{ __('mobile.no_event') }}</span>
+                @endif
+            </div>
             <div class="d-flex justify-content-between py-2 border-bottom">
                 <span class="text-muted2 text-small">{{ __('mobile.started') }}</span>
                 <span class="small fw-semibold">{{ $membership->started_at?->format('d M Y H:i') ?? '-' }}</span>

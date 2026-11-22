@@ -55,6 +55,11 @@ class AuthenticatedSessionController extends Controller
             ->with('success', $welcome);
     }
 
+    public function confirmLogout(): View
+    {
+        return view('auth.logout');
+    }
+
     /**
      * Destroy an authenticated session.
      */
