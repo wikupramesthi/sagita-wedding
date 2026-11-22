@@ -239,7 +239,8 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertSee('Menunggu')
             ->assertSee($whatsappMessage, false)
             ->assertDontSee('more information about your classes')
-            ->assertSee(config('frontend.url').'/formulir-konsultasi', false)
+            ->assertSee(route('consultation.form'), false)
+            ->assertSee('bi-telephone', false)
             ->assertSee(route('checkout.package', $recommendedPackage->uuid), false);
     }
 

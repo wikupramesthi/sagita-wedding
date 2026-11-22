@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\VendorsCategoryController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\WebsiteIdentityController;
+use App\Http\Controllers\ConsultationFormController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ManagementAccess\MenuGroupController;
@@ -48,6 +49,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/formulir-konsultasi', [ConsultationFormController::class, 'create'])->name('consultation.form');
+Route::post('/formulir-konsultasi', [ConsultationFormController::class, 'store'])
+    ->middleware('throttle:api-contact')
+    ->name('consultation.form.submit');
 
 // Socialite Routes GOOGLE
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('googleAuth');

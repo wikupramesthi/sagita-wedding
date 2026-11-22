@@ -240,7 +240,7 @@ main {
     border-radius: 50%;
     background-image: var(--grad-sage);
     color: #fff;
-    font-size: 26px;
+    font-size: 20px;
     box-shadow: 0 8px 20px rgba(75, 107, 82, 0.35);
     border: 4px solid var(--bg);
 }

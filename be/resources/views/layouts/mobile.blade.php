@@ -55,8 +55,8 @@
 
             <button type="button"
                 class="tab-item tab-booking "
-                onclick="window.location.href='{{ config('frontend.url') }}/formulir-konsultasi'">
-                <span class="ico"><i class="bi bi-calendar-plus"></i></span>
+                onclick="window.location.href='{{ route('consultation.form') }}'">
+                <span class="ico"><i class="bi bi-telephone"></i></span>
                 <span>{{ __('mobile.book') }}</span>
             </button>
 
