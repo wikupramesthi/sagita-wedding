@@ -6,14 +6,32 @@
 @endif
 
 @if ($order->documents->isNotEmpty())
+    @php
+        $documentLabels = ['contract' => 'Kontrak', 'invoice' => 'Invoice', 'receipt' => 'Tanda Terima'];
+    @endphp
     <div class="{{ $compact ? 'app-card p-3 mt-3' : 'card border-0 shadow-sm mb-4' }}">
         <div class="{{ $compact ? 'h6 fw-semibold mb-3' : 'card-header bg-white fw-semibold' }}">Kontrak & dokumen pembayaran</div>
         <div class="{{ $compact ? '' : 'card-body' }} d-flex flex-wrap gap-2">
             @foreach ($order->documents as $document)
-                <a class="btn btn-sm btn-outline-primary" href="{{ route('orders.documents.download', [$order->uuid, $document->uuid]) }}">
-                    <i class="bi bi-file-earmark-pdf me-1"></i>{{ ucfirst($document->type) }}
-                    <span class="small text-muted">· {{ $document->issued_at?->format('d M Y') }}</span>
-                </a>
+                @php
+                    $documentLabel = $documentLabels[$document->type] ?? ucfirst((string) $document->type);
+                @endphp
+                <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-primary"
+                        href="{{ route('orders.documents.preview', [$order->uuid, $document->uuid]) }}"
+                        target="_blank"
+                        rel="noopener">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>{{ $documentLabel }}
+                        <span class="small text-muted">· {{ $document->issued_at?->format('d M Y') }}</span>
+                    </a>
+                    <a class="btn btn-outline-primary"
+                        href="{{ route('orders.documents.download', [$order->uuid, $document->uuid]) }}"
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="Unduh {{ $documentLabel }}">
+                        <i class="bi bi-download"></i>
+                    </a>
+                </div>
             @endforeach
         </div>
     </div>

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ManagementAccess\Route as RouteRecord;
 use App\Models\Package\Package;
 use App\Models\Package\PackageAddon;
 use App\Models\Package\PackageOption;
@@ -308,6 +309,48 @@ class OrderWorkflowFeatureTest extends TestCase
             ->get(route('orders.documents.download', [$this->order->uuid, $document->uuid]))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_order_document_preview_streams_inline_pdf_without_route_registration(): void
+    {
+        $document = OrderDocument::create([
+            'order_uuid' => $this->order->uuid,
+            'document_number' => 'INV-'.uniqid(),
+            'document_key' => $this->order->uuid.':invoice',
+            'type' => 'invoice',
+            'snapshot' => [
+                'customer_name' => $this->member->name,
+                'order_number' => $this->order->order_number,
+                'total_amount' => 10000000,
+                'amount_paid' => 3000000,
+                'remaining_amount' => 7000000,
+                'payment_amount' => 3000000,
+            ],
+            'issued_at' => now(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('orders.show', $this->order->uuid))
+            ->assertOk()
+            ->assertSee('target="_blank"', false)
+            ->assertSee(route('orders.documents.preview', [$this->order->uuid, $document->uuid]), false);
+
+        RouteRecord::whereIn('route', ['orders.documents.preview', 'orders.documents.download'])->delete();
+        Cache::flush();
+
+        $preview = $this->actingAs($this->member)
+            ->get(route('orders.documents.preview', [$this->order->uuid, $document->uuid]))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+
+        $this->assertStringContainsString('inline', (string) $preview->headers->get('Content-Disposition'));
+
+        $download = $this->actingAs($this->admin)
+            ->get(route('orders.documents.download', [$this->order->uuid, $document->uuid]))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+
+        $this->assertStringContainsString('attachment', (string) $download->headers->get('Content-Disposition'));
     }
 
     public function test_order_workflow_panel_renders_for_desktop_and_mobile_members(): void

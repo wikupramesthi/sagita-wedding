@@ -14,8 +14,8 @@ use App\Http\Controllers\Admin\FileDownloadController;
 use App\Http\Controllers\Admin\GlobalSearchController;
 use App\Http\Controllers\Admin\MembershipController;
 use App\Http\Controllers\Admin\NotificationController;
-use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\OrderChangeRequestController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\OrderDocumentController;
 use App\Http\Controllers\Admin\OrderVendorAssignmentController;
 use App\Http\Controllers\Admin\OrderWorkflowAnalyticsController;
@@ -240,10 +240,10 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
     Route::patch('/packages/{package}/toggle-status', [PackageController::class, 'toggleStatus'])->name('packages.toggle-status');
     Route::post('/packages/{package}/reorder', [PackageController::class, 'reorder'])->name('packages.reorder');
     Route::get('/packages/{package}/preview', [PackageController::class, 'preview'])->name('packages.preview');
-    Route::resource('package-promos', PackagePromoController::class)->except(['show','create','edit']);
+    Route::resource('package-promos', PackagePromoController::class)->except(['show', 'create', 'edit']);
     Route::resource('packages', PackageController::class);
     Route::resource('venues', VenueController::class)->except(['show']);
-Route::get('/checkout/package/{packageUuid}', [
+    Route::get('/checkout/package/{packageUuid}', [
         CheckoutController::class,
         'package',
     ])->name('checkout.package');
@@ -263,6 +263,7 @@ Route::get('/checkout/package/{packageUuid}', [
     Route::get('orders/analytics', [OrderWorkflowAnalyticsController::class, 'index'])->name('orders.analytics');
     Route::get('orders/change-requests', [OrderChangeRequestController::class, 'index'])->name('orders.change-requests.index');
     Route::post('orders/change-requests/{changeRequest}/review', [OrderChangeRequestController::class, 'review'])->name('orders.change-requests.review');
+    Route::get('orders/{order}/documents/{document}/preview', [OrderDocumentController::class, 'preview'])->name('orders.documents.preview');
     Route::get('orders/{order}/documents/{document}/download', [OrderDocumentController::class, 'download'])->name('orders.documents.download');
     Route::post('orders/{order}/checklist/{item}', [WeddingChecklistController::class, 'update'])->name('orders.checklist.update');
     Route::post('orders/{order}/change-requests', [OrderChangeRequestController::class, 'store'])->name('orders.change-requests.store');

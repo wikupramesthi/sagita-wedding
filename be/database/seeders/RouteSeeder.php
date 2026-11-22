@@ -249,6 +249,7 @@ class RouteSeeder extends Seeder
             ['route' => 'orders.change-requests.review', 'permission_name' => 'orders.index'],
             ['route' => 'orders.change-requests.store', 'permission_name' => 'orders.store'],
             ['route' => 'orders.checklist.update', 'permission_name' => 'orders.show'],
+            ['route' => 'orders.documents.preview', 'permission_name' => 'orders.show'],
             ['route' => 'orders.documents.download', 'permission_name' => 'orders.show'],
             ['route' => 'orders.workflow-settings.edit', 'permission_name' => 'orders.index'],
             ['route' => 'orders.workflow-settings.update', 'permission_name' => 'orders.index'],
