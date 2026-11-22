@@ -29,8 +29,8 @@
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('articles.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-file-earmark-plus me-1"></i> Tambah artikel</a>
-                <a href="{{ route('banner.create') }}" class="btn btn-sm btn-info"><i class="bi bi-image me-1"></i> Upload banner</a>
-                <a href="{{ route('events.create') }}" class="btn btn-sm btn-success"><i class="bi bi-calendar-plus me-1"></i> Buat event</a>
+                <a href="{{ route('banner.index') }}" class="btn btn-sm btn-info"><i class="bi bi-image me-1"></i> Upload banner</a>
+                <a href="{{ route('events.index') }}" class="btn btn-sm btn-success"><i class="bi bi-calendar-plus me-1"></i> Buat event</a>
                 @if ($canViewConsultations)
                     <a href="{{ route('konsultasi.index') }}" class="btn btn-sm btn-primary"><i class="bi bi-diagram-3 me-1"></i> Konsultasi</a>
                 @endif
@@ -568,7 +568,7 @@
                             <div class="text-center text-muted py-4 px-3">
                                 <i class="bi bi-calendar-x fs-2 d-block mb-2 opacity-50"></i>
                                 <p class="mb-1 fw-semibold">Belum ada acara</p>
-                                <p class="small mb-0"><a href="{{ route('events.create') }}">Buat acara baru</a></p>
+                                <p class="small mb-0"><a href="{{ route('events.index') }}">Buat acara baru</a></p>
                             </div>
                         @endforelse
                     </div>

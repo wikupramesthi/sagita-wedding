@@ -1318,8 +1318,10 @@ class PackageController extends Controller
 
         return view('pages.package.member', [
             'packages' => collect([$package]),
+            'wishlistedUuids' => [],
             'previewMode' => true,
             'previewPackage' => $package,
+            'wishlistedUuids' => [],
         ]);
     }
 

@@ -115,7 +115,7 @@ class BannerController extends Controller
      */
     public function create()
     {
-        //
+        return redirect()->route('banner.index');
     }
 
     /**

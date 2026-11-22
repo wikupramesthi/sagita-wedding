@@ -104,7 +104,7 @@
 
         <div class="login-card">
             <div class="card-top">
-                <button type="button">&larr; Back</button>
+                <button type="button" onclick="history.back()">&larr; Back</button>
                 <button type="button" id="helpBtn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2">

@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Area admin selalu memakai Bahasa Indonesia.
- * Tampilan mobile mengikuti session `locale` (ID/EN, default EN).
+ * Tampilan mobile mengikuti session `locale` (ID/EN, default ID).
  * Locale Carbon disesuaikan agar tanggal dan waktu ikut.
  */
 class SetLocale
@@ -20,9 +20,9 @@ class SetLocale
         if ($path === 'backend' || str_starts_with($path, 'backend/')) {
             $locale = 'id';
         } else {
-            $locale = session('locale', 'en');
+            $locale = session('locale', 'id');
             if (! in_array($locale, ['id', 'en'], true)) {
-                $locale = 'en';
+                $locale = 'id';
             }
         }
 

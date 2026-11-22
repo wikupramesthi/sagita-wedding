@@ -70,17 +70,6 @@
                 <!-- end can menu -->
                 @endforeach
 
-                @if (Auth::check())
-                @can('admin')
-                <li class="sidebar-item">
-                    <a class="sidebar-link nav-link" href="#" target="_blank" title="User Guide">
-                        <div class="icon icon-shape icon-sm">
-                            <i class="bi bi-info-circle"></i>
-                        </div>
-                        <span class="nav-link-text ms-1">Guide</span>
-                    </a>
-                </li>
-                @endcan
 
                 @role('user')
                 <li class="sidebar-title">Others</li>

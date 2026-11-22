@@ -98,7 +98,7 @@ class EventsController extends Controller
      */
     public function create()
     {
-        //
+        return redirect()->route('events.index');
     }
 
     /**

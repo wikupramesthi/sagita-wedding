@@ -24,7 +24,6 @@ class ProfileTest extends TestCase
 
     public function test_mobile_member_profile_uses_the_indonesian_order_description(): void
     {
-        app()->setLocale('id');
         Role::findOrCreate('user', 'web');
         $user = User::factory()->create();
         $user->assignRole('user');
@@ -34,6 +33,7 @@ class ProfileTest extends TestCase
             ->get('/profile')
             ->assertOk()
             ->assertViewIs('pages.mobile.profile')
+            ->assertSee('<html lang="id">', false)
             ->assertSee('Lihat detail, batalkan, dan pantau status pesanan Anda.')
             ->assertDontSee('Lihat riwayat dan status pesanan Anda');
     }
