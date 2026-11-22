@@ -16,21 +16,7 @@ class EmailSettingSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        EmailSetting::unguarded(fn () => EmailSetting::updateOrCreate(
-            ['uuid' => '206ab35b-cb99-4581-9521-e4556fb135af'],
-            [
-                'mail_driver' => 'log',
-                'mail_host' => '127.0.0.1',
-                'mail_port' => 2525,
-                'mail_encryption' => null,
-                'mail_username' => null,
-                'mail_password' => null,
-                'mail_timeout' => 60,
-                'from_address' => 'hello@example.com',
-                'from_name' => 'Sagita Wedding',
-                'is_active' => 1,
-            ]
-        ));
+        EmailSetting::singleton();
 
         MenuGroup::where('name', 'Pengaturan')->update([
             'name' => 'Pengaturan Sistem',

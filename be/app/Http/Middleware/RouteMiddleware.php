@@ -173,7 +173,6 @@ class RouteMiddleware
             'profile.*',
             'keep-alive',
             'member-view',
-            'locale',
             'account.*',
             'notifications.*',
             'packages.member',

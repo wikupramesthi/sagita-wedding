@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\EmailSetting;
 use App\Models\User;
 use App\Models\WebsiteIdentity;
+use Database\Seeders\EmailSettingSeeder;
 use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -103,6 +104,35 @@ class EmailSettingModuleTest extends TestCase
         $this->assertSame('smtp', config('mail.default'));
         $this->assertSame('smtp.example.com', config('mail.mailers.smtp.host'));
         $this->assertSame('noreply@example.com', config('mail.from.address'));
+    }
+
+    public function test_seeder_uses_mail_config_for_initial_settings_and_preserves_existing_settings(): void
+    {
+        EmailSetting::query()->delete();
+
+        config([
+            'mail.default' => 'smtp',
+            'mail.mailers.smtp.host' => 'smtp-relay.brevo.com',
+            'mail.mailers.smtp.port' => 587,
+            'mail.mailers.smtp.encryption' => 'tls',
+            'mail.mailers.smtp.username' => 'smtp-login',
+            'mail.mailers.smtp.password' => 'smtp-key',
+        ]);
+
+        $this->seed(EmailSettingSeeder::class);
+
+        $setting = EmailSetting::query()->sole();
+        $this->assertSame('smtp', $setting->mail_driver);
+        $this->assertSame('smtp-relay.brevo.com', $setting->mail_host);
+        $this->assertSame(587, $setting->mail_port);
+        $this->assertSame('tls', $setting->mail_encryption);
+        $this->assertSame('smtp-login', $setting->mail_username);
+        $this->assertSame('smtp-key', $setting->mail_password);
+
+        $setting->update(['mail_password' => 'saved-smtp-key']);
+        $this->seed(EmailSettingSeeder::class);
+
+        $this->assertSame('saved-smtp-key', $setting->fresh()->mail_password);
     }
 
     public function test_blank_password_keeps_existing_password(): void

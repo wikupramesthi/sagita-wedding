@@ -139,15 +139,6 @@ Route::middleware('auth')->group(function () {
         return back();
     })->name('member-view');
 
-    // Bahasa tampilan: /lang/id atau /lang/en.
-    Route::get('/lang/{locale}', function (string $locale) {
-        if (in_array($locale, ['id', 'en'], true)) {
-            session(['locale' => $locale]);
-        }
-
-        return back();
-    })->name('locale');
-
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');

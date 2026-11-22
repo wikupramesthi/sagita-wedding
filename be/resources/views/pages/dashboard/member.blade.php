@@ -416,11 +416,6 @@
                 </p>
             </div>
             <div class="col-lg-3 text-lg-end mt-3 mt-lg-0" style="position: relative;z-index: 1;">
-                <div class="dashboard-language-switcher d-flex justify-content-lg-end align-items-center gap-1 mb-2" role="group" aria-label="{{ __('dashboard.language') }}">
-                    <span class="small text-white-50 me-1"><i class="bi bi-translate me-1"></i>{{ __('dashboard.language') }}</span>
-                    <a href="{{ route('locale', 'id') }}" class="btn btn-sm {{ app()->getLocale() === 'id' ? 'btn-light' : 'btn-outline-light' }}">ID</a>
-                    <a href="{{ route('locale', 'en') }}" class="btn btn-sm {{ app()->getLocale() === 'en' ? 'btn-light' : 'btn-outline-light' }}">EN</a>
-                </div>
                 <a href="#package-recommendation" class="btn btn-light fw-bold px-4"><i
                         class="bi bi-search me-1"></i> {{ __('dashboard.find_packages') }}</a>
             </div>

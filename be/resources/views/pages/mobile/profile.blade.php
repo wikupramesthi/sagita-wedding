@@ -550,31 +550,6 @@
 
             {{-- Change Password --}}
 
-            <div
-                class="
-        text-decoration-none
-        text-dark
-        d-flex
-        align-items-center
-        gap-3
-        px-4
-        py-3
-        border-bottom
-    ">
-                <i class="bi bi-translate text-sage"></i>
-
-                <span class="small fw-medium flex-fill">
-                    {{ __('mobile.language') }}
-                </span>
-
-                <span class="d-flex gap-1">
-                    <a href="{{ route('locale', 'id') }}"
-                        class="btn btn-sm rounded-pill px-3 {{ app()->getLocale() === 'id' ? 'btn-sage text-white' : 'btn-light border' }}">ID</a>
-                    <a href="{{ route('locale', 'en') }}"
-                        class="btn btn-sm rounded-pill px-3 {{ app()->getLocale() !== 'id' ? 'btn-sage text-white' : 'btn-light border' }}">EN</a>
-                </span>
-            </div>
-
             <a
                 href="{{ route('packages.member') }}"
                 class="

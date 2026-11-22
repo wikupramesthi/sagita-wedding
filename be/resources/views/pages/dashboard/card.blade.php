@@ -223,11 +223,6 @@
                         <a href="{{ route('dashboard.export', request()->query()) }}" class="btn btn-sm btn-success"><i class="bi bi-file-earmark-excel me-1"></i> Excel</a>
                         <a href="{{ route('dashboard.export-pdf', request()->query()) }}" class="btn btn-sm btn-danger"><i class="bi bi-file-earmark-pdf me-1"></i> PDF</a>
                         <button type="button" id="dashboardRefreshBtn" class="btn btn-sm btn-warning"><i class="bi bi-arrow-clockwise me-1"></i> {{ __('dashboard.refresh') }}</button>
-                        <div class="dashboard-language-switcher d-flex align-items-center gap-1" role="group" aria-label="{{ __('dashboard.language') }}">
-                            <span class="small text-muted me-1"><i class="bi bi-translate me-1"></i>{{ __('dashboard.language') }}</span>
-                            <a href="{{ route('locale', 'id') }}" class="btn btn-sm {{ app()->getLocale() === 'id' ? 'btn-primary' : 'btn-outline-secondary' }}">ID</a>
-                            <a href="{{ route('locale', 'en') }}" class="btn btn-sm {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-outline-secondary' }}">EN</a>
-                        </div>
                     </div>
                     <div class="col-12 d-flex align-items-center gap-2">
                         <span class="dashboard-updated" id="dashboardUpdatedAt"><i class="bi bi-clock-history me-1"></i> {{ __('dashboard.last_updated') }} {{ now()->format('H.i') }}</span>
