@@ -29,6 +29,11 @@
     <p style="margin:0 0 22px;color:#45524a;font-size:14px;line-height:1.7;">
         Silakan buka detail pesanan untuk melihat informasi pembayaran dan melanjutkan prosesnya.
     </p>
+    @if ($installmentAmount !== null && $reminderDays !== null)
+        <p style="margin:0 0 22px;color:#788078;font-size:13px;line-height:1.6;">
+            Pengingat ini dikirim H-{{ $reminderDays }} sebelum jadwal pembayaran.
+        </p>
+    @endif
     <table role="presentation" cellspacing="0" cellpadding="0" border="0">
         <tr>
             <td style="border-radius:8px;background:#405b4a;">

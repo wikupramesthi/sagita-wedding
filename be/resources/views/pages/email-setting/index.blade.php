@@ -30,7 +30,7 @@
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header py-3">
                         <h6 class="mb-0 fw-semibold"><i class="bi bi-hdd-network me-2"></i> Koneksi SMTP</h6>
-                        <small class="text-body-secondary">Digunakan untuk pengingat pembayaran pesanan.</small>
+                        <small class="text-body-secondary">Untuk konfirmasi konsultasi, bukti pembayaran, dan pengingat pembayaran kepada pengguna.</small>
                     </div>
                     <div class="card-body">
                         <div class="alert alert-info small d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
@@ -208,7 +208,7 @@
                             <span class="tip-bullet"><i class="bi bi-bell"></i></span>
                             <div>
                                 <strong>Notifikasi</strong>
-                                <span>Pengingat sisa pembayaran dan cicilan pesanan memakai pengaturan SMTP ini.</span>
+                                <span>Konfirmasi konsultasi, bukti pembayaran, dan pengingat pembayaran dikirim kepada pengguna.</span>
                             </div>
                         </li>
                         <li>

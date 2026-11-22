@@ -59,6 +59,7 @@ class OrderBalanceDueNotification extends Notification implements ShouldQueue
                     : 'Segera',
                 'installmentAmount' => $this->installmentAmount,
                 'installmentLabel' => $this->installmentLabel,
+                'reminderDays' => $this->reminderDays,
                 'orderUrl' => route('orders.show', $this->orderUuid),
             ]);
     }

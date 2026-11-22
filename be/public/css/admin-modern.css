@@ -318,8 +318,8 @@ a {
 }
 
 .menu .submenu .submenu-item.active > .submenu-link {
-    color: var(--modern-brand);
-    background: rgba(79, 70, 229, 0.1);
+    color: var(--sidebar-active-text);
+    background: var(--sidebar-active-bg-soft);
     font-weight: 700;
 }
 
@@ -2735,13 +2735,13 @@ body.overflow-y-hidden #main > * {
     font-weight: inherit;
 }
 
-/* Active = abu terang #f6f9fc, teks gelap, tanpa shadow */
+/* Active = hijau soft, teks hijau gelap */
 #sidebar .sidebar-wrapper .menu .sidebar-item.active > .sidebar-link {
-    background-color: var(--argon-active) !important;
+    background-color: var(--sidebar-active-bg) !important;
     background-image: none !important;
-    color: var(--argon-dark) !important;
+    color: var(--sidebar-active-text) !important;
     font-weight: 600 !important;
-    box-shadow: none !important;
+    box-shadow: 0 6px 16px rgba(31, 122, 75, 0.12) !important;
 }
 
 #sidebar
@@ -2757,13 +2757,13 @@ body.overflow-y-hidden #main > * {
     > .sidebar-link
     .icon-shape
     i {
-    color: var(--argon-dark) !important;
+    color: var(--sidebar-active-text) !important;
     background: transparent !important;
     box-shadow: none !important;
 }
 
 #sidebar .sidebar-wrapper .menu .sidebar-item.active > .sidebar-link span {
-    color: var(--argon-dark) !important;
+    color: var(--sidebar-active-text) !important;
 }
 
 /* Chevron tetap abu saat aktif (bukan putih) */
@@ -2810,9 +2810,9 @@ body.overflow-y-hidden #main > * {
 }
 
 .sidebar-wrapper .menu .submenu .submenu-item.active > .submenu-link {
-    color: #212529 !important;
+    color: var(--sidebar-active-text) !important;
     font-weight: 600 !important;
-    background: transparent !important;
+    background: var(--sidebar-active-bg-soft) !important;
 }
 
 /* Mini-icon hanya dipakai mode mini; sembunyikan saat expanded */
@@ -3225,9 +3225,9 @@ html[data-bs-theme="dark"]
     .menu
     .sidebar-item.active
     > .sidebar-link {
-    background-color: rgba(94, 114, 228, 0.16) !important;
+    background-color: var(--sidebar-active-bg) !important;
     background-image: none !important;
-    color: #fff !important;
+    color: var(--sidebar-active-text) !important;
     box-shadow: none !important;
 }
 
@@ -3253,7 +3253,7 @@ html[data-bs-theme="dark"]
     .sidebar-item.active
     > .sidebar-link
     span {
-    color: #fff !important;
+    color: var(--sidebar-active-text) !important;
     background: transparent !important;
 }
 
@@ -3278,7 +3278,7 @@ html[data-bs-theme="dark"]
     .submenu
     .submenu-item.active
     > .submenu-link {
-    color: #fff !important;
+    color: var(--sidebar-active-text) !important;
 }
 
 html[data-bs-theme="dark"] .sidebar-wrapper .sidenav-footer .card {
@@ -5039,9 +5039,10 @@ html[data-bs-theme="dark"] .media-status {
 }
 
 #sidebar .sidebar-wrapper .menu .sidebar-item.active > .sidebar-link {
-    background: #fff !important;
-    color: #5e55c8 !important;
-    box-shadow: 0 2px 8px rgba(40, 45, 70, 0.06) !important;
+    background-color: var(--sidebar-active-bg) !important;
+    background-image: none !important;
+    color: var(--sidebar-active-text) !important;
+    box-shadow: 0 6px 16px rgba(31, 122, 75, 0.12) !important;
 }
 
 #sidebar
@@ -5058,7 +5059,7 @@ html[data-bs-theme="dark"] .media-status {
     .icon-shape
     i,
 #sidebar .sidebar-wrapper .menu .sidebar-item.active > .sidebar-link span {
-    color: #5e55c8 !important;
+    color: var(--sidebar-active-text) !important;
 }
 
 .sidebar-wrapper .sidenav-footer {
@@ -5194,8 +5195,9 @@ html[data-bs-theme="dark"]
     .menu
     .sidebar-item.active
     > .sidebar-link {
-    background: rgba(139, 124, 247, 0.16) !important;
-    color: #fff !important;
+    background-color: var(--sidebar-active-bg) !important;
+    background-image: none !important;
+    color: var(--sidebar-active-text) !important;
 }
 
 html[data-bs-theme="dark"]
@@ -5220,7 +5222,7 @@ html[data-bs-theme="dark"]
     .sidebar-item.active
     > .sidebar-link
     span {
-    color: #fff !important;
+    color: var(--sidebar-active-text) !important;
 }
 
 html[data-bs-theme="dark"] #main,
@@ -5548,8 +5550,8 @@ html[data-bs-theme="dark"] .dashboard-home .stats-icon .bi {
 }
 
 .sidebar-wrapper .menu .submenu .submenu-item.active > .submenu-link {
-    background: transparent !important;
-    color: #5145bd !important;
+    background: var(--sidebar-active-bg-soft) !important;
+    color: var(--sidebar-active-text) !important;
     font-weight: 700 !important;
 }
 
@@ -5664,8 +5666,8 @@ html[data-bs-theme="dark"]
     .submenu
     .submenu-item.active
     > .submenu-link {
-    background: rgba(139, 124, 247, 0.16) !important;
-    color: #c4bcff !important;
+    background: var(--sidebar-active-bg) !important;
+    color: var(--sidebar-active-text) !important;
 }
 
 .min-w-0 {
