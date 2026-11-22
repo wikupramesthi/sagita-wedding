@@ -49,7 +49,7 @@ const PACKAGES_PAGE = {
 
 let homeSliderBanners: unknown[] = [];
 let homeTestimonials: unknown = [];
-let homeEvents: unknown[] = [];
+let homeArticles: unknown[] = [];
 let homeVenues: unknown = [
 	{
 		uuid: "v1",
@@ -107,7 +107,7 @@ const getPageBatch = vi.fn(
 					sliderBanners: homeSliderBanners,
 					venues: homeVenues,
 					packages: [],
-					events: homeEvents,
+					articles: homeArticles,
 					testimonials: homeTestimonials,
 				};
 			case "venues":
@@ -154,7 +154,7 @@ beforeEach(() => {
 	});
 	homeSliderBanners = [];
 	homeTestimonials = [];
-	homeEvents = [];
+	homeArticles = [];
 	homeWeddingContentReady = true;
 	homeVenues = [
 		{
@@ -516,7 +516,13 @@ describe("pageScript wiring", () => {
 			{ posisi: "slider", gambar: "https://example.test/yoga-banner.webp" },
 		];
 		homeVenues = [{ name: "Yoga Roots Studio", slug: "yoga-roots" }];
-		homeEvents = [{ judul: "Yoga Night at the Museum" }];
+		homeArticles = [
+			{
+				slug: "yoga-article",
+				title: "Yoga article",
+				featured_image: "/img/yoga.webp",
+			},
+		];
 		homeTestimonials = [
 			{ nama: "Yoga Guest", isi_testimoni: "A peaceful yoga class." },
 		];
@@ -525,8 +531,9 @@ describe("pageScript wiring", () => {
 
 		expect(res.status).toBe(200);
 		expect(res.text).not.toContain("Yoga Roots Studio");
-		expect(res.text).not.toContain("Yoga Night at the Museum");
+		expect(res.text).not.toContain("Yoga article");
 		expect(res.text).not.toContain("yoga-banner.webp");
+		expect(res.text).not.toContain("/img/yoga.webp");
 		expect(res.text).not.toContain("Yoga Guest");
 		expect(res.text).not.toContain("Art of Living");
 		expect(res.text).not.toContain('id="home-venues"');
@@ -537,6 +544,30 @@ describe("pageScript wiring", () => {
 			'href="#home-planning-summary" class="scroll-indicator',
 		);
 		expect(res.text).toContain("Pendampingan Hari Pernikahan");
+	});
+
+	it("beranda menampilkan maksimal tiga artikel dengan layout kartu yang sama", async () => {
+		homeArticles = Array.from({ length: 4 }, (_, index) => ({
+			slug: `artikel-${index + 1}`,
+			title: `Artikel Pernikahan ${index + 1}`,
+			featured_image: `https://example.test/article-${index + 1}.webp`,
+			created_at: "2026-11-20 12:00:00",
+		}));
+
+		const res = await request(app).get("/").set("Cookie", "locale=id");
+
+		expect(res.status).toBe(200);
+		expect(res.text).toContain("BACAAN SEPUTAR PERNIKAHAN");
+		expect(res.text).toContain("Artikel &amp;");
+		expect(res.text).toContain("Inspirasi Pernikahan");
+		expect(res.text).toContain('href="/blog/artikel-1"');
+		expect(res.text).toContain("https://example.test/article-1.webp");
+		expect(res.text).toContain("Baca artikel");
+		expect(res.text).toContain('href="/blog"');
+		expect(res.text.match(/href="\/blog\/artikel-\d+"/g)).toHaveLength(3);
+		expect(res.text).toContain("aspect-[4/5]");
+		expect(res.text).not.toContain("Acara &amp;");
+		expect(res.text).not.toContain("open-event");
 	});
 
 	it("beranda menampilkan maksimal empat venue", async () => {
@@ -577,7 +608,7 @@ describe("pageScript wiring", () => {
 		expect(res.text).not.toContain("home-venue-skeleton");
 	});
 
-	it("beranda menampilkan carousel testimoni di bawah acara", async () => {
+	it("beranda menampilkan carousel testimoni setelah pendekatan layanan", async () => {
 		homeTestimonials = [
 			{
 				nama: "Alya & Raka",

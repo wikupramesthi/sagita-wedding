@@ -15,7 +15,7 @@ export function lockScroll() {
 }
 
 export function unlockScroll() {
-	const anyOpen = ["bookingModal", "eventModal"].some(
+	const anyOpen = ["bookingModal"].some(
 		(id) => $(id) && !$(id)!.classList.contains("hidden"),
 	);
 	if (!anyOpen) document.body.style.overflow = "";

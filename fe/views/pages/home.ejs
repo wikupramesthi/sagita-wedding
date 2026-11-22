@@ -200,52 +200,43 @@
     </div>
   </section>
 
-  <!-- ======================= UPCOMING / EVENTS ======================= -->
-  <% if (weddingContentReady && Array.isArray(events) && events.length > 0) { %>
+  <!-- ======================= FEATURED ARTICLES ======================= -->
+  <% if (weddingContentReady && Array.isArray(articles) && articles.length > 0) { %>
   <section class="py-16 bg-clay-50/30">
     <div class="site-container">
       <div class="reveal flex items-end justify-between mb-12">
         <div>
-          <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-2"><%= t.upcoming %></p>
-          <h2 class="font-display text-3xl sm:text-4xl text-sage-900"><%= t.eventsTitle %> <span class="italic"><%= t.eventsTitleItalic %></span></h2>
+          <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-2"><%= t.homeArticlesEyebrow %></p>
+          <h2 class="font-display text-3xl sm:text-4xl text-sage-900"><%= t.homeArticlesTitle %> <span class="italic"><%= t.homeArticlesTitleItalic %></span></h2>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <% (events || []).slice(0, 3).forEach((event, i) => { %>
-          <button type="button" data-action="open-event" data-event-index="<%= i %>" class="reveal group relative overflow-hidden rounded-2xl aspect-[4/5] text-left w-full shadow-lg ring-1 ring-sand-900/5 hover:-translate-y-1 transition-transform duration-300" data-delay="<%= i * 100 %>">
-            <img src="<%= event.gambar || '/img/Sagita Wedding_about1.jpg' %>" alt="" aria-hidden="true" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105">
+        <% (articles || []).slice(0, 3).forEach((article, i) => { %>
+          <a href="/blog/<%= article.slug %>" class="reveal group relative overflow-hidden rounded-2xl aspect-[4/5] text-left w-full shadow-lg ring-1 ring-sand-900/5 hover:-translate-y-1 transition-transform duration-300" data-delay="<%= i * 100 %>">
+            <img src="<%= article.image || '/img/Sagita Wedding_about1.jpg' %>" alt="" aria-hidden="true" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105">
             <div class="approach-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10"></div>
-            <span class="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-full bg-sand-50/15 backdrop-blur-sm text-[9px] font-bold tracking-[0.15em] text-sand-50">EVENT</span>
+            <span class="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-full bg-sand-50/15 backdrop-blur-sm text-[9px] font-bold tracking-[0.15em] text-sand-50"><%= t.homeArticleLabel %></span>
             <div class="relative h-full flex flex-col justify-end p-6">
-              <p class="text-xs text-sand-100/90 mb-2"><%= event.tanggal || '' %><% if (event.waktu_mulai) { %> · <%= String(event.waktu_mulai).substring(0, 5) %><% } %></p>
-              <h3 class="font-display text-xl text-white leading-tight drop-shadow-sm"><%= event.judul %></h3>
+              <p class="text-xs text-sand-100/90 mb-2"><%= article.date %></p>
+              <h3 class="font-display text-xl text-white leading-tight drop-shadow-sm"><%= article.title %></h3>
               <p class="mt-3 inline-flex items-center gap-1.5 text-xs text-sand-100/80 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                <%= t.eventViewDetails %>
+                <%= t.homeArticleReadMore %>
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
               </p>
             </div>
-          </button>
+          </a>
         <% }) %>
       </div>
 
-      <% if ((events || []).length > 0) { %>
+      <% if ((articles || []).length > 0) { %>
         <div class="reveal flex justify-center mt-10">
-          <a href="/event" class="btn-secondary group inline-flex items-center gap-2 px-6 py-3 text-sm">
-            <%= t.viewAllEvents %>
+          <a href="/blog" class="btn-secondary group inline-flex items-center gap-2 px-6 py-3 text-sm">
+            <%= t.viewAllArticles %>
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
           </a>
         </div>
       <% } %>
 
-      <script id="eventsData" type="application/json"><%- JSON.stringify((events || []).slice(0, 3).map((e) => ({
-          gambar: e.gambar || "",
-          judul: e.judul || "",
-          tanggal: e.tanggal || "",
-          waktu_mulai: e.waktu_mulai ? String(e.waktu_mulai) : "",
-          waktu_selesai: e.waktu_selesai ? String(e.waktu_selesai) : "",
-          lokasi: e.lokasi || "",
-          deskripsi: e.deskripsi || ""
-        }))).replace(/</g, "\\u003c") %></script>
 
       <!-- Event Modal -->
       <div id="eventModal" class="fixed inset-0 z-[70] hidden">

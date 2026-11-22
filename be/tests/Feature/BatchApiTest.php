@@ -56,7 +56,7 @@ class BatchApiTest extends TestCase
                     'testimonials',
                     'venues',
                     'packages',
-                    'events',
+                    'articles',
                 ],
             ])
             ->assertJsonPath('data.weddingContentReady', false);

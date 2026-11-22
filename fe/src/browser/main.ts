@@ -7,7 +7,6 @@
  *   3. Reveal on scroll
  *   4. Fallback gambar (data-fallback, data-remove-on-error)
  *
- * Modal event (data-action="open-event") ditangani pages/home.ts.
  */
 
 import { $, lockScroll, onAction, unlockScroll } from "./lib/dom";
