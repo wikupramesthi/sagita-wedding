@@ -139,7 +139,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <% approachCards.forEach((a, i) => { %>
           <div class="approach-card reveal relative overflow-hidden rounded-2xl aspect-[4/5] group hover:-translate-y-1 transition-transform duration-300 shadow-lg ring-1 ring-sand-900/5" data-delay="<%= i * 120 %>">
-            <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[1400ms] group-hover:scale-105" style="background-image:url('<%= a.img %>')"></div>
+            <img src="<%= a.img %>" alt="" aria-hidden="true" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105">
             <div class="approach-overlay absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/10"></div>
             <div class="relative h-full flex flex-col justify-end p-7">
               <h3 class="font-display text-2xl text-white mb-2 leading-tight drop-shadow-sm"><%= a.title %></h3>
@@ -163,7 +163,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <% (events || []).slice(0, 3).forEach((event, i) => { %>
           <button type="button" data-action="open-event" data-event-index="<%= i %>" class="reveal group relative overflow-hidden rounded-2xl aspect-[4/5] text-left w-full shadow-lg ring-1 ring-sand-900/5 hover:-translate-y-1 transition-transform duration-300" data-delay="<%= i * 100 %>">
-            <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[1400ms] group-hover:scale-105" style="background-image:url('<%= event.gambar || '/img/Sagita Wedding_about1.jpg' %>')"></div>
+            <img src="<%= event.gambar || '/img/Sagita Wedding_about1.jpg' %>" alt="" aria-hidden="true" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105">
             <div class="approach-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10"></div>
             <span class="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-full bg-sand-50/15 backdrop-blur-sm text-[9px] font-bold tracking-[0.15em] text-sand-50">EVENT</span>
             <div class="relative h-full flex flex-col justify-end p-6">
@@ -281,54 +281,54 @@
   <% if (homeFaqGroups.length) { %>
     <section id="home-faq" class="home-faq-section py-20 sm:py-24">
       <div class="site-container">
-        <div class="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
-          <div class="reveal">
+        <div class="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+          <div class="reveal self-start lg:sticky lg:top-24">
             <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.homeFaqEyebrow %></p>
             <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-sage-900"><%= t.homeFaqTitleA %> <span class="italic"><%= t.homeFaqTitleItalic %></span></h2>
             <p class="mt-5 max-w-md text-sm leading-relaxed text-stone-warm sm:text-base"><%= t.homeFaqDesc %></p>
-            <div class="mt-7 flex flex-wrap items-center gap-3">
-              <a href="/faq" class="btn-secondary group text-sm px-5 py-2.5">
-                <%= t.homeFaqViewAll %>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow ms-2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-              </a>
-            </div>
-            <div class="mt-8 flex flex-wrap gap-2" role="group" aria-label="<%= t.homeFaqEyebrow %>">
+            <div class="mt-8 border-t border-sand-200" role="group" aria-label="<%= t.homeFaqEyebrow %>">
               <% homeFaqGroups.forEach((group, i) => { %>
-                <button type="button" class="home-faq-tab inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30 sm:text-sm <%= i === 0 ? 'bg-sand-900 text-sand-50 shadow-sm ring-1 ring-sand-900' : 'bg-white text-sand-700 ring-1 ring-sand-200 hover:bg-sand-100' %>" data-home-faq-tab="<%= group.id %>" aria-pressed="<%= i === 0 ? 'true' : 'false' %>">
-                  <%= group.kategori %>
-                  <span class="grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] font-semibold <%= i === 0 ? 'bg-white/15 text-sand-50' : 'bg-sand-100 text-sand-700' %>"><%= group.items.length %></span>
+                <button type="button" class="home-faq-tab group flex w-full items-center justify-between border-b border-sand-200 py-3.5 text-left text-sm font-medium text-sage-900 transition-colors duration-200 hover:text-terracotta-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage-500/30 sm:text-base" data-home-faq-tab="<%= group.id %>" aria-controls="home-faq-group-<%= group.id %>" aria-pressed="<%= i === 0 ? 'true' : 'false' %>">
+                  <span><%= group.kategori %></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-sand-500 transition-transform group-hover:translate-x-1" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
                 </button>
               <% }) %>
             </div>
-            <div class="mt-5 flex items-center gap-4">
-              <button type="button" data-home-faq-expand class="text-xs font-semibold uppercase tracking-[0.12em] text-sage-700 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30"><%= t.homeFaqExpandAll %></button>
-              <span class="h-3 w-px bg-sand-300"></span>
-              <button type="button" data-home-faq-collapse class="text-xs font-semibold uppercase tracking-[0.12em] text-sage-700 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30"><%= t.homeFaqCollapseAll %></button>
+            <div class="mt-7 flex items-center gap-4 text-sm text-sand-600">
+              <button type="button" data-home-faq-expand class="font-medium underline-offset-4 hover:text-sage-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30"><%= t.homeFaqExpandAll %></button>
+              <span aria-hidden="true">·</span>
+              <button type="button" data-home-faq-collapse class="font-medium underline-offset-4 hover:text-sage-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30"><%= t.homeFaqCollapseAll %></button>
+            </div>
+            <div class="mt-10">
+              <h3 class="font-display text-xl text-sage-900"><%= t.homeFaqStillTitle %></h3>
+              <p class="mt-2 max-w-md text-sm leading-relaxed text-stone-warm"><%= t.homeFaqStillDesc %></p>
+              <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+                <a href="<%= contactLinks.whatsappShortLink %>" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full border border-sand-300 px-5 py-3 text-sm font-semibold text-sage-900 transition-colors hover:border-sage-700 hover:bg-white">
+                  <%= t.homeFaqStillBtn %>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+                <a href="/faq" class="text-sm font-medium text-sage-700 underline-offset-4 hover:text-sage-900 hover:underline"><%= t.homeFaqViewAll %></a>
+              </div>
             </div>
           </div>
 
-          <div class="reveal">
-            <div id="homeFaqGroups" class="space-y-3">
+          <div class="reveal min-w-0">
+            <div id="homeFaqGroups" class="space-y-8">
               <% homeFaqGroups.forEach((group, groupIndex) => { %>
-                <section class="home-faq-group <%= groupIndex === 0 ? '' : 'hidden' %>" data-home-faq-group="<%= group.id %>">
-                  <div class="mb-3 flex items-center gap-3 border-b border-sand-200 pb-3">
-                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-sand-100 font-display text-sm text-terracotta-600"><%= String(groupIndex + 1).padStart(2, '0') %></span>
-                    <h3 class="font-display text-lg text-sage-900 sm:text-xl"><%= group.kategori %></h3>
-                    <span class="ms-auto shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-medium text-sand-700"><%= group.items.length %></span>
-                  </div>
-                  <div class="grid gap-2.5">
+                <section id="home-faq-group-<%= group.id %>" class="home-faq-group scroll-mt-28" data-home-faq-group="<%= group.id %>">
+                  <h3 class="mb-3 font-semibold text-sm text-sage-700 sm:text-base"><%= group.kategori %></h3>
+                  <div class="border-t border-sand-200">
                     <% group.items.forEach((item, itemIndex) => { %>
                       <% const isFirst = groupIndex === 0 && itemIndex === 0; %>
                       <% const buttonId = `home-faq-question-${group.id}-${item.id}`; %>
                       <% const panelId = `home-faq-answer-${group.id}-${item.id}`; %>
-                      <article class="home-faq-item overflow-hidden rounded-xl border border-sand-200 bg-white shadow-sm transition-all duration-200" data-home-faq-item>
-                        <button type="button" id="<%= buttonId %>" data-home-faq-button class="flex w-full items-center gap-3 px-4 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage-500/30 sm:px-5" aria-expanded="<%= isFirst ? 'true' : 'false' %>" aria-controls="<%= panelId %>">
-                          <span class="w-5 shrink-0 text-[11px] font-semibold tracking-[0.1em] text-sand-500"><%= String(itemIndex + 1).padStart(2, '0') %></span>
-                          <span class="min-w-0 flex-1 font-semibold text-sm leading-snug text-sage-900 sm:text-[15px]"><%= item.question %></span>
-                          <span class="home-faq-toggle grid h-7 w-7 shrink-0 place-items-center rounded-full bg-sand-100 text-base leading-none text-sage-700 transition-colors"><%= isFirst ? '−' : '+' %></span>
+                      <article class="home-faq-item border-b border-sand-200" data-home-faq-item>
+                        <button type="button" id="<%= buttonId %>" data-home-faq-button class="flex w-full items-start gap-4 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage-500/30 sm:py-5" aria-expanded="<%= isFirst ? 'true' : 'false' %>" aria-controls="<%= panelId %>">
+                          <span class="min-w-0 flex-1 font-semibold text-base leading-snug text-sage-900 sm:text-lg"><%= item.question %></span>
+                          <span class="home-faq-toggle ms-auto grid h-6 w-6 shrink-0 place-items-center text-xl leading-none text-sage-600 transition-colors"><%= isFirst ? '×' : '+' %></span>
                         </button>
-                        <div id="<%= panelId %>" data-home-faq-panel role="region" aria-labelledby="<%= buttonId %>" class="<%= isFirst ? '' : 'hidden' %> px-4 pb-4 sm:px-5">
-                          <div class="ml-8 rounded-xl bg-sand-50 px-4 py-3 text-sm leading-relaxed text-stone-warm whitespace-pre-line"><%= item.answer %></div>
+                        <div id="<%= panelId %>" data-home-faq-panel role="region" aria-labelledby="<%= buttonId %>" class="<%= isFirst ? '' : 'hidden' %> max-w-3xl pb-5 text-sm leading-relaxed text-stone-warm whitespace-pre-line sm:text-base">
+                          <%= item.answer %>
                         </div>
                       </article>
                     <% }) %>
@@ -339,19 +339,6 @@
           </div>
         </div>
 
-        <div class="reveal relative mt-14 overflow-hidden rounded-3xl bg-sage-900 px-6 py-10 text-center text-sand-50 sm:px-10">
-          <div class="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full border border-white/10"></div>
-          <div class="pointer-events-none absolute -bottom-24 -right-10 h-64 w-64 rounded-full border border-white/10"></div>
-          <div class="relative">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-light"><%= t.homeFaqEyebrow %></p>
-            <h3 class="mt-3 font-display text-2xl sm:text-3xl"><%= t.homeFaqStillTitle %></h3>
-            <p class="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-sand-100/80"><%= t.homeFaqStillDesc %></p>
-            <a href="<%= contactLinks.whatsappShortLink %>" target="_blank" rel="noopener noreferrer" class="mt-7 inline-flex items-center gap-2.5 rounded-full bg-sand-50 px-7 py-3 text-sm font-semibold text-sage-900 transition-colors hover:bg-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-              <%= t.homeFaqStillBtn %>
-            </a>
-          </div>
-        </div>
       </div>
     </section>
   <% } %>
