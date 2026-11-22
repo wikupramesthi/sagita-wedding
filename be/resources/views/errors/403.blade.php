@@ -1,5 +1,5 @@
 @extends('layouts.auth')
-@section('title', '403')
+@section('title', '403 - Akses Ditolak')
 @section('content')
 <style>
   .clearfix:before,
@@ -123,10 +123,11 @@
   <div class="outer">
     <div class="middle">
       <div class="inner">
-        <div class="inner-circle"><i class="fa fa-cogs"></i><span>500</span></div>
-        <span class="inner-status">Opps! Internal Server Error!</span>
-        <span class="inner-detail">Unfortunately we're having trouble loading the page you are looking for. Please come back in a while.</span>
-        <a href="{{ route('dashboard.index') }}" class="btn btn-lg btn-outline-primary mt-3" style="width: 100%;">Go Home</a>
+        <div class="inner-circle"><i class="fa fa-lock"></i><span>403</span></div>
+        <span class="inner-status">Akses Ditolak</span>
+        <span class="inner-detail">Halaman ini hanya dapat dibuka oleh akun admin yang sudah memverifikasi email.</span>
+        <a href="{{ route('orders.index') }}" class="btn btn-lg btn-outline-primary mt-3" style="width: 100%;">Kembali ke Pesanan</a>
+        <a href="{{ route('dashboard.index') }}" class="btn btn-link mt-2" style="width: 100%;">Ke Dashboard</a>
       </div>
     </div>
   </div>

@@ -341,6 +341,16 @@ class OrderWorkflowFeatureTest extends TestCase
             ->assertSee('Permintaan perubahan pesanan');
     }
 
+    public function test_member_gets_a_clear_forbidden_page_for_admin_workflow_settings(): void
+    {
+        $this->actingAs($this->member)
+            ->get(route('orders.workflow-settings.edit'))
+            ->assertForbidden()
+            ->assertSee('Akses Ditolak')
+            ->assertSee('admin yang sudah memverifikasi email')
+            ->assertDontSee('Internal Server Error');
+    }
+
     public function test_expired_pending_order_releases_its_date_reservation(): void
     {
         $this->order->update([
