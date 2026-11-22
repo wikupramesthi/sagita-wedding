@@ -58,113 +58,9 @@
                 @endif
 
                 <a href="#package-recommendation" class="btn btn-warm px-4 py-2 mt-3">
-                    Cari Paket Wedding →
+                    Cari paket pernikahan →
                 </a>
 
-            </div>
-        </div>
-        @endif
-
-        <div class="d-flex gap-2 mt-3 text-center">
-            <div class="app-card flex-fill py-3" style="min-width:0">
-                <p class="mb-0 fw-semibold text-sage">{{ $jumlahVendor }}</p>
-                <p class="mb-0 text-muted2 text-small">Vendor</p>
-            </div>
-            <div class="app-card flex-fill py-3" style="min-width:0">
-                <p class="mb-0 fw-semibold text-sage">{{ $totalPackages ?? 0 }}</p>
-                <p class="mb-0 text-muted2 text-small">Paket</p>
-            </div>
-            <div class="app-card flex-fill py-3" style="min-width:0">
-                <p class="mb-0 fw-semibold text-sage">{{ $totalEvents }}</p>
-                <p class="mb-0 text-muted2 text-small">{{ __('mobile.events') }}</p>
-            </div>
-        </div>
-
-        @if ($activePackage)
-        <a data-bs-toggle="modal" data-bs-target="#activePackageModal" href="#"
-            class="text-decoration-none d-block"
-            style="cursor:pointer;">
-            @endif
-            <div class="app-card d-flex align-items-center gap-3 p-3 mt-4">
-                <div
-                    class="grad-sage d-flex align-items-center justify-content-center"
-                    style="height: 48px; width: 48px; border-radius: 18px">
-                    <i class="bi bi-flower1"></i>
-                </div>
-                <div class="flex-fill">
-                    @if ($activePackage)
-                    <p class="mb-0 small fw-semibold text-dark">{{ $activePackage->package?->name ?? __('mobile.membership') }}</p>
-                    <p class="mb-1 text-muted2 text-small">
-                        @if ($activePackage->quota === null)
-                        {{ __('mobile.unlimited_classes') }}
-                        @else
-                        {{ $activePackage->quota == 1 ? __('mobile.class_left', ['count' => $activePackage->quota]) : __('mobile.classes_left', ['count' => $activePackage->quota]) }}
-                        @endif
-                        @if ($activePackage->expired_at)
-                        · {{ __('mobile.until', ['date' => $activePackage->expired_at->format('d M Y')]) }}
-                        @endif
-                    </p>
-                    @if ($activePackage->expired_at && $activePackage->started_at)
-                    @php
-                    $total = max(1, $activePackage->started_at->diffInSeconds($activePackage->expired_at));
-                    $remaining = max(0, now()->diffInSeconds($activePackage->expired_at, false));
-                    $pct = min(100, max(0, $remaining / $total * 100));
-                    @endphp
-                    <div
-                        class="progress"
-                        style="height: 6px; background: var(--sage-soft)">
-                        <div
-                            class="progress-bar"
-                            style="width: {{ $pct }}%; background-image: var(--grad-sage)"></div>
-                    </div>
-                    @endif
-                    @else
-                    <p class="mb-0 small fw-semibold">{{ __('mobile.no_active_package') }}</p>
-                    <p class="mb-1 text-muted2 text-small">{{ __('mobile.pick_membership') }}</p>
-                    <a href="{{ route('packages.member') }}"
-                        class="btn btn-link p-0 text-terra fw-semibold text-decoration-none text-small">
-                        {{ __('mobile.browse_packages') }} →
-                    </a>
-                    @endif
-                </div>
-            </div>
-            @if ($activePackage)
-        </a>
-
-        {{-- Active Package Detail Modal --}}
-        <div class="modal fade" id="activePackageModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 rounded-4 overflow-hidden">
-                    <div class="modal-body p-4">
-                        <span class="chip bg-sage-soft text-sage text-uppercase m-micro">{{ __('mobile.active_package') }}</span>
-                        <h5 class="fw-bold mt-2 mb-1">{{ $activePackage->package?->name }}</h5>
-
-                        @if ($activePackage->package?->description)
-                        <p class="text-muted2 mb-3" style="font-size:13px;line-height:1.6">
-                            {{ $activePackage->package->description }}
-                        </p>
-                        @endif
-
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted2 text-small">{{ __('mobile.quota') }}</span>
-                            <span class="small fw-semibold">
-                                {{ $activePackage->quota === null ? __('mobile.unlimited') : __('mobile.classes_left', ['count' => $activePackage->quota]) }}
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted2 text-small">{{ __('mobile.started') }}</span>
-                            <span class="small fw-semibold">{{ $activePackage->started_at?->format('d M Y') ?? '-' }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted2" style="font-size:12px">{{ __('mobile.expires') }}</span>
-                            <span class="small fw-semibold">{{ $activePackage->expired_at?->format('d M Y') ?? '-' }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2">
-                            <span class="text-muted2" style="font-size:12px">{{ __('mobile.attended_sessions') }}</span>
-                            <span class="small fw-semibold">{{ $attendedCount ?? 0 }}</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
         @endif
@@ -173,7 +69,7 @@
             <div class="app-card p-3">
                 <div class="d-flex justify-content-between align-items-start gap-2">
                     <div>
-                        <p class="eyebrow mb-1">Dashboard Wedding</p>
+                        <p class="eyebrow mb-1">Rencana pernikahan</p>
                         <h2 id="mobile-wedding-plan-title" class="h5 fw-semibold mb-0">Rencana pernikahan</h2>
                     </div>
                     @if ($planningOrders->isNotEmpty())
@@ -187,7 +83,7 @@
                     @endphp
                     <div class="border rounded-3 p-3 mt-3">
                         <div class="small text-muted2">Pesanan paket aktif</div>
-                        <div class="fw-semibold">{{ $mobilePlanningOrder->package?->name ?? 'Paket Wedding' }}</div>
+                        <div class="fw-semibold">{{ $mobilePlanningOrder->package?->name ?? 'Paket Pernikahan' }}</div>
                         <div class="small text-muted2">{{ $mobilePlanningOrder->order_number }}</div>
                         <div class="small mt-2">
                             Tanggal acara:
@@ -214,7 +110,7 @@
                     </div>
                 @else
                     <div class="small text-muted2 mt-3">
-                        Belum ada pesanan paket aktif. Pilih budget di bawah untuk melihat rekomendasi; pesanan dan pembayaran akan tersinkron di sini.
+                        Belum ada pesanan paket. Masukkan batas anggaran untuk melihat rekomendasi. Setelah memesan, tanggal acara dan pembayaran akan tampil di sini.
                     </div>
                 @endif
 
@@ -222,7 +118,7 @@
 
             <div class="app-card p-3 mt-3">
                 <h3 class="h6 fw-semibold mb-1">Rekap pembayaran</h3>
-                <p class="small text-muted2 mb-3">Rekap 5 pesanan paket terbaru. Pembayaran disetujui mengurangi kekurangan tagihan.</p>
+                <p class="small text-muted2 mb-3">Ringkasan ini mengikuti lima pesanan paket terbaru. Pembayaran yang disetujui mengurangi sisa tagihan.</p>
                 <div class="progress mb-3" style="height:6px">
                     <div class="progress-bar bg-success" role="progressbar" style="width:{{ $paymentProgress }}%" aria-valuenow="{{ $paymentProgress }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
@@ -236,13 +132,13 @@
                         <div class="small fw-semibold text-success">Rp {{ number_format($paymentPaidTotal, 0, ',', '.') }}</div>
                     </div>
                     <div class="col-4">
-                        <div class="small text-muted2">Kekurangan</div>
+                        <div class="small text-muted2">Sisa tagihan</div>
                         <div class="small fw-semibold text-danger">Rp {{ number_format($paymentRemainingTotal, 0, ',', '.') }}</div>
                     </div>
                 </div>
                 @if ($recentPaymentProofs->isNotEmpty())
                     @php
-                        $mobileProofLabels = ['accepted' => 'Diterima', 'pending' => 'Pending', 'rejected' => 'Ditolak'];
+                        $mobileProofLabels = ['accepted' => 'Diterima', 'pending' => 'Menunggu', 'rejected' => 'Ditolak'];
                         $mobileProofClasses = ['accepted' => 'bg-success-subtle text-success-emphasis', 'pending' => 'bg-warning-subtle text-warning-emphasis', 'rejected' => 'bg-danger-subtle text-danger-emphasis'];
                     @endphp
                     <div class="border-top mt-3 pt-3">
@@ -268,7 +164,7 @@
                 @else
                     <div class="small text-muted2 mt-3">Belum ada bukti pembayaran yang diunggah.</div>
                 @endif
-                <a href="{{ route('orders.index') }}" class="btn btn-sm btn-outline-primary w-100 mt-3">Riwayat pesanan & pembayaran</a>
+                <a href="{{ route('orders.index') }}" class="btn btn-sm btn-outline-primary w-100 mt-3">Lihat semua pesanan dan pembayaran</a>
             </div>
 
             <div class="app-card p-3 mt-3">
@@ -288,7 +184,7 @@
 
             <div class="app-card p-3 mt-3">
                 <h3 class="h6 fw-semibold mb-1">Anggaran & rekomendasi paket</h3>
-                <p class="small text-muted2 mb-3">Cari paket berdasarkan budget, lalu pilih untuk langsung ke checkout.</p>
+                <p class="small text-muted2 mb-3">Temukan paket sesuai anggaran, lalu pilih untuk melanjutkan pemesanan.</p>
                 @include('pages.dashboard.partials.package-recommendations')
             </div>
         </section>
@@ -419,7 +315,7 @@
             </div>
 
             @empty
-            <div class="app-card text-center p-4">
+            <div class="app-card text-center p-4 w-100 flex-shrink-0">
                 <i class="bi bi-calendar2-week text-muted2 fs-3"></i>
 
                 <p class="mb-1 mt-2 fw-semibold">
@@ -436,20 +332,29 @@
 
         <div class="app-card p-4 mt-4 mb-2">
 
-            <p class="eyebrow mb-1">Need Help?</p>
+            <p class="eyebrow mb-1">Bantuan pernikahan</p>
             <h3 class="h5 fw-semibold mb-2">
-                We're here to help
+                Perlu bantuan?
             </h3>
 
             <p class="small text-muted2 mb-3">
-                Have questions? Chat with us directly on WhatsApp.
+                Hubungi tim kami melalui WhatsApp jika Anda memiliki pertanyaan tentang paket atau pesanan.
             </p>
 
-            <a href="https://api.whatsapp.com/send/?phone=6281380760095&text=Hi%2C%20I%20found%20you%20through%20your%20website%20and%20would%20like%20more%20information%20about%20your%20classes.%20Thank%20you%21&app_absent=0"
+            @php
+                $whatsappMessage = implode("\n\n", [
+                    'Halo Sagita Wedding Planner 👋',
+                    'Saya mendapatkan informasi mengenai Sagita Wedding Planner melalui website dan tertarik dengan layanan Wedding Organizer yang ditawarkan.',
+                    'Saya ingin mengetahui lebih lanjut mengenai pilihan paket, layanan, serta estimasi biaya untuk pernikahan saya.',
+                    'Terima kasih 😊',
+                ]);
+            @endphp
+            <a href="https://api.whatsapp.com/send/?phone=6281380760095&text={{ rawurlencode($whatsappMessage) }}&app_absent=0"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="btn btn-sage w-100 py-2">
                 <i class="bi bi-whatsapp me-2"></i>
-                Chat on WhatsApp
+                Hubungi kami
             </a>
 
         </div>
@@ -486,18 +391,18 @@
                             </div>
 
                             <span class="small fw-semibold text-sage">
-                                Almost There
+                                Hampir selesai
                             </span>
                         </div>
 
                         <h5
                             class="modal-title fw-semibold mb-1"
                             id="completeProfileModalLabel">
-                            Complete Your Profile
+                            Lengkapi profil
                         </h5>
 
                         <p class="small text-muted2 mb-0">
-                            Just a few details before you continue.
+                            Lengkapi beberapa data sebelum melanjutkan.
                         </p>
                     </div>
                 </div>
@@ -510,7 +415,7 @@
                         <label
                             for="mobile_no_hp"
                             class="form-label small fw-semibold">
-                            WhatsApp Number
+                            Nomor WhatsApp
                         </label>
 
                         <div class="input-group">
@@ -541,7 +446,7 @@
                         <label
                             for="mobile_sumber_informasi"
                             class="form-label small fw-semibold">
-                            How did you hear about us?
+                            Dari mana Anda mengenal kami?
                         </label>
 
                         <select
@@ -551,37 +456,37 @@
                             required>
 
                             <option value="">
-                                Select an option
+                                Pilih salah satu opsi
                             </option>
 
                             <option
                                 value="google"
                                 @selected(old('sumber_informasi')==='google' )>
-                                Google Search
+                                Pencarian Google
                             </option>
 
                             <option
                                 value="sosmed"
                                 @selected(old('sumber_informasi')==='sosmed' )>
-                                Social Media
+                                Media sosial
                             </option>
 
                             <option
                                 value="friend"
                                 @selected(old('sumber_informasi')==='friend' )>
-                                Friend / Family
+                                Teman atau keluarga
                             </option>
 
                             <option
                                 value="community"
                                 @selected(old('sumber_informasi')==='community' )>
-                                Yoga Community
+                                Komunitas
                             </option>
 
                             <option
                                 value="event"
                                 @selected(old('sumber_informasi')==='event' )>
-                                Yoga Event / Workshop
+                                Acara
                             </option>
 
                             <option
@@ -593,7 +498,7 @@
                             <option
                                 value="other"
                                 @selected(old('sumber_informasi')==='other' )>
-                                Other
+                                Lainnya
                             </option>
 
                         </select>
@@ -613,7 +518,7 @@
                         type="submit"
                         class="btn btn-warm w-100 py-2">
                         <i class="bi bi-check2 me-1"></i>
-                        Save & {{ __('mobile.continue') }}
+                        Simpan & Lanjutkan
                     </button>
                 </div>
 

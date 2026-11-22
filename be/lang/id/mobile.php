@@ -31,7 +31,7 @@ return [
     'older' => 'Lebih lama →',
 
     // Beranda
-    'greeting_hi' => 'Hai, :name',
+    'greeting_hi' => 'Halo, :name',
     'vendors' => 'Vendor',
     'classes' => 'Paket',
     'events' => 'Acara',
@@ -42,11 +42,11 @@ return [
     'browse_packages' => 'Lihat Paket',
     'today_schedule' => 'Jadwal Hari Ini',
     'upcoming_classes' => 'Acara Mendatang',
-    'upcoming_events' => 'Acara Mendatang',
+    'upcoming_events' => 'Acara mendatang',
     'no_classes_today' => 'Tidak Ada Jadwal Hari Ini',
     'no_classes_today_desc' => 'Tidak ada jadwal acara hari ini.',
-    'no_upcoming_events' => 'Belum Ada Acara',
-    'no_upcoming_events_desc' => 'Belum ada acara mendatang saat ini.',
+    'no_upcoming_events' => 'Belum ada acara mendatang',
+    'no_upcoming_events_desc' => 'Acara mendatang akan ditampilkan di sini.',
     'no_courses' => 'Belum Ada Paket',
 
     // Jadwal
@@ -74,7 +74,7 @@ return [
     'waiting_position' => 'Kamu antrian #:n — kami akan memberitahumu jika ada kursi kosong.',
     'booked_count' => ':count pesanan',
     'manage_bookings' => 'Kelola pesanan paketmu',
-    'manage_bookings_desc' => 'Lihat detail, batalkan, dan lihat riwayat pesanan',
+    'manage_bookings_desc' => 'Lihat detail, batalkan, dan pantau status pesanan Anda.',
     'no_upcoming_bookings' => 'Tidak ada pesanan mendatang',
     'no_past_bookings' => 'Tidak ada pesanan lalu',
     'bookings_empty_desc' => 'Pesanan paketmu akan muncul di sini.',
@@ -100,7 +100,7 @@ return [
     'tanya_paket_message' => 'Halo, saya ingin bertanya tentang paket :package.',
     'kapasitas_tamu' => ':count tamu',
     'filter_guests' => 'Jumlah tamu',
-    'filter_budget' => 'Budget maksimal',
+    'filter_budget' => 'Anggaran maksimal',
     'terapkan' => 'Terapkan',
     'durasi_acara' => ':count jam',
     'lokasi_acara' => 'Lokasi: :location',

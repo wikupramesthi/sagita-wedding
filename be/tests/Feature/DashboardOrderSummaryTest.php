@@ -161,7 +161,7 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertOk()
             ->assertSee('Timeline persiapan')
             ->assertSee('12 bulan sebelum acara')
-            ->assertSee('Budget maksimal untuk paket')
+            ->assertSee('Batas anggaran paket')
             ->assertSee('name="budget_max"', false)
             ->assertDontSee('Checklist persiapan');
     }
@@ -218,6 +218,12 @@ class DashboardOrderSummaryTest extends TestCase
         $order = $this->packageOrder($member);
         $this->paymentProof($order, 'pending', 10000000);
         $recommendedPackage = $this->publishedPackage('Paket Harmoni', 5000000);
+        $whatsappMessage = rawurlencode(implode("\n\n", [
+            'Halo Sagita Wedding Planner 👋',
+            'Saya mendapatkan informasi mengenai Sagita Wedding Planner melalui website dan tertarik dengan layanan Wedding Organizer yang ditawarkan.',
+            'Saya ingin mengetahui lebih lanjut mengenai pilihan paket, layanan, serta estimasi biaya untuk pernikahan saya.',
+            'Terima kasih 😊',
+        ]));
 
         $this->actingAs($member)
             ->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 Mobile Safari/537.36')
@@ -230,7 +236,10 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertSee('Timeline persiapan')
             ->assertSee('Paket Harmoni')
             ->assertSee('Status bukti pembayaran')
-            ->assertSee('Pending')
+            ->assertSee('Menunggu')
+            ->assertSee($whatsappMessage, false)
+            ->assertDontSee('more information about your classes')
+            ->assertSee(config('frontend.url').'/formulir-konsultasi', false)
             ->assertSee(route('checkout.package', $recommendedPackage->uuid), false);
     }
 
@@ -247,6 +256,22 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertSee('Timeline persiapan')
             ->assertSee('name="budget_max"', false)
             ->assertSee(route('dashboard.recommendations'), false);
+    }
+
+    public function test_mobile_profile_modal_uses_wedding_context_instead_of_yoga_copy(): void
+    {
+        $member = $this->userWithRole('user');
+        $member->forceFill(['no_hp' => null])->save();
+
+        $this->actingAs($member)
+            ->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 Mobile Safari/537.36')
+            ->get(route('dashboard.index'))
+            ->assertOk()
+            ->assertViewIs('pages.mobile.home')
+            ->assertSee('Lengkapi profil')
+            ->assertSee('Dari mana Anda mengenal kami?')
+            ->assertDontSee('Yoga Community')
+            ->assertDontSee('Yoga Event / Workshop');
     }
 
     public function test_member_dashboard_reads_date_and_payment_from_existing_orders(): void

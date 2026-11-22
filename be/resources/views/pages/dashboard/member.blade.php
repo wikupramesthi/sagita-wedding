@@ -641,7 +641,7 @@
                                         <td class="text-end"><a href="{{ route('orders.show', $o->uuid) }}" class="btn btn-sm btn-outline-primary">Detail</a></td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="6" class="text-center py-5 text-muted">Belum ada pembayaran. Cari paket sesuai budget untuk memulai.</td></tr>
+                                    <tr><td colspan="6" class="text-center py-5 text-muted">Belum ada pembayaran. Cari paket sesuai anggaran untuk memulai.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

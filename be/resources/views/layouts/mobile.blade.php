@@ -17,6 +17,7 @@
 
     <!-- Style -->
     @stack('before-style')
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet" />
@@ -24,11 +25,6 @@
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
         rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('dist/assets/compiled/css/mobile.css') }}" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-        rel="stylesheet" />
 
     @stack('after-style')
     <!-- /Style -->
@@ -59,7 +55,7 @@
 
             <button type="button"
                 class="tab-item tab-booking "
-                onclick="window.location.href='{{ route('home') }}'">
+                onclick="window.location.href='{{ config('frontend.url') }}/formulir-konsultasi'">
                 <span class="ico"><i class="bi bi-calendar-plus"></i></span>
                 <span>{{ __('mobile.book') }}</span>
             </button>
@@ -83,7 +79,7 @@
 
     <!-- Script -->
     @stack('before-script')
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
     {{-- Toast feedback + loading state --}}
     <div id="mobile-toasts" class="position-fixed start-0 end-0 z-3 d-flex flex-column align-items-center px-4"

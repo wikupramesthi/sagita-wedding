@@ -5,7 +5,7 @@
         method="GET"
         data-recommendations-url="{{ route('dashboard.recommendations') }}"
     >
-        <label for="planning-budget-max" class="form-label small fw-semibold">Budget maksimal untuk paket</label>
+        <label for="planning-budget-max" class="form-label small fw-semibold">Batas anggaran paket</label>
         <div class="input-group">
             <span class="input-group-text">Rp</span>
             <input
@@ -23,13 +23,13 @@
                 <i class="bi bi-search me-1"></i> Cari Paket
             </button>
         </div>
-        <div class="form-text">Pilih budget untuk melihat paket yang cocok tanpa meninggalkan dashboard.</div>
+        <div class="form-text">Masukkan batas anggaran untuk melihat paket yang sesuai tanpa meninggalkan halaman.</div>
     </form>
 
     <div id="package-recommendation-results" class="mt-3" aria-live="polite">
         @if ($budgetMax !== null)
             <div class="small fw-semibold mb-2">
-                Rekomendasi untuk budget Rp {{ number_format($budgetMax, 0, ',', '.') }}
+                Rekomendasi paket hingga Rp {{ number_format($budgetMax, 0, ',', '.') }}
             </div>
             <div class="list-group">
                 @forelse ($recommendedPackages as $recommendation)
@@ -45,7 +45,7 @@
                     </a>
                 @empty
                     <div class="list-group-item small text-muted">
-                        Belum ada paket yang sesuai budget ini. Coba naikkan batas anggaran.
+                        Belum ada paket yang sesuai. Coba naikkan batas anggaran.
                     </div>
                 @endforelse
             </div>
@@ -75,7 +75,7 @@
         const renderRecommendations = (payload) => {
             const heading = document.createElement('div');
             heading.className = 'small fw-semibold mb-2';
-            heading.textContent = `Rekomendasi untuk budget Rp ${payload.formatted_budget}`;
+            heading.textContent = `Rekomendasi paket hingga Rp ${payload.formatted_budget}`;
 
             const list = document.createElement('div');
             list.className = 'list-group';
@@ -83,7 +83,7 @@
             if (payload.recommendations.length === 0) {
                 const emptyState = document.createElement('div');
                 emptyState.className = 'list-group-item small text-muted';
-                emptyState.textContent = 'Belum ada paket yang sesuai budget ini. Coba naikkan batas anggaran.';
+                emptyState.textContent = 'Belum ada paket yang sesuai. Coba naikkan batas anggaran.';
                 list.append(emptyState);
             } else {
                 payload.recommendations.forEach((recommendation) => {
@@ -128,7 +128,7 @@
             searchButton.disabled = true;
             searchButton.textContent = 'Mencari...';
             results.setAttribute('aria-busy', 'true');
-            setMessage('Mencari paket yang sesuai...', 'small text-muted');
+            setMessage('Sedang mencari paket yang sesuai...', 'small text-muted');
 
             try {
                 const response = await fetch(endpoint, {

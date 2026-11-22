@@ -171,7 +171,7 @@
                 <i class="bi bi-calendar-check text-sage"></i>
                 <div class="flex-fill">
                     <p class="small fw-semibold mb-0">{{ __('mobile.manage_bookings') }}</p>
-                    <p class="mb-0 m-micro text-muted2">{{ __('mobile.Lihat riwayat dan status pesanan Anda') }}</p>
+                    <p class="mb-0 m-micro text-muted2">{{ __('mobile.manage_bookings_desc') }}</p>
                 </div>
                 <i class="bi bi-chevron-right text-muted2"></i>
             </a>
