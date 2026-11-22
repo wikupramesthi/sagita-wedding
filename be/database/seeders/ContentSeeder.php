@@ -116,9 +116,9 @@ class ContentSeeder extends Seeder
                 'packages' => [
                     0 => [
                         'uuid' => '01a095f2-d286-7241-b566-8027529b8196',
-                        'name' => 'First Timer Package',
-                        'slug' => 'first-timer-package',
-                        'description' => 'A welcoming first step into your yoga journey at Yogaroots. Enjoy a guided studio session designed to help you feel comfortable, refreshed, and ready to move.',
+                        'name' => 'Paket Rencana Pernikahan',
+                        'slug' => 'paket-rencana-pernikahan',
+                        'description' => 'Paket awal untuk merencanakan pernikahan Anda dengan konsultasi, pilihan vendor, dan layanan sesuai kebutuhan acara.',
                         'guest_capacity' => null,
                         'event_duration_hours' => null,
                         'venue_note' => null,
@@ -132,9 +132,9 @@ class ContentSeeder extends Seeder
                     ],
                     1 => [
                         'uuid' => '01a09615-73d8-7345-a20f-2d5eeb6b1d1a',
-                        'name' => 'Unlimited Package',
-                        'slug' => 'unlimited-package',
-                        'description' => 'Practice freely with unlimited access to Yogaroots classes. Move at your own pace, explore different styles, and make yoga part of your everyday routine.',
+                        'name' => 'Paket Pernikahan Lengkap',
+                        'slug' => 'paket-pernikahan-lengkap',
+                        'description' => 'Paket lengkap dengan layanan pernikahan yang dapat disesuaikan untuk mendukung setiap tahapan acara Anda.',
                         'guest_capacity' => null,
                         'event_duration_hours' => null,
                         'venue_note' => null,
@@ -148,9 +148,9 @@ class ContentSeeder extends Seeder
                     ],
                     2 => [
                         'uuid' => '01a098c6-e509-7154-869f-8d336d44ebc4',
-                        'name' => 'Sharing Package',
-                        'slug' => 'sharing-package',
-                        'description' => 'A flexible membership designed to be shared with someone special. Enjoy Yogaroots classes together and make your yoga journey a shared experience.',
+                        'name' => 'Paket Pernikahan Berdua',
+                        'slug' => 'paket-pernikahan-berdua',
+                        'description' => 'Paket fleksibel untuk merencanakan pernikahan bersama pasangan dan mempersiapkan acara sesuai kebutuhan.',
                         'guest_capacity' => null,
                         'event_duration_hours' => null,
                         'venue_note' => null,
@@ -164,9 +164,9 @@ class ContentSeeder extends Seeder
                     ],
                     3 => [
                         'uuid' => '01a098d2-a02c-72ee-a8eb-b9dc6786761d',
-                        'name' => '1 On 1 Private Class',
-                        'slug' => '1-on-1-private-class',
-                        'description' => 'A personalized yoga experience designed around you. Practice one-on-one with our instructor, receive focused guidance, and build a practice that supports your individual goals.',
+                        'name' => 'Konsultasi Pernikahan Personal',
+                        'slug' => 'konsultasi-pernikahan-personal',
+                        'description' => 'Pendampingan personal untuk merancang konsep, anggaran, vendor, dan rangkaian acara pernikahan.',
                         'guest_capacity' => null,
                         'event_duration_hours' => null,
                         'venue_note' => null,
@@ -180,9 +180,9 @@ class ContentSeeder extends Seeder
                     ],
                     4 => [
                         'uuid' => '01a098e0-878e-7296-b1c0-a550bf0327b0',
-                        'name' => 'Couple\'s Private Class',
-                        'slug' => 'couples-private-class',
-                        'description' => 'A private yoga experience to enjoy together. Practice side by side with personalized guidance from our instructor, deepen your connection, and make every session a meaningful shared experience.',
+                        'name' => 'Konsultasi Pernikahan Pasangan',
+                        'slug' => 'konsultasi-pernikahan-pasangan',
+                        'description' => 'Pendampingan bersama pasangan untuk menyusun konsep, anggaran, vendor, dan detail acara pernikahan.',
                         'guest_capacity' => null,
                         'event_duration_hours' => null,
                         'venue_note' => null,
@@ -199,7 +199,7 @@ class ContentSeeder extends Seeder
                     0 => [
                         'uuid' => '01a09615-73f9-72ee-85e5-f2be4ef4c502',
                         'package_uuid' => '01a09615-73d8-7345-a20f-2d5eeb6b1d1a',
-                        'name' => 'All Classes',
+                        'name' => 'Seluruh Layanan',
                         'quota' => 50,
                         'price' => 3000000,
                         'discount_price' => 2400000,
@@ -211,7 +211,7 @@ class ContentSeeder extends Seeder
                     1 => [
                         'uuid' => '01a098de-ec50-73bf-b928-c37f31d37568',
                         'package_uuid' => '01a098d2-a02c-72ee-a8eb-b9dc6786761d',
-                        'name' => 'Single drop in',
+                        'name' => 'Satu Kali Konsultasi',
                         'quota' => 1,
                         'price' => 1000000,
                         'discount_price' => null,
@@ -223,7 +223,7 @@ class ContentSeeder extends Seeder
                     2 => [
                         'uuid' => '01a098de-ec7d-7352-9076-67a2defe3fde',
                         'package_uuid' => '01a098d2-a02c-72ee-a8eb-b9dc6786761d',
-                        'name' => '5 Private Classes',
+                        'name' => '5 Kali Konsultasi',
                         'quota' => 1,
                         'price' => 4500000,
                         'discount_price' => null,
@@ -235,7 +235,7 @@ class ContentSeeder extends Seeder
                     3 => [
                         'uuid' => '01a098de-ec7f-7275-a7f8-be27d7caa4ff',
                         'package_uuid' => '01a098d2-a02c-72ee-a8eb-b9dc6786761d',
-                        'name' => '10 Private Classes',
+                        'name' => '10 Kali Konsultasi',
                         'quota' => 1,
                         'price' => 8100000,
                         'discount_price' => null,
@@ -247,7 +247,7 @@ class ContentSeeder extends Seeder
                     4 => [
                         'uuid' => '01a098e0-8795-71b4-84a4-de9c8a0b517e',
                         'package_uuid' => '01a098e0-878e-7296-b1c0-a550bf0327b0',
-                        'name' => 'Single drop in',
+                        'name' => 'Satu Kali Konsultasi',
                         'quota' => 2,
                         'price' => 1200000,
                         'discount_price' => null,
@@ -259,7 +259,7 @@ class ContentSeeder extends Seeder
                     5 => [
                         'uuid' => '01a098e0-8797-7309-954d-6caac6a8f4ee',
                         'package_uuid' => '01a098e0-878e-7296-b1c0-a550bf0327b0',
-                        'name' => '5 Private Classes',
+                        'name' => '5 Kali Konsultasi',
                         'quota' => 2,
                         'price' => 5400000,
                         'discount_price' => null,
@@ -271,7 +271,7 @@ class ContentSeeder extends Seeder
                     6 => [
                         'uuid' => '01a098e0-8798-707b-b260-c1379231361e',
                         'package_uuid' => '01a098e0-878e-7296-b1c0-a550bf0327b0',
-                        'name' => '10 Private Classes',
+                        'name' => '10 Kali Konsultasi',
                         'quota' => 2,
                         'price' => 9720000,
                         'discount_price' => null,
@@ -283,7 +283,7 @@ class ContentSeeder extends Seeder
                     7 => [
                         'uuid' => '01a09965-fbf0-7307-ba83-dfa1382cf270',
                         'package_uuid' => '01a098c6-e509-7154-869f-8d336d44ebc4',
-                        'name' => '25 Classes',
+                        'name' => '25 Sesi Layanan',
                         'quota' => 50,
                         'price' => 6999000,
                         'discount_price' => 5599000,
@@ -295,7 +295,7 @@ class ContentSeeder extends Seeder
                     8 => [
                         'uuid' => '01a09966-2965-7201-ab57-9f085e23bbc7',
                         'package_uuid' => '01a095f2-d286-7241-b566-8027529b8196',
-                        'name' => 'First Class Experience',
+                        'name' => 'Pengalaman Pertama',
                         'quota' => 50,
                         'price' => 210000,
                         'discount_price' => null,

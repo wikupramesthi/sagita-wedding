@@ -324,6 +324,8 @@ class OrderWorkflowFeatureTest extends TestCase
         $this->withHeaders(['User-Agent' => 'iPhone'])
             ->get(route('orders.show', $this->order->uuid))
             ->assertOk()
+            ->assertSee('DP Terverifikasi')
+            ->assertDontSee('mobile.order_status.partially_paid')
             ->assertSee('Checklist persiapan')
             ->assertSee('Ajukan perubahan pesanan');
     }
@@ -359,6 +361,17 @@ class OrderWorkflowFeatureTest extends TestCase
             'remaining_amount' => 10000000,
             'expired_at' => now()->subMinute(),
         ]);
+        $payment = Payment::create([
+            'order_uuid' => $this->order->uuid,
+            'kind' => 'dp',
+            'payment_gateway' => 'manual_transfer',
+            'payment_type' => 'Transfer',
+            'gross_amount' => 2000000,
+            'amount' => 2000000,
+            'status' => 'pending',
+            'verification_status' => 'pending',
+        ]);
+
         EventDateReservation::create([
             'event_date' => $this->order->event_date->toDateString(),
             'order_uuid' => $this->order->uuid,
@@ -369,6 +382,15 @@ class OrderWorkflowFeatureTest extends TestCase
         Artisan::call('records:expire');
 
         $this->assertSame('expired', $this->order->fresh()->status);
+        $this->assertDatabaseHas('payments', [
+            'uuid' => $payment->uuid,
+            'status' => 'failed',
+            'verification_status' => 'rejected',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'auditable_id' => $this->order->uuid,
+            'event' => 'order_expired',
+        ]);
         $this->assertDatabaseHas('event_date_reservations', [
             'event_date' => $this->order->event_date->toDateString(),
             'order_uuid' => null,

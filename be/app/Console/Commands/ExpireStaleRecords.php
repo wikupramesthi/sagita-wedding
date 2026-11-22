@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AuditLog;
 use App\Models\Payment\Order;
 use App\Models\UserPackage;
 use App\Notifications\OrderExpiredNotification;
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\Log;
 
 class ExpireStaleRecords extends Command
 {
+    private const BATCH_SIZE = 500;
+
+    private const MAX_PER_RUN = 10000;
+
     /**
      * The name and signature of the console command.
      *
@@ -30,42 +35,75 @@ class ExpireStaleRecords extends Command
      */
     public function handle(): int
     {
-        $staleOrders = Order::packageOnly()->with('user')
-            ->where('status', 'pending')
-            ->whereNotNull('expired_at')
-            ->where('expired_at', '<', now())
-            ->limit(500)
-            ->get();
-
         $expiredOrders = 0;
         $reservations = app(EventDateReservationService::class);
 
-        foreach ($staleOrders as $order) {
-            $expired = \Illuminate\Support\Facades\DB::transaction(function () use ($order, $reservations): bool {
-                $locked = Order::packageOnly()
-                    ->where('uuid', $order->uuid)
-                    ->lockForUpdate()
-                    ->first();
+        while ($expiredOrders < self::MAX_PER_RUN) {
+            $staleOrders = Order::packageOnly()->with('user')
+                ->where('status', 'pending')
+                ->whereNotNull('expired_at')
+                ->where('expired_at', '<', now())
+                ->limit(min(self::BATCH_SIZE, self::MAX_PER_RUN - $expiredOrders))
+                ->get();
 
-                if (! $locked || $locked->status !== 'pending' || ! $locked->expired_at?->isPast()) {
-                    return false;
-                }
-
-                $locked->update(['status' => 'expired']);
-                $reservations->releaseForOrder($locked->uuid);
-
-                return true;
-            });
-
-            if (! $expired) {
-                continue;
+            if ($staleOrders->isEmpty()) {
+                break;
             }
 
-            $expiredOrders++;
-            try {
-                $order->user?->notify(new OrderExpiredNotification($order->order_number));
-            } catch (\Throwable $e) {
-                Log::warning('Order expiry notification failed for ' . $order->order_number . ': ' . $e->getMessage());
+            $processed = 0;
+
+            foreach ($staleOrders as $order) {
+                $expired = \Illuminate\Support\Facades\DB::transaction(function () use ($order, $reservations): bool {
+                    $locked = Order::packageOnly()
+                        ->where('uuid', $order->uuid)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $locked || $locked->status !== 'pending' || ! $locked->expired_at?->isPast()) {
+                        return false;
+                    }
+
+                    $locked->update(['status' => 'expired']);
+                    $locked->payments()
+                        ->where(function ($query) {
+                            $query->where('status', 'pending')
+                                ->orWhere('verification_status', 'pending');
+                        })
+                        ->update([
+                            'status' => 'failed',
+                            'verification_status' => 'rejected',
+                        ]);
+                    $reservations->releaseForOrder($locked->uuid);
+
+                    AuditLog::create([
+                        'user_name' => 'Sistem',
+                        'event' => 'order_expired',
+                        'auditable_type' => Order::class,
+                        'auditable_id' => (string) $locked->uuid,
+                        'auditable_label' => $locked->order_number,
+                        'old_values' => ['status' => 'pending'],
+                        'new_values' => ['status' => 'expired'],
+                        'url' => 'cli',
+                    ]);
+
+                    return true;
+                });
+
+                if (! $expired) {
+                    continue;
+                }
+
+                $expiredOrders++;
+                $processed++;
+                try {
+                    $order->user?->notify(new OrderExpiredNotification($order->order_number));
+                } catch (\Throwable $e) {
+                    Log::warning('Order expiry notification failed for ' . $order->order_number . ': ' . $e->getMessage());
+                }
+            }
+
+            if ($processed === 0) {
+                break;
             }
         }
 

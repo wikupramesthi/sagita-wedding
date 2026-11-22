@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class FrontendSessionTest extends TestCase
@@ -51,5 +53,30 @@ class FrontendSessionTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $this->assertGreaterThan($stale, session('last_activity'));
+    }
+
+    public function test_read_all_marks_all_unread_notifications(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+
+        foreach ([$user, $user, $other] as $notifiable) {
+            DB::table('notifications')->insert([
+                'id' => (string) Str::uuid(),
+                'type' => 'TestNotification',
+                'notifiable_type' => User::class,
+                'notifiable_id' => $notifiable->uuid,
+                'data' => '{}',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $this->actingAs($user)
+            ->post(route('notifications.readAll'))
+            ->assertRedirect();
+
+        $this->assertSame(0, DB::table('notifications')->where('notifiable_id', $user->uuid)->whereNull('read_at')->count());
+        $this->assertSame(1, DB::table('notifications')->where('notifiable_id', $other->uuid)->whereNull('read_at')->count());
     }
 }

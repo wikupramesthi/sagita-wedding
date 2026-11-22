@@ -532,41 +532,49 @@
                                         {{ $milestone['date'] ? $milestone['date']->translatedFormat('d F Y') : $milestone['offset'] }}
                                     </div>
                                 </div>
-
-                                @if ($dashboardChecklistOrder && $dashboardChecklistItems->isNotEmpty())
-                                    <div class="card border-0 shadow-sm mt-3 member-section-card">
-                                        <div class="card-body">
-                                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                                                <div>
-                                                    <h3 class="fw-bold mb-1 member-section-title">{{ __('dashboard.checklist') }}</h3>
-                                                    <div class="small text-muted">Tugas untuk {{ $dashboardChecklistOrder->order_number }} · {{ $dashboardChecklistItems->where('status', 'completed')->count() }}/{{ $dashboardChecklistItems->count() }} selesai</div>
-                                                </div>
-                                                <a href="{{ route('orders.show', $dashboardChecklistOrder->uuid) }}" class="btn btn-sm btn-outline-primary">Buka detail pesanan</a>
-                                            </div>
-                                            @foreach ($dashboardChecklistItems->take(5) as $item)
-                                                <div class="planning-task">
-                                                    <form method="POST" action="{{ route('orders.checklist.update', [$dashboardChecklistOrder->uuid, $item->uuid]) }}">
-                                                        @csrf
-                                                        <input type="hidden" name="status" value="{{ $item->status === 'completed' ? 'pending' : 'completed' }}">
-                                                        <button type="submit" class="btn btn-link p-0 border-0" aria-label="{{ $item->status === 'completed' ? 'Tandai belum selesai' : 'Tandai selesai' }}">
-                                                            <i class="bi {{ $item->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted' }}"></i>
-                                                        </button>
-                                                    </form>
-                                                    <div class="flex-grow-1">
-                                                        <div class="fw-semibold {{ $item->status === 'completed' ? 'text-decoration-line-through text-muted' : '' }}">{{ $item->title }}</div>
-                                                        <div class="small text-muted">{{ $item->description }}@if($item->due_at) · Target {{ $item->due_at->translatedFormat('d M Y') }}@endif</div>
-                                                    </div>
-                                                    @if ($item->status === 'completed')<span class="badge bg-success-subtle text-success-emphasis">Selesai</span>@endif
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
                             @endforeach
                         </div>
                         @unless ($planningEventDate)
                             <a href="#package-recommendation" class="btn btn-sm btn-outline-primary mt-3">Pilih paket untuk mulai</a>
                         @endunless
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mt-3 member-section-card">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                            <div>
+                                <h3 class="fw-bold mb-1 member-section-title">{{ __('dashboard.checklist') }}</h3>
+                                @if ($dashboardChecklistOrder)
+                                    <div class="small text-muted">Tugas untuk {{ $dashboardChecklistOrder->order_number }} · {{ $dashboardChecklistItems->where('status', 'completed')->count() }}/{{ $dashboardChecklistItems->count() }} selesai</div>
+                                @else
+                                    <div class="small text-muted">Checklist akan muncul setelah Anda memiliki pesanan paket dengan tanggal acara.</div>
+                                @endif
+                            </div>
+                            @if ($dashboardChecklistOrder)
+                                <a href="{{ route('orders.show', $dashboardChecklistOrder->uuid) }}" class="btn btn-sm btn-outline-primary">Buka detail pesanan</a>
+                            @endif
+                        </div>
+                        @if ($dashboardChecklistOrder && $dashboardChecklistItems->isNotEmpty())
+                            @foreach ($dashboardChecklistItems->take(5) as $item)
+                                <div class="planning-task">
+                                    <form method="POST" action="{{ route('orders.checklist.update', [$dashboardChecklistOrder->uuid, $item->uuid]) }}">
+                                        @csrf
+                                        <input type="hidden" name="status" value="{{ $item->status === 'completed' ? 'pending' : 'completed' }}">
+                                        <button type="submit" class="btn btn-link p-0 border-0" aria-label="{{ $item->status === 'completed' ? 'Tandai belum selesai' : 'Tandai selesai' }}">
+                                            <i class="bi {{ $item->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted' }}"></i>
+                                        </button>
+                                    </form>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold {{ $item->status === 'completed' ? 'text-decoration-line-through text-muted' : '' }}">{{ $item->title }}</div>
+                                        <div class="small text-muted">{{ $item->description }}@if($item->due_at) · Target {{ $item->due_at->translatedFormat('d M Y') }}@endif</div>
+                                    </div>
+                                    @if ($item->status === 'completed')<span class="badge bg-success-subtle text-success-emphasis">Selesai</span>@endif
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="small text-muted">Belum ada tugas checklist untuk ditampilkan.</div>
+                        @endif
                     </div>
                 </div>
             </div>

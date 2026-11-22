@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Payment\Order;
 use App\Models\Payment\OrderVendorAssignment;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -32,22 +33,30 @@ class OrderVendorAssignmentController extends Controller
             return back()->withErrors(['vendor_uuid' => 'Vendor tidak valid.'])->withInput();
         }
 
-        $exists = OrderVendorAssignment::where('order_uuid', $record->uuid)
-            ->where('vendor_uuid', $validated['vendor_uuid'])
-            ->where('scope', $validated['scope'])
-            ->exists();
-        if ($exists) {
+        try {
+            $assignment = OrderVendorAssignment::firstOrCreate(
+                [
+                    'order_uuid' => $record->uuid,
+                    'vendor_uuid' => $validated['vendor_uuid'],
+                    'scope' => $validated['scope'],
+                ],
+                [
+                    'status' => OrderVendorAssignment::STATUS_ASSIGNED,
+                    'notes' => $validated['notes'] ?? null,
+                    'assigned_by' => Auth::user()?->uuid,
+                ]
+            );
+        } catch (QueryException $exception) {
+            if (! str_contains($exception->getMessage(), 'order_vendor_scope_unique')) {
+                throw $exception;
+            }
+
             return back()->withErrors(['scope' => 'Vendor sudah ditugaskan untuk scope ini.'])->withInput();
         }
 
-        $assignment = OrderVendorAssignment::create([
-            'order_uuid' => $record->uuid,
-            'vendor_uuid' => $validated['vendor_uuid'],
-            'scope' => $validated['scope'],
-            'status' => OrderVendorAssignment::STATUS_ASSIGNED,
-            'notes' => $validated['notes'] ?? null,
-            'assigned_by' => Auth::user()?->uuid,
-        ]);
+        if (! $assignment->wasRecentlyCreated) {
+            return back()->withErrors(['scope' => 'Vendor sudah ditugaskan untuk scope ini.'])->withInput();
+        }
 
         $this->log($record, 'vendor_assigned', [
             'assignment_uuid' => $assignment->uuid,

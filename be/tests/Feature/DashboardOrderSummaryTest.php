@@ -232,6 +232,8 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertViewIs('pages.mobile.home')
             ->assertSee('Rencana pernikahan')
             ->assertDontSee('Art of Living')
+            ->assertDontSee('Yoga')
+            ->assertDontSee('YogaRoots')
             ->assertSee($order->order_number)
             ->assertSee('Timeline persiapan')
             ->assertSee('Paket Harmoni')

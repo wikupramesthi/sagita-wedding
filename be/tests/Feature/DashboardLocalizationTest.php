@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -18,6 +19,9 @@ class DashboardLocalizationTest extends TestCase
         foreach (['user', 'admin', 'super-admin', 'vendor'] as $roleName) {
             Role::findOrCreate($roleName, 'web');
         }
+
+        Permission::findOrCreate('konsultasi.index', 'web');
+        Role::findByName('admin', 'web')->givePermissionTo('konsultasi.index');
     }
 
     public function test_admin_dashboard_follows_session_locale(): void

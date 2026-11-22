@@ -10,8 +10,10 @@ class LogWhatsAppGateway implements WhatsAppGateway
     public function send(string $to, string $message, array $options = []): bool
     {
         Log::info('WhatsApp message via log driver', [
-            'to' => $to,
-            'message' => $message,
+            'status' => 'sent',
+            'to_hash' => hash_hmac('sha256', $to, (string) config('app.key')),
+            'message_length' => strlen($message),
+            'message_hash' => hash_hmac('sha256', $message, (string) config('app.key')),
         ]);
 
         return true;
@@ -27,7 +29,12 @@ class LogWhatsAppGateway implements WhatsAppGateway
 
         $link = 'https://wa.me/'.$number.'?text='.rawurlencode($message);
 
-        Log::info('WhatsApp link via log driver', ['link' => $link]);
+        Log::info('WhatsApp link via log driver', [
+            'status' => 'link_created',
+            'to_hash' => hash_hmac('sha256', $to, (string) config('app.key')),
+            'message_length' => strlen($message),
+            'message_hash' => hash_hmac('sha256', $message, (string) config('app.key')),
+        ]);
 
         return $link;
     }

@@ -19,6 +19,17 @@ class MemberView
             request()->userAgent() ?: ''
         );
 
+        $viewportWidth = request()->header('Sec-CH-Viewport-Width')
+            ?: request()->header('Viewport-Width');
+
+        if ($viewportWidth !== null) {
+            $viewportWidth = trim((string) $viewportWidth, '" ');
+
+            if (is_numeric($viewportWidth) && (int) $viewportWidth <= 768) {
+                return true;
+            }
+        }
+
         // HP: selalu mobile, tiap ganti halaman tetap mobile.
         if ($isMobileUa) {
             return true;
@@ -28,13 +39,18 @@ class MemberView
         $query = request()->query('view');
         if ($query === 'mobile' || $query === 'desktop') {
             session(['member_view' => $query]);
+            cookie()->queue(cookie('member_view_device', $query, 60 * 24 * 30));
             return $query === 'mobile';
         }
 
-        $forced = session('member_view');
+        $forced = session('member_view') ?: request()->cookie('member_view_device');
 
         if ($forced === 'mobile') {
             return true;
+        }
+
+        if ($forced === 'desktop') {
+            return false;
         }
 
         // Laptop/desktop tanpa override: view desktop.

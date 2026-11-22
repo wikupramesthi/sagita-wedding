@@ -12,6 +12,25 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RouteMiddleware
 {
+    private const SAFE_WITHOUT_REGISTRATION = [
+        'dashboard.*',
+        'account.*',
+        'notifications.*',
+        'profile.*',
+        'password.*',
+        'verification.*',
+        'checkout.*',
+        'schedules.*',
+        'bookings.*',
+        'vendor.mobile',
+        'packages.member',
+        'packages.wishlist.*',
+        'packages.compare.*',
+        'packages.quotation',
+        'packages.quotation.download',
+        'packages.quotation.preview',
+    ];
+
     /**
      * Handle an incoming request.
      *
@@ -34,7 +53,7 @@ class RouteMiddleware
         // controller modul tidak punya cek role sendiri.
         $user = $request->user();
 
-        if ($request->routeIs('keep-alive') || $request->routeIs('logout') || $request->routeIs('auth.me.logout')) {
+        if ($request->routeIs('keep-alive') || $request->routeIs('logout') || $request->routeIs('logout.confirm') || $request->routeIs('auth.me.logout')) {
             return $next($request);
         }
 
@@ -70,11 +89,18 @@ class RouteMiddleware
             ? Cache::remember('route.permission.'.$routeName, 60, fn () => Route::firstWhere('route', $routeName))
             : null;
 
-        return blank($routes)
-            || (
-                (bool) $routes->status
-                && $request->user()->can($routes->permission_name)
-            )
+        if (blank($routes)) {
+            if (
+                ($request->is('backend') || $request->is('backend/*'))
+                && ! self::isSafeWithoutRegistration($request, $routeName)
+            ) {
+                abort(404);
+            }
+
+            return $next($request);
+        }
+
+        return (bool) $routes->status && $user?->can($routes->permission_name)
             ? $next($request)
             : abort(404);
     }
@@ -143,6 +169,7 @@ class RouteMiddleware
             'packages.wishlist.*',
             'packages.compare.*',
             'packages.quotation',
+            'packages.quotation.preview',
             'packages.quotation.download',
             'checkout.*',
             'schedules.*',
@@ -158,6 +185,25 @@ class RouteMiddleware
         ];
 
         foreach ($allowed as $pattern) {
+            if (Str::is($pattern, $routeName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function isSafeWithoutRegistration(Request $request, ?string $routeName): bool
+    {
+        if ($request->is('backend/instruktur') || $request->is('backend/instruktur/*') || $request->is('backend/get-kelurahan/*')) {
+            return true;
+        }
+
+        if (! $routeName) {
+            return false;
+        }
+
+        foreach (self::SAFE_WITHOUT_REGISTRATION as $pattern) {
             if (Str::is($pattern, $routeName)) {
                 return true;
             }

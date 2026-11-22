@@ -19,7 +19,7 @@ class EventController extends Controller
      *
      * Query:
      *
-     * ?search=yoga
+     * ?search=pernikahan
      * ?filter=today
      * ?filter=week
      * ?filter=month

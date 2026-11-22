@@ -394,7 +394,7 @@ class OrderController extends Controller
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->get();
-        $vendors = $isAdmin
+        $vendors = $isAdmin && Role::where('name', 'vendor')->exists()
             ? User::role('vendor')->orderBy('name')->get(['uuid', 'name'])
             : collect();
         $userPackage = UserPackage::where('order_uuid', $order->uuid)->first();
@@ -808,6 +808,7 @@ class OrderController extends Controller
         $record = Order::packageOnly()->with('package')->where('uuid', $order)->firstOrFail();
         $user = Auth::user();
         $isAdmin = $user->hasAnyRole(['admin', 'admin-venue', 'super-admin']);
+        $canRecordPayment = $user->hasAnyRole(['admin', 'super-admin']);
         abort_unless($record->user_uuid === $user->uuid || $isAdmin, 403);
         abort_unless(in_array($record->status, ['pending', 'partially_paid'], true), 403, 'Pesanan tidak dalam status pembayaran aktif.');
 
@@ -824,7 +825,7 @@ class OrderController extends Controller
             return back()->withErrors(['amount' => 'Nominal melebihi sisa pembayaran.'])->withInput();
         }
 
-        $recordOnly = $isAdmin && $request->boolean('record_only');
+        $recordOnly = $canRecordPayment && $request->boolean('record_only');
         if (! $recordOnly && ! $request->hasFile('proof')) {
             return back()->withErrors(['proof' => 'Bukti transfer wajib diunggah.'])->withInput();
         }
@@ -924,10 +925,13 @@ class OrderController extends Controller
             }
 
             $fullAmount = (float) ($lockedOrder->full_amount ?: $lockedOrder->total_amount ?: $lockedOrder->amount ?: 0);
-            $remaining = max(0, $fullAmount - (float) $lockedOrder->amount_paid_value);
-            $amount = min($remaining, (float) ($lockedPayment->amount ?: $lockedPayment->gross_amount ?: 0));
+            $remaining = max(0, round($fullAmount - (float) $lockedOrder->amount_paid_value, 2));
+            $amount = round((float) ($lockedPayment->amount ?: $lockedPayment->gross_amount ?: 0), 2);
             if ($amount <= 0) {
                 throw ValidationException::withMessages(['payment' => 'Nominal pembayaran tidak valid.']);
+            }
+            if ($amount - $remaining > 0.01) {
+                throw ValidationException::withMessages(['payment' => 'Nominal pembayaran melebihi sisa tagihan.']);
             }
 
             $lockedPayment->update([
@@ -937,7 +941,7 @@ class OrderController extends Controller
                 'verified_at' => now(),
                 'paid_at' => $lockedPayment->paid_at ?: now(),
                 'amount' => $amount,
-                'gross_amount' => $lockedPayment->gross_amount ?: $amount,
+                'gross_amount' => round((float) ($lockedPayment->gross_amount ?: $amount), 2),
                 'note' => $note ?: $lockedPayment->note,
             ]);
 
@@ -1554,6 +1558,11 @@ class OrderController extends Controller
                 'approval_reverted',
                 'rejection_reverted',
                 'sla_reminded',
+                'order_expired',
+                'balance_reminded',
+                'vendor_assigned',
+                'vendor_status_changed',
+                'vendor_unassigned',
             ])
             ->latest();
 

@@ -205,7 +205,11 @@
                 <div class="card-body">
                     <ol class="small mb-3 ps-3">
                         <li>Transfer jumlah yang tertera ke rekening bank kami.</li>
-                        <li>Unggah bukti transfer (atau konfirmasi melalui WhatsApp).</li>
+                        @if ($isAdmin)
+                            <li>Member mengunggah bukti transfer atau mengonfirmasi melalui WhatsApp.</li>
+                        @else
+                            <li>Unggah bukti transfer (atau konfirmasi melalui WhatsApp).</li>
+                        @endif
                         <li>Admin akan memverifikasi pembayaran. Pesanan diproses setelah pembayaran disetujui.</li>
                     </ol>
 
@@ -217,7 +221,7 @@
                     </div>
 
                     <div class="d-flex flex-wrap gap-2 mb-3">
-                        @if ($waNumber)
+                        @if ($waNumber && ! $isAdmin)
                             <a href="https://wa.me/{{ $waNumber }}?text={{ urlencode($waText) }}" target="_blank"
                                 rel="noopener" class="btn btn-success">
                                 <i class="bi bi-whatsapp me-1"></i> Konfirmasi via WhatsApp

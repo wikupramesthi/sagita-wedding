@@ -42,12 +42,21 @@ class WhatsAppChannel
             ]);
 
             if (! $sent) {
-                Log::warning('WhatsApp notification was not sent.', ['to' => $data['to']]);
+                Log::warning('WhatsApp notification was not sent.', [
+                    'status' => 'not_sent',
+                    'to_hash' => hash_hmac('sha256', $data['to'], (string) config('app.key')),
+                    'message_length' => strlen($data['message']),
+                    'message_hash' => hash_hmac('sha256', $data['message'], (string) config('app.key')),
+                ]);
             }
         } catch (Throwable $exception) {
             Log::error('WhatsApp notification failed.', [
-                'to' => $data['to'],
-                'message' => $exception->getMessage(),
+                'status' => 'failed',
+                'exception' => get_class($exception),
+                'code' => $exception->getCode(),
+                'to_hash' => hash_hmac('sha256', $data['to'], (string) config('app.key')),
+                'message_length' => strlen($data['message']),
+                'message_hash' => hash_hmac('sha256', $data['message'], (string) config('app.key')),
             ]);
         }
 

@@ -35,7 +35,7 @@ class OrderAdminTest extends TestCase
     {
         parent::setUp();
 
-        foreach (['user', 'admin', 'super-admin'] as $roleName) {
+        foreach (['user', 'admin', 'super-admin', 'vendor'] as $roleName) {
             Role::findOrCreate($roleName, 'web');
         }
 

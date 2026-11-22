@@ -14,7 +14,7 @@ return [
     'already_checked_in' => 'This booking is already checked in.',
     'only_confirmed_checkin' => 'Only confirmed bookings can check in.',
     'checkin_day_only' => 'Attendance confirmation is only available on the event day.',
-    'no_quota_checkin' => 'No active membership with remaining quota. Check-in blocked.',
+    'no_quota_checkin' => 'No active package with remaining availability. Attendance confirmation blocked.',
     'checkin_stale' => 'This booking can no longer check in.',
     'checked_in_ok' => 'Checked in successfully.',
     'checked_in_remain' => 'Checked in successfully. Remaining quota: :count.',
@@ -22,7 +22,7 @@ return [
     'cancel_cutoff' => 'Bookings can only be cancelled at least 2 hours before the class starts.',
     'cancel_ok' => 'Booking cancelled.',
     'rate_ok' => 'Thanks for rating the class.',
-    'member_no_quota' => ':name has no active membership with remaining quota.',
+    'member_no_quota' => ':name has no active package with remaining availability.',
     'member_already_in' => ':name is already checked in.',
     'member_checked_in' => ':name checked in successfully.',
     'member_checked_in_remain' => ':name checked in successfully. Remaining quota: :count.',
@@ -46,7 +46,7 @@ return [
     'compare_cleared' => 'Comparison list cleared.',
 
     // Orders
-    'order_approve_ok' => 'Order marked as paid. Membership activated.',
+    'order_approve_ok' => 'Order marked as paid. Wedding package activated.',
     'order_only_pending_approve' => 'Only pending orders can be approved.',
     'order_no_option' => 'This order has no package option to activate.',
     'order_only_pending_reject' => 'Only pending orders can be rejected.',

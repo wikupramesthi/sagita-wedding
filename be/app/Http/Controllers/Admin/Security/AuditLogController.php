@@ -142,6 +142,21 @@ class AuditLogController extends Controller
             'updated' => 'Diperbarui',
             'deleted' => 'Dihapus',
             'restored' => 'Dipulihkan',
+            'whatsapp_opened' => 'WhatsApp Dibuka',
+            'approved' => 'Pesanan Disetujui',
+            'rejected' => 'Pesanan Ditolak',
+            'proof_uploaded' => 'Bukti Diunggah',
+            'assigned' => 'Pesanan Diambil Alih',
+            'approval_reverted' => 'Persetujuan Dibatalkan',
+            'rejection_reverted' => 'Penolakan Dibatalkan',
+            'sla_reminded' => 'Pengingat SLA Dikirim',
+            'order_expired' => 'Pesanan Kedaluwarsa',
+            'balance_reminded' => 'Pengingat Pembayaran Dikirim',
+            'checklist_reminded' => 'Pengingat Checklist Dikirim',
+            'checklist_escalated' => 'Eskalasi Checklist Dikirim',
+            'vendor_assigned' => 'Vendor Ditugaskan',
+            'vendor_status_changed' => 'Status Vendor Diperbarui',
+            'vendor_unassigned' => 'Vendor Dilepaskan',
         ];
     }
 

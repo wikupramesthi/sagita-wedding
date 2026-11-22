@@ -323,8 +323,8 @@
                             @endif
 
                             @if($event->deskripsi)
-                            <div class="small text-muted2 lh-lg event-description">
-                                {!! $event->deskripsi !!}
+                            <div class="small text-muted2 lh-lg event-description" style="white-space: pre-line;">
+                                {{ $event->deskripsi }}
                             </div>
                             @endif
 

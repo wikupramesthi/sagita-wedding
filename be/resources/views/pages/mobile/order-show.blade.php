@@ -2,6 +2,132 @@
 @section('title', __('mobile.order_detail'))
 @section('content')
 
+@push('after-style')
+<style>
+    #order-detail .order-detail-card,
+    #order-detail .order-status-card {
+        border-radius: 22px;
+    }
+
+    #order-detail .order-status-card {
+        padding: 22px 18px;
+        background: linear-gradient(145deg, #fffdf8, #f3f7f1);
+        border: 1px solid rgba(75, 107, 82, .14);
+        box-shadow: 0 8px 22px -14px rgba(53, 72, 55, .4);
+    }
+
+    #order-detail .order-status-card h2 {
+        color: var(--fg);
+        letter-spacing: -.02em;
+    }
+
+    #order-detail .order-reference {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        margin-top: 14px;
+        padding: 7px 11px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .72);
+        color: var(--muted);
+        font-size: 11px;
+        overflow-wrap: anywhere;
+    }
+
+    #order-detail .order-due {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(75, 107, 82, .14);
+    }
+
+    #order-detail .order-due-label {
+        color: var(--muted);
+        font-size: 11px;
+    }
+
+    #order-detail .order-due-amount {
+        color: var(--sage);
+        font-size: clamp(22px, 6vw, 28px);
+        font-weight: 750;
+        letter-spacing: -.04em;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    #order-detail .order-detail-card {
+        padding: 16px;
+    }
+
+    #order-detail .order-detail-row {
+        display: grid !important;
+        grid-template-columns: minmax(82px, .75fr) minmax(0, 1.4fr);
+        gap: 12px;
+        align-items: start !important;
+        padding: 11px 0 !important;
+    }
+
+    #order-detail .order-detail-row > :last-child {
+        min-width: 0;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+    #order-detail .order-detail-row:first-child {
+        padding-top: 0 !important;
+    }
+
+    #order-detail .order-amounts {
+        margin-top: 12px;
+        padding: 4px 12px;
+        border-radius: 16px;
+        background: #f5f7f1;
+    }
+
+    #order-detail .order-amount-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(75, 107, 82, .1);
+    }
+
+    #order-detail .order-amount-row:last-child {
+        border-bottom: 0;
+    }
+
+    #order-detail .order-amount-row strong {
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+    #order-detail .order-amount-row.is-due strong {
+        font-size: 16px;
+    }
+
+    #order-detail .order-payment-form input {
+        min-height: 46px;
+        border-radius: 12px;
+    }
+
+    #order-detail .order-payment-form input[type="file"] {
+        padding: 9px;
+        font-size: 12px;
+    }
+
+    #order-detail .order-payment-form .btn {
+        min-height: 46px;
+        border-radius: 14px;
+        font-weight: 650;
+    }
+
+    #order-detail .order-section-card {
+        padding: 17px;
+    }
+</style>
+@endpush
+
 <section class="screen active" id="order-detail">
     <div class="px-4 pt-4">
 
@@ -24,10 +150,13 @@
             $bankHolder = config('manual_payment.bank_holder');
             $waNumber = preg_replace('/\D/', '', (string) config('manual_payment.admin_whatsapp'));
             $waText = 'Halo Admin Sagita Wedding Organizer, saya telah melakukan transfer Rp ' . number_format($order->amount, 0, ',', '.') . ' untuk pesanan ' . $order->order_number . ' (' . ($order->user?->name ?? '') . '). Terima kasih.';
+            $fullAmount = (float) ($order->total_amount ?: $order->amount);
+            $amountPaid = (float) ($order->amount_paid_value ?? ($order->status === 'paid' ? $fullAmount : 0));
+            $remainingAmount = (float) ($order->remaining_amount_value ?? max(0, $fullAmount - $amountPaid));
         @endphp
 
         {{-- STATUS --}}
-        <div class="app-card p-4 text-center mt-2">
+        <div class="app-card order-status-card text-center mt-2">
             @if ($order->status === 'paid')
                 <div class="status-circle paid d-inline-flex align-items-center justify-content-center mx-auto"
                     style="width:56px;height:56px;border-radius:50%;background:#e8f3ea;">
@@ -57,6 +186,13 @@
                 <h2 class="h5 fw-semibold mt-3 mb-1">{{ __('mobile.order_status.' . $order->status) }}</h2>
                 <p class="mb-0 text-muted2 text-small">{{ __('mobile.order') }} #{{ $order->order_number }}</p>
             @endif
+            @if ($order->status !== 'paid' && $order->status !== 'failed' && $order->status !== 'expired' && $order->status !== 'cancelled')
+                <div class="order-reference mx-auto">No. Pesanan&nbsp; #{{ $order->order_number }}</div>
+                <div class="order-due">
+                    <div class="order-due-label">{{ $remainingAmount > 0 ? 'Sisa pembayaran' : 'Total pembayaran' }}</div>
+                    <div class="order-due-amount">Rp {{ number_format($remainingAmount > 0 ? $remainingAmount : $fullAmount, 0, ',', '.') }}</div>
+                </div>
+            @endif
         </div>
 
         {{-- MEMBERSHIP ACTIVE --}}
@@ -75,9 +211,6 @@
 
         {{-- SUMMARY --}}
         @php
-            $fullAmount = (float) ($order->total_amount ?: $order->amount);
-            $amountPaid = (float) ($order->amount_paid_value ?? ($order->status === 'paid' ? $fullAmount : 0));
-            $remainingAmount = (float) ($order->remaining_amount_value ?? max(0, $fullAmount - $amountPaid));
             $schemeLabel = $order->scheme_label ?? ($order->promo_snapshot['scheme_label'] ?? 'Bayar Lunas');
             $orderTimeline = collect();
             if ($order->created_at) {
@@ -102,12 +235,12 @@
             }
             $orderTimeline = $orderTimeline->sortBy('at')->values();
         @endphp
-        <div class="app-card p-3 mt-3">
-            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+        <div class="app-card order-detail-card mt-3">
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom order-detail-row">
                 <span class="text-muted2 text-small">{{ __('mobile.order') }}</span>
                 <span class="small fw-semibold">#{{ $order->order_number }}</span>
             </div>
-            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom order-detail-row">
                 <span class="text-muted2 text-small">{{ __('mobile.package') }}</span>
                 <span class="small fw-semibold text-end" style="max-width:60%;">
                     {{ $order->package?->name ?? '-' }}
@@ -116,22 +249,22 @@
                     @endif
                 </span>
             </div>
-            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom order-detail-row">
                 <span class="text-muted2 text-small">Skema</span>
                 <span class="small fw-semibold">{{ $schemeLabel }}</span>
             </div>
-            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom order-detail-row">
                 <span class="text-muted2 text-small">{{ __('mobile.date') }}</span>
                 <span class="small fw-semibold">{{ $order->created_at?->format('d M Y') ?? '-' }}</span>
             </div>
             @if ($order->event_date)
-                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom order-detail-row">
                     <span class="text-muted2 text-small">Tanggal Acara</span>
                     <span class="small fw-semibold">{{ $order->event_date->translatedFormat('d F Y') }}</span>
                 </div>
             @endif
             @if ($order->promo_code)
-                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom order-detail-row">
                     <span class="text-muted2 text-small">Promo</span>
                     <span class="small fw-semibold text-end">{{ $order->promo_code }} (Hemat Rp {{ number_format((int) $order->promo_discount, 0, ',', '.') }})</span>
                 </div>
@@ -147,17 +280,19 @@
                     @endforeach
                 </div>
             @endif
-            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                <span class="text-muted2 text-small">Total Paket</span>
-                <span class="small fw-semibold">Rp {{ number_format($fullAmount, 0, ',', '.') }}</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                <span class="text-muted2 text-small">Sudah Dibayar</span>
-                <span class="small fw-semibold text-success">Rp {{ number_format($amountPaid, 0, ',', '.') }}</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center py-2">
-                <span class="text-muted2 text-small">Sisa</span>
-                <span class="small fw-semibold {{ $remainingAmount > 0 ? 'text-danger' : 'text-success' }}">Rp {{ number_format($remainingAmount, 0, ',', '.') }}</span>
+            <div class="order-amounts">
+                <div class="order-amount-row">
+                    <span class="text-muted2 text-small">Total Paket</span>
+                    <strong class="small">Rp {{ number_format($fullAmount, 0, ',', '.') }}</strong>
+                </div>
+                <div class="order-amount-row">
+                    <span class="text-muted2 text-small">Sudah Dibayar</span>
+                    <strong class="small text-success">Rp {{ number_format($amountPaid, 0, ',', '.') }}</strong>
+                </div>
+                <div class="order-amount-row is-due">
+                    <span class="text-muted2 text-small">Sisa Pembayaran</span>
+                    <strong class="{{ $remainingAmount > 0 ? 'text-danger' : 'text-success' }}">Rp {{ number_format($remainingAmount, 0, ',', '.') }}</strong>
+                </div>
             </div>
             @if($order->balance_due_at)
             <div class="pt-1 m-micro text-muted2">Batas pelunasan: {{ $order->balance_due_at->translatedFormat('d M Y') }}</div>
@@ -175,7 +310,7 @@
             @endif
         </div>
 
-        <div class="app-card p-3 mt-3">
+        <div class="app-card order-section-card mt-3">
             <h3 class="h6 fw-semibold mb-3">Progres Pesanan</h3>
             <div class="d-grid gap-2">
                 @forelse ($orderTimeline as $timelineEvent)
@@ -198,13 +333,13 @@
                 $pendingPayment = $order->payments->firstWhere('verification_status', 'pending') ?? $order->payments->firstWhere('status', 'pending');
                 $hasPendingPayment = (bool) $pendingPayment;
             @endphp
-            <div class="app-card p-3 mt-3" id="add-payment">
+            <div class="app-card order-section-card mt-3" id="add-payment">
                 <h3 class="h6 fw-semibold mb-2">Tambah Pembayaran</h3>
                 <div class="m-meta text-muted2 mb-2">Sisa pembayaran: <strong class="text-danger">Rp {{ number_format($remainingAmount,0,',','.') }}</strong></div>
                 @if($hasPendingPayment)
                     <div class="alert alert-warning small mb-0">Bukti pembayaran Rp {{ number_format((float)($pendingPayment->amount ?? $pendingPayment->gross_amount),0,',','.') }} sedang menunggu verifikasi admin.</div>
                 @else
-                    <form action="{{ route('orders.payments.store', $order->uuid) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('orders.payments.store', $order->uuid) }}" method="POST" enctype="multipart/form-data" class="order-payment-form">
                         @csrf
                         <label class="form-label small mb-1">Nominal pembayaran</label>
                         <input type="number" name="amount" class="form-control mb-2" min="1" max="{{ (int)$remainingAmount }}" value="{{ (int)$remainingAmount }}" required>
@@ -218,7 +353,7 @@
 
         {{-- PAYMENT HISTORY --}}
         @if($order->payments->isNotEmpty())
-            <div class="app-card p-3 mt-3">
+            <div class="app-card order-section-card mt-3">
                 <h3 class="h6 fw-semibold mb-2">Riwayat Pembayaran</h3>
                 @foreach($order->payments->sortByDesc('created_at') as $p)
                     @php $pStatus = $p->verification_status ?: $p->status; @endphp
@@ -241,7 +376,7 @@
 
         {{-- PAYMENT INSTRUCTIONS --}}
         @if ($order->status === 'pending')
-            <div class="app-card p-3 mt-3">
+            <div class="app-card order-section-card mt-3">
                 <h3 class="h6 fw-semibold mb-2">{{ __('mobile.complete_payment') }}</h3>
                 <ol class="small text-muted2 mb-3 ps-3 text-small" style="line-height:1.6;">
                     @foreach (explode('|', __('mobile.payment_steps')) as $step)

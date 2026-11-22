@@ -132,7 +132,7 @@ return [
     'no_membership' => 'No package found',
     'no_membership_desc' => 'Choose a package to start planning your wedding.',
     'recent_classes' => 'Recent services',
-    'no_classes_membership' => 'No services with this package yet.',
+    'no_classes_membership' => 'No services are included in this package yet.',
     'book_a_class' => 'Book a Package',
     'started' => 'Started',
     'expires' => 'Expires',
@@ -200,6 +200,7 @@ return [
 
     'order_status' => [
         'pending' => 'Pending',
+        'partially_paid' => 'Partially paid',
         'paid' => 'Paid',
         'failed' => 'Failed',
         'expired' => 'Expired',
@@ -308,7 +309,7 @@ return [
     'inbox' => 'Inbox',
     'unread' => 'Unread',
     'all_caught_up' => "You're all caught up.",
-    'notif_empty_desc' => 'Order confirmations, payments, and check-ins will appear here.',
+    'notif_empty_desc' => 'Order confirmations, payments, and event schedules will appear here.',
     'unread_line' => '{1} You have :count unread message.|[2,*] You have :count unread messages.',
     'rated_of' => 'Rated :n of 5',
     'tap_upload_suffix' => '· upload proof available',

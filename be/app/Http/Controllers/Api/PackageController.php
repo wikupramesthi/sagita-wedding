@@ -18,7 +18,7 @@ class PackageController extends Controller
      *
      * Query:
      *
-     * ?search=yoga
+     * ?search=pernikahan
      * ?filter=popular
      * ?filter=unlimited
      * ?sort=popular

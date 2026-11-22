@@ -7,6 +7,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -96,6 +97,21 @@ class MemberAuthorizationTest extends TestCase
             ->assertOk();
     }
 
+    public function test_unregistered_backend_route_is_denied(): void
+    {
+        DB::table('routes')->where('route', 'orders.analytics')->delete();
+        Cache::forget('route.permission.orders.analytics');
+
+        $this->actingAs($this->admin())
+            ->get('/backend/orders/analytics')
+            ->assertNotFound();
+    }
+
+    public function test_public_route_without_registration_remains_accessible(): void
+    {
+        $this->get('/')->assertOk();
+    }
+
     public function test_admin_dashboard_clamps_inverted_date_range(): void
     {
         $this->actingAs($this->admin())
@@ -164,6 +180,16 @@ class MemberAuthorizationTest extends TestCase
             ->assertViewIs('pages.mobile.home');
     }
 
+    public function test_member_dashboard_is_mobile_on_responsive_width(): void
+    {
+        $this->actingAs($this->member())
+            ->withHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36')
+            ->withHeader('Sec-CH-Viewport-Width', '390')
+            ->get('/backend/dashboard')
+            ->assertOk()
+            ->assertViewIs('pages.mobile.home');
+    }
+
     public function test_member_dashboard_is_desktop_on_laptop(): void
     {
         $this->actingAs($this->member())
@@ -171,6 +197,24 @@ class MemberAuthorizationTest extends TestCase
             ->get('/backend/dashboard')
             ->assertOk()
             ->assertViewIs('pages.dashboard.index');
+    }
+
+    public function test_member_view_mobile_query_forces_mobile_on_laptop(): void
+    {
+        $this->actingAs($this->member())
+            ->withHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36')
+            ->get('/backend/dashboard?view=mobile')
+            ->assertOk()
+            ->assertViewIs('pages.mobile.home');
+    }
+
+    public function test_phone_never_falls_back_to_desktop_view(): void
+    {
+        $this->actingAs($this->member())
+            ->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 13; Pixel 7) Mobile Safari/537.36')
+            ->get('/backend/dashboard?view=desktop')
+            ->assertOk()
+            ->assertViewIs('pages.mobile.home');
     }
 
     public function test_member_own_orders_are_accessible(): void

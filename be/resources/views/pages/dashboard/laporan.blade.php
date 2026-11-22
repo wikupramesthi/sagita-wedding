@@ -112,7 +112,7 @@
                 <td class="num">{{ number_format($newOrdersCount) }}</td>
             </tr>
             <tr>
-                <td>Keanggotaan baru</td>
+                <td>Paket pernikahan baru</td>
                 <td class="num">{{ number_format($newMembershipCount) }}</td>
             </tr>
             <tr>

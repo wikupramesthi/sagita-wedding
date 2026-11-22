@@ -23,7 +23,7 @@
         <div class="d-flex gap-2 mt-4 no-scrollbar">
             <a href="{{ route('orders.index', request()->except('status')) }}"
                 class="filter d-inline-block text-decoration-none text-nowrap {{ empty($filters['status']) ? 'active' : '' }}">{{ __('mobile.all') }}</a>
-            @foreach (['paid' => __('mobile.order_status.paid'), 'pending' => __('mobile.order_status.pending'), 'failed' => __('mobile.order_status.failed'), 'expired' => __('mobile.order_status.expired'), 'cancelled' => __('mobile.order_status.cancelled')] as $st => $label)
+            @foreach (['paid' => __('mobile.order_status.paid'), 'partially_paid' => __('mobile.order_status.partially_paid'), 'pending' => __('mobile.order_status.pending'), 'failed' => __('mobile.order_status.failed'), 'expired' => __('mobile.order_status.expired'), 'cancelled' => __('mobile.order_status.cancelled')] as $st => $label)
                 <a href="{{ route('orders.index', array_merge(request()->except('status'), ['status' => $st])) }}"
                     class="filter d-inline-block text-decoration-none text-nowrap {{ ($filters['status'] ?? '') === $st ? 'active' : '' }}">
                     {{ $label }}
@@ -37,6 +37,7 @@
                 @php
                     $badge = match ($order->status) {
                         'paid' => 'bg-success-subtle text-success',
+                        'partially_paid' => 'bg-primary-subtle text-primary',
                         'pending' => 'bg-warning-subtle text-warning',
                         'failed' => 'bg-danger-subtle text-danger',
                         default => 'bg-secondary-subtle text-secondary',

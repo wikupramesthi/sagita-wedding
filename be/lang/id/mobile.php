@@ -200,6 +200,7 @@ return [
 
     'order_status' => [
         'pending' => 'Menunggu',
+        'partially_paid' => 'DP Terverifikasi',
         'paid' => 'Lunas',
         'failed' => 'Gagal',
         'expired' => 'Kedaluwarsa',

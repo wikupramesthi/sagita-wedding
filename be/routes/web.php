@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\OrderChangeRequestController;
 use App\Http\Controllers\Admin\OrderDocumentController;
+use App\Http\Controllers\Admin\OrderVendorAssignmentController;
 use App\Http\Controllers\Admin\OrderWorkflowAnalyticsController;
 use App\Http\Controllers\Admin\OrderWorkflowSettingsController;
 use App\Http\Controllers\Admin\PackageController;
@@ -217,6 +218,10 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
         [PackageInteractionController::class, 'compareClear']
     )->name('packages.compare.clear');
     Route::get(
+        '/packages/{package}/quotation/preview',
+        [QuotationController::class, 'preview']
+    )->name('packages.quotation.preview');
+    Route::get(
         '/packages/{package}/quotation',
         [QuotationController::class, 'package']
     )->name('packages.quotation');
@@ -278,6 +283,9 @@ Route::get('/checkout/package/{packageUuid}', [
     Route::get('orders/{order}/quick-view', [OrderController::class, 'quickView'])->name('orders.quick-view');
     Route::get('orders/{order}/activity', [OrderController::class, 'activity'])->name('orders.activity');
     Route::get('orders/{order}/whatsapp', [OrderController::class, 'whatsapp'])->name('orders.whatsapp');
+    Route::post('orders/{order}/vendors', [OrderVendorAssignmentController::class, 'assign'])->name('orders.vendors.assign');
+    Route::patch('orders/{order}/vendors/{assignment}/status', [OrderVendorAssignmentController::class, 'updateStatus'])->name('orders.vendors.status');
+    Route::delete('orders/{order}/vendors/{assignment}', [OrderVendorAssignmentController::class, 'destroy'])->name('orders.vendors.destroy');
     Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
     Route::post('orders/{order}/reject', [OrderController::class, 'reject'])->name('orders.reject');
     Route::post('orders/{order}/payments', [OrderController::class, 'submitPayment'])->name('orders.payments.store')->middleware('throttle:10,1');

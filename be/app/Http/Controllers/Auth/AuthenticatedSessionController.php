@@ -20,7 +20,7 @@ class AuthenticatedSessionController extends Controller
      * HP (User-Agent mobile) mendapat versi mobile phone-frame agar tampilannya
      * sama dengan halaman member mobile; desktop/admin tetap versi penuh.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
         $faqs = Faq::where('status', 'active')
             ->orderByKategori()
@@ -31,7 +31,12 @@ class AuthenticatedSessionController extends Controller
         $jumlahVendor = $hasRoles ? User::role('vendor')->count() : 0;
         $jumlahMembers = $hasRoles ? User::role('user')->count() : 0;
 
-        if ($this->isMobile()) {
+        $mobileView = $request->query('view') === 'mobile';
+        if ($mobileView) {
+            $request->session()->put('member_view', 'mobile');
+        }
+
+        if ($this->isMobile() || $mobileView) {
             return view('auth.login-mobile');
         }
 

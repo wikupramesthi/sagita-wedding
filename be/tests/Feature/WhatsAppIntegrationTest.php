@@ -11,8 +11,10 @@ use App\Services\WhatsApp\LinkWhatsAppGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Mockery;
+use RuntimeException;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -83,6 +85,126 @@ class WhatsAppIntegrationTest extends TestCase
             $gateway->link('0812-3456-7890', $message)
         );
         $this->assertTrue($gateway->send('081234567890', $message));
+    }
+
+    public function test_log_driver_logs_only_safe_metadata(): void
+    {
+        $phone = '081234567890';
+        $message = 'Pesan rahasia ORD-123';
+
+        Log::shouldReceive('info')->twice()->withArgs(function (string $level, array $context) use ($phone, $message): bool {
+            $serialized = $level.json_encode($context);
+
+            return ! str_contains($serialized, $phone)
+                && ! str_contains($serialized, $message)
+                && isset($context['status'], $context['to_hash'], $context['message_length'], $context['message_hash']);
+        });
+
+        config()->set('whatsapp.driver', 'log');
+        $gateway = app(WhatsAppGateway::class);
+
+        $this->assertTrue($gateway->send($phone, $message));
+        $this->assertNotNull($gateway->link($phone, $message));
+    }
+
+    public function test_http_driver_logs_success_without_phone_or_message(): void
+    {
+        $phone = '081234567890';
+        $message = 'Pesan rahasia ORD-123';
+
+        Http::fake([
+            'https://wa.example.test/send' => Http::response(['ok' => true], 200),
+        ]);
+        Log::shouldReceive('info')->once()->withArgs(function (string $level, array $context) use ($phone, $message): bool {
+            $serialized = $level.json_encode($context);
+
+            return $level === 'WhatsApp HTTP request succeeded.'
+                && $context['status'] === 200
+                && ! str_contains($serialized, $phone)
+                && ! str_contains($serialized, $message)
+                && isset($context['to_hash'], $context['message_length']);
+        });
+
+        config()->set([
+            'whatsapp.driver' => 'http',
+            'whatsapp.api_url' => 'https://wa.example.test/send',
+            'whatsapp.token' => 'test-token',
+        ]);
+
+        $this->assertTrue(app(WhatsAppGateway::class)->send($phone, $message));
+    }
+
+    public function test_http_driver_logs_failure_without_body_or_pii(): void
+    {
+        $phone = '081234567890';
+        $message = 'Pesan rahasia ORD-123';
+        $bodyMarker = 'provider_secret_marker_'.$phone;
+
+        Http::fake([
+            'https://wa.example.test/send' => Http::response(['error' => $bodyMarker], 422),
+        ]);
+        Log::shouldReceive('warning')->once()->withArgs(function (string $level, array $context) use ($phone, $message, $bodyMarker): bool {
+            $serialized = $level.json_encode($context);
+
+            return $context['status'] === 422
+                && ! str_contains($serialized, $phone)
+                && ! str_contains($serialized, $message)
+                && ! str_contains($serialized, $bodyMarker)
+                && isset($context['to_hash'], $context['message_length'], $context['body_length'], $context['body_hash']);
+        });
+
+        config()->set([
+            'whatsapp.driver' => 'http',
+            'whatsapp.api_url' => 'https://wa.example.test/send',
+            'whatsapp.retry' => 0,
+        ]);
+
+        $this->assertFalse(app(WhatsAppGateway::class)->send($phone, $message));
+    }
+
+    public function test_channel_logs_unsent_notification_without_pii(): void
+    {
+        $gateway = $this->mock(WhatsAppGateway::class);
+        $gateway->shouldReceive('send')->once()->andReturn(false);
+
+        $user = User::factory()->create(['no_hp' => '081234567890']);
+        $notification = new OrderBalanceDueNotification('order-uuid', 'ORD-123', 50000);
+        $message = $notification->toWhatsApp($user)['message'];
+
+        Log::shouldReceive('warning')->once()->withArgs(function (string $level, array $context) use ($user, $message): bool {
+            $serialized = $level.json_encode($context);
+
+            return $context['status'] === 'not_sent'
+                && ! str_contains($serialized, (string) $user->routeNotificationForWhatsApp())
+                && ! str_contains($serialized, $message)
+                && isset($context['to_hash'], $context['message_length'], $context['message_hash']);
+        });
+
+        app(WhatsAppChannel::class)->send($user, $notification);
+    }
+
+    public function test_channel_logs_exception_without_phone_message_or_exception_text(): void
+    {
+        $gateway = $this->mock(WhatsAppGateway::class);
+        $gateway->shouldReceive('send')->once()
+            ->andThrow(new RuntimeException('secret exception 081234567890'));
+
+        $user = User::factory()->create(['no_hp' => '081234567890']);
+        $notification = new OrderBalanceDueNotification('order-uuid', 'ORD-123', 50000);
+        $message = $notification->toWhatsApp($user)['message'];
+
+        Log::shouldReceive('error')->once()->withArgs(function (string $level, array $context) use ($user, $message): bool {
+            $serialized = $level.json_encode($context);
+
+            return $context['exception'] === RuntimeException::class
+                && $context['status'] === 'failed'
+                && ! str_contains($serialized, (string) $user->routeNotificationForWhatsApp())
+                && ! str_contains($serialized, $message)
+                && ! str_contains($serialized, 'secret exception')
+                && isset($context['to_hash'], $context['message_length'], $context['message_hash']);
+        });
+
+        app(WhatsAppChannel::class)->send($user, $notification);
     }
 
     public function test_user_route_normalizes_no_hp(): void

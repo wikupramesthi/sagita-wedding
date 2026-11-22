@@ -37,16 +37,29 @@ class HttpWhatsAppGateway implements WhatsAppGateway
                 ->post($url, $payload);
 
             if ($response->successful()) {
+                Log::info('WhatsApp HTTP request succeeded.', [
+                    'status' => $response->status(),
+                    'to_hash' => hash_hmac('sha256', $to, (string) config('app.key')),
+                    'message_length' => strlen($message),
+                ]);
+
                 return true;
             }
 
+            $body = $response->body();
             Log::warning('WhatsApp HTTP request failed.', [
                 'status' => $response->status(),
-                'body' => $response->body(),
+                'to_hash' => hash_hmac('sha256', $to, (string) config('app.key')),
+                'message_length' => strlen($message),
+                'body_length' => strlen($body),
+                'body_hash' => hash_hmac('sha256', $body, (string) config('app.key')),
             ]);
         } catch (Throwable $exception) {
             Log::error('WhatsApp HTTP request threw an exception.', [
-                'message' => $exception->getMessage(),
+                'exception' => get_class($exception),
+                'code' => $exception->getCode(),
+                'to_hash' => hash_hmac('sha256', $to, (string) config('app.key')),
+                'message_length' => strlen($message),
             ]);
         }
 

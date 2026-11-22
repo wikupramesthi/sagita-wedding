@@ -36,7 +36,7 @@ class OrderExpiredNotification extends Notification
         return [
             'judul_kegiatan' => 'Pesanan kedaluwarsa',
             'message' => $this->orderNumber
-                .' otomatis dibatalkan setelah 24 jam tanpa pembayaran. Silakan buat pesanan baru jika tetap ingin keanggotaan.',
+                .' otomatis dibatalkan setelah 24 jam tanpa pembayaran. Silakan buat pesanan baru jika tetap ingin melanjutkan.',
             'path' => route('packages.member', [], false),
             'icon' => 'bi-hourglass-bottom',
         ];

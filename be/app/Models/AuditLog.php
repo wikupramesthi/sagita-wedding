@@ -46,6 +46,13 @@ class AuditLog extends Model
             'approval_reverted' => 'Persetujuan Dibatalkan',
             'rejection_reverted' => 'Penolakan Dibatalkan',
             'sla_reminded' => 'Pengingat SLA Dikirim',
+            'order_expired' => 'Pesanan Kedaluwarsa',
+            'balance_reminded' => 'Pengingat Pembayaran Dikirim',
+            'checklist_reminded' => 'Pengingat Checklist Dikirim',
+            'checklist_escalated' => 'Eskalasi Checklist Dikirim',
+            'vendor_assigned' => 'Vendor Ditugaskan',
+            'vendor_status_changed' => 'Status Vendor Diperbarui',
+            'vendor_unassigned' => 'Vendor Dilepaskan',
             default => 'Lainnya',
         };
     }
@@ -65,6 +72,13 @@ class AuditLog extends Model
             'approval_reverted' => 'bg-warning-subtle text-warning',
             'rejection_reverted' => 'bg-info-subtle text-info',
             'sla_reminded' => 'bg-warning-subtle text-warning',
+            'order_expired' => 'bg-secondary-subtle text-secondary',
+            'balance_reminded' => 'bg-info-subtle text-info',
+            'checklist_reminded' => 'bg-primary-subtle text-primary',
+            'checklist_escalated' => 'bg-warning-subtle text-warning',
+            'vendor_assigned' => 'bg-primary-subtle text-primary',
+            'vendor_status_changed' => 'bg-info-subtle text-info',
+            'vendor_unassigned' => 'bg-warning-subtle text-warning',
             default => 'bg-secondary-subtle text-secondary',
         };
     }

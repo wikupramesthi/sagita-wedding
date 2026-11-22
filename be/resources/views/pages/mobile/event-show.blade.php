@@ -69,8 +69,8 @@
 
         @if ($event->deskripsi)
             <div class="app-card p-4 mt-3">
-                <div class="small text-muted2 lh-lg event-description">
-                    {!! $event->deskripsi !!}
+                <div class="small text-muted2 lh-lg event-description" style="white-space: pre-line;">
+                    {{ $event->deskripsi }}
                 </div>
             </div>
         @endif

@@ -176,6 +176,7 @@ class RouteSeeder extends Seeder
             ['route' => 'packages.toggle-status', 'permission_name' => 'package.update'],
             ['route' => 'packages.member', 'permission_name' => 'package.member'],
             ['route' => 'packages.quotation', 'permission_name' => 'package.member'],
+            ['route' => 'packages.quotation.preview', 'permission_name' => 'package.member'],
             ['route' => 'packages.quotation.download', 'permission_name' => 'package.member'],
             ['route' => 'packages.compare.index', 'permission_name' => 'package.member'],
             ['route' => 'packages.compare.add', 'permission_name' => 'package.member'],
@@ -243,6 +244,14 @@ class RouteSeeder extends Seeder
             ['route' => 'orders.index', 'permission_name' => 'orders.index'],
             ['route' => 'orders.store', 'permission_name' => 'orders.store'],
             ['route' => 'orders.show', 'permission_name' => 'orders.show'],
+            ['route' => 'orders.analytics', 'permission_name' => 'orders.index'],
+            ['route' => 'orders.change-requests.index', 'permission_name' => 'orders.index'],
+            ['route' => 'orders.change-requests.review', 'permission_name' => 'orders.index'],
+            ['route' => 'orders.change-requests.store', 'permission_name' => 'orders.store'],
+            ['route' => 'orders.checklist.update', 'permission_name' => 'orders.show'],
+            ['route' => 'orders.documents.download', 'permission_name' => 'orders.show'],
+            ['route' => 'orders.workflow-settings.edit', 'permission_name' => 'orders.index'],
+            ['route' => 'orders.workflow-settings.update', 'permission_name' => 'orders.index'],
             ['route' => 'orders.approve', 'permission_name' => 'orders.approve'],
             ['route' => 'orders.reject', 'permission_name' => 'orders.reject'],
             ['route' => 'orders.proof', 'permission_name' => 'orders.proof'],
@@ -270,6 +279,9 @@ class RouteSeeder extends Seeder
             ['route' => 'orders.payments.approve', 'permission_name' => 'orders.approve'],
             ['route' => 'orders.payments.reject', 'permission_name' => 'orders.reject'],
             ['route' => 'orders.payments.proof', 'permission_name' => 'orders.proof'],
+            ['route' => 'orders.vendors.assign', 'permission_name' => 'orders.assign'],
+            ['route' => 'orders.vendors.destroy', 'permission_name' => 'orders.assign'],
+            ['route' => 'orders.vendors.status', 'permission_name' => 'orders.assign'],
 
             ['route' => 'security.login-activity.index', 'permission_name' => 'login-activity.index'],
             ['route' => 'security.login-activity.bulkDestroy', 'permission_name' => 'login-activity.destroy'],
@@ -290,6 +302,10 @@ class RouteSeeder extends Seeder
 
             ['route' => 'website-identity.index', 'permission_name' => 'website-identity.index'],
             ['route' => 'website-identity.update', 'permission_name' => 'website-identity.update'],
+
+            ['route' => 'email-setting.index', 'permission_name' => 'email-setting.index'],
+            ['route' => 'email-setting.test', 'permission_name' => 'email-setting.test'],
+            ['route' => 'email-setting.update', 'permission_name' => 'email-setting.update'],
         ]);
 
         $this->deduplicateRoutes();

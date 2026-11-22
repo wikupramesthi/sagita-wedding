@@ -130,7 +130,7 @@ class EventsController extends Controller
                 'uuid' => Str::uuid(),
                 'judul' => $request->judul,
                 'slug' => Str::slug($request->judul),
-                'deskripsi' => $request->deskripsi,
+                'deskripsi' => $this->sanitizeDeskripsi((string) $request->deskripsi),
                 'gambar' => $path,
                 'tanggal' => $request->tanggal,
                 'waktu_mulai' => $request->waktu_mulai,
@@ -211,6 +211,7 @@ class EventsController extends Controller
                 'status',
             ]);
             $data['slug'] = Str::slug($data['judul']);
+            $data['deskripsi'] = $this->sanitizeDeskripsi((string) $data['deskripsi']);
 
             // When uploading a new image
             if ($request->hasFile('gambar')) {
@@ -294,6 +295,16 @@ class EventsController extends Controller
                 }
             },
         ];
+    }
+
+    private function sanitizeDeskripsi(string $deskripsi): string
+    {
+        do {
+            $previous = $deskripsi;
+            $deskripsi = strip_tags($deskripsi);
+        } while ($deskripsi !== $previous);
+
+        return trim($deskripsi);
     }
 
     private function validationMessages(): array

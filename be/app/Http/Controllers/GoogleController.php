@@ -20,13 +20,13 @@ class GoogleController extends Controller
             $request->session()->put('google_redirect', $redirect);
         }
 
-        return Socialite::driver('google')->stateless()->redirect();
+        return Socialite::driver('google')->redirect();
     }
 
     public function handleGoogleCallback(Request $request)
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            $googleUser = Socialite::driver('google')->user();
 
             if (! $googleUser->getEmail()) {
                 return redirect()->route('login')

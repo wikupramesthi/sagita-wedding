@@ -606,7 +606,7 @@ class DashboardController extends Controller
         $funnel = array_merge($funnel, [
             ['label' => 'Pesanan', 'value' => $countBetween(Order::query(), 'created_at', $startDate, $endDate)],
             ['label' => 'Lunas', 'value' => $countBetween(Order::where('status', 'paid'), 'paid_at', $startDate, $endDate)],
-            ['label' => 'Keanggotaan aktif', 'value' => $newMembershipCount],
+            ['label' => 'Paket pernikahan aktif', 'value' => $newMembershipCount],
         ]);
 
         return [
@@ -654,7 +654,7 @@ class DashboardController extends Controller
         }
 
         $rows[] = ['Metrik cepat', 'Pesanan baru', $summary['newOrdersCount'], $summary['periodLabel']];
-        $rows[] = ['Metrik cepat', 'Keanggotaan baru', $summary['newMembershipCount'], $summary['periodLabel']];
+        $rows[] = ['Metrik cepat', 'Paket pernikahan baru', $summary['newMembershipCount'], $summary['periodLabel']];
         $rows[] = ['Metrik cepat', 'Pendapatan periode', number_format($summary['revenueMonth'], 0, ',', '.'), 'Rp'];
         $rows[] = ['Metrik cepat', 'Pendapatan total', number_format($summary['revenueTotal'], 0, ',', '.'), 'Rp'];
         $rows[] = ['Keamanan 24 jam', 'Login gagal', $summary['security']['failedLogins'], ''];

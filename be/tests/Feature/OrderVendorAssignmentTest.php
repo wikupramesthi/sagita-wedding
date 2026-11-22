@@ -8,6 +8,7 @@ use App\Models\Package\PackageOption;
 use App\Models\Payment\Order;
 use App\Models\Payment\OrderVendorAssignment;
 use App\Models\User;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -36,6 +37,8 @@ class OrderVendorAssignmentTest extends TestCase
         }
         $permission = Permission::findOrCreate('orders.manageVendors', 'web');
         Role::findByName('admin', 'web')->givePermissionTo($permission);
+        Role::findByName('admin', 'web')->givePermissionTo(Permission::findOrCreate('orders.assign', 'web'));
+        $this->seed(RouteSeeder::class);
 
         $this->admin = User::factory()->create(['email_verified_at' => now()]);
         $this->admin->assignRole('admin');
@@ -125,6 +128,24 @@ class OrderVendorAssignmentTest extends TestCase
         ]);
     }
 
+    public function test_duplicate_vendor_assignment_is_rejected(): void
+    {
+        $payload = [
+            'vendor_uuid' => $this->vendor->uuid,
+            'scope' => 'Fotografi',
+        ];
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.vendors.assign', $this->order->uuid), $payload)
+            ->assertRedirect();
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.vendors.assign', $this->order->uuid), $payload)
+            ->assertSessionHasErrors('scope');
+
+        $this->assertSame(1, OrderVendorAssignment::count());
+    }
+
     public function test_member_cannot_manage_vendor_assignments(): void
     {
         $assignment = OrderVendorAssignment::create([
@@ -140,17 +161,17 @@ class OrderVendorAssignmentTest extends TestCase
                 'vendor_uuid' => $this->vendor->uuid,
                 'scope' => 'Fotografi',
             ])
-            ->assertForbidden();
+            ->assertNotFound();
 
         $this->actingAs($this->member)
             ->patch(route('orders.vendors.status', [$this->order->uuid, $assignment->uuid]), [
                 'status' => 'accepted',
             ])
-            ->assertForbidden();
+            ->assertNotFound();
 
         $this->actingAs($this->member)
             ->delete(route('orders.vendors.destroy', [$this->order->uuid, $assignment->uuid]))
-            ->assertForbidden();
+            ->assertNotFound();
 
         $this->assertSame(1, OrderVendorAssignment::count());
         $this->assertSame(0, AuditLog::whereIn('event', ['vendor_assigned', 'vendor_status_changed', 'vendor_unassigned'])->count());
