@@ -37,10 +37,11 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
+            'budget_max' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $user = Auth::user();
-        $isMember = $user->hasRole('user');
+        $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
         $canViewConsultations = $user->can('konsultasi.index');
 
         [$startDate, $endDate] = $this->resolveRange($validated);
@@ -121,7 +122,7 @@ class DashboardController extends Controller
             'totalPackages' => $countBetween(\App\Models\Package\Package::query(), 'created_at', $startDate, $endDate),
         ];
 
-        if (! $isMember) {
+        if ($isAdmin) {
             $adminData = Cache::remember(
                 DashboardCache::key($startDate, $endDate, $canViewConsultations),
                 300,
@@ -184,7 +185,7 @@ class DashboardController extends Controller
             'todaySchedules' => collect(),
         ];
 
-        if ($isMember) {
+        if (! $isAdmin) {
             $myOrders = Order::where('user_uuid', $user->uuid)->latest();
             $planningOrders = (clone $myOrders)
                 ->where('type', 'package')
@@ -264,6 +265,47 @@ class DashboardController extends Controller
             ));
             $data['completedPlanningSteps'] = $completedPlanningSteps;
             $data['planningProgress'] = (int) round($completedPlanningSteps / count($data['planningSteps']) * 100);
+            $data['budgetMax'] = $validated['budget_max'] ?? null;
+            $data['recommendedPackages'] = collect();
+
+            if ($data['budgetMax'] !== null) {
+                $data['recommendedPackages'] = Package::published()
+                    ->with(['options' => fn ($query) => $query
+                        ->where('is_active', true)
+                        ->orderBy('sort_order')])
+                    ->get()
+                    ->map(function (Package $package) use ($data) {
+                        $matchingOptions = $package->options
+                            ->filter(fn ($option) => min(
+                                (int) $option->price,
+                                (int) ($option->discount_price ?? $option->price)
+                            ) <= $data['budgetMax'])
+                            ->sortBy(fn ($option) => min(
+                                (int) $option->price,
+                                (int) ($option->discount_price ?? $option->price)
+                            ))
+                            ->values();
+
+                        if ($matchingOptions->isEmpty()) {
+                            return null;
+                        }
+
+                        $option = $matchingOptions->first();
+
+                        return [
+                            'package' => $package,
+                            'option' => $option,
+                            'price' => min(
+                                (int) $option->price,
+                                (int) ($option->discount_price ?? $option->price)
+                            ),
+                        ];
+                    })
+                    ->filter()
+                    ->sortBy('price')
+                    ->take(6)
+                    ->values();
+            }
             $data['myOrderStats'] = [
                 'total' => (clone $myOrders)->count(),
                 'pending' => (clone $myOrders)->whereIn('status', ['pending','partially_paid'])->count(),
@@ -341,7 +383,7 @@ class DashboardController extends Controller
     private function dashboardSummary(Request $request, bool $fresh = false): array
     {
         $user = Auth::user();
-        abort_unless($user && ! $user->hasRole('user'), 404);
+        abort_unless($user && $user->hasAnyRole(['super-admin', 'admin']), 404);
 
         $validated = $request->validate([
             'start_date' => ['nullable', 'date'],

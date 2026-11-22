@@ -45,7 +45,7 @@ class FileDownloadController extends Controller
             $data = request()->only(['judul', 'deskripsi', 'kategori']);
 
             if (request()->hasFile('file')) {
-                $data['file'] = request()->file('file')->store('downloads/pdf', 'public');
+                $data['file'] = request()->file('file')->store('downloads/pdf', 'local');
             }
 
             FileDownload::create($data);
@@ -65,6 +65,45 @@ class FileDownloadController extends Controller
     public function show(string $id)
     {
         //
+    }
+
+    public function download(string $fileDownload)
+    {
+        $item = FileDownload::findOrFail($fileDownload);
+        abort_unless($item->file, 404);
+
+        $path = $item->file;
+        $disk = Storage::disk('local');
+        $public = Storage::disk('public');
+
+        if (! $disk->exists($path) && $public->exists($path)) {
+            try {
+                $dir = dirname($path);
+                if ($dir !== '.' && $dir !== '') {
+                    $disk->makeDirectory($dir);
+                }
+                $stream = $public->readStream($path);
+                if ($stream !== false) {
+                    $disk->writeStream($path, $stream);
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+                    $public->delete($path);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        abort_unless($disk->exists($path), 404);
+
+        $response = response()->file($disk->path($path), [
+            'Content-Disposition' => 'attachment; filename="dokumen.pdf"',
+        ]);
+        $response->setPrivate();
+        $response->headers->set('Cache-Control', 'private, no-store');
+
+        return $response;
     }
 
     /**
@@ -93,8 +132,9 @@ class FileDownloadController extends Controller
             $data = request()->only(['judul', 'deskripsi', 'kategori']);
 
             if (request()->hasFile('file')) {
+                Storage::disk('local')->delete($item->file);
                 Storage::disk('public')->delete($item->file);
-                $data['file'] = request()->file('file')->store('downloads/pdf', 'public');
+                $data['file'] = request()->file('file')->store('downloads/pdf', 'local');
             }
 
             $item->update($data);
@@ -117,6 +157,7 @@ class FileDownloadController extends Controller
         try {
             $item = FileDownload::findOrFail($id);
             if ($item->file) {
+                Storage::disk('local')->delete($item->file);
                 Storage::disk('public')->delete($item->file);
             }
             $item->delete();

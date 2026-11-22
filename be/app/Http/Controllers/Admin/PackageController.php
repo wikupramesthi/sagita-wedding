@@ -1304,6 +1304,8 @@ class PackageController extends Controller
             'features',
         ])->where('uuid', $uuid)->firstOrFail();
 
+        abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']) || $package->is_published, 404);
+
         return view('pages.package.member', [
             'packages' => collect([$package]),
             'previewMode' => true,

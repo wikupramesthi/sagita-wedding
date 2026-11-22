@@ -814,8 +814,6 @@
 </form>
 
 
-@include('profile.modals-file-preview', ['user' => $user])
-
 @include('profile.partials.change-password')
 
 @endsection

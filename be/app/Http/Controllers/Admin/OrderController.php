@@ -434,16 +434,26 @@ class OrderController extends Controller
     {
         abort_unless($this->canQuickViewOrders(), 403);
 
-        $order = Order::packageOnly()
-            ->with(['user', 'package', 'packageOption', 'payment', 'assignedAdmin'])
-            ->where('uuid', $uuid)
-            ->firstOrFail();
+        $user = Auth::user();
+        $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
 
-        $audits = AuditLog::where('auditable_type', Order::class)
-            ->where('auditable_id', (string) $order->uuid)
-            ->latest()
-            ->limit(15)
-            ->get();
+        $orderQuery = Order::packageOnly()
+            ->with(['user', 'package', 'packageOption', 'payment', 'assignedAdmin'])
+            ->where('uuid', $uuid);
+
+        if (! $isAdmin) {
+            $orderQuery->where('user_uuid', $user->uuid);
+        }
+
+        $order = $orderQuery->firstOrFail();
+
+        $audits = $isAdmin
+            ? AuditLog::where('auditable_type', Order::class)
+                ->where('auditable_id', (string) $order->uuid)
+                ->latest()
+                ->limit(15)
+                ->get()
+            : collect();
 
         return view('pages.orders.partials.activity-drawer', compact('order', 'audits'));
     }
@@ -785,7 +795,7 @@ class OrderController extends Controller
             return back()->withErrors(['proof' => 'Bukti transfer wajib diunggah.'])->withInput();
         }
 
-        $proofPath = $request->hasFile('proof') ? $request->file('proof')->store('orders/proofs', 'public') : null;
+        $proofPath = $request->hasFile('proof') ? $this->storeProofFile($request->file('proof')) : null;
         $isBalance = $amount + 0.01 >= $remaining;
         $kind = $isBalance ? 'balance' : ((float) $record->amount_paid_value > 0 ? 'installment' : 'dp');
         $status = $recordOnly ? 'paid' : 'pending';
@@ -1371,14 +1381,14 @@ public function rejectPayment(Request $request, string $order, string $payment)
                 $values = $log->new_values ?? [];
                 $note = $values['admin_note'] ?? ($values['note'] ?? '');
 
-                fputcsv($handle, [
+                fputcsv($handle, array_map([$this, 'csvSafe'], [
                     optional($log->created_at)->format('d/m/Y H:i'),
                     $log->auditable_label,
                     $log->event_label,
                     $log->user_name ?: '-',
                     is_scalar($note) ? (string) $note : '',
                     $log->ip_address ?: '-',
-                ]);
+                ]));
             }
 
             fclose($handle);
@@ -1522,7 +1532,7 @@ public function rejectPayment(Request $request, string $order, string $payment)
                     $row[] = $resolver($order);
                 }
 
-                fputcsv($handle, $row);
+                fputcsv($handle, array_map([$this, 'csvSafe'], $row));
             }
 
             if ($truncated) {
@@ -1564,15 +1574,10 @@ public function rejectPayment(Request $request, string $order, string $payment)
             ],
         ]);
 
-        $disk = config('manual_payment.proof_disk', 'public');
-        $dir = config('manual_payment.proof_dir', 'proofs');
-
-        $path = $request->file('proof')->store($dir, $disk);
-
-        ImageShrinker::shrink(Storage::disk($disk)->path($path), 1280, 82);
+        $path = $this->storeProofFile($request->file('proof'));
 
         if ($order->proof_image_path) {
-            Storage::disk($disk)->delete($order->proof_image_path);
+            $this->deleteProofFile($order->proof_image_path);
         }
 
         $order->update([
@@ -1604,6 +1609,79 @@ public function rejectPayment(Request $request, string $order, string $payment)
         return back()->with('success', __('flash.proof_ok'));
     }
 
+    private function csvSafe($value): string
+    {
+        $value = trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', '', (string) $value));
+
+        return preg_match('/^[=+\-@\t\r]/', $value) ? "'{$value}" : $value;
+    }
+
+    private function proofDisk(): string
+    {
+        $disk = config('manual_payment.proof_disk', 'local');
+
+        return $disk === 'public' ? 'local' : (string) $disk;
+    }
+
+    private function storeProofFile($file): string
+    {
+        $diskName = $this->proofDisk();
+        $path = $file->store(config('manual_payment.proof_dir', 'proofs'), $diskName);
+
+        ImageShrinker::shrink(Storage::disk($diskName)->path($path), 1280, 82);
+
+        return $path;
+    }
+
+    private function deleteProofFile(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        Storage::disk($this->proofDisk())->delete($path);
+        Storage::disk('public')->delete($path);
+    }
+
+    private function privateProofResponse(?string $path)
+    {
+        abort_unless($path, 404);
+
+        $diskName = $this->proofDisk();
+        $disk = Storage::disk($diskName);
+        $public = Storage::disk('public');
+
+        if (! $disk->exists($path) && $public->exists($path)) {
+            try {
+                $dir = dirname($path);
+                if ($dir !== '.' && $dir !== '') {
+                    $disk->makeDirectory($dir);
+                }
+
+                $stream = $public->readStream($path);
+                if ($stream !== false) {
+                    $disk->writeStream($path, $stream);
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+                    $public->delete($path);
+                }
+            } catch (Throwable $e) {
+                Log::warning('Gagal memindahkan bukti ke disk privat: '.$e->getMessage());
+            }
+        }
+
+        abort_unless($disk->exists($path), 404);
+
+        $response = response()->file($disk->path($path), [
+            'Content-Disposition' => 'inline',
+        ]);
+        $response->setPrivate();
+        $response->headers->set('Cache-Control', 'private, no-store');
+
+        return $response;
+    }
+
     /**
      * Serve the transfer proof file (owner or admin only).
      * Never exposed as a guessable public URL.
@@ -1619,27 +1697,7 @@ public function rejectPayment(Request $request, string $order, string $payment)
             abort(403);
         }
 
-        if (! $order->proof_image_path) {
-            abort(404);
-        }
-
-        $diskName = config('manual_payment.proof_disk', 'local');
-        $disk = Storage::disk($diskName);
-
-        // Backward compatibility with proofs stored on the public disk.
-        if (! $disk->exists($order->proof_image_path) && $diskName !== 'public') {
-            $disk = Storage::disk('public');
-        }
-
-        if (! $disk->exists($order->proof_image_path)) {
-            abort(404);
-        }
-
-        $response = response()->file($disk->path($order->proof_image_path));
-        $response->setPrivate();
-        $response->headers->set('Cache-Control', 'private, no-store');
-
-        return $response;
+        return $this->privateProofResponse($order->proof_image_path);
     }
 
     /**
@@ -1658,26 +1716,7 @@ public function rejectPayment(Request $request, string $order, string $payment)
 
         $payment = $order->payments()->where('uuid', $payment)->firstOrFail();
 
-        if (! $payment->proof_image_path) {
-            abort(404);
-        }
-
-        $diskName = config('manual_payment.proof_disk', 'local');
-        $disk = Storage::disk($diskName);
-
-        if (! $disk->exists($payment->proof_image_path) && $diskName !== 'public') {
-            $disk = Storage::disk('public');
-        }
-
-        abort_unless($disk->exists($payment->proof_image_path), 404);
-
-        $response = response()->file($disk->path($payment->proof_image_path), [
-            'Content-Disposition' => 'inline',
-        ]);
-        $response->setPrivate();
-        $response->headers->set('Cache-Control', 'private, no-store');
-
-        return $response;
+        return $this->privateProofResponse($payment->proof_image_path);
     }
 
     /**

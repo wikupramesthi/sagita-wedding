@@ -210,9 +210,6 @@ class MembershipMonitoringTest extends TestCase
 
     public function test_admin_can_filter_and_export_memberships_csv(): void
     {
-        config(['manual_payment.proof_disk' => 'public']);
-        Storage::fake('public');
-
         $admin = $this->userWithRole('admin');
         $paidMember = User::factory()->create(['name' => '=1+1']);
         $paidMember->assignRole('user');
@@ -258,9 +255,9 @@ class MembershipMonitoringTest extends TestCase
 
     public function test_payment_proof_is_visible_to_owner_and_admin_only(): void
     {
-        config(['manual_payment.proof_disk' => 'public']);
-        Storage::fake('public');
-        Storage::disk('public')->put('payments/proof.png', 'bukti');
+        config(['manual_payment.proof_disk' => 'local']);
+        Storage::fake('local');
+        Storage::disk('local')->put('payments/proof.png', 'bukti');
 
         $owner = $this->userWithRole('user');
         $other = $this->userWithRole('user');
@@ -319,9 +316,9 @@ class MembershipMonitoringTest extends TestCase
 
     public function test_mobile_membership_detail_shows_payment_history(): void
     {
-        config(['manual_payment.proof_disk' => 'public']);
-        Storage::fake('public');
-        Storage::disk('public')->put('payments/proof.png', 'bukti');
+        config(['manual_payment.proof_disk' => 'local']);
+        Storage::fake('local');
+        Storage::disk('local')->put('payments/proof.png', 'bukti');
 
         $member = $this->userWithRole('user');
         $membership = $this->membershipWithOrder($member, $this->package(), [
@@ -351,5 +348,87 @@ class MembershipMonitoringTest extends TestCase
             ->assertSee('Rp 4.000.000')
             ->assertSee('DP pertama')
             ->assertSee(route('orders.payments.proof', [$membership->order_uuid, $payment->uuid]), false);
+    }
+
+    public function test_legacy_public_proof_is_migrated_to_private_disk(): void
+    {
+        config(['manual_payment.proof_disk' => 'local']);
+        Storage::fake('local');
+        Storage::fake('public');
+        Storage::disk('public')->put('payments/legacy.png', 'bukti lama');
+
+        $owner = $this->userWithRole('user');
+        $membership = $this->membershipWithOrder($owner, $this->package());
+        $payment = Payment::create([
+            'order_uuid' => $membership->order_uuid,
+            'kind' => 'dp',
+            'amount' => 4000000,
+            'gross_amount' => 4000000,
+            'status' => 'paid',
+            'verification_status' => 'verified',
+            'proof_image_path' => 'payments/legacy.png',
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('orders.payments.proof', [$membership->order_uuid, $payment->uuid]))
+            ->assertOk();
+
+        Storage::disk('local')->assertExists('payments/legacy.png');
+        Storage::disk('public')->assertMissing('payments/legacy.png');
+    }
+
+    public function test_member_cannot_access_admin_only_endpoints(): void
+    {
+        $member = $this->userWithRole('user');
+        $membership = $this->membershipWithOrder($member, $this->package());
+
+        foreach ([
+            route('dashboard.refresh'),
+            route('dashboard.export'),
+            route('dashboard.export-pdf'),
+            route('memberships.export'),
+            route('orders.exportCsv'),
+            route('orders.exportPdf'),
+            route('orders.audit'),
+            route('orders.activity', $membership->order_uuid),
+            route('orders.quick-view', $membership->order_uuid),
+            route('pengguna.export'),
+        ] as $url) {
+            $this->actingAs($member)->get($url)->assertNotFound();
+        }
+    }
+
+    public function test_member_cannot_approve_or_export_orders(): void
+    {
+        $member = $this->userWithRole('user');
+        $membership = $this->membershipWithOrder($member, $this->package());
+
+        $this->actingAs($member)
+            ->post(route('orders.payments.approve', [$membership->order_uuid, Str::uuid()]))
+            ->assertNotFound();
+    }
+
+    public function test_vendor_does_not_receive_admin_dashboard_data(): void
+    {
+        $vendor = $this->userWithRole('vendor');
+        $member = $this->userWithRole('user');
+        $this->membershipWithOrder($member, $this->package());
+
+        $this->actingAs($vendor)
+            ->get(route('dashboard.index'))
+            ->assertOk()
+            ->assertViewMissing('recentOrders')
+            ->assertViewMissing('actionQueue')
+            ->assertViewHas('myOrders');
+    }
+
+    public function test_vendor_cannot_preview_unpublished_package(): void
+    {
+        $vendor = $this->userWithRole('vendor');
+        $package = $this->package();
+
+        $this->actingAs($vendor)
+            ->get(route('packages.preview', $package->uuid))
+            ->assertNotFound();
     }
 }

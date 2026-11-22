@@ -40,6 +40,14 @@ class RouteMiddleware
         if (
             $user && $user->hasRole('user')
             && $request->is('backend/*')
+            && self::memberDenied($request->route()?->getName())
+        ) {
+            abort(404);
+        }
+
+        if (
+            $user && $user->hasRole('user')
+            && $request->is('backend/*')
             && ! self::memberAllowed($request->route()?->getName())
         ) {
             abort(404);
@@ -57,6 +65,45 @@ class RouteMiddleware
             )
             ? $next($request)
             : abort(404);
+    }
+
+    /**
+     * Route privileged yang harus ditolak untuk role member meskipun
+     * terdaftar dengan wildcard di memberAllowed().
+     */
+    private static function memberDenied(?string $routeName): bool
+    {
+        if (! $routeName) {
+            return false;
+        }
+
+        static $denied = [
+            'search',
+            'dashboard.refresh',
+            'dashboard.export',
+            'dashboard.export-pdf',
+            'dashboard.exportPdf',
+            'memberships.export',
+            'orders.activity',
+            'orders.quick-view',
+            'orders.whatsapp',
+            'orders.audit',
+            'orders.export*',
+            'orders.bulk*',
+            'orders.claim',
+            'orders.remind-sla',
+            'orders.saved-filters*',
+            'orders.payments.approve',
+            'orders.payments.reject',
+        ];
+
+        foreach ($denied as $pattern) {
+            if (Str::is($pattern, $routeName)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

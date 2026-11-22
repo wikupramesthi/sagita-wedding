@@ -6,9 +6,12 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\StringValueBinder;
 
-class PenggunaExport implements FromView, ShouldAutoSize, WithTitle
+class PenggunaExport implements FromView, ShouldAutoSize, WithTitle, WithCustomValueBinder
 {
     protected $request;
 
@@ -36,5 +39,12 @@ class PenggunaExport implements FromView, ShouldAutoSize, WithTitle
     public function title(): string
     {
         return 'Data Calon Pelanggan';
+    }
+
+    public function bindValue(Cell $cell, mixed $value): bool
+    {
+        $value = is_string($value) ? ConsultationExport::escape($value) : $value;
+
+        return (new StringValueBinder())->bindValue($cell, $value);
     }
 }

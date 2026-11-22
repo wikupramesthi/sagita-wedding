@@ -115,8 +115,8 @@
     }
 
     .member-planning .planning-summary {
-        background: linear-gradient(135deg, #f8f7ff, #fff);
-        border: 1px solid #eceaff;
+        background: linear-gradient(135deg, #f4f8f4, #fff);
+        border: 1px solid #d8e6da;
         border-radius: 14px;
         padding: 20px;
         height: 100%;
@@ -186,9 +186,9 @@
 
     .member-planning .planning-budget-summary {
         padding: 18px;
-        border: 1px solid #eceaff;
+        border: 1px solid #d8e6da;
         border-radius: 14px;
-        background: linear-gradient(135deg, #f8f7ff, #fff);
+        background: linear-gradient(135deg, #f4f8f4, #fff);
     }
 
     .member-planning .planning-budget-category {
@@ -242,8 +242,8 @@
         padding: 24px;
         background: linear-gradient(135deg,
                 #ffffff 0%,
-                #f8f7ff 100%);
-        border: 1px solid #eceaff;
+                #f4f8f4 100%);
+        border: 1px solid #d8e6da;
         border-radius: 18px;
         box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
         transition: all 0.3s ease;
@@ -566,7 +566,7 @@
                             </div>
                         @endif
 
-                        <form id="package-recommendation" action="{{ route('packages.member') }}" method="GET">
+                        <form id="package-recommendation" action="{{ route('dashboard.index') }}" method="GET">
                             <label for="planning-budget-max" class="form-label small fw-semibold">Budget maksimal untuk paket</label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
@@ -577,7 +577,7 @@
                                     name="budget_max"
                                     min="0"
                                     step="1000000"
-                                    value="{{ request('budget_max') }}"
+                                    value="{{ $budgetMax }}"
                                     placeholder="Contoh 50000000"
                                     required
                                 >
@@ -585,8 +585,34 @@
                                     <i class="bi bi-search me-1"></i> Cari Paket
                                 </button>
                             </div>
-                            <div class="form-text">Katalog akan menampilkan paket yang harganya sesuai budget Anda.</div>
+                            <div class="form-text">Pilih budget untuk melihat paket yang cocok tanpa meninggalkan dashboard.</div>
                         </form>
+
+                        @if ($budgetMax !== null)
+                            <div class="mt-3" aria-live="polite">
+                                <div class="small fw-semibold mb-2">
+                                    Rekomendasi untuk budget Rp {{ number_format($budgetMax, 0, ',', '.') }}
+                                </div>
+                                <div class="list-group">
+                                    @forelse ($recommendedPackages as $recommendation)
+                                        <a
+                                            href="{{ route('checkout.package', $recommendation['package']->uuid) }}"
+                                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3"
+                                        >
+                                            <span class="min-w-0">
+                                                <span class="fw-semibold d-block text-truncate">{{ $recommendation['package']->name }}</span>
+                                                <span class="small text-muted">{{ $recommendation['option']->name }} · Rp {{ number_format($recommendation['price'], 0, ',', '.') }}</span>
+                                            </span>
+                                            <span class="btn btn-sm btn-outline-primary text-nowrap">Pilih paket</span>
+                                        </a>
+                                    @empty
+                                        <div class="list-group-item small text-muted">
+                                            Belum ada paket yang sesuai budget ini. Coba naikkan batas anggaran.
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

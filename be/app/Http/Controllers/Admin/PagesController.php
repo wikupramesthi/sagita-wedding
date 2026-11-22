@@ -76,6 +76,8 @@ class PagesController extends Controller
 
     public function updateSidebar($uuid)
     {
+        abort_unless(auth()->user()?->can('pages.update'), 404);
+
         $page = Page::where('uuid', $uuid)->firstOrFail();
         $page->update([
             'has_sidebar' => ! $page->has_sidebar,

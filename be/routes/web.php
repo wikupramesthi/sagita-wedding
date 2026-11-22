@@ -176,6 +176,7 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::get('/get-kelurahan/{kecamatan_id}', [AccountController::class, 'getKelurahan']);
     Route::resource('pages', PagesController::class);
     Route::resource('events', EventsController::class);
+    Route::get('filedownload/{fileDownload}/download', [FileDownloadController::class, 'download'])->name('filedownload.download');
     Route::resource('filedownload', FileDownloadController::class)->only(['index', 'store', 'update', 'destroy']);
     // Website Identity (singleton: single form, no table CRUD)
     Route::get('website-identity', [WebsiteIdentityController::class, 'index'])->name('website-identity.index');

@@ -13,6 +13,8 @@ class PenggunaController extends Controller
 {
     public function index(Request $request)
     {
+        abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']), 404);
+
         $filters = User::normalizeProspectFilters($request->all());
         $baseQuery = fn () => User::role('user');
 
@@ -29,6 +31,8 @@ class PenggunaController extends Controller
 
     public function updateStatus(Request $request, User $user)
     {
+        abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']), 404);
+
         if (! $user->hasRole('user')) {
             abort(404);
         }
@@ -50,6 +54,8 @@ class PenggunaController extends Controller
 
     public function export(Request $request)
     {
+        abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']), 404);
+
         return Excel::download(
             new PenggunaExport($request),
             'calon-pelanggan-'.now()->format('Ymd-His').'.xlsx'

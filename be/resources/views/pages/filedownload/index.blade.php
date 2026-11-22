@@ -72,8 +72,8 @@
 
                             <td>
                                 @if($item->file)
-                                <a href="{{ asset('storage/' . $item->file) }}" target="_blank" class="btn btn=icon btn-primary">
-                                    <i class="bi bi-file-earmark-pdf"></i> View File
+                                <a href="{{ route('filedownload.download', $item->id) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-file-earmark-pdf"></i> Lihat File
                                 </a>
                                 @else
                                 <span class="text-muted">No file yet</span>

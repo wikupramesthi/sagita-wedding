@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Payment\Order;
+use App\Models\Package\Package;
+use App\Models\Package\PackageOption;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -45,6 +47,35 @@ class DashboardOrderSummaryTest extends TestCase
         ]);
     }
 
+    private function publishedPackage(string $name, int $price, ?int $discountPrice = null): Package
+    {
+        $package = Package::create([
+            'name' => $name,
+            'slug' => Str::slug($name).'-'.Str::lower(Str::random(5)),
+            'description' => 'Paket wedding untuk pengujian.',
+            'price' => $price,
+            'guest_capacity' => 100,
+            'event_duration_hours' => 6,
+            'is_active' => 'active',
+            'is_published' => true,
+            'published_at' => now(),
+        ]);
+
+        PackageOption::create([
+            'package_uuid' => $package->uuid,
+            'name' => 'Standar',
+            'quota' => 1,
+            'price' => $price,
+            'discount_price' => $discountPrice,
+            'duration' => 1,
+            'duration_unit' => 'month',
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        return $package;
+    }
+
     public function test_member_dashboard_always_shows_timeline_and_package_recommendations(): void
     {
         $member = $this->userWithRole('user');
@@ -58,6 +89,23 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertSee('Budget maksimal untuk paket')
             ->assertSee('name="budget_max"', false)
             ->assertDontSee('Checklist persiapan');
+    }
+
+    public function test_new_member_can_get_matching_packages_without_leaving_dashboard(): void
+    {
+        $member = $this->userWithRole('user');
+        $recommendedPackage = $this->publishedPackage('Paket Anggrek', 7000000, 5500000);
+        $this->publishedPackage('Paket Mewah', 9000000);
+
+        $this->actingAs($member)
+            ->withHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36')
+            ->get(route('dashboard.index', ['budget_max' => 6000000]))
+            ->assertOk()
+            ->assertSee('Belum ada pesanan paket aktif')
+            ->assertSee('Paket Anggrek')
+            ->assertSee('Rp 5.500.000')
+            ->assertDontSee('Paket Mewah')
+            ->assertSee(route('checkout.package', $recommendedPackage->uuid), false);
     }
 
     public function test_member_dashboard_reads_date_and_payment_from_existing_orders(): void
