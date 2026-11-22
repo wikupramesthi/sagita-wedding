@@ -20,7 +20,7 @@
         </div>
 
         {{-- STATUS FILTERS --}}
-        <div class="d-flex gap-2 mt-4" style="overflow-x:auto;">
+        <div class="d-flex gap-2 mt-4 no-scrollbar">
             <a href="{{ route('orders.index', request()->except('status')) }}"
                 class="filter d-inline-block text-decoration-none text-nowrap {{ empty($filters['status']) ? 'active' : '' }}">{{ __('mobile.all') }}</a>
             @foreach (['paid' => __('mobile.order_status.paid'), 'pending' => __('mobile.order_status.pending'), 'failed' => __('mobile.order_status.failed'), 'expired' => __('mobile.order_status.expired'), 'cancelled' => __('mobile.order_status.cancelled')] as $st => $label)
@@ -32,7 +32,7 @@
         </div>
 
         {{-- LIST --}}
-        <div class="d-grid gap-3 mt-3" style="max-height: calc(100vh - 350px); overflow-y: auto; padding-right: 2px;">
+        <div class="d-grid gap-3 mt-3">
             @forelse ($orders as $order)
                 @php
                     $badge = match ($order->status) {
