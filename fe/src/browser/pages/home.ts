@@ -1,5 +1,4 @@
 import type { TestimonialItem } from "../../types/index";
-import { $ } from "../lib/dom";
 import "../lib/home-faq";
 
 const testimonialContainer = document.querySelector<HTMLElement>(

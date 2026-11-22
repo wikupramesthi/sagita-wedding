@@ -173,32 +173,68 @@
   </section>
   <% } %>
 
-  <!-- ======================= OUR APPROACH ======================= -->
-  <%
-    const imgPool = ['/img/Sagita Wedding_about1.jpg', '/img/Sagita Wedding_about2.jpg', '/img/sita-manwani.jpg'];
-    const approachCards = (t.approachCards || []).map((a, i) => ({ ...a, img: imgPool[i % imgPool.length] }));
-  %>
-  <section id="home-approach" class="py-16 bg-sand-100/50 relative">
+  <!-- ======================= WEDDING PACKAGES ======================= -->
+  <% if (weddingContentReady && Array.isArray(packages) && packages.length > 0) { %>
+  <section id="home-packages" class="py-16 bg-sand-100/50 relative">
     <div class="site-container">
-      <div class="reveal text-center mb-16">
-          <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.ourApproach %></p>
-        <h2 class="font-display text-4xl sm:text-5xl text-sage-900 leading-tight"><%= t.moreThanJust %> <span class="italic text-terracotta-600"><%= t.moreThanJustItalic %></span></h2>
+      <div class="reveal mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-2"><%= t.homePackagesEyebrow %></p>
+          <h2 class="font-display text-3xl sm:text-4xl text-sage-900 leading-tight"><%= t.homePackagesTitle %> <span class="italic text-terracotta-600"><%= t.homePackagesTitleItalic %></span></h2>
+        </div>
+        <a href="/packages" class="btn-secondary hidden sm:inline-flex group items-center gap-2 px-6 py-3 text-sm">
+          <%= t.viewAllPackages %>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+        </a>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <% approachCards.forEach((a, i) => { %>
-          <div class="approach-card reveal relative overflow-hidden rounded-2xl aspect-[4/5] group hover:-translate-y-1 transition-transform duration-300 shadow-lg ring-1 ring-sand-900/5" data-delay="<%= i * 120 %>">
-            <img src="<%= a.img %>" alt="" aria-hidden="true" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105">
-            <div class="approach-overlay absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-black/10"></div>
-            <div class="relative h-full flex flex-col justify-end p-7">
-              <h3 class="font-display text-2xl text-white mb-2 leading-tight drop-shadow-sm"><%= a.title %></h3>
-              <p class="text-sm text-white/85 leading-relaxed drop-shadow-sm"><%= a.desc %></p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        <% packages.slice(0, 3).forEach((pkg, i) => { %>
+          <article data-home-package-slug="<%= pkg.slug %>" class="home-package-card reveal relative flex flex-col overflow-hidden rounded-3xl border transition-all duration-300 hover:-translate-y-1 <%= pkg.isPopular ? 'z-10 border-sage-800 bg-sage-800 text-white shadow-2xl md:-translate-y-2' : 'border-sage-100 bg-white text-sage-900 shadow-lg' %>" data-delay="<%= i * 120 %>">
+            <% if (pkg.coverUrl) { %>
+              <img src="<%= pkg.coverUrl %>" alt="" aria-hidden="true" loading="lazy" decoding="async" class="h-48 w-full object-cover">
+            <% } else { %>
+              <div class="h-48 bg-gradient-to-br from-sand-100 via-clay-50 to-sage-100" aria-hidden="true"></div>
+            <% } %>
+            <div class="flex flex-1 flex-col p-6 sm:p-7">
+              <% if (pkg.isPopular) { %>
+                <span class="mb-4 self-start rounded-full bg-[#d7bd85] px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#403a34]"><%= t.homePackagePopular %></span>
+              <% } %>
+              <h3 class="font-display text-2xl font-bold leading-tight"><%= pkg.name %></h3>
+              <% if (pkg.description) { %>
+                <p class="mt-2 text-sm leading-relaxed <%= pkg.isPopular ? 'text-white/80' : 'text-stone-500' %>"><%= pkg.description %></p>
+              <% } %>
+              <% if (pkg.startingPrice !== null) { %>
+                <div class="mt-5">
+                  <p class="text-xs <%= pkg.isPopular ? 'text-white/70' : 'text-stone-500' %>"><%= t.homePackageStartingAt %></p>
+                  <p class="mt-1 font-display text-3xl font-semibold">Rp <%= new Intl.NumberFormat('id-ID').format(pkg.startingPrice) %></p>
+                </div>
+              <% } %>
+              <% if (pkg.features.length) { %>
+                <ul class="mt-5 space-y-3">
+                  <% pkg.features.forEach((feature) => { %>
+                    <li class="flex items-start gap-2 text-sm <%= pkg.isPopular ? 'text-white/90' : 'text-stone-600' %>">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+                      <span><%= feature %></span>
+                    </li>
+                  <% }) %>
+                </ul>
+              <% } %>
+              <a href="/packages/<%= pkg.slug %>" class="mt-auto inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-colors <%= pkg.isPopular ? 'mt-7 bg-white text-sage-800 hover:bg-sand-100' : 'mt-7 bg-sage-800 text-white hover:bg-sage-700' %>">
+                <%= t.homePackageViewDetails %>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </a>
             </div>
-          </div>
+          </article>
         <% }) %>
       </div>
+      <a href="/packages" class="sm:hidden flex items-center justify-center gap-2 mt-6 text-sm text-sage-700">
+        <%= t.viewAllPackages %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+      </a>
     </div>
   </section>
+  <% } %>
 
   <!-- ======================= FEATURED ARTICLES ======================= -->
   <% if (weddingContentReady && Array.isArray(articles) && articles.length > 0) { %>
@@ -238,25 +274,6 @@
       <% } %>
 
 
-      <!-- Event Modal -->
-      <div id="eventModal" class="fixed inset-0 z-[70] hidden">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-action="close-event"></div>
-        <div class="relative max-w-lg mx-auto mt-[6vh] mb-6 bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <button type="button" data-action="close-event" class="absolute right-4 top-4 z-10 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm grid place-items-center text-sage-700 hover:bg-white transition" aria-label="Close">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-          </button>
-          <div class="p-6 sm:p-8">
-            <span class="px-2.5 py-1 rounded-full bg-sage-50 text-[9px] font-bold tracking-[0.15em] text-sage-700">EVENT</span>
-            <h3 id="eventTitle" class="font-display text-2xl text-sage-900 mt-3 leading-snug"></h3>
-            <div id="eventMeta" class="flex flex-wrap gap-x-5 gap-y-2 mt-4 text-sm text-stone-warm"></div>
-            <div id="eventDesc" class="mt-5 pt-5 border-t border-sage-100 text-sm text-stone-warm leading-relaxed [&_p]:m-0 [&_p]:mb-3"></div>
-            <a href="#" id="eventWhatsApp" data-wa-base="<%= contactLinks.whatsappShortLink %>" target="_blank" rel="noopener noreferrer" class="btn-primary group w-full mt-6 py-3 justify-center">
-              <%= t.eventReserve %>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="ms-2"><path d="M12.04 2a9.91 9.91 0 0 0-8.5 15.03L2 22l5.06-1.5A9.9 9.9 0 1 0 12.04 2Zm5.8 14.06c-.24.68-1.4 1.3-1.94 1.35-.52.05-1.17.24-3.9-.81-3.28-1.31-5.34-4.72-5.5-4.94-.16-.22-1.32-1.75-1.32-3.34s.84-2.37 1.13-2.7c.3-.32.64-.4.86-.4h.62c.2 0 .46-.07.72.55.27.64.92 2.23.99 2.39.08.16.13.35.02.57-.1.22-.16.35-.31.54-.15.19-.32.43-.46.57-.15.16-.31.33-.13.64.18.31.8 1.32 1.72 2.14 1.18 1.05 2.18 1.38 2.49 1.53.31.16.49.13.67-.08.18-.2.77-.9.98-1.2.2-.31.4-.26.68-.16.28.11 1.76.83 2.06.98.3.15.5.23.57.35.08.13.08.72-.16 1.42Z"/></svg>
-            </a>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
   <% } %>

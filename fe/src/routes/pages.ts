@@ -29,6 +29,16 @@ interface HomeArticle {
 	date: string;
 }
 
+interface HomePackage {
+	slug: string;
+	name: string;
+	description: string;
+	coverUrl: string;
+	isPopular: boolean;
+	startingPrice: number | null;
+	features: string[];
+}
+
 function getHomeArticles(value: unknown, locale: string): HomeArticle[] {
 	if (!Array.isArray(value)) return [];
 
@@ -36,7 +46,10 @@ function getHomeArticles(value: unknown, locale: string): HomeArticle[] {
 		.flatMap((item): HomeArticle[] => {
 			if (!item || typeof item !== "object") return [];
 			const article = item as Record<string, unknown>;
-			if (typeof article.slug !== "string" || typeof article.title !== "string") {
+			if (
+				typeof article.slug !== "string" ||
+				typeof article.title !== "string"
+			) {
 				return [];
 			}
 
@@ -72,6 +85,71 @@ function getHomeArticles(value: unknown, locale: string): HomeArticle[] {
 			];
 		})
 		.slice(0, 3);
+}
+
+function getHomePackages(value: unknown): HomePackage[] {
+	if (!Array.isArray(value)) return [];
+
+	const homePackages = value.flatMap((item): HomePackage[] => {
+		if (!item || typeof item !== "object") return [];
+		const packageItem = item as Record<string, unknown>;
+		if (
+			typeof packageItem.slug !== "string" ||
+			typeof packageItem.name !== "string"
+		) {
+			return [];
+		}
+
+		const options = Array.isArray(packageItem.options)
+			? packageItem.options
+			: [];
+		const prices = options.flatMap((option): number[] => {
+			if (!option || typeof option !== "object") return [];
+			const optionItem = option as Record<string, unknown>;
+			const price = Number(optionItem.final_price ?? optionItem.price);
+			return Number.isFinite(price) && price > 0 ? [price] : [];
+		});
+		const features = Array.isArray(packageItem.features)
+			? packageItem.features.flatMap((feature): string[] => {
+					if (!feature || typeof feature !== "object") return [];
+					const featureItem = feature as Record<string, unknown>;
+					const text = featureItem.feature ?? featureItem.name;
+					return typeof text === "string" && text.trim() ? [text] : [];
+				})
+			: [];
+
+		return [
+			{
+				slug: packageItem.slug,
+				name: packageItem.name,
+				description:
+					typeof packageItem.description === "string"
+						? packageItem.description
+						: "",
+				coverUrl:
+					typeof packageItem.cover_url === "string"
+						? packageItem.cover_url
+						: "",
+				isPopular:
+					packageItem.is_popular === true ||
+					packageItem.is_popular === 1 ||
+					packageItem.is_popular === "1",
+				startingPrice: prices.length ? Math.min(...prices) : null,
+				features: features.slice(0, 4),
+			},
+		];
+	});
+
+	const popularIndex = homePackages.findIndex((item) => item.isPopular);
+	if (popularIndex >= 0 && popularIndex !== 1 && homePackages.length > 1) {
+		const [popularPackage] = homePackages.splice(popularIndex, 1);
+		homePackages.splice(1, 0, popularPackage);
+	}
+
+	return homePackages.slice(0, 3).map((item, index) => ({
+		...item,
+		isPopular: index === 1 && popularIndex >= 0,
+	}));
 }
 
 function getHomeSliderBanners(value: unknown): BannerItem[] {
@@ -119,15 +197,12 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 			articles: weddingContentReady
 				? getHomeArticles(data?.articles, isID ? "id-ID" : "en-US")
 				: [],
+			packages: weddingContentReady ? getHomePackages(data?.packages) : [],
 			sliderBanners,
 			venueDataLoaded: weddingContentReady && Array.isArray(data?.venues),
 			venues:
 				weddingContentReady && Array.isArray(data?.venues)
 					? data.venues.slice(0, 4)
-					: [],
-			packages:
-				weddingContentReady && Array.isArray(data?.packages)
-					? data.packages
 					: [],
 			testimonials:
 				weddingContentReady && Array.isArray(data?.testimonials)

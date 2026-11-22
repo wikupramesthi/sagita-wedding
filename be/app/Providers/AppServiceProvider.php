@@ -9,6 +9,7 @@ use App\Models\Payment\Order;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Observers\AuditObserver;
 use App\Policies\OrderPolicy;
+use App\Services\BatchVersionService;
 use App\Services\EmailSettingService;
 use App\Services\WhatsApp\HttpWhatsAppGateway;
 use App\Services\WhatsApp\LinkWhatsAppGateway;

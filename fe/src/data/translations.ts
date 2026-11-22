@@ -383,24 +383,14 @@ const rawTranslations = {
 			},
 		],
 
-		// Approach section
-		ourApproach: "Our approach",
-		moreThanJust: "Thoughtful wedding",
-		moreThanJustItalic: "planning",
-		approachCards: [
-			{
-				title: "A Clear Plan",
-				desc: "We help shape a considered plan around your priorities and celebration.",
-			},
-			{
-				title: "Coordinated Vendors",
-				desc: "We coordinate the details with your chosen wedding vendors.",
-			},
-			{
-				title: "Wedding-Day Support",
-				desc: "Our team helps keep the celebration running smoothly so you can enjoy the day.",
-			},
-		],
+		// Homepage packages
+		homePackagesEyebrow: "SERVICES FOR YOUR CELEBRATION",
+		homePackagesTitle: "Wedding",
+		homePackagesTitleItalic: "Packages",
+		homePackagePopular: "MOST POPULAR",
+		homePackageStartingAt: "Starting at",
+		homePackageViewDetails: "View package details",
+		viewAllPackages: "View all packages",
 
 		// Homepage articles
 		homeArticlesEyebrow: "WEDDING PLANNING READS",
@@ -805,24 +795,14 @@ const rawTranslations = {
 			},
 		],
 
-		// Approach section
-		ourApproach: "Pendekatan kami",
-		moreThanJust: "Pernikahan yang",
-		moreThanJustItalic: "terencana",
-		approachCards: [
-			{
-				title: "Rencana yang Terarah",
-				desc: "Kami membantu menyusun rencana sesuai prioritas dan perayaan yang Anda inginkan.",
-			},
-			{
-				title: "Koordinasi Vendor",
-				desc: "Kami membantu mengoordinasikan detail bersama vendor pilihan Anda.",
-			},
-			{
-				title: "Pendampingan Hari Pernikahan",
-				desc: "Tim kami membantu menjaga rangkaian acara berjalan lancar agar Anda bisa menikmati hari istimewa.",
-			},
-		],
+		// Homepage packages
+		homePackagesEyebrow: "LAYANAN UNTUK HARI ISTIMEWA",
+		homePackagesTitle: "Paket",
+		homePackagesTitleItalic: "Pernikahan",
+		homePackagePopular: "PALING DIMINATI",
+		homePackageStartingAt: "Mulai dari",
+		homePackageViewDetails: "Lihat detail paket",
+		viewAllPackages: "Lihat semua paket",
 
 		// Homepage articles
 		homeArticlesEyebrow: "BACAAN SEPUTAR PERNIKAHAN",

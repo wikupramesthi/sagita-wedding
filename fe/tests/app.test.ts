@@ -50,6 +50,7 @@ const PACKAGES_PAGE = {
 let homeSliderBanners: unknown[] = [];
 let homeTestimonials: unknown = [];
 let homeArticles: unknown[] = [];
+let homePackages: unknown[] = [];
 let homeVenues: unknown = [
 	{
 		uuid: "v1",
@@ -106,7 +107,7 @@ const getPageBatch = vi.fn(
 					weddingContentReady: homeWeddingContentReady,
 					sliderBanners: homeSliderBanners,
 					venues: homeVenues,
-					packages: [],
+					packages: homePackages,
 					articles: homeArticles,
 					testimonials: homeTestimonials,
 				};
@@ -155,6 +156,7 @@ beforeEach(() => {
 	homeSliderBanners = [];
 	homeTestimonials = [];
 	homeArticles = [];
+	homePackages = [];
 	homeWeddingContentReady = true;
 	homeVenues = [
 		{
@@ -543,7 +545,7 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain(
 			'href="#home-planning-summary" class="scroll-indicator',
 		);
-		expect(res.text).toContain("Pendampingan Hari Pernikahan");
+		expect(res.text).not.toContain('id="home-packages"');
 	});
 
 	it("beranda menampilkan maksimal tiga artikel dengan layout kartu yang sama", async () => {
@@ -568,6 +570,46 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain("aspect-[4/5]");
 		expect(res.text).not.toContain("Acara &amp;");
 		expect(res.text).not.toContain("open-event");
+	});
+
+	it("beranda menampilkan tiga paket dan menempatkan paket populer di tengah", async () => {
+		homePackages = [
+			{
+				slug: "favorit",
+				name: "Paket Favorit",
+				description: "Paket pilihan pasangan.",
+				is_popular: true,
+				options: [{ final_price: 25000000 }],
+				features: [{ feature: "Koordinasi hari pernikahan" }],
+			},
+			{ slug: "intimate", name: "Paket Intimate", is_popular: false },
+			{ slug: "signature", name: "Paket Signature", is_popular: false },
+		];
+
+		const res = await request(app).get("/").set("Cookie", "locale=id");
+		const intimatePosition = res.text.indexOf(
+			'data-home-package-slug="intimate"',
+		);
+		const popularPosition = res.text.indexOf(
+			'data-home-package-slug="favorit"',
+		);
+		const signaturePosition = res.text.indexOf(
+			'data-home-package-slug="signature"',
+		);
+
+		expect(res.status).toBe(200);
+		expect(res.text).toContain("Paket Pernikahan");
+		expect(res.text).toContain("Lihat semua paket");
+		expect(res.text).toContain('href="/packages"');
+		expect(res.text).toContain("sm:justify-between");
+		expect(res.text.match(/<article data-home-package-slug=/g)).toHaveLength(3);
+		expect(intimatePosition).toBeLessThan(popularPosition);
+		expect(popularPosition).toBeLessThan(signaturePosition);
+		expect(res.text).toContain("PALING DIMINATI");
+		expect(res.text).toContain("Rp 25.000.000");
+		expect(res.text).toContain("Koordinasi hari pernikahan");
+		expect(res.text).toContain('href="/packages/favorit"');
+		expect(res.text).not.toContain('id="home-approach"');
 	});
 
 	it("beranda menampilkan maksimal empat venue", async () => {
@@ -608,7 +650,12 @@ describe("pageScript wiring", () => {
 		expect(res.text).not.toContain("home-venue-skeleton");
 	});
 
-	it("beranda menampilkan carousel testimoni setelah pendekatan layanan", async () => {
+	it("beranda menampilkan carousel testimoni setelah paket", async () => {
+		homePackages = [
+			{ slug: "paket-a", name: "Paket A" },
+			{ slug: "paket-b", name: "Paket B", is_popular: true },
+			{ slug: "paket-c", name: "Paket C" },
+		];
 		homeTestimonials = [
 			{
 				nama: "Alya & Raka",
@@ -634,7 +681,7 @@ describe("pageScript wiring", () => {
 		expect(res.status).toBe(200);
 		expect(
 			res.text.indexOf('class="home-testimonials-section'),
-		).toBeGreaterThan(res.text.indexOf('id="home-approach"'));
+		).toBeGreaterThan(res.text.indexOf('id="home-packages"'));
 		expect(res.text).toContain("CERITA PERNIKAHAN");
 		expect(res.text).toContain("Dengarkan kisah");
 		expect(res.text).toContain("pasangan ini");
