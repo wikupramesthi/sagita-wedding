@@ -21,22 +21,25 @@
         </div>
     </section>
 
-    <section class="card" aria-labelledby="quickActionsTitle">
-        <div class="card-body d-flex flex-column gap-3">
-            <div>
-                <h2 id="quickActionsTitle" class="h6 mb-1">{{ __('dashboard.quick_actions') }}</h2>
-                <p class="small text-muted mb-0">Pintasan ke tugas yang paling sering dilakukan.</p>
+    <section class="card dashboard-quick-actions" aria-labelledby="quickActionsTitle">
+        <div class="card-body">
+            <div class="dashboard-quick-actions__head">
+                <span class="dashboard-quick-actions__icon"><i class="bi bi-lightning-charge" aria-hidden="true"></i></span>
+                <div>
+                    <h2 id="quickActionsTitle" class="h6 mb-1">{{ __('dashboard.quick_actions') }}</h2>
+                    <p class="small text-muted mb-0">Pintasan ke tugas yang paling sering dilakukan.</p>
+                </div>
             </div>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="{{ route('articles.create') }}" class="btn btn-sm btn-primary"><i class="bi bi-file-earmark-plus me-1"></i> Tambah artikel</a>
-                <a href="{{ route('banner.index') }}" class="btn btn-sm btn-info"><i class="bi bi-image me-1"></i> Upload banner</a>
-                <a href="{{ route('events.index') }}" class="btn btn-sm btn-success"><i class="bi bi-calendar-plus me-1"></i> Buat event</a>
+            <div class="dashboard-quick-actions__list">
+                <a href="{{ route('articles.create') }}" class="btn btn-sm quick-action-btn quick-action-btn--article"><i class="bi bi-file-earmark-plus"></i><span>Tambah artikel</span></a>
+                <a href="{{ route('banner.index') }}" class="btn btn-sm quick-action-btn quick-action-btn--banner"><i class="bi bi-image"></i><span>Upload banner</span></a>
+                <a href="{{ route('events.index') }}" class="btn btn-sm quick-action-btn quick-action-btn--event"><i class="bi bi-calendar-plus"></i><span>Buat event</span></a>
                 @if ($canViewConsultations)
-                    <a href="{{ route('konsultasi.index') }}" class="btn btn-sm btn-primary"><i class="bi bi-diagram-3 me-1"></i> Konsultasi</a>
+                    <a href="{{ route('konsultasi.index') }}" class="btn btn-sm quick-action-btn quick-action-btn--consultation"><i class="bi bi-diagram-3"></i><span>Konsultasi</span></a>
                 @endif
-                <a href="{{ route('notifications.index') }}" class="btn btn-sm btn-dark">
-                    <i class="bi bi-bell me-1"></i> Notifikasi
-                    <span class="badge bg-light text-dark rounded-pill ms-1" data-notification-badge {{ $unreadCount > 0 ? '' : 'hidden' }}>{{ $unreadCount }}</span>
+                <a href="{{ route('notifications.index') }}" class="btn btn-sm quick-action-btn quick-action-btn--notification">
+                    <i class="bi bi-bell"></i><span>Notifikasi</span>
+                    <span class="badge rounded-pill ms-1" data-notification-badge {{ $unreadCount > 0 ? '' : 'hidden' }}>{{ $unreadCount }}</span>
                 </a>
             </div>
         </div>

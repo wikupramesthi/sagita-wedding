@@ -31,11 +31,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/admin-modern.css') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('css/admin-modern.css')) ? filemtime(public_path('css/admin-modern.css')) : '1' }}" />
-
     <link
         href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
         rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('css/admin-modern.css') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('css/admin-modern.css')) ? filemtime(public_path('css/admin-modern.css')) : '1' }}" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 
@@ -212,6 +211,29 @@
     <script src="{{ asset('js/sagita-confirm.js') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('js/sagita-confirm.js')) ? filemtime(public_path('js/sagita-confirm.js')) : '1' }}"></script>
 
     @stack('after-script')
+
+    <script>
+        (function () {
+            function syncSubmenu(item) {
+                var submenu = item.querySelector(':scope > .submenu');
+                if (!submenu) return;
+                submenu.style.setProperty('--submenu-height', Math.ceil(submenu.scrollHeight) + 'px');
+                var link = item.querySelector(':scope > .sidebar-link');
+                if (link) link.setAttribute('aria-expanded', submenu.classList.contains('submenu-open') ? 'true' : 'false');
+            }
+            function syncAll() {
+                document.querySelectorAll('#sidebar .sidebar-item.has-sub').forEach(syncSubmenu);
+            }
+            document.querySelectorAll('#sidebar .sidebar-item.has-sub > .sidebar-link').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    window.setTimeout(function () { syncSubmenu(link.closest('.sidebar-item.has-sub')); }, 0);
+                });
+            });
+            syncAll();
+            window.addEventListener('load', syncAll);
+            window.addEventListener('resize', syncAll);
+        })();
+    </script>
 
     <script>
         (function () {

@@ -5,17 +5,26 @@
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="Riwayat Pemesanan" page="Pesanan Saya" active="Daftar Pesanan"
+<x-breadcrumb title="Pesanan" page="Operasional" active="Daftar Pesanan"
     route="{{ route('orders.index') }}" />
 @endsection
 
 @php
 $statusLabels = [
-'pending' => 'Menunggu',
+'pending' => 'Menunggu verifikasi',
+'partially_paid' => 'DP terverifikasi',
 'paid' => 'Lunas',
 'failed' => 'Gagal',
 'expired' => 'Kedaluwarsa',
 'cancelled' => 'Dibatalkan',
+];
+$statusHints = [
+'pending' => 'Pembayaran belum diverifikasi admin.',
+'partially_paid' => 'DP sudah diterima, sisa pembayaran belum lunas.',
+'paid' => 'Pembayaran sudah lunas.',
+'failed' => 'Pembayaran gagal.',
+'expired' => 'Batas waktu pembayaran habis.',
+'cancelled' => 'Pesanan dibatalkan.',
 ];
 $viewMode = in_array(request()->input('view'), ['table', 'cards', 'kanban'], true) ? request()->input('view') : 'table';
 $viewQuery = request()->except('view', 'page');
@@ -106,13 +115,13 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             <div class="d-flex align-items-center gap-3">
                 <div class="order-revenue-icon"><i class="bi bi-wallet2"></i></div>
                 <div>
-                    <div class="order-revenue-label">Pendapatan (Lunas)</div>
+                    <div class="order-revenue-label">Pendapatan terverifikasi</div>
                     <div class="order-revenue-value">Rp {{ number_format($stats->revenue ?? 0, 0, ',', '.') }}</div>
                 </div>
             </div>
             <div class="d-flex flex-wrap gap-4 order-revenue-meta">
                 <div>
-                    <div class="order-revenue-meta-label">Lunas / DP</div>
+                    <div class="order-revenue-meta-label">Lunas / DP masuk</div>
                     <div class="order-revenue-meta-value">{{ number_format($stats->paid ?? 0) }} / {{ number_format($stats->partially_paid ?? 0) }}</div>
                 </div>
                 <div>
@@ -120,7 +129,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     <div class="order-revenue-meta-value">{{ number_format($stats->total ?? 0) }}</div>
                 </div>
                 <div>
-                    <div class="order-revenue-meta-label">Outstanding DP</div>
+                    <div class="order-revenue-meta-label">Belum dibayar</div>
                     <div class="order-revenue-meta-value">{{ number_format($stats->pending ?? 0) }}</div>
                 </div>
             </div>
@@ -131,18 +140,18 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     <div class="d-flex flex-wrap gap-2 mb-3">
         <a href="{{ route('orders.index', ['status' => 'pending']) }}"
             class="btn btn-sm {{ (($filters['status'] ?? '') === 'pending' && empty($filters['proof'])) ? 'btn-warning' : 'btn-outline-warning' }}">
-            <i class="bi bi-hourglass-split me-1"></i>Menunggu
-            <span class="badge bg-dark ms-1">{{ number_format($queueCounts['all']) }}</span>
+            <i class="bi bi-hourglass-split me-1"></i>Perlu verifikasi
+            <span class="badge ms-1">{{ number_format($queueCounts['all']) }}</span>
         </a>
         <a href="{{ route('orders.index', ['status' => 'pending', 'proof' => 'uploaded']) }}"
             class="btn btn-sm {{ (($filters['status'] ?? '') === 'pending' && ($filters['proof'] ?? '') === 'uploaded') ? 'btn-info' : 'btn-outline-info' }}">
-            <i class="bi bi-file-earmark-check me-1"></i>Bukti masuk
-            <span class="badge bg-dark ms-1">{{ number_format($queueCounts['uploaded']) }}</span>
+            <i class="bi bi-file-earmark-check me-1"></i>Bukti diunggah
+            <span class="badge ms-1">{{ number_format($queueCounts['uploaded']) }}</span>
         </a>
         <a href="{{ route('orders.index', ['status' => 'pending', 'proof' => 'missing']) }}"
             class="btn btn-sm {{ (($filters['status'] ?? '') === 'pending' && ($filters['proof'] ?? '') === 'missing') ? 'btn-danger' : 'btn-outline-danger' }}">
-            <i class="bi bi-file-earmark-x me-1"></i>Belum upload
-            <span class="badge bg-dark ms-1">{{ number_format($queueCounts['missing']) }}</span>
+            <i class="bi bi-file-earmark-x me-1"></i>Belum ada bukti
+            <span class="badge ms-1">{{ number_format($queueCounts['missing']) }}</span>
         </a>
     </div>
     @endif
@@ -158,9 +167,9 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                         <span class="order-shortcut-hint">Tekan <kbd>/</kbd> untuk cari</span>
                     </div>
                     <div class="order-kpi-strip" aria-label="Ringkasan perhatian">
-                        <span class="order-kpi-item is-warning"><i class="bi bi-alarm me-1"></i><b>{{ number_format($queueCounts['sla'] ?? 0) }}</b> SLA &gt;24 jam</span>
-                        <span class="order-kpi-item is-info"><i class="bi bi-person-check me-1"></i><b>{{ number_format($queueCounts['claimed'] ?? 0) }}</b> diklaim</span>
-                        <span class="order-kpi-item is-success"><i class="bi bi-file-earmark-check me-1"></i><b>{{ number_format($queueCounts['uploaded'] ?? 0) }}</b> bukti masuk</span>
+                        <span class="order-kpi-item is-warning"><i class="bi bi-alarm me-1"></i><b>{{ number_format($queueCounts['sla'] ?? 0) }}</b> menunggu &gt;24 jam</span>
+                        <span class="order-kpi-item is-info"><i class="bi bi-person-check me-1"></i><b>{{ number_format($queueCounts['claimed'] ?? 0) }}</b> sedang diproses</span>
+                        <span class="order-kpi-item is-success"><i class="bi bi-file-earmark-check me-1"></i><b>{{ number_format($queueCounts['uploaded'] ?? 0) }}</b> bukti diunggah</span>
                     </div>
                 </div>
             </div>
@@ -554,12 +563,13 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                 @php
                                 $statusTone = match ($order->status) {
                                     'paid' => 'success',
+                                    'partially_paid' => 'info',
                                     'pending' => 'warning',
-                                    'failed' => 'danger',
+                                    'failed', 'expired', 'cancelled' => 'danger',
                                     default => 'muted',
                                 };
                                 @endphp
-                                <span class="order-status-pill tone-{{ $statusTone }}">
+                                <span class="order-status-pill tone-{{ $statusTone }}" title="{{ $statusHints[$order->status] ?? 'Status pesanan.' }}">
                                     <span class="order-status-dot"></span>{{ $statusLabels[$order->status] ?? $order->status }}
                                 </span>
                                 @if ($isAdmin && $order->status === 'pending')
@@ -568,7 +578,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                     <span class="order-flag is-claimed"><i class="bi bi-person-check me-1"></i>Diklaim</span>
                                     @endif
                                     @if ($order->created_at && $order->created_at->diffInHours() >= 24)
-                                    <span class="order-flag is-sla"><i class="bi bi-alarm me-1"></i>SLA &gt;24 jam</span>
+                                    <span class="order-flag is-sla"><i class="bi bi-alarm me-1"></i>&gt;24 jam</span>
                                     @endif
                                 </div>
                                 @endif
@@ -718,6 +728,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             @php
             $kanbanColumns = [
                 ['key' => 'pending', 'label' => 'Menunggu Verifikasi', 'icon' => 'hourglass-split', 'tone' => 'warning', 'items' => $orders->getCollection()->where('status', 'pending')],
+                ['key' => 'partially_paid', 'label' => 'DP Terverifikasi', 'icon' => 'wallet2', 'tone' => 'info', 'items' => $orders->getCollection()->where('status', 'partially_paid')],
                 ['key' => 'paid', 'label' => 'Lunas', 'icon' => 'check-circle', 'tone' => 'success', 'items' => $orders->getCollection()->where('status', 'paid')],
                 ['key' => 'failed', 'label' => 'Gagal / Dibatalkan', 'icon' => 'x-circle', 'tone' => 'danger', 'items' => $orders->getCollection()->whereIn('status', ['failed', 'expired', 'cancelled'])],
             ];
@@ -1161,6 +1172,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     }
 
     .order-status-pill.tone-success { color: #027a48; background: #ecfdf3; }
+    .order-status-pill.tone-info { color: #175cd3; background: #eff8ff; }
     .order-status-pill.tone-warning { color: #b54708; background: #fffaeb; }
     .order-status-pill.tone-danger { color: #b42318; background: #fef3f2; }
     .order-status-pill.tone-muted { color: #475467; background: #f2f4f7; }
@@ -1377,6 +1389,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
 
     .order-kanban-head i { font-size: 16px; }
     .kanban-warning .order-kanban-head { color: #b54708; }
+    .kanban-info .order-kanban-head { color: #175cd3; }
     .kanban-success .order-kanban-head { color: #027a48; }
     .kanban-danger .order-kanban-head { color: #b42318; }
 

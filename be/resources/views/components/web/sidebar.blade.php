@@ -44,14 +44,14 @@
                 @endphp
 
                 <li class="sidebar-item has-sub {{ $isActive ? 'active' : '' }}">
-                    <a href="#" class="sidebar-link nav-link">
+                    <a href="#" class="sidebar-link nav-link" aria-expanded="{{ $isActive ? 'true' : 'false' }}" aria-controls="sidebar-submenu-{{ $loop->index }}">
                         <div class="icon icon-shape icon-sm">
                             <i class="bx {{ $menu->icon }}"></i>
                         </div>
                         <span class="nav-link-text ms-1">{{ $menu->name }}</span>
                     </a>
 
-                    <ul class="submenu nav ms-4">
+                    <ul id="sidebar-submenu-{{ $loop->index }}" class="submenu nav ms-4">
                         @foreach ($menu->items as $item)
                         @can($item->permission_name)
                         <li class="submenu-item {{ request()->routeIs($item->route) ? 'active' : '' }}">
@@ -74,14 +74,14 @@
                 @role('user')
                 <li class="sidebar-title">Menu Lainnya</li>
                 <li class="sidebar-item has-sub">
-                    <a href="#" class="sidebar-link nav-link">
+                    <a href="#" class="sidebar-link nav-link" aria-expanded="false" aria-controls="sidebar-submenu-settings">
                         <div class="icon icon-shape icon-sm">
                             <i class="bx bx-cog"></i>
                         </div>
                         <span class="nav-link-text ms-1">Pengaturan</span>
                     </a>
 
-                    <ul class="submenu nav ms-4">
+                    <ul id="sidebar-submenu-settings" class="submenu nav ms-4">
                         <li class="submenu-item">
                             <a href="{{ route('profile.edit') }}" class="submenu-link nav-link">
                                 <span class="sidenav-mini-icon">M</span>
