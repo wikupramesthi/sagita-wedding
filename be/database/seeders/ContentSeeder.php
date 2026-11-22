@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Article;
 use App\Models\Banner;
 use App\Models\Category;
+use App\Models\Event;
 use App\Models\Package\Package;
 use App\Models\Package\PackageFeature;
 use App\Models\Package\PackageOption;
@@ -35,6 +36,7 @@ class ContentSeeder extends Seeder
         DB::table('pages')->whereNotIn('uuid', ['5380a3e5-adfa-437c-a0fa-bc2193d55cb2', '9e55815c-a4dd-4df2-8cb5-27f7de7249fd'])->delete();
         DB::table('articles')->whereNotIn('uuid', ['63829ea9-8a32-4f82-94e1-7299120f822c'])->delete();
         DB::table('venues')->whereNotIn('uuid', ['363f49dc-b34f-4ac2-ad18-95b140c6335e'])->delete();
+        DB::table('events')->whereNotIn('uuid', ['02471b9c-9346-409c-b9b0-5331d91456ed', '3191142d-9185-421c-be1d-791c843f6161', '64e369a4-ed0f-4009-996e-362f879a681e'])->delete();
 
         DB::table('users')->updateOrInsert(
             ['uuid' => '00000000-0000-4000-8000-000000000001'],
@@ -1270,6 +1272,53 @@ class ContentSeeder extends Seeder
                         'status' => 'active',
                     ],
                 ],
+                'events' => [
+                    0 => [
+                        'uuid' => '02471b9c-9346-409c-b9b0-5331d91456ed',
+                        'judul' => 'Growing Together in Nature',
+                        'slug' => 'growing-together-in-nature',
+                        'deskripsi' => '<p><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">A special morning created for mama-to-be.</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">Move gently, breathe deeply, connect with your little one, and enjoy a peaceful morning in nature. ?????????</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????? Sunday, 13 September 2026</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">??????? 07.30??????10.00 AM</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????? Kebun Raya Bogor ?????? Taman Melchior</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????? 150K / pax</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">Includes Prenatal Yoga, Pregnancy Talk, Mini MCU, Garden Picnic, Goodies &amp; Giveaways! ??????</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????????????? Register Now:</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">https://bit.ly/PrenatalGentleYogaatKebunRaya</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">Come grow, breathe &amp; connect with us. ??????????</span></p>',
+                        'gambar' => 'events/NLg7WQHCoKb9lC1eYoe4r8Ca1tUW2sDfOdFrdj3l.jpg',
+                        'tanggal' => '2026-09-13',
+                        'waktu_mulai' => '07:30:00',
+                        'waktu_selesai' => '10:00:00',
+                        'lokasi' => 'Kebun Raya Bogor ?????? Taman Melchior',
+                        'kapasitas' => 35,
+                        'status' => 'published',
+                        'created_at' => '2026-09-01 01:39:08',
+                        'updated_at' => '2026-09-01 10:02:52',
+                    ],
+                    1 => [
+                        'uuid' => '3191142d-9185-421c-be1d-791c843f6161',
+                        'judul' => 'Yoga Night at the Museum is calling',
+                        'slug' => 'yoga-night-at-the-museum-is-calling',
+                        'deskripsi' => '<p><div class="html-div x14z9mp x1lziwak xexx8yu xyri2b x18d9i69 x1c1uobl x9f619 xjbqb8w x78zum5 x15mokao x1ga7v0g x16uus16 xbiv7yw x1xmf6yo x12nagc x1n2onr6 x1plvlek xryxfnj x1c4vz4f x2lah0s xdt5ytf xqjyukv x1qjc9v5 x1oa3qoh x1nhvcw1" style="margin-inline: 0px; border-start-start-radius: 0px; border-end-end-radius: 0px; padding-inline: 0px; flex-grow: 0; border-start-end-radius: 0px; position: relative; place-content: stretch flex-start; align-self: auto; align-items: stretch; flex-shrink: 0; display: flex; box-sizing: border-box; border-end-start-radius: 0px; flex-direction: column; background-color: rgb(255, 255, 255); margin-bottom: 4px; padding-bottom: 0px; overflow: visible; margin-top: 8px; padding-top: 0px; color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"></div></p><div class="xt0psk2" style="display: inline; color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;"><h1 class="_ap3a _aaco _aacu _aacx _aad7 _aade" dir="auto" style="color: rgb(12, 16, 20); font-size: 14px; font-weight: 400; margin: 0px !important; padding: 0px; font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; line-height: 18px; display: inline !important;">Rasakan sensasi ketenangan malam dan keseimbangan jiwa dalam perayaan Anniversary Yoga Roots yang ke 3 tahun??????????<br><br>????????? Jumat, 18 September 2026<br>??????? 18.30-19.30 WIB<br>????????? Taman Arca, Museum Nasional Indonesia<br>????????????????? IDR 150K ?????? sudah termasuk tiket masuk museum<br><br>Jangan lupa bawa yoga mat &amp; botol minum pribadi.<br><br>Yuk, luangkan waktu untuk move, breathe, and reconnect di malam yang spesial?????????</h1></div>',
+                        'gambar' => 'events/7k4NwTxmHUtn6jbXllpKeB3m6jxe35KGp4shy3Zn.jpg',
+                        'tanggal' => '2026-09-18',
+                        'waktu_mulai' => '18:30:00',
+                        'waktu_selesai' => '19:30:00',
+                        'lokasi' => 'Taman Arca, Museum Nasional Indonesia',
+                        'kapasitas' => 50,
+                        'status' => 'published',
+                        'created_at' => '2026-09-11 13:50:04',
+                        'updated_at' => '2026-09-11 14:28:46',
+                    ],
+                    2 => [
+                        'uuid' => '64e369a4-ed0f-4009-996e-362f879a681e',
+                        'judul' => 'Sunset Serenity',
+                        'slug' => 'sunset-serenity',
+                        'deskripsi' => '<p><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">Take a moment to slow down, breathe deeply, and reconnect with yourself as the sunsets.</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">Join us for a relaxing Sunset Yoga Session with Coach Mega at Balcony Skechers, Senayan Park.</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????? 20 September 2026</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????? Balcony Skechers, Senayan Park</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????? 4:30 PM</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????????????????????????? Beginner Friendly</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????? Only IDR 65,000</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">????????? Includes Goodie Bag</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">Come as you are, flow at your own pace, and end the day feeling refreshed.</span><br style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;"><span style="color: rgb(12, 16, 20); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; letter-spacing: normal;">Save your spot and let the sunset be your reset.</span></p>',
+                        'gambar' => 'events/duaDypZpAvPRHnf5Wdry1rNUMXK7S4vZPbxxInbq.webp',
+                        'tanggal' => '2026-09-20',
+                        'waktu_mulai' => '16:30:00',
+                        'waktu_selesai' => '16:30:00',
+                        'lokasi' => 'Balcony Skechers, Senayan Park',
+                        'kapasitas' => 50,
+                        'status' => 'published',
+                        'created_at' => '2026-09-11 14:28:06',
+                        'updated_at' => '2026-09-11 14:28:06',
+                    ],
+                ],
             ];
 
             foreach ($data['banner'] as $row) {
@@ -1310,6 +1359,10 @@ class ContentSeeder extends Seeder
 
             foreach ($data['venues'] as $row) {
                 Venue::updateOrCreate(['uuid' => $row['uuid']], $row);
+            }
+
+            foreach ($data['events'] as $row) {
+                Event::updateOrCreate(['uuid' => $row['uuid']], $row);
             }
         });
     }

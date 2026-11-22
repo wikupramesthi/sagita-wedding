@@ -259,7 +259,7 @@ class PackageWeddingFeatureTest extends TestCase
             ->assertOk()
             ->assertViewIs('pages.mobile.package')
             ->assertSee('Jumlah tamu')
-            ->assertSee('Budget maksimal')
+            ->assertSee('Anggaran maksimal')
             ->assertSee('Terapkan')
             ->assertSee('name="guests"', false)
             ->assertSee('name="budget_max"', false);

@@ -452,21 +452,21 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                             <input type="radio" name="payment_scheme" value="dp30" form="checkoutForm" class="payment-scheme-input">
                             <span class="checkout-scheme-body">
                                 <strong>DP 30%</strong>
-                                <small>Dari sisa setelah booking fee</small>
+                                <small>30% dari sisa setelah booking fee</small>
                             </span>
                         </label>
                         <label class="checkout-scheme-option">
                             <input type="radio" name="payment_scheme" value="dp50" form="checkoutForm" class="payment-scheme-input">
                             <span class="checkout-scheme-body">
                                 <strong>DP 50%</strong>
-                                <small>Dari sisa setelah booking fee</small>
+                                <small>50% dari sisa setelah booking fee</small>
                             </span>
                         </label>
                         <label class="checkout-scheme-option">
                             <input type="radio" name="payment_scheme" value="full" form="checkoutForm" class="payment-scheme-input">
                             <span class="checkout-scheme-body">
                                 <strong>Bayar Lunas</strong>
-                                <small>Lunasi sisa setelah booking fee</small>
+                                <small>Lunasi seluruh sisa</small>
                             </span>
                         </label>
                     </div>
@@ -598,33 +598,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                     </div>
 
 
-                    {{-- Price --}}
+                    @if ($package->addons->isNotEmpty() || count($promos))
                     <div class="summary-pricing">
-
-                        <div class="d-flex justify-content-between align-items-end">
-
-                            <span class="text-muted small">
-                                Paket
-                            </span>
-
-                            <div class="text-end">
-
-                                <div
-                                    id="summaryOldPrice"
-                                    class="summary-old-price">
-                                </div>
-
-                                <div
-                                    id="summaryPrice"
-                                    class="summary-price">
-                                    Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
                         <div class="d-flex justify-content-between align-items-end summary-addon-row d-none" id="summaryAddonRow">
 
                             <span class="text-muted small">
@@ -653,13 +628,14 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                             </div>
 
                         </div>
+                        @endif
 
 
                         <div class="summary-divider"></div>
 
                         <div class="checkout-price-breakdown">
                             <div class="checkout-summary-row">
-                                <span class="text-muted small">Total Paket</span>
+                                <span class="text-muted small">Total pesanan</span>
                                 <strong id="summaryTotal" class="summary-total">Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}</strong>
                             </div>
 
@@ -1319,16 +1295,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
 
     .summary-pricing {
-        padding: 20px 0;
-    }
-
-
-    .summary-old-price {
-        color: var(--bs-secondary-color);
-
-        font-size: 11px;
-
-        text-decoration: line-through;
+        padding: 8px 0 14px;
     }
 
 
@@ -1359,10 +1326,11 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
     .checkout-price-breakdown {
         display: grid;
         gap: 10px;
-        padding: 14px;
+        padding: 16px;
         border: 1px solid var(--bs-border-color);
         border-radius: 12px;
         background: var(--bs-tertiary-bg);
+        container-type: inline-size;
     }
 
     .checkout-summary-row,
@@ -1378,7 +1346,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
     .checkout-due-row > span,
     .checkout-remaining-row > span {
         min-width: 0;
-        white-space: nowrap;
+        white-space: normal;
     }
 
     .checkout-summary-row > :last-child,
@@ -1405,6 +1373,31 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         border-radius: 10px;
 
         font-weight: 700;
+    }
+
+    #checkoutForm {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--bs-border-color);
+    }
+
+    #checkoutForm .mb-3 {
+        margin-bottom: 20px !important;
+    }
+
+    #checkoutForm .form-label {
+        margin-bottom: 7px;
+    }
+
+    #checkoutForm .form-control {
+        min-height: 44px;
+        padding: 9px 12px;
+        border-radius: 10px;
+    }
+
+    #checkoutForm .form-text {
+        margin-top: 7px;
+        line-height: 1.5;
     }
 
 
@@ -1456,8 +1449,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
     .checkout-scheme-options {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
     }
 
     .checkout-scheme-option {
@@ -1466,6 +1459,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         gap: 8px;
         margin: 0;
         padding: 12px 10px;
+        min-height: 76px;
         border: 1px solid var(--bs-border-color);
         border-radius: 11px;
         background: var(--bs-body-bg);
@@ -1496,6 +1490,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
     .checkout-scheme-body small {
         color: var(--bs-secondary-color);
         font-size: 11px;
+        line-height: 1.35;
     }
 
     .checkout-due-row {
@@ -1518,14 +1513,35 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         border-top: 1px solid var(--bs-border-color);
     }
 
+    @container (max-width: 320px) {
+        .checkout-summary-row,
+        .checkout-due-row,
+        .checkout-remaining-row {
+            grid-template-columns: minmax(0, 1fr);
+            row-gap: 2px;
+        }
+
+        .checkout-summary-row > span,
+        .checkout-due-row > span,
+        .checkout-remaining-row > span {
+            white-space: normal;
+        }
+
+        .checkout-summary-row > :last-child,
+        .checkout-remaining-row > :last-child,
+        .checkout-due-row .summary-total {
+            text-align: left;
+        }
+    }
+
     @media (max-width: 575.98px) {
         .checkout-summary .card-body {
-            padding: 1rem !important;
+            padding: 1.25rem !important;
         }
 
         .checkout-price-breakdown {
             gap: 8px;
-            padding: 12px;
+            padding: 14px;
         }
 
         .checkout-summary-row > span,
@@ -1544,6 +1560,12 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         .checkout-due-row .summary-total {
             font-size: 18px;
+        }
+    }
+
+    @media (max-width: 359.98px) {
+        .checkout-scheme-options {
+            grid-template-columns: 1fr;
         }
     }
 
@@ -1629,14 +1651,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         const summaryQuota =
             document.getElementById('summaryQuota');
 
-        const summaryPrice =
-            document.getElementById('summaryPrice');
-
         const summaryTotal =
             document.getElementById('summaryTotal');
-
-        const summaryOldPrice =
-            document.getElementById('summaryOldPrice');
 
         const checkoutForm =
             document.getElementById('checkoutForm');
@@ -1832,9 +1848,6 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             const price =
                 Number(option.dataset.optionPrice);
 
-            const regularPrice =
-                Number(option.dataset.optionRegularPrice);
-
             const quota =
                 option.dataset.optionQuota;
 
@@ -1875,35 +1888,6 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 quota === '' ?
                 'Tanpa batas' :
                 `Kuota ${quota}`;
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Update Price
-            |--------------------------------------------------------------------------
-            */
-
-            summaryPrice.textContent =
-                formatRupiah(price);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Update Old Price
-            |--------------------------------------------------------------------------
-            */
-
-            if (regularPrice > price) {
-
-                summaryOldPrice.textContent =
-                    formatRupiah(regularPrice);
-
-            } else {
-
-                summaryOldPrice.textContent =
-                    '';
-
-            }
 
 
             const selectedAddons =
