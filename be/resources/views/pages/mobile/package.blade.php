@@ -353,10 +353,8 @@
         transform: translateX(-50%);
         padding: 7px 13px;
         border-radius: 0 0 10px 10px;
-        background: #fff;
-        color: #2f5f5a;
-        color: #fff;
         background: #3d756f;
+        color: #fff;
         font-size: 9px;
         font-weight: 800;
         letter-spacing: .04em;
@@ -413,6 +411,60 @@
     .mobile-package-card.featured .package-price span,
     .mobile-package-card.featured .package-old-price {
         color: #fff;
+    }
+
+    .mobile-package-card.featured .availability-badge {
+        background: rgba(255, 255, 255, .10);
+        color: #dcead6;
+    }
+
+    .mobile-package-card.featured .package-meta span {
+        background: rgba(255, 255, 255, .10);
+        color: #fff;
+    }
+
+    .mobile-package-card.featured .package-price-box {
+        background: rgba(255, 255, 255, .07);
+        border: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, .12);
+        border-radius: 0;
+        margin-left: -20px;
+        margin-right: -20px;
+        padding: 16px 20px;
+    }
+
+    .mobile-package-card.featured .options-heading span:last-child {
+        color: rgba(255, 255, 255, .72);
+    }
+
+    .mobile-package-card.featured .package-option {
+        background: rgba(255, 255, 255, .08);
+        border: 1px solid rgba(255, 255, 255, .12);
+    }
+
+    .mobile-package-card.featured .option-info span {
+        background: rgba(255, 255, 255, .10);
+    }
+
+    .mobile-package-card.featured .package-features i {
+        color: #dcead6;
+    }
+
+    .mobile-package-card.featured .package-card-tools {
+        border-top: 1px solid rgba(255, 255, 255, .12);
+        padding-top: 12px;
+    }
+
+    .mobile-package-card.featured .package-tool-btn,
+    .mobile-package-card.featured .package-tool-link {
+        background: rgba(255, 255, 255, .10);
+        border-color: rgba(255, 255, 255, .12);
+        color: #fff;
+    }
+
+    .mobile-package-card.featured .choose-package {
+        background: #fff;
+        color: #2f5f5a;
     }
 
     .package-meta {
