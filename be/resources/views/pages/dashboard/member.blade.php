@@ -422,8 +422,10 @@
         </div>
     </div>
 
-    @php($myOrderStats = $myOrderStats ?? ['total'=>0,'pending'=>0,'paid'=>0,'active_package'=>0])
-    @php($myOrders = $myOrders ?? collect())
+    @php
+        $myOrderStats = $myOrderStats ?? ['total'=>0,'pending'=>0,'paid'=>0,'active_package'=>0];
+        $myOrders = $myOrders ?? collect();
+    @endphp
 
     <div class="row g-3 mb-4 member-stats">
         <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100 member-stat-card"><div class="card-body d-flex align-items-center gap-3"><div class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:46px;height:46px;font-size:1.2rem"><i class="bi bi-receipt-cutoff"></i></div><div><div class="fw-bold fs-4 lh-1">{{ $myOrderStats['total'] }}</div><div class="small text-muted mt-1">Total Pesanan</div></div></div></div></div>
@@ -546,18 +548,9 @@
                         </div>
                         @if ($planningOrderTotal > 0)
                             <div class="planning-budget-summary mb-3">
-                                <div class="d-flex justify-content-between small mb-2">
-                                    <span class="text-muted">Nilai pesanan aktif ({{ $planningOrders->count() }})</span>
-                                    <strong>Rp {{ number_format($planningOrderTotal, 0, ',', '.') }}</strong>
-                                </div>
-                                <div class="progress planning-progress mb-2" role="progressbar" aria-label="Pembayaran pesanan" aria-valuenow="{{ $planningBudgetProgress }}" aria-valuemin="0" aria-valuemax="100">
-                                    <div class="progress-bar bg-success" style="width: {{ $planningBudgetProgress }}%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between small">
-                                    <span class="text-muted">Terbayar Rp {{ number_format($planningPaidTotal, 0, ',', '.') }}</span>
-                                    <strong class="text-danger">Sisa Rp {{ number_format($planningRemainingTotal, 0, ',', '.') }}</strong>
-                                </div>
-                                <a href="{{ route('orders.index') }}" class="small fw-semibold text-decoration-none d-inline-block mt-2">Lihat detail pesanan & pembayaran</a>
+                                <div class="fw-semibold">{{ $planningOrders->count() }} pesanan paket aktif tersinkron</div>
+                                <div class="small text-muted">Total disetujui dan kekurangan dapat dilihat pada rekap pembayaran di bawah.</div>
+                                <a href="#payment-recap" class="small fw-semibold text-decoration-none d-inline-block mt-2">Lihat rekap pembayaran</a>
                             </div>
                         @else
                             <div class="planning-budget-summary mb-3">
@@ -566,53 +559,7 @@
                             </div>
                         @endif
 
-                        <form id="package-recommendation" action="{{ route('dashboard.index') }}" method="GET">
-                            <label for="planning-budget-max" class="form-label small fw-semibold">Budget maksimal untuk paket</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input
-                                    id="planning-budget-max"
-                                    class="form-control"
-                                    type="number"
-                                    name="budget_max"
-                                    min="0"
-                                    step="1000000"
-                                    value="{{ $budgetMax }}"
-                                    placeholder="Contoh 50000000"
-                                    required
-                                >
-                                <button type="submit" class="btn btn-primary text-nowrap">
-                                    <i class="bi bi-search me-1"></i> Cari Paket
-                                </button>
-                            </div>
-                            <div class="form-text">Pilih budget untuk melihat paket yang cocok tanpa meninggalkan dashboard.</div>
-                        </form>
-
-                        @if ($budgetMax !== null)
-                            <div class="mt-3" aria-live="polite">
-                                <div class="small fw-semibold mb-2">
-                                    Rekomendasi untuk budget Rp {{ number_format($budgetMax, 0, ',', '.') }}
-                                </div>
-                                <div class="list-group">
-                                    @forelse ($recommendedPackages as $recommendation)
-                                        <a
-                                            href="{{ route('checkout.package', $recommendation['package']->uuid) }}"
-                                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3"
-                                        >
-                                            <span class="min-w-0">
-                                                <span class="fw-semibold d-block text-truncate">{{ $recommendation['package']->name }}</span>
-                                                <span class="small text-muted">{{ $recommendation['option']->name }} · Rp {{ number_format($recommendation['price'], 0, ',', '.') }}</span>
-                                            </span>
-                                            <span class="btn btn-sm btn-outline-primary text-nowrap">Pilih paket</span>
-                                        </a>
-                                    @empty
-                                        <div class="list-group-item small text-muted">
-                                            Belum ada paket yang sesuai budget ini. Coba naikkan batas anggaran.
-                                        </div>
-                                    @endforelse
-                                </div>
-                            </div>
-                        @endif
+                        @include('pages.dashboard.partials.package-recommendations')
                     </div>
                 </div>
             </div>
@@ -621,36 +568,80 @@
 
     <div class="row g-4 mb-4 member-dashboard-grid">
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm h-100 member-section-card">
+            <div id="payment-recap" class="card border-0 shadow-sm h-100 member-section-card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
-                            <h2 class="fw-bold mb-1 member-section-title">Pesanan Terbaru</h2>
-                            <div class="small text-muted">Pantau status pesanan dan pembayaran wedding Anda.</div>
+                            <h2 class="fw-bold mb-1 member-section-title">Rekap Pembayaran dan Bukti Transfer</h2>
+                            <div class="small text-muted">Pembayaran yang disetujui mengurangi sisa tagihan. Status bukti terlihat per pesanan.</div>
                         </div>
-                        <a href="{{ route('orders.index') }}" class="small fw-semibold text-decoration-none">Lihat Semua</a>
+                        <a href="{{ route('orders.index') }}" class="small fw-semibold text-decoration-none">Riwayat lengkap</a>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <div class="planning-budget-summary h-100">
+                                <div class="small text-muted">Total pesanan aktif</div>
+                                <div class="fw-bold">Rp {{ number_format($planningOrderTotal, 0, ',', '.') }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="planning-budget-summary h-100">
+                                <div class="small text-muted">Pembayaran disetujui</div>
+                                <div class="fw-bold text-success">Rp {{ number_format($planningPaidTotal, 0, ',', '.') }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="planning-budget-summary h-100">
+                                <div class="small text-muted">Kekurangan</div>
+                                <div class="fw-bold text-danger">Rp {{ number_format($planningRemainingTotal, 0, ',', '.') }}</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0 member-orders-table">
-                            <thead class="table-light"><tr><th>Pesanan</th><th>Paket</th><th>Status</th><th class="text-end">Total</th><th class="text-end">Dibayar</th><th class="text-end">Sisa</th><th class="text-end">Aksi</th></tr></thead>
+                            <thead class="table-light"><tr><th>Pesanan & paket</th><th class="text-end">Total</th><th class="text-end">Disetujui</th><th class="text-end">Kekurangan</th><th>Bukti pembayaran</th><th class="text-end">Aksi</th></tr></thead>
                             <tbody>
                                 @forelse ($myOrders as $o)
-                                @php($total = (float) ($o->total_amount ?: $o->amount))
-                                @php($dibayar = (float) ($o->amount_paid_value ?? ($o->status === 'paid' ? $total : 0)))
-                                @php($sisa = max(0, $total - $dibayar))
-                                @php($progres = $total > 0 ? min(100, (int) round(($dibayar / $total) * 100)) : 0)
-                                <tr>
-                                    <td><div class="fw-semibold member-order-number">{{ $o->order_number }}</div><div class="small text-muted">{{ $o->created_at?->format('d M Y') }}</div></td>
-                                    <td><div class="fw-semibold">{{ $o->package?->name ?? '-' }}</div><div class="small text-muted">{{ $o->packageOption?->name ?? '' }}</div></td>
-                                    @php($statusLabels=['pending'=>'Menunggu Pembayaran','partially_paid'=>'Dibayar Sebagian','paid'=>'Lunas','cancelled'=>'Dibatalkan','expired'=>'Kedaluwarsa','failed'=>'Gagal'])
-                                    <td><span class="badge {{ $o->status === 'paid' ? 'bg-success-subtle text-success-emphasis' : ($o->status === 'partially_paid' ? 'bg-warning-subtle text-warning-emphasis' : ($o->status === 'pending' ? 'bg-primary-subtle text-primary-emphasis' : 'bg-secondary-subtle text-secondary-emphasis')) }}">{{ $statusLabels[$o->status] ?? ucfirst(str_replace('_',' ',$o->status ?? '-')) }}</span></td>
-                                    <td class="text-end fw-semibold text-nowrap">Rp {{ number_format($total,0,',','.') }}</td>
-                                    <td class="text-end text-nowrap"><div class="fw-semibold text-success">Rp {{ number_format($dibayar,0,',','.') }}</div><div class="progress member-order-progress ms-auto mt-1"><div class="progress-bar bg-success" role="progressbar" style="width:{{ $progres }}%" aria-valuenow="{{ $progres }}" aria-valuemin="0" aria-valuemax="100"></div></div></td>
-                                    <td class="text-end fw-semibold {{ $sisa>0?'text-danger':'text-success' }}">Rp {{ number_format($sisa,0,',','.') }}</td>
-                                    <td class="text-end"><a href="{{ route('orders.show', $o->uuid) }}" class="btn btn-sm btn-outline-primary">Detail</a></td>
-                                </tr>
+                                    @php
+                                        $total = (float) $o->full_amount;
+                                        $dibayar = (float) $o->amount_paid_value;
+                                        $sisa = (float) $o->remaining_amount_value;
+                                        $proofPayments = $o->payments->filter(fn ($payment) => $payment->proof_image_path)->take(3);
+                                        $proofStatusLabels = ['accepted' => 'Diterima', 'pending' => 'Pending', 'rejected' => 'Ditolak'];
+                                        $proofStatusClasses = ['accepted' => 'bg-success-subtle text-success-emphasis', 'pending' => 'bg-warning-subtle text-warning-emphasis', 'rejected' => 'bg-danger-subtle text-danger-emphasis'];
+                                        $legacyProofStatus = $o->status === 'paid' ? 'accepted' : ($o->status === 'failed' ? 'rejected' : 'pending');
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold member-order-number">{{ $o->order_number }}</div>
+                                            <div class="small text-muted">{{ $o->package?->name ?? 'Paket Wedding' }} {{ $o->packageOption?->name ? '· '.$o->packageOption->name : '' }}</div>
+                                        </td>
+                                        <td class="text-end text-nowrap">Rp {{ number_format($total, 0, ',', '.') }}</td>
+                                        <td class="text-end text-nowrap fw-semibold text-success">Rp {{ number_format($dibayar, 0, ',', '.') }}</td>
+                                        <td class="text-end text-nowrap fw-semibold {{ $sisa > 0 ? 'text-danger' : 'text-success' }}">Rp {{ number_format($sisa, 0, ',', '.') }}</td>
+                                        <td>
+                                            @forelse ($proofPayments as $payment)
+                                                @php
+                                                    $proofStatus = $payment->proof_verification_status;
+                                                @endphp
+                                                <div class="d-flex align-items-center justify-content-between gap-2 {{ $loop->first ? '' : 'mt-2' }}">
+                                                    <span class="badge {{ $proofStatusClasses[$proofStatus] }}">{{ $proofStatusLabels[$proofStatus] }}</span>
+                                                    <a href="{{ route('orders.payments.proof', [$o->uuid, $payment->uuid]) }}" class="small text-decoration-none">Lihat bukti</a>
+                                                </div>
+                                                <div class="small text-muted">Rp {{ number_format((float) ($payment->amount ?? $payment->gross_amount), 0, ',', '.') }}</div>
+                                            @empty
+                                                @if ($o->proof_image_path)
+                                                    <span class="badge {{ $proofStatusClasses[$legacyProofStatus] }}">{{ $proofStatusLabels[$legacyProofStatus] }}</span>
+                                                    <a href="{{ route('orders.proof.show', $o->uuid) }}" class="small text-decoration-none ms-1">Lihat bukti</a>
+                                                @else
+                                                    <span class="small text-muted">Belum ada bukti</span>
+                                                @endif
+                                            @endforelse
+                                        </td>
+                                        <td class="text-end"><a href="{{ route('orders.show', $o->uuid) }}" class="btn btn-sm btn-outline-primary">Detail</a></td>
+                                    </tr>
                                 @empty
-                                <tr><td colspan="7" class="text-center py-5 text-muted">Belum ada pesanan. <a href="#package-recommendation" class="fw-semibold text-decoration-none">Cari paket sesuai budget</a>.</td></tr>
+                                    <tr><td colspan="6" class="text-center py-5 text-muted">Belum ada pembayaran. Cari paket sesuai budget untuk memulai.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

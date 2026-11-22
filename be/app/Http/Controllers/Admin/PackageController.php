@@ -9,6 +9,7 @@ use App\Models\Package\PackageBlackoutDate;
 use App\Models\Package\PackageFeature;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
+use App\Models\Package\PackageWishlist;
 use App\Support\MemberView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -1117,6 +1118,14 @@ class PackageController extends Controller
         }
 
         $packages = $packages->values();
+        $packageUuids = $packages->pluck('uuid')->all();
+        $wishlistedUuids = auth()->check() && $packageUuids
+            ? PackageWishlist::query()
+                ->where('user_uuid', auth()->id())
+                ->whereIn('package_uuid', $packageUuids)
+                ->pluck('package_uuid')
+                ->all()
+            : [];
 
         // =========================
         // MOBILE VIEW
@@ -1129,7 +1138,7 @@ class PackageController extends Controller
         ) {
             return view(
                 'pages.mobile.package',
-                compact('packages', 'guests', 'budgetMax')
+                compact('packages', 'guests', 'budgetMax', 'wishlistedUuids')
             );
         }
 
@@ -1139,7 +1148,7 @@ class PackageController extends Controller
 
         return view(
             'pages.package.member',
-            compact('packages', 'guests', 'budgetMax')
+            compact('packages', 'guests', 'budgetMax', 'wishlistedUuids')
         );
     }
 
@@ -1159,6 +1168,7 @@ class PackageController extends Controller
             'name',
             'slug',
             'description',
+            'price',
             'guest_capacity',
             'event_duration_hours',
             'venue_note',

@@ -146,6 +146,7 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     $superAdmin = 'role:super-admin';
     // $user = 'role:user';
     Route::post('/dashboard/sumber-informasi', [DashboardController::class, 'submitSumber'])->name('dashboard.submitSumber');
+    Route::get('/dashboard/package-recommendations', [DashboardController::class, 'recommendations'])->name('dashboard.recommendations');
     Route::get('/dashboard/refresh', [DashboardController::class, 'refresh'])->name('dashboard.refresh');
     Route::get('/dashboard/export', [DashboardController::class, 'export'])->name('dashboard.export');
     Route::get('/dashboard/export-pdf', [DashboardController::class, 'exportPdf'])->name('dashboard.export-pdf');

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\AuditLog;
 use App\Models\OrderSavedFilter;
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
@@ -71,6 +70,7 @@ class OrderAdminTest extends TestCase
         $package = Package::create([
             'name' => 'Paket Wedding',
             'slug' => 'paket-wedding',
+            'price' => 100000,
             'is_active' => 'active',
         ]);
 
@@ -104,6 +104,7 @@ class OrderAdminTest extends TestCase
                 'package_uuid' => $package->uuid,
                 'package_option_uuid' => $option->uuid,
                 'amount' => 500000,
+                'remaining_amount' => 500000,
                 'status' => 'pending',
             ]);
 
@@ -561,7 +562,7 @@ class OrderAdminTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('orders.whatsapp', $this->orderUuids[1]))
             ->assertRedirect()
-            ->assertHeader('location', 'https://wa.me/6281234567890?text=' . rawurlencode('Halo ' . $this->member->name . ', kami dari Sagita Wedding Organizer ingin mengonfirmasi pesanan ' . Order::where('uuid', $this->orderUuids[1])->value('order_number') . '. Mohon ditindaklanjuti, terima kasih.'));
+            ->assertHeader('location', 'https://wa.me/6281234567890?text='.rawurlencode('Halo '.$this->member->name.', kami dari Sagita Wedding Organizer ingin mengonfirmasi pesanan '.Order::where('uuid', $this->orderUuids[1])->value('order_number').'. Mohon ditindaklanjuti, terima kasih.'));
 
         $this->assertDatabaseHas('audit_logs', [
             'auditable_id' => $this->orderUuids[1],

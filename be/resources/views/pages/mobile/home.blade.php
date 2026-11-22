@@ -57,8 +57,8 @@
                 </h2>
                 @endif
 
-                <a href="{{ route('packages.member') }}" class="btn btn-warm px-4 py-2 mt-3">
-                    {{ __('mobile.book_your_class') }} →
+                <a href="#package-recommendation" class="btn btn-warm px-4 py-2 mt-3">
+                    Cari Paket Wedding →
                 </a>
 
             </div>
@@ -175,18 +175,104 @@
         </div>
         @endif
 
-        <div class="d-flex justify-content-between align-items-end mt-4">
-            <h3 class="h5 fw-semibold mb-0">Paket Rekomendasi</h3>
-            <a href="{{ route('packages.member') }}" class="btn btn-link p-0 text-terra fw-semibold text-decoration-none text-small">{{ __('mobile.view_all') }}</a>
-        </div>
-        <div class="d-grid gap-3 mt-3">
-            <div class="app-card text-center p-4">
-                <i class="bi bi-box-seam text-muted2 fs-3"></i>
-                <p class="mb-1 small fw-semibold mt-2">Jelajahi paket wedding</p>
-                <p class="mb-0 text-muted2 text-small">Pilih paket sesuai kebutuhan acara Anda.</p>
-                <a href="{{ route('packages.member') }}" class="btn btn-sage px-4 py-2 mt-3">Lihat Paket</a>
+        <section class="mt-4" aria-labelledby="mobile-wedding-plan-title">
+            <div class="app-card p-3">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        <p class="eyebrow mb-1">Dashboard Wedding</p>
+                        <h2 id="mobile-wedding-plan-title" class="h5 fw-semibold mb-0">Rencana pernikahan</h2>
+                    </div>
+                    @if ($planningOrders->isNotEmpty())
+                        <span class="badge bg-sage-soft text-sage">{{ $planningOrders->count() }} pesanan aktif</span>
+                    @endif
+                </div>
+
+                @if ($planningOrders->isNotEmpty())
+                    @php
+                        $mobilePlanningOrder = $planningOrders->sortByDesc('created_at')->first();
+                    @endphp
+                    <div class="border rounded-3 p-3 mt-3">
+                        <div class="small text-muted2">Pesanan paket aktif</div>
+                        <div class="fw-semibold">{{ $mobilePlanningOrder->package?->name ?? 'Paket Wedding' }}</div>
+                        <div class="small text-muted2">{{ $mobilePlanningOrder->order_number }}</div>
+                        <div class="small mt-2">
+                            Tanggal acara:
+                            <span class="fw-semibold">{{ $planningEventDate?->translatedFormat('d F Y') ?? 'Belum ditentukan' }}</span>
+                        </div>
+                        <div class="progress mt-3" style="height:6px">
+                            <div class="progress-bar bg-success" role="progressbar" style="width:{{ $planningBudgetProgress }}%" aria-valuenow="{{ $planningBudgetProgress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="row g-2 mt-2 text-center">
+                            <div class="col-4">
+                                <div class="small text-muted2">Total</div>
+                                <div class="small fw-semibold">Rp {{ number_format($planningOrderTotal, 0, ',', '.') }}</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted2">Dibayar</div>
+                                <div class="small fw-semibold text-success">Rp {{ number_format($planningPaidTotal, 0, ',', '.') }}</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="small text-muted2">Sisa</div>
+                                <div class="small fw-semibold text-danger">Rp {{ number_format($planningRemainingTotal, 0, ',', '.') }}</div>
+                            </div>
+                        </div>
+                        <a href="{{ route('orders.index') }}" class="btn btn-sm btn-outline-primary w-100 mt-3">Lihat pesanan & pembayaran</a>
+                    </div>
+                @else
+                    <div class="small text-muted2 mt-3">
+                        Belum ada pesanan paket aktif. Pilih budget di bawah untuk melihat rekomendasi; pesanan dan pembayaran akan tersinkron di sini.
+                    </div>
+                @endif
+
+                @if ($recentPaymentProofs->isNotEmpty())
+                    @php
+                        $mobileProofLabels = ['accepted' => 'Diterima', 'pending' => 'Pending', 'rejected' => 'Ditolak'];
+                        $mobileProofClasses = ['accepted' => 'bg-success-subtle text-success-emphasis', 'pending' => 'bg-warning-subtle text-warning-emphasis', 'rejected' => 'bg-danger-subtle text-danger-emphasis'];
+                    @endphp
+                    <div class="border-top mt-3 pt-3">
+                        <div class="small fw-semibold mb-2">Status bukti pembayaran</div>
+                        <div class="d-grid gap-2">
+                            @foreach ($recentPaymentProofs as $proof)
+                                @php
+                                    $proofStatus = $proof['payment']->proof_verification_status;
+                                @endphp
+                                <div class="d-flex justify-content-between align-items-center gap-2">
+                                    <div class="small">
+                                        <div class="fw-semibold">{{ $proof['order']->order_number }}</div>
+                                        <div class="text-muted2">Rp {{ number_format((float) ($proof['payment']->amount ?? $proof['payment']->gross_amount), 0, ',', '.') }}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge {{ $mobileProofClasses[$proofStatus] }}">{{ $mobileProofLabels[$proofStatus] }}</span>
+                                        <a href="{{ route('orders.payments.proof', [$proof['order']->uuid, $proof['payment']->uuid]) }}" class="small d-block mt-1">Lihat bukti</a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
-        </div>
+
+            <div class="app-card p-3 mt-3">
+                <h3 class="h6 fw-semibold mb-3">Timeline persiapan</h3>
+                <div class="d-grid gap-3">
+                    @foreach ($planningTimeline as $milestone)
+                        <div class="d-flex gap-3 align-items-start">
+                            <span class="rounded-circle bg-sage-soft flex-shrink-0 mt-1" style="width:10px;height:10px"></span>
+                            <div class="small">
+                                <div class="fw-semibold">{{ $milestone['label'] }}</div>
+                                <div class="text-muted2">{{ $milestone['date']?->translatedFormat('d M Y') ?? $milestone['offset'] }}</div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="app-card p-3 mt-3">
+                <h3 class="h6 fw-semibold mb-1">Anggaran & rekomendasi paket</h3>
+                <p class="small text-muted2 mb-3">Cari paket berdasarkan budget, lalu pilih untuk langsung ke checkout.</p>
+                @include('pages.dashboard.partials.package-recommendations')
+            </div>
+        </section>
         {{-- =========================
     Art Of Living
 ========================= --}}

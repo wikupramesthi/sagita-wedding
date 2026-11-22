@@ -45,6 +45,7 @@ class PackageAdminTest extends TestCase
             'name' => 'Paket Silver',
             'slug' => 'paket-silver',
             'description' => 'Dekorasi pelaminan dan dokumentasi foto.',
+            'price' => 100000,
             'guest_capacity' => 120,
             'event_duration_hours' => 6,
             'venue_note' => 'Jakarta Selatan dan sekitarnya',
@@ -148,6 +149,7 @@ class PackageAdminTest extends TestCase
             Package::create([
                 'name' => 'Paket Ujian '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
                 'slug' => 'paket-ujian-'.$number,
+                'price' => 100000,
                 'is_active' => 'active',
             ]);
         }
@@ -218,11 +220,13 @@ class PackageAdminTest extends TestCase
         $first = Package::create([
             'name' => 'Paket Alpha',
             'slug' => 'paket-alpha',
+            'price' => 100000,
             'is_active' => 'active',
         ]);
         $second = Package::create([
             'name' => 'Paket Beta',
             'slug' => 'paket-beta',
+            'price' => 100000,
             'is_active' => 'active',
         ]);
 
@@ -275,6 +279,7 @@ class PackageAdminTest extends TestCase
         $package = Package::create([
             'name' => 'Paket Aksi',
             'slug' => 'paket-aksi',
+            'price' => 100000,
             'is_active' => 'active',
         ]);
 
@@ -297,6 +302,7 @@ class PackageAdminTest extends TestCase
             return Package::create([
                 'name' => 'Paket Massal '.$number,
                 'slug' => 'paket-massal-'.$number,
+                'price' => 100000,
                 'is_active' => 'inactive',
             ]);
         });
@@ -331,6 +337,7 @@ class PackageAdminTest extends TestCase
         $source = Package::create([
             'name' => 'Paket Sumber',
             'slug' => 'paket-sumber',
+            'price' => 100000,
             'is_active' => 'active',
             'is_published' => true,
             'published_at' => now(),
@@ -419,6 +426,7 @@ class PackageAdminTest extends TestCase
         $package = Package::create([
             'name' => 'Paket Kelola',
             'slug' => 'paket-kelola',
+            'price' => 100000,
             'is_active' => 'inactive',
             'is_published' => false,
         ]);

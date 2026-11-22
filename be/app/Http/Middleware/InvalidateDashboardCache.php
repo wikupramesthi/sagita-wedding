@@ -14,7 +14,8 @@ class InvalidateDashboardCache
         $response = $next($request);
 
         if (! in_array($request->method(), ['GET', 'HEAD', 'OPTIONS'], true)
-            && $response->getStatusCode() < 400) {
+            && $response->getStatusCode() >= 200
+            && $response->getStatusCode() < 300) {
             DashboardCache::invalidate();
         }
 

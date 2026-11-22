@@ -91,7 +91,7 @@
             <div class="d-flex align-items-center gap-3">
                 <div class="order-report-revenue-icon"><i class="bi bi-wallet2"></i></div>
                 <div>
-                    <div class="order-report-revenue-label">Pendapatan Diterima</div>
+                    <div class="order-report-revenue-label">Pendapatan (Lunas)</div>
                     <div class="order-report-revenue-value">Rp {{ number_format($revenue, 0, ',', '.') }}</div>
                 </div>
             </div>
@@ -222,7 +222,7 @@
                         <tfoot class="table-light">
                             <tr>
                                 <td colspan="{{ count($visibleColumns) + 1 }}" class="ps-4 fw-bold text-end">
-                                    Total Pendapatan Diterima: Rp {{ number_format($revenue, 0, ',', '.') }} | Outstanding DP: Rp {{ number_format($outstanding ?? 0, 0, ',', '.') }}
+                                    Total Pendapatan (Lunas): Rp {{ number_format($revenue, 0, ',', '.') }} | Outstanding DP: Rp {{ number_format($outstanding ?? 0, 0, ',', '.') }}
                                 </td>
                             </tr>
                         </tfoot>

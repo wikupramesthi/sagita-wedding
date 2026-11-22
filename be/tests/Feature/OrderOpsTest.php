@@ -71,6 +71,7 @@ class OrderOpsTest extends TestCase
         $package = Package::create([
             'name' => 'Paket Ops',
             'slug' => 'paket-ops',
+            'price' => 100000,
             'is_active' => 'active',
         ]);
 
@@ -87,11 +88,12 @@ class OrderOpsTest extends TestCase
 
         $this->order = Order::create([
             'user_uuid' => $this->member->uuid,
-            'order_number' => 'ORD-OPS-' . strtoupper(Str::random(6)),
+            'order_number' => 'ORD-OPS-'.strtoupper(Str::random(6)),
             'type' => 'package',
             'package_uuid' => $package->uuid,
             'package_option_uuid' => $this->option->uuid,
             'amount' => 750000,
+            'remaining_amount' => 750000,
             'status' => 'pending',
         ]);
     }
@@ -280,11 +282,12 @@ class OrderOpsTest extends TestCase
 
         $second = Order::create([
             'user_uuid' => $secondMember->uuid,
-            'order_number' => 'ORD-OPS-' . strtoupper(Str::random(6)),
+            'order_number' => 'ORD-OPS-'.strtoupper(Str::random(6)),
             'type' => 'package',
             'package_uuid' => $this->option->package_uuid,
             'package_option_uuid' => $this->option->uuid,
             'amount' => 750000,
+            'remaining_amount' => 750000,
             'status' => 'pending',
         ]);
 
@@ -315,8 +318,8 @@ class OrderOpsTest extends TestCase
 
     public function test_stalled_idempotency_processing_is_recovered(): void
     {
-        $key = 'orders.idempotency.' . $this->admin->uuid . '.bulk-approve.'
-            . sha1($this->order->uuid . '|stalled');
+        $key = 'orders.idempotency.'.$this->admin->uuid.'.bulk-approve.'
+            .sha1($this->order->uuid.'|stalled');
 
         Cache::put($key, [
             'status' => 'processing',

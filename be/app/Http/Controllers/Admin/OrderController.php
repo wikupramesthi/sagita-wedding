@@ -84,7 +84,7 @@ class OrderController extends Controller
             COALESCE(SUM(CASE WHEN status = 'partially_paid' THEN GREATEST(COALESCE(total_amount, amount, 0) - COALESCE(amount_paid, 0), 0) ELSE 0 END), 0) as outstanding
         ")->first();
 
-        $queue = Order::packageOnly()->whereIn('status', ['pending','partially_paid']);
+        $queue = Order::packageOnly()->whereIn('status', ['pending', 'partially_paid']);
         if (! $isAdmin) {
             $queue->where('user_uuid', $user->uuid);
         }
@@ -360,12 +360,14 @@ class OrderController extends Controller
     public function show(string $uuid)
     {
         $user = Auth::user();
+        $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
 
         $order = Order::packageOnly()->with([
             'user',
             'package',
             'packageOption',
             'payment',
+            'payments',
         ])
             ->where('uuid', $uuid)
             ->firstOrFail();
@@ -376,22 +378,14 @@ class OrderController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (
-            ! $user->hasAnyRole(['super-admin', 'admin']) &&
-            $order->user_uuid !== $user->uuid
-        ) {
+        if (! $isAdmin && $order->user_uuid !== $user->uuid) {
             abort(403);
         }
 
-        $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
-
-        $userPackage = UserPackage::where('order_uuid', $order->uuid)
-            ->with('package')
-            ->first();
-
-        $auditLogs = $isAdmin
+        $userPackage = UserPackage::where('order_uuid', $order->uuid)->first();
+        $audits = $isAdmin
             ? AuditLog::where('auditable_type', Order::class)
-                ->where('auditable_id', (string) $order->uuid)
+                ->where('auditable_id', $order->uuid)
                 ->latest()
                 ->limit(8)
                 ->get()
@@ -402,13 +396,13 @@ class OrderController extends Controller
         if (! $isAdmin && $isMobile) {
             return view(
                 'pages.mobile.order-show',
-                compact('order', 'isAdmin', 'userPackage', 'auditLogs')
+                compact('order', 'isAdmin', 'userPackage', 'audits')
             );
         }
 
         return view(
             'pages.orders.show',
-            compact('order', 'isAdmin', 'userPackage', 'auditLogs')
+            compact('order', 'isAdmin', 'userPackage', 'audits')
         );
     }
 
@@ -438,7 +432,7 @@ class OrderController extends Controller
         $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
 
         $orderQuery = Order::packageOnly()
-            ->with(['user', 'package', 'packageOption', 'payment', 'assignedAdmin'])
+            ->with(['user', 'package', 'assignedAdmin'])
             ->where('uuid', $uuid);
 
         if (! $isAdmin) {
@@ -483,7 +477,9 @@ class OrderController extends Controller
         try {
             $record = Order::packageOnly()->where('uuid', $order)->firstOrFail();
             $pendingPayment = Payment::where('order_uuid', $record->uuid)
-                ->where(function ($q) { $q->where('verification_status', 'pending')->orWhere('status', 'pending'); })
+                ->where(function ($q) {
+                    $q->where('verification_status', 'pending')->orWhere('status', 'pending');
+                })
                 ->oldest()->first();
 
             if ($pendingPayment) {
@@ -492,6 +488,7 @@ class OrderController extends Controller
                 $remaining = (float) $record->remaining_amount_value;
                 if ($remaining <= 0.01) {
                     $this->finishIdempotency($idempotencyKey, $record->uuid);
+
                     return redirect()->route('orders.show', $record->uuid)->with('success', __('flash.order_approve_ok'));
                 }
                 $payment = DB::transaction(function () use ($record, $remaining, $validated) {
@@ -504,20 +501,19 @@ class OrderController extends Controller
                         'payment_type' => 'Pencatatan Admin',
                         'amount' => $amount,
                         'gross_amount' => $amount,
-                        'status' => 'paid',
-                        'verification_status' => 'approved',
-                        'verified_by' => Auth::id(),
-                        'verified_at' => now(),
-                        'paid_at' => now(),
+                        'status' => 'pending',
+                        'verification_status' => 'pending',
                         'note' => $validated['admin_note'] ?? 'Dicatat langsung oleh admin.',
                     ]);
                     $this->logOrderAction($locked, 'payment_recorded', ['payment_uuid' => $p->uuid, 'amount' => $amount]);
+
                     return $p;
                 });
                 [$order] = $this->verifyPendingPayment($record->fresh(), $payment, $validated['admin_note'] ?? null);
             }
         } catch (ValidationException $e) {
             $this->forgetIdempotency($idempotencyKey);
+
             return back()->with('error', collect($e->errors())->flatten()->first() ?: $e->getMessage());
         } catch (Throwable $e) {
             $this->forgetIdempotency($idempotencyKey);
@@ -526,6 +522,7 @@ class OrderController extends Controller
 
         $this->finishIdempotency($idempotencyKey, $order->uuid);
         $msg = $order->isFullyPaid() ? 'Pembayaran berhasil diterima. Pesanan lunas.' : 'Pembayaran berhasil diterima. Sisa pembayaran: Rp '.number_format((float) $order->remaining_amount_value, 0, ',', '.');
+
         return redirect()->route('orders.show', $order->uuid)->with('success', $msg)->with('payment_module_focus', true);
     }
 
@@ -593,7 +590,7 @@ class OrderController extends Controller
                     'note' => $note,
                 ]);
                 if ($incomingPayment) {
-                    $payment->update(['status'=>'paid','verification_status'=>'approved','verified_by'=>Auth::id(),'verified_at'=>now(),'paid_at'=>now(),'kind'=>$payment->kind ?: 'dp','amount'=>$payment->amount ?: $payment->gross_amount,'note'=>$note ?: $payment->note]);
+                    $payment->update(['status' => 'paid', 'verification_status' => 'approved', 'verified_by' => Auth::id(), 'verified_at' => now(), 'paid_at' => now(), 'kind' => $payment->kind ?: 'dp', 'amount' => $payment->amount ?: $payment->gross_amount, 'note' => $note ?: $payment->note]);
                 }
                 $dpAmount = (float) ($payment->amount ?: $payment->gross_amount ?: $dueNow);
                 $remaining = max(0, $fullAmount - $dpAmount);
@@ -614,6 +611,7 @@ class OrderController extends Controller
                 $snapshot['stage'] = 'dp';
                 $order->update(['approval_snapshot' => $snapshot]);
                 $this->logOrderAction($order, 'approved_dp', ['admin_note' => $note, 'amount_paid' => $dpAmount, 'remaining_amount' => $remaining]);
+
                 return [$order->fresh(), null, 'dp', $payment->fresh()];
             }
 
@@ -621,7 +619,9 @@ class OrderController extends Controller
             $settleAmount = $incomingPayment
                 ? (float) ($incomingPayment->amount ?: $incomingPayment->gross_amount ?: 0)
                 : ($stage === 'balance' ? max(0, $fullAmount - (float) $order->amount_paid_value) : $dueNow);
-            if ($settleAmount <= 0) { $settleAmount = max(0, (float) $order->remaining_amount_value); }
+            if ($settleAmount <= 0) {
+                $settleAmount = max(0, (float) $order->remaining_amount_value);
+            }
             $settleAmount = min($settleAmount, max(0, $fullAmount - (float) $order->amount_paid_value));
 
             $payment = $incomingPayment ?: Payment::create([
@@ -641,7 +641,7 @@ class OrderController extends Controller
                 'note' => $note,
             ]);
             if ($incomingPayment) {
-                $payment->update(['status'=>'paid','verification_status'=>'approved','verified_by'=>Auth::id(),'verified_at'=>now(),'paid_at'=>now(),'amount'=>$settleAmount,'gross_amount'=>$settleAmount,'note'=>$note ?: $payment->note]);
+                $payment->update(['status' => 'paid', 'verification_status' => 'approved', 'verified_by' => Auth::id(), 'verified_at' => now(), 'paid_at' => now(), 'amount' => $settleAmount, 'gross_amount' => $settleAmount, 'note' => $note ?: $payment->note]);
             }
 
             $newPaid = min($fullAmount, (float) $order->amount_paid_value + $settleAmount);
@@ -663,7 +663,8 @@ class OrderController extends Controller
                 $snapshot['payment_uuid'] = $payment->uuid;
                 $snapshot['stage'] = 'installment';
                 $order->update(['approval_snapshot' => $snapshot]);
-                $this->logOrderAction($order, 'approved_installment', ['admin_note'=>$note,'amount_paid'=>$newPaid,'remaining_amount'=>$remaining]);
+                $this->logOrderAction($order, 'approved_installment', ['admin_note' => $note, 'amount_paid' => $newPaid, 'remaining_amount' => $remaining]);
+
                 return [$order->fresh(), null, 'installment', $payment->fresh()];
             }
 
@@ -674,27 +675,39 @@ class OrderController extends Controller
             $existing = UserPackage::where('user_uuid', $order->user_uuid)
                 ->where('package_uuid', $order->package_uuid)
                 ->where('status', 'active')
-                ->where(function ($q) { $q->whereNull('expired_at')->orWhere('expired_at', '>', now()); })
+                ->where(function ($q) {
+                    $q->whereNull('expired_at')->orWhere('expired_at', '>', now());
+                })
                 ->lockForUpdate()
                 ->first();
 
             if ($existing) {
                 $snapshot['user_package'] = ['created' => false, 'uuid' => $existing->uuid, 'expired_at' => $existing->expired_at?->toDateTimeString(), 'quota' => $existing->quota, 'order_uuid' => $existing->order_uuid];
                 $base = $existing->expired_at && $existing->expired_at->isFuture() ? $existing->expired_at->copy() : $started->copy();
-                $expired = match ($option->duration_unit) { 'day' => $base->addDays($option->duration), 'week' => $base->addWeeks($option->duration), 'year' => $base->addYears($option->duration), default => $base->addMonths($option->duration) };
+                $expired = match ($option->duration_unit) {
+                    'day' => $base->addDays($option->duration), 'week' => $base->addWeeks($option->duration), 'year' => $base->addYears($option->duration), default => $base->addMonths($option->duration)
+                };
                 $quota = $existing->quota;
-                if (! is_null($quota) && ! is_null($option->quota)) { $quota += $option->quota; }
-                elseif (is_null($existing->quota)) { $quota = null; } else { $quota = $option->quota; }
+                if (! is_null($quota) && ! is_null($option->quota)) {
+                    $quota += $option->quota;
+                } elseif (is_null($existing->quota)) {
+                    $quota = null;
+                } else {
+                    $quota = $option->quota;
+                }
                 $existing->update(['order_uuid' => $order->uuid, 'expired_at' => $expired, 'quota' => $quota]);
                 $userPackage = $existing->fresh();
             } else {
-                $expired = match ($option->duration_unit) { 'day' => (clone $started)->addDays($option->duration), 'week' => (clone $started)->addWeeks($option->duration), 'year' => (clone $started)->addYears($option->duration), default => (clone $started)->addMonths($option->duration) };
+                $expired = match ($option->duration_unit) {
+                    'day' => (clone $started)->addDays($option->duration), 'week' => (clone $started)->addWeeks($option->duration), 'year' => (clone $started)->addYears($option->duration), default => (clone $started)->addMonths($option->duration)
+                };
                 $userPackage = UserPackage::create(['user_uuid' => $order->user_uuid, 'package_uuid' => $order->package_uuid, 'order_uuid' => $order->uuid, 'quota' => $option->quota, 'started_at' => $started, 'expired_at' => $expired, 'status' => 'active']);
                 $snapshot['user_package'] = ['created' => true, 'uuid' => $userPackage->uuid];
             }
 
             $order->update(['approval_snapshot' => $snapshot]);
             $this->logOrderAction($order, $stage === 'balance' ? 'approved_balance' : 'approved', ['admin_note' => $note, 'user_package_uuid' => $userPackage->uuid, 'amount_paid' => $fullAmount]);
+
             return [$order->fresh(), $userPackage, $stage, $payment->fresh()];
         });
     }
@@ -763,8 +776,11 @@ class OrderController extends Controller
                 throw ValidationException::withMessages(['order' => 'Pesanan yang sudah memiliki pembayaran terverifikasi tidak bisa ditolak otomatis.']);
             }
             $order->update(['status' => 'failed', 'admin_note' => $note, 'assigned_admin_uuid' => $order->assigned_admin_uuid ?: Auth::user()->uuid]);
-            $order->payments()->where(function($q){$q->where('verification_status','pending')->orWhere('status','pending');})->update(['status' => 'failed', 'verification_status' => 'rejected']);
+            $order->payments()->where(function ($q) {
+                $q->where('verification_status', 'pending')->orWhere('status', 'pending');
+            })->update(['status' => 'failed', 'verification_status' => 'rejected']);
             $this->logOrderAction($order, 'rejected', ['admin_note' => $note]);
+
             return $order;
         });
     }
@@ -773,15 +789,15 @@ class OrderController extends Controller
     {
         $record = Order::packageOnly()->with('package')->where('uuid', $order)->firstOrFail();
         $user = Auth::user();
-        $isAdmin = $user->hasAnyRole(['admin','admin-venue','super-admin']);
+        $isAdmin = $user->hasAnyRole(['admin', 'admin-venue', 'super-admin']);
         abort_unless($record->user_uuid === $user->uuid || $isAdmin, 403);
-        abort_unless(in_array($record->status, ['pending','partially_paid'], true), 403, 'Pesanan tidak dalam status pembayaran aktif.');
+        abort_unless(in_array($record->status, ['pending', 'partially_paid'], true), 403, 'Pesanan tidak dalam status pembayaran aktif.');
 
         $validated = $request->validate([
-            'amount' => ['required','numeric','min:1'],
-            'proof' => ['nullable','image','mimes:jpg,jpeg,png,webp','max:'.config('manual_payment.proof_max_kb', 3072)],
-            'admin_note' => ['nullable','string','max:1000'],
-            'record_only' => ['nullable','boolean'],
+            'amount' => ['required', 'numeric', 'min:1'],
+            'proof' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.config('manual_payment.proof_max_kb', 3072)],
+            'admin_note' => ['nullable', 'string', 'max:1000'],
+            'record_only' => ['nullable', 'boolean'],
         ]);
 
         $remaining = (float) $record->remaining_amount_value;
@@ -801,7 +817,7 @@ class OrderController extends Controller
         $status = $recordOnly ? 'paid' : 'pending';
         $verification = $recordOnly ? 'approved' : 'pending';
 
-        $payment = DB::transaction(function () use ($record, $amount, $proofPath, $kind, $status, $verification, $user, $validated, $recordOnly, $remaining) {
+        $payment = DB::transaction(function () use ($record, $amount, $proofPath, $kind, $status, $verification, $user, $validated, $recordOnly) {
             $locked = Order::packageOnly()->where('uuid', $record->uuid)->lockForUpdate()->firstOrFail();
             $lockedRemaining = (float) $locked->remaining_amount_value;
             if ($amount - $lockedRemaining > 0.01) {
@@ -846,17 +862,21 @@ class OrderController extends Controller
             try {
                 $admins = User::role(['admin', 'super-admin'])->where('is_active', true)->get();
                 $notif = new ProofUploadedNotification($record->uuid, $record->order_number, $user->name);
-                foreach ($admins as $admin) { $admin->notify($notif); }
-            } catch (Throwable $e) { Log::error('Payment submission notification failed: '.$e->getMessage()); }
+                foreach ($admins as $admin) {
+                    $admin->notify($notif);
+                }
+            } catch (Throwable $e) {
+                Log::error('Payment submission notification failed: '.$e->getMessage());
+            }
         }
 
         return back()->with('success', $recordOnly ? 'Pembayaran berhasil dicatat.' : 'Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.');
     }
 
-        public function approvePayment(Request $request, string $order, string $payment)
+    public function approvePayment(Request $request, string $order, string $payment)
     {
         abort_unless($this->canApproveOrders(), 403);
-        $request->validate(['admin_note' => ['nullable','string','max:1000']]);
+        $request->validate(['admin_note' => ['nullable', 'string', 'max:1000']]);
         $record = Order::packageOnly()->where('uuid', $order)->firstOrFail();
         $paymentModel = Payment::where('uuid', $payment)->where('order_uuid', $order)->firstOrFail();
         try {
@@ -865,6 +885,7 @@ class OrderController extends Controller
             return back()->with('error', collect($e->errors())->flatten()->first() ?: $e->getMessage());
         }
         $msg = $approved->isFullyPaid() ? 'Pembayaran berhasil diverifikasi. Pesanan lunas.' : 'Pembayaran berhasil diverifikasi.';
+
         return redirect()->route('orders.show', $approved->uuid)->with('success', $msg)->with('payment_module_focus', true);
     }
 
@@ -873,14 +894,23 @@ class OrderController extends Controller
         return DB::transaction(function () use ($order, $payment, $note) {
             $lockedOrder = Order::packageOnly()->where('uuid', $order->uuid)->lockForUpdate()->firstOrFail();
             $lockedPayment = Payment::where('uuid', $payment->uuid)->where('order_uuid', $lockedOrder->uuid)->lockForUpdate()->firstOrFail();
+            if ($lockedOrder->status === 'pending' && $lockedOrder->expired_at?->isPast()) {
+                throw ValidationException::withMessages(['order' => __('flash.order_expired_cannot_process')]);
+            }
             $pStatus = $lockedPayment->verification_status ?: $lockedPayment->status;
-            if (in_array($pStatus, ['verified','approved','paid'], true)) return [$lockedOrder->fresh(), 'already'];
-            if (in_array($pStatus, ['rejected','failed'], true)) throw ValidationException::withMessages(['payment' => 'Pembayaran ini sudah ditolak.']);
+            if (in_array($pStatus, ['verified', 'approved', 'paid'], true)) {
+                return [$lockedOrder->fresh(), 'already'];
+            }
+            if (in_array($pStatus, ['rejected', 'failed'], true)) {
+                throw ValidationException::withMessages(['payment' => 'Pembayaran ini sudah ditolak.']);
+            }
 
             $fullAmount = (float) ($lockedOrder->full_amount ?: $lockedOrder->total_amount ?: $lockedOrder->amount ?: 0);
             $remaining = max(0, $fullAmount - (float) $lockedOrder->amount_paid_value);
             $amount = min($remaining, (float) ($lockedPayment->amount ?: $lockedPayment->gross_amount ?: 0));
-            if ($amount <= 0) throw ValidationException::withMessages(['payment' => 'Nominal pembayaran tidak valid.']);
+            if ($amount <= 0) {
+                throw ValidationException::withMessages(['payment' => 'Nominal pembayaran tidak valid.']);
+            }
 
             $lockedPayment->update([
                 'status' => 'paid',
@@ -893,8 +923,9 @@ class OrderController extends Controller
                 'note' => $note ?: $lockedPayment->note,
             ]);
 
-            $this->logOrderAction($lockedOrder, 'payment_approved', ['payment_uuid'=>$lockedPayment->uuid,'amount'=>$amount]);
+            $this->logOrderAction($lockedOrder, 'payment_approved', ['payment_uuid' => $lockedPayment->uuid, 'amount' => $amount]);
             $updated = $this->applyVerifiedPaymentToOrder($lockedOrder->fresh());
+
             return [$updated, $lockedPayment->kind ?: 'payment'];
         });
     }
@@ -903,7 +934,9 @@ class OrderController extends Controller
     {
         $fullAmount = (float) ($order->full_amount ?: $order->total_amount ?: $order->amount ?: 0);
         $paid = (float) Payment::where('order_uuid', $order->uuid)
-            ->where(function ($q) { $q->whereIn('verification_status', ['verified','approved'])->orWhere('status','paid'); })
+            ->where(function ($q) {
+                $q->whereIn('verification_status', ['verified', 'approved'])->orWhere('status', 'paid');
+            })
             ->sum(DB::raw('COALESCE(amount, gross_amount, 0)'));
         $paid = min($fullAmount, round($paid, 2));
         $remaining = max(0, round($fullAmount - $paid, 2));
@@ -919,51 +952,124 @@ class OrderController extends Controller
             'balance_due_at' => $isFullyPaid ? null : ($order->balance_due_at ?: ($order->event_date ? $order->event_date->copy()->subDays(30)->startOfDay() : null)),
         ]);
 
-        if ($isFullyPaid) $this->activateMembershipFromOrder($order->fresh());
+        if ($isFullyPaid) {
+            $this->activateMembershipFromOrder($order->fresh());
+        }
+
         return $order->fresh();
     }
 
     private function activateMembershipFromOrder(Order $order): ?UserPackage
     {
         $snapshot = $order->approval_snapshot ?? [];
-        if (! empty($snapshot['user_package']['uuid'])) return UserPackage::where('uuid', $snapshot['user_package']['uuid'])->first();
-        $package = $order->package; $option = $order->packageOption; $user = $order->user;
-        if (! $package || ! $user) return null;
+        if (! empty($snapshot['user_package']['uuid'])) {
+            return UserPackage::where('uuid', $snapshot['user_package']['uuid'])->first();
+        }
+        $package = $order->package;
+        $option = $order->packageOption;
+        $user = $order->user;
+        if (! $package || ! $user) {
+            return null;
+        }
 
         $userPackage = DB::transaction(function () use ($order, $package, $option, $user, $snapshot) {
             $locked = Order::packageOnly()->where('uuid', $order->uuid)->lockForUpdate()->firstOrFail();
             $approval = $locked->approval_snapshot ?? $snapshot;
-            if (! empty($approval['user_package']['uuid'])) return UserPackage::where('uuid', $approval['user_package']['uuid'])->first();
+            if (! empty($approval['user_package']['uuid'])) {
+                return UserPackage::where('uuid', $approval['user_package']['uuid'])->first();
+            }
+
+            $started = now();
+            $existing = UserPackage::where('user_uuid', $user->uuid)
+                ->where('package_uuid', $package->uuid)
+                ->where('status', 'active')
+                ->where(function ($q) {
+                    $q->whereNull('expired_at')->orWhere('expired_at', '>', now());
+                })
+                ->lockForUpdate()
+                ->first();
+
+            $base = $existing?->expired_at && $existing->expired_at->isFuture()
+                ? $existing->expired_at->copy()
+                : $started->copy();
             $expiredAt = $option ? match ($option->duration_unit) {
-                'day' => now()->addDays((int) $option->duration),
-                'week' => now()->addWeeks((int) $option->duration),
-                'month' => now()->addMonths((int) $option->duration),
-                'year' => now()->addYears((int) $option->duration),
-                default => now()->addMonth(),
-            } : now()->addMonth();
-            $userPackage = UserPackage::create([
-                'user_uuid' => $user->uuid, 'package_uuid' => $package->uuid, 'order_uuid' => $locked->uuid,
-                'quota' => $option?->quota ?? 0, 'expired_at' => $expiredAt, 'purchased_at' => now(),
+                'day' => $base->copy()->addDays((int) $option->duration),
+                'week' => $base->copy()->addWeeks((int) $option->duration),
+                'month' => $base->copy()->addMonths((int) $option->duration),
+                'year' => $base->copy()->addYears((int) $option->duration),
+                default => $base->copy()->addMonth(),
+            } : $base->copy()->addMonth();
+
+            if ($existing) {
+                $quota = $existing->quota;
+                if (! is_null($quota) && ! is_null($option?->quota)) {
+                    $quota += $option->quota;
+                } elseif (is_null($existing->quota)) {
+                    $quota = null;
+                } else {
+                    $quota = $option?->quota;
+                }
+                $existing->update([
+                    'order_uuid' => $locked->uuid,
+                    'expired_at' => $expiredAt,
+                    'quota' => $quota,
+                    'status' => 'active',
+                ]);
+                $userPackage = $existing->fresh();
+                $created = false;
+            } else {
+                $userPackage = UserPackage::create([
+                    'user_uuid' => $user->uuid,
+                    'package_uuid' => $package->uuid,
+                    'order_uuid' => $locked->uuid,
+                    'quota' => $option?->quota ?? 0,
+                    'started_at' => $started,
+                    'expired_at' => $expiredAt,
+                    'status' => 'active',
+                ]);
+                $created = true;
+            }
+
+            $locked->update(['approval_snapshot' => array_merge($approval, ['user_package' => [
+                'created' => $created,
+                'uuid' => $userPackage->uuid,
+                'expired_at' => $userPackage->expired_at?->toDateTimeString(),
+                'quota' => $userPackage->quota,
+                'order_uuid' => $userPackage->order_uuid,
+            ]])]);
+            $this->logOrderAction($locked, 'membership_activated', [
+                'user_package_uuid' => $userPackage->uuid,
+                'quota' => $userPackage->quota,
             ]);
-            $locked->update(['approval_snapshot' => array_merge($approval, ['user_package' => ['created'=>true,'uuid'=>$userPackage->uuid,'expired_at'=>$userPackage->expired_at?->toDateTimeString(),'quota'=>$userPackage->quota,'order_uuid'=>$userPackage->order_uuid]])]);
-            $this->logOrderAction($locked, 'membership_activated', ['user_package_uuid'=>$userPackage->uuid]);
+
             return $userPackage;
         });
-        try { $user->notify(new MemberActiveNotification($order->uuid, $order->order_number, $userPackage?->expired_at)); } catch (Throwable $e) { Log::error('Member activation notification failed: '.$e->getMessage()); }
+        try {
+            $user->notify(new MemberActiveNotification($order->uuid, $order->order_number, $userPackage?->expired_at));
+        } catch (Throwable $e) {
+            Log::error('Member activation notification failed: '.$e->getMessage());
+        }
+
         return $userPackage;
     }
-public function rejectPayment(Request $request, string $order, string $payment)
+
+    public function rejectPayment(Request $request, string $order, string $payment)
     {
         abort_unless($this->canRejectOrders(), 403);
-        $validated = $request->validate(['admin_note' => ['required','string','max:1000']]);
+        $validated = $request->validate(['admin_note' => ['required', 'string', 'max:1000']]);
         $record = Order::packageOnly()->where('uuid', $order)->firstOrFail();
         $paymentModel = Payment::where('uuid', $payment)->where('order_uuid', $order)->lockForUpdate()->firstOrFail();
         if (! in_array($paymentModel->verification_status ?: $paymentModel->status, ['pending'], true)) {
             return back()->with('error', 'Pembayaran ini sudah diproses.');
         }
-        $paymentModel->update(['status'=>'failed','verification_status'=>'rejected','note'=>$validated['admin_note'],'verified_by'=>Auth::user()->uuid,'verified_at'=>now()]);
-        $this->logOrderAction($record, 'payment_rejected', ['payment_uuid'=>$paymentModel->uuid,'admin_note'=>$validated['admin_note']]);
-        try { $record->user?->notify(new OrderRejectedNotification($record->uuid, $record->order_number, 'Pembayaran ditolak: '.$validated['admin_note'])); } catch (Throwable $e) { Log::error('Payment rejection notification failed: '.$e->getMessage()); }
+        $paymentModel->update(['status' => 'failed', 'verification_status' => 'rejected', 'note' => $validated['admin_note'], 'verified_by' => Auth::user()->uuid, 'verified_at' => now()]);
+        $this->logOrderAction($record, 'payment_rejected', ['payment_uuid' => $paymentModel->uuid, 'admin_note' => $validated['admin_note']]);
+        try {
+            $record->user?->notify(new OrderRejectedNotification($record->uuid, $record->order_number, 'Pembayaran ditolak: '.$validated['admin_note']));
+        } catch (Throwable $e) {
+            Log::error('Payment rejection notification failed: '.$e->getMessage());
+        }
+
         return redirect()->route('orders.show', $record->uuid)->with('success', 'Pembayaran ditolak.')->with('payment_module_focus', true);
     }
 
@@ -988,12 +1094,13 @@ public function rejectPayment(Request $request, string $order, string $payment)
         ], $this->orderValidationMessages());
 
         $orderIds = array_values(array_unique($validated['ids']));
-        sort($orderIds);
+        $idempotencyOrderIds = $orderIds;
+        sort($idempotencyOrderIds);
 
         $idempotencyKey = $this->idempotencyKey(
             $request,
             'bulk-'.$validated['action'],
-            implode(',', $orderIds)
+            implode(',', $idempotencyOrderIds)
         );
 
         if ($cachedResult = $this->cachedIdempotencyResult($idempotencyKey)) {
@@ -1025,24 +1132,32 @@ public function rejectPayment(Request $request, string $order, string $payment)
                     $record = Order::packageOnly()->where('uuid', $orderUuid)->firstOrFail();
                     $beforeApproval = $record->approval_snapshot;
                     $pendingPayment = Payment::where('order_uuid', $record->uuid)
-                        ->where(function ($q) { $q->where('verification_status', 'pending')->orWhere('status', 'pending'); })
+                        ->where(function ($q) {
+                            $q->where('verification_status', 'pending')->orWhere('status', 'pending');
+                        })
                         ->oldest()->first();
                     if ($pendingPayment) {
+                        $payment = $pendingPayment;
                         [$order] = $this->verifyPendingPayment($record, $pendingPayment, $validated['admin_note'] ?? null);
                     } else {
                         $remaining = (float) $record->remaining_amount_value;
-                        if ($remaining <= 0.01) { $berhasil++; continue; }
+                        if ($remaining <= 0.01) {
+                            $berhasil++;
+
+                            continue;
+                        }
                         $payment = DB::transaction(function () use ($record, $remaining, $validated) {
                             $locked = Order::packageOnly()->where('uuid', $record->uuid)->lockForUpdate()->firstOrFail();
                             $amount = min($remaining, (float) $locked->remaining_amount_value);
                             $p = Payment::create([
-                                'order_uuid' => $locked->uuid, 'kind' => ((float)$locked->amount_paid_value>0)?'installment':'dp',
+                                'order_uuid' => $locked->uuid, 'kind' => ((float) $locked->amount_paid_value > 0) ? 'installment' : 'dp',
                                 'payment_gateway' => 'manual_transfer', 'payment_type' => 'Pencatatan Admin',
-                                'amount' => $amount, 'gross_amount' => $amount, 'status' => 'paid',
-                                'verification_status' => 'approved', 'verified_by' => Auth::id(), 'verified_at' => now(), 'paid_at' => now(),
+                                'amount' => $amount, 'gross_amount' => $amount, 'status' => 'pending',
+                                'verification_status' => 'pending',
                                 'note' => $validated['admin_note'] ?? 'Dicatat langsung oleh admin.',
                             ]);
                             $this->logOrderAction($locked, 'payment_recorded', ['payment_uuid' => $p->uuid, 'amount' => $amount]);
+
                             return $p;
                         });
                         [$order] = $this->verifyPendingPayment($record->fresh(), $payment, $validated['admin_note'] ?? null);
@@ -1050,7 +1165,10 @@ public function rejectPayment(Request $request, string $order, string $payment)
                     $undoSnapshot[] = [
                         'type' => 'approve',
                         'uuid' => $order->uuid,
-                        'snapshot' => $order->approval_snapshot ?: $beforeApproval,
+                        'snapshot' => array_merge(
+                            $order->approval_snapshot ?: $beforeApproval,
+                            ['payment_uuid' => $payment->uuid ?? null]
+                        ),
                     ];
                 } else {
                     $paymentBefore = Payment::where('order_uuid', $orderUuid)
@@ -1314,7 +1432,7 @@ public function rejectPayment(Request $request, string $order, string $payment)
             DB::transaction(function () use ($order): void {
                 $model = Order::packageOnly()->where('uuid', $order)->lockForUpdate()->firstOrFail();
 
-                if (! in_array($model->status, ['pending','partially_paid'], true)) {
+                if (! in_array($model->status, ['pending', 'partially_paid'], true)) {
                     throw ValidationException::withMessages([
                         'order' => __('flash.order_only_pending_claim'),
                     ]);
@@ -1734,7 +1852,7 @@ public function rejectPayment(Request $request, string $order, string $payment)
         */
 
         $validated = $request->validate([
-            'type' => ['required','in:package'],
+            'type' => ['required', 'in:package'],
 
             'package_option_uuid' => [
                 'required',
@@ -1777,7 +1895,7 @@ public function rejectPayment(Request $request, string $order, string $payment)
 
             'payment_scheme' => [
                 'nullable',
-                Rule::in(['no_dp','dp30','dp50','full']),
+                Rule::in(['no_dp', 'dp30', 'dp50', 'full']),
             ],
         ]);
 
@@ -2202,11 +2320,14 @@ public function rejectPayment(Request $request, string $order, string $payment)
 
         try {
             $newOrder = DB::transaction(function () use ($owner, $option, $amount, $old) {
-                $paymentScheme = in_array($old->payment_scheme, ['dp30','dp50','full'], true) ? $old->payment_scheme : 'full';
+                $paymentScheme = in_array($old->payment_scheme, ['dp30', 'dp50', 'full'], true) ? $old->payment_scheme : 'full';
                 $fullAmount = (float) ($old->total_amount ?: $old->amount ?: $amount);
-                $schemeFactor = match($paymentScheme){ 'dp30'=>0.30, 'dp50'=>0.50, default=>1.00 };
+                $schemeFactor = match ($paymentScheme) {
+                    'dp30' => 0.30, 'dp50' => 0.50, default => 1.00
+                };
                 $newAmount = (int) round($fullAmount * $schemeFactor);
                 $remainingAmount = max(0, (int) round($fullAmount - $newAmount));
+
                 return Order::create([
                     'uuid' => (string) Str::uuid(),
                     'user_uuid' => $owner->uuid,
@@ -2215,7 +2336,7 @@ public function rejectPayment(Request $request, string $order, string $payment)
                     'package_uuid' => $option->package_uuid,
                     'package_option_uuid' => $option->uuid,
                     'event_date' => $old->event_date?->toDateString(),
-                            'amount' => $newAmount,
+                    'amount' => $newAmount,
                     'payment_scheme' => $paymentScheme,
                     'total_amount' => (int) round($fullAmount),
                     'amount_paid' => 0,
@@ -2229,7 +2350,9 @@ public function rejectPayment(Request $request, string $order, string $payment)
                     'promo_discount' => $old->promo_discount ?? 0,
                     'promo_snapshot' => array_merge((array) ($old->promo_snapshot ?? []), [
                         'payment_scheme' => $paymentScheme,
-                        'scheme_label' => match($paymentScheme){'dp30'=>'DP 30%','dp50'=>'DP 50%',default=>'Bayar Lunas'},
+                        'scheme_label' => match ($paymentScheme) {
+                            'dp30' => 'DP 30%','dp50' => 'DP 50%',default => 'Bayar Lunas'
+                        },
                         'full_amount' => (int) round($fullAmount),
                         'due_amount' => $newAmount,
                     ]),

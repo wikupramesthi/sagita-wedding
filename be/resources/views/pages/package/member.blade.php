@@ -3,16 +3,6 @@
 @section('content')
 
 @php
-    $packageUuids = $packages->pluck('uuid')->all();
-
-    $wishlistedUuids = auth()->check() && $packageUuids
-        ? \App\Models\Package\PackageWishlist::query()
-            ->where('user_uuid', auth()->id())
-            ->whereIn('package_uuid', $packageUuids)
-            ->pluck('package_uuid')
-            ->all()
-        : [];
-
     $compareUuids = array_values(array_filter(
         (array) session('package_compare', []),
         'is_string'

@@ -539,35 +539,8 @@
             @endif
         </div>
 
-                <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="card h-100">
-                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                        <h5 class="card-title h6 mb-0">Pesanan terbaru</h5>
-                        <a href="{{ route('orders.index') }}" class="small text-decoration-none text-primary fw-semibold">Lihat semua</a>
-                    </div>
-                    <div class="card-body table-responsive">
-                        @if (($recentOrders ?? collect())->count())
-                            <table class="table align-middle mb-0">
-                                <thead><tr><th>Pesanan</th><th>Pelanggan</th><th>Status</th><th>Total</th></tr></thead>
-                                <tbody>
-                                    @foreach ($recentOrders as $ro)
-                                        <tr>
-                                            <td class="fw-semibold"><a href="{{ route('orders.show', $ro->uuid) }}" class="text-decoration-none">{{ $ro->order_number }}</a></td>
-                                            <td>{{ $ro->user->name ?? '-' }}</td>
-                                            <td><span class="badge bg-light-secondary">{{ $ro->status }}</span></td>
-                                            <td>Rp {{ number_format((float)($ro->total_amount ?: $ro->amount),0,',','.') }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        @else
-                            <div class="text-center text-muted py-4"><i class="bi bi-receipt fs-2 d-block mb-2 opacity-50"></i><p class="mb-0 fw-semibold">Belum ada pesanan</p></div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
+        <div class="row g-4">
+            <div class="col-lg-12">
                 <div class="card h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                         <h5 class="card-title h6 mb-0">Acara mendatang</h5>

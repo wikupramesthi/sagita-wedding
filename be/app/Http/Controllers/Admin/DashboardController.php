@@ -23,6 +23,7 @@ use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -116,10 +117,6 @@ class DashboardController extends Controller
             'periodLabel' => $periodLabel,
             'canViewConsultations' => $canViewConsultations,
             'unreadCount' => $user->unreadNotifications()->count(),
-            'jumlahMembers' => $countBetween(User::role('user'), 'created_at', $startDate, $endDate),
-            'jumlahVendor' => $countBetween(User::role('vendor'), 'created_at', $startDate, $endDate),
-            'totalEvents' => $countBetween(Event::query(), 'created_at', $startDate, $endDate),
-            'totalPackages' => $countBetween(\App\Models\Package\Package::query(), 'created_at', $startDate, $endDate),
         ];
 
         if ($isAdmin) {
@@ -133,10 +130,10 @@ class DashboardController extends Controller
 
             $adminViewData = [
                 'actionQueue' => Cache::remember('dashboard.admin.action.'.$freshKey, 60, fn () => $this->actionQueue($canViewConsultations)),
-                'recentOrders' => Cache::remember('dashboard.admin.recent-orders.'.$freshKey, 60, fn () => Order::with('user:id,name', 'package:id,name')->latest()->take(5)->get()),
+                'recentOrders' => Cache::remember('dashboard.admin.recent-orders.'.$freshKey, 60, fn () => Order::with('user:uuid,name')->latest()->take(5)->get()),
             ];
 
-            if ($user->hasAnyRole(['admin', 'super-admin'])) {
+            if ($isAdmin) {
                 $adminViewData['upcomingWeddingOrders'] = Order::packageOnly()
                     ->whereIn('status', ['pending', 'partially_paid', 'paid'])
                     ->whereNotNull('event_date')
@@ -162,16 +159,6 @@ class DashboardController extends Controller
             $data = array_merge($data, $adminData, $adminViewData);
         }
 
-        $activePackage = $user->userPackages()
-            ->with('package')
-            ->where('status', 'active')
-            ->where(function ($q) {
-                $q->whereNull('expired_at')->orWhere('expired_at', '>=', now());
-            })
-            ->latest('started_at')
-            ->first();
-
-        $data['activePackage'] = $activePackage;
         $data['attendedCount'] = 0;
         $data['totalClasses'] = 0;
         $data['upcomingClasses'] = collect();
@@ -186,16 +173,50 @@ class DashboardController extends Controller
         ];
 
         if (! $isAdmin) {
+            $data['jumlahMembers'] = $countBetween(User::role('user'), 'created_at', $startDate, $endDate);
+            $data['jumlahVendor'] = $countBetween(User::role('vendor'), 'created_at', $startDate, $endDate);
+            $data['totalEvents'] = $countBetween(Event::query(), 'created_at', $startDate, $endDate);
+            $data['totalPackages'] = $countBetween(Package::query(), 'created_at', $startDate, $endDate);
+
+            $activePackage = $user->userPackages()
+                ->with('package')
+                ->where('status', 'active')
+                ->where(function ($q) {
+                    $q->whereNull('expired_at')->orWhere('expired_at', '>=', now());
+                })
+                ->latest('started_at')
+                ->first();
+            $data['activePackage'] = $activePackage;
+
             $myOrders = Order::where('user_uuid', $user->uuid)->latest();
             $planningOrders = (clone $myOrders)
                 ->where('type', 'package')
                 ->whereIn('status', ['pending', 'partially_paid', 'paid'])
-                ->with(['package:uuid,name', 'packageOption:uuid,name'])
+                ->with([
+                    'package:uuid,name',
+                    'packageOption:uuid,name',
+                    'payments' => fn ($query) => $query->latest(),
+                ])
                 ->orderBy('event_date')
                 ->get();
             $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
             $data['courses'] = [];
-            $data['myOrders'] = (clone $myOrders)->with(['package:uuid,name', 'packageOption:uuid,name'])->take(5)->get();
+            $data['myOrders'] = (clone $myOrders)
+                ->where('type', 'package')
+                ->with([
+                    'package:uuid,name',
+                    'packageOption:uuid,name',
+                    'payments' => fn ($query) => $query->latest(),
+                ])
+                ->take(5)
+                ->get();
+            $data['recentPaymentProofs'] = $data['myOrders']
+                ->flatMap(fn (Order $order) => $order->payments
+                    ->filter(fn ($payment) => $payment->proof_image_path)
+                    ->map(fn ($payment) => ['order' => $order, 'payment' => $payment]))
+                ->sortByDesc(fn (array $proof) => $proof['payment']->proof_uploaded_at ?? $proof['payment']->created_at)
+                ->take(5)
+                ->values();
             $planningEventOrder = $planningOrders->first(
                 fn (Order $order) => $order->event_date?->greaterThanOrEqualTo(today())
             ) ?? $planningOrders->first(fn (Order $order) => $order->event_date !== null);
@@ -218,14 +239,14 @@ class DashboardController extends Controller
                 ['label' => 'Konfirmasi vendor dan susunan acara', 'months_before' => 1],
                 ['label' => 'Hari pernikahan', 'months_before' => 0],
             ])->map(fn (array $milestone) => [
-                    'label' => $milestone['label'],
-                    'offset' => $milestone['months_before'] > 0
-                        ? $milestone['months_before'].' bulan sebelum acara'
-                        : 'Hari pernikahan',
-                    'date' => $data['planningEventDate']
-                        ? Carbon::parse($data['planningEventDate'])->subMonthsNoOverflow($milestone['months_before'])
-                        : null,
-                ]);
+                'label' => $milestone['label'],
+                'offset' => $milestone['months_before'] > 0
+                    ? $milestone['months_before'].' bulan sebelum acara'
+                    : 'Hari pernikahan',
+                'date' => $data['planningEventDate']
+                    ? Carbon::parse($data['planningEventDate'])->subMonthsNoOverflow($milestone['months_before'])
+                    : null,
+            ]);
             $hasPlanningOrders = $planningOrders->isNotEmpty();
             $allPlanningOrdersPaid = $hasPlanningOrders && $planningOrders->every(
                 fn (Order $order) => $order->status === 'paid'
@@ -266,50 +287,22 @@ class DashboardController extends Controller
             $data['completedPlanningSteps'] = $completedPlanningSteps;
             $data['planningProgress'] = (int) round($completedPlanningSteps / count($data['planningSteps']) * 100);
             $data['budgetMax'] = $validated['budget_max'] ?? null;
-            $data['recommendedPackages'] = collect();
-
-            if ($data['budgetMax'] !== null) {
-                $data['recommendedPackages'] = Package::published()
-                    ->with(['options' => fn ($query) => $query
-                        ->where('is_active', true)
-                        ->orderBy('sort_order')])
-                    ->get()
-                    ->map(function (Package $package) use ($data) {
-                        $matchingOptions = $package->options
-                            ->filter(fn ($option) => min(
-                                (int) $option->price,
-                                (int) ($option->discount_price ?? $option->price)
-                            ) <= $data['budgetMax'])
-                            ->sortBy(fn ($option) => min(
-                                (int) $option->price,
-                                (int) ($option->discount_price ?? $option->price)
-                            ))
-                            ->values();
-
-                        if ($matchingOptions->isEmpty()) {
-                            return null;
-                        }
-
-                        $option = $matchingOptions->first();
-
-                        return [
-                            'package' => $package,
-                            'option' => $option,
-                            'price' => min(
-                                (int) $option->price,
-                                (int) ($option->discount_price ?? $option->price)
-                            ),
-                        ];
-                    })
-                    ->filter()
-                    ->sortBy('price')
-                    ->take(6)
-                    ->values();
-            }
+            $data['recommendedPackages'] = $data['budgetMax'] === null
+                ? collect()
+                : $this->findPackageRecommendations((int) $data['budgetMax']);
+            $orderStatsRow = (clone $myOrders)
+                ->reorder()
+                ->selectRaw(
+                    'COUNT(*) as total, '.
+                    'SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as pending, '.
+                    "SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid",
+                    ['pending', 'partially_paid']
+                )
+                ->first();
             $data['myOrderStats'] = [
-                'total' => (clone $myOrders)->count(),
-                'pending' => (clone $myOrders)->whereIn('status', ['pending','partially_paid'])->count(),
-                'paid' => (clone $myOrders)->where('status', 'paid')->count(),
+                'total' => (int) $orderStatsRow->total,
+                'pending' => (int) $orderStatsRow->pending,
+                'paid' => (int) $orderStatsRow->paid,
                 'active_package' => $activePackage ? 1 : 0,
             ];
 
@@ -326,6 +319,67 @@ class DashboardController extends Controller
         }
 
         return view('pages.dashboard.index', $data);
+    }
+
+    public function recommendations(Request $request): JsonResponse
+    {
+        abort_unless(Auth::user()?->hasRole('user'), 403);
+
+        $validated = $request->validate([
+            'budget_max' => ['required', 'integer', 'min:0'],
+        ]);
+        $budgetMax = (int) $validated['budget_max'];
+
+        $recommendations = $this->findPackageRecommendations($budgetMax)
+            ->map(fn (array $recommendation) => [
+                'name' => $recommendation['package']->name,
+                'option' => $recommendation['option']->name,
+                'price' => $recommendation['price'],
+                'formatted_price' => number_format($recommendation['price'], 0, ',', '.'),
+                'checkout_url' => route('checkout.package', $recommendation['package']->uuid),
+            ]);
+
+        return response()->json([
+            'budget_max' => $budgetMax,
+            'formatted_budget' => number_format($budgetMax, 0, ',', '.'),
+            'recommendations' => $recommendations,
+        ]);
+    }
+
+    private function findPackageRecommendations(int $budgetMax): Collection
+    {
+        $priceForOption = fn ($option): int => min(
+            (int) $option->price,
+            (int) ($option->discount_price ?? $option->price)
+        );
+
+        return Package::published()
+            ->with(['options' => fn ($query) => $query
+                ->where('is_active', true)
+                ->orderBy('sort_order')])
+            ->get()
+            ->map(function (Package $package) use ($budgetMax, $priceForOption) {
+                $matchingOptions = $package->options
+                    ->filter(fn ($option) => $priceForOption($option) <= $budgetMax)
+                    ->sortBy($priceForOption)
+                    ->values();
+
+                if ($matchingOptions->isEmpty()) {
+                    return null;
+                }
+
+                $option = $matchingOptions->first();
+
+                return [
+                    'package' => $package,
+                    'option' => $option,
+                    'price' => $priceForOption($option),
+                ];
+            })
+            ->filter()
+            ->sortBy('price')
+            ->take(6)
+            ->values();
     }
 
     public function refresh(Request $request): JsonResponse
@@ -479,12 +533,12 @@ class DashboardController extends Controller
         Closure $makeStat,
         Closure $makeSnapshot
     ): array {
-        $newOrdersCount = $countBetween(Order::whereIn('status', ['pending','partially_paid']), 'created_at', $startDate, $endDate);
+        $newOrdersCount = $countBetween(Order::whereIn('status', ['pending', 'partially_paid']), 'created_at', $startDate, $endDate);
         $newMembershipCount = $countBetween(UserPackage::where('status', 'active'), 'started_at', $startDate, $endDate);
         $revenueMonth = (float) Order::where('status', 'paid')
             ->whereBetween('paid_at', [$startDate.' 00:00:00', $endDate.' 23:59:59'])
-            ->get(['amount','total_amount'])
-            ->sum(fn($o)=> (float)($o->total_amount ?: $o->amount));
+            ->get(['amount', 'total_amount'])
+            ->sum(fn ($o) => (float) ($o->total_amount ?: $o->amount));
 
         $stats = [
             $makeStat('Member baru', User::role('user'), 'created_at', 'bi bi-people', 'purple', 'pengguna.index'),
@@ -554,7 +608,7 @@ class DashboardController extends Controller
             'newOrdersCount' => $newOrdersCount,
             'newMembershipCount' => $newMembershipCount,
             'revenueMonth' => $revenueMonth,
-            'revenueTotal' => (float) Order::whereIn('status',['paid','partially_paid'])->get(['status','amount','total_amount','amount_paid'])->sum(fn($o)=> $o->status==='paid' ? (float)($o->total_amount?:$o->amount) : (float)($o->amount_paid ?? 0)),
+            'revenueTotal' => (float) Order::whereIn('status', ['paid', 'partially_paid'])->get(['status', 'amount', 'total_amount', 'amount_paid'])->sum(fn ($o) => $o->status === 'paid' ? (float) ($o->total_amount ?: $o->amount) : (float) ($o->amount_paid ?? 0)),
             'security' => [
                 'failedLogins' => (int) FailedLogin::where('created_at', '>=', now()->subDay())->count(),
                 'lockouts' => (int) LoginLockout::active()->count(),
@@ -710,9 +764,11 @@ class DashboardController extends Controller
 
     private function actionQueue(bool $includeConsultations): array
     {
-        $pendingOrders = Order::with('user', 'package')
-            ->whereIn('status', ['pending','partially_paid'])
-            ->where(function($q){ $q->whereNotNull('proof_image_path')->orWhereHas('payments', fn($p)=>$p->where('verification_status','pending')->orWhere('status','pending')); })
+        $pendingOrders = Order::with('user:uuid,name')
+            ->whereIn('status', ['pending', 'partially_paid'])
+            ->where(function ($q) {
+                $q->whereNotNull('proof_image_path')->orWhereHas('payments', fn ($p) => $p->where('verification_status', 'pending')->orWhere('status', 'pending'));
+            })
             ->latest()
             ->take(5)
             ->get();
@@ -734,7 +790,9 @@ class DashboardController extends Controller
 
         return [
             'orders' => $pendingOrders,
-            'orderCount' => (int) Order::whereIn('status', ['pending','partially_paid'])->where(function($q){ $q->whereNotNull('proof_image_path')->orWhereHas('payments', fn($p)=>$p->where('verification_status','pending')->orWhere('status','pending')); })->count(),
+            'orderCount' => (int) Order::whereIn('status', ['pending', 'partially_paid'])->where(function ($q) {
+                $q->whereNotNull('proof_image_path')->orWhereHas('payments', fn ($p) => $p->where('verification_status', 'pending')->orWhere('status', 'pending'));
+            })->count(),
             'messages' => $overdueFollowUps,
             'messageCount' => $overdueFollowUpCount,
         ];

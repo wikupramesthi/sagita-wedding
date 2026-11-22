@@ -23,15 +23,24 @@ class MembershipController extends Controller
 
         $this->applyFilters($request, $query, $user, $isAdmin);
 
-        $statsQuery = clone $query;
+        $statsQuery = UserPackage::query();
+        $this->applyFilters($request, $statsQuery, $user, $isAdmin);
+
+        $statsRow = (clone $statsQuery)
+            ->selectRaw(
+                'COUNT(*) as total, '.
+                "SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active, ".
+                "SUM(CASE WHEN status = 'active' AND expired_at BETWEEN ? AND ? THEN 1 ELSE 0 END) as expiring, ".
+                "SUM(CASE WHEN status = 'expired' THEN 1 ELSE 0 END) as expired",
+                [now(), now()->addDays(7)]
+            )
+            ->first();
 
         $stats = [
-            'total' => (clone $statsQuery)->count(),
-            'active' => (clone $statsQuery)->where('status', 'active')->count(),
-            'expiring' => (clone $statsQuery)->where('status', 'active')
-                ->whereNotNull('expired_at')
-                ->whereBetween('expired_at', [now(), now()->addDays(7)])->count(),
-            'expired' => (clone $statsQuery)->where('status', 'expired')->count(),
+            'total' => (int) $statsRow->total,
+            'active' => (int) $statsRow->active,
+            'expiring' => (int) $statsRow->expiring,
+            'expired' => (int) $statsRow->expired,
         ];
 
         $orderQuery = Order::whereIn(
@@ -108,8 +117,13 @@ class MembershipController extends Controller
             ->all();
 
         $followUps = (clone $query)
-            ->with(['user', 'package', 'order.payments'])
-            ->whereHas('order', fn ($q) => $q->whereIn('status', ['pending', 'partially_paid']))
+            ->whereHas('order', fn ($q) => $q
+                ->whereIn('status', ['pending', 'partially_paid'])
+                ->where(function ($q) {
+                    $q->where('remaining_amount', '>', 0.01)
+                        ->orWhereNull('remaining_amount');
+                }))
+            ->limit(20)
             ->get()
             ->filter(fn (UserPackage $membership) => $membership->order?->hasOutstandingBalance())
             ->sortBy(fn (UserPackage $membership) => $membership->event_date?->timestamp ?? PHP_INT_MAX)

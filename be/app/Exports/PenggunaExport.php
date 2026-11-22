@@ -11,8 +11,10 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\StringValueBinder;
 
-class PenggunaExport implements FromView, ShouldAutoSize, WithTitle, WithCustomValueBinder
+class PenggunaExport implements FromView, ShouldAutoSize, WithCustomValueBinder, WithTitle
 {
+    private static ?StringValueBinder $binder = null;
+
     protected $request;
 
     public function __construct($request)
@@ -25,7 +27,7 @@ class PenggunaExport implements FromView, ShouldAutoSize, WithTitle, WithCustomV
         $filters = User::normalizeProspectFilters($this->request->all());
         $baseQuery = fn () => User::role('user');
 
-        $query = $baseQuery()->with(['userPackages.package', 'latestOrder.package']);
+        $query = $baseQuery()->with('latestOrder.package');
         User::applyProspectFilters($query, $filters);
 
         return view('pages.dashboard.exports', [
@@ -45,6 +47,8 @@ class PenggunaExport implements FromView, ShouldAutoSize, WithTitle, WithCustomV
     {
         $value = is_string($value) ? ConsultationExport::escape($value) : $value;
 
-        return (new StringValueBinder())->bindValue($cell, $value);
+        self::$binder ??= new StringValueBinder;
+
+        return self::$binder->bindValue($cell, $value);
     }
 }

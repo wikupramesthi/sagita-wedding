@@ -52,4 +52,19 @@ class Payment extends Model
             'uuid'
         );
     }
+
+    public function getProofVerificationStatusAttribute(): string
+    {
+        $verificationStatus = $this->verification_status ?: $this->status;
+
+        if (in_array($verificationStatus, ['approved', 'verified'], true) || $this->status === 'paid') {
+            return 'accepted';
+        }
+
+        if (in_array($verificationStatus, ['rejected', 'failed'], true) || $this->status === 'failed') {
+            return 'rejected';
+        }
+
+        return 'pending';
+    }
 }

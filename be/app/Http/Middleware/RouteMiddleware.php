@@ -6,6 +6,7 @@ use App\Models\ManagementAccess\Route;
 use Closure;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -53,10 +54,10 @@ class RouteMiddleware
             abort(404);
         }
 
-        $routes = Route::firstWhere(
-            'route',
-            $request->route()?->getName()
-        );
+        $routeName = $request->route()?->getName();
+        $routes = $routeName
+            ? Cache::remember('route.permission.'.$routeName, 60, fn () => Route::firstWhere('route', $routeName))
+            : null;
 
         return blank($routes)
             || (

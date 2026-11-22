@@ -18,6 +18,21 @@
     $amountPaid = (float) ($order->amount_paid_value ?? ($order->status === 'paid' ? $fullAmount : 0));
     $remainingAmount = (float) ($order->remaining_amount_value ?? max(0, $fullAmount - $amountPaid));
     $isDp = in_array($order->payment_scheme, ['dp30','dp50'], true);
+    $auditLabels = [
+        'payment_recorded' => 'Pembayaran dicatat',
+        'payment_submitted' => 'Pembayaran dikirim',
+        'payment_approved' => 'Pembayaran disetujui',
+        'payment_rejected' => 'Pembayaran ditolak',
+        'approved' => 'Pesanan Disetujui',
+        'approved_dp' => 'DP disetujui',
+        'approved_installment' => 'Cicilan disetujui',
+        'approved_balance' => 'Pelunasan disetujui',
+        'membership_activated' => 'Keanggotaan diaktifkan',
+        'rejected' => 'Pesanan ditolak',
+        'proof_uploaded' => 'Bukti diunggah',
+        'approval_reverted' => 'Persetujuan dibatalkan',
+        'rejection_reverted' => 'Penolakan dibatalkan',
+    ];
 @endphp
 
 <div class="receipt-page">
@@ -104,6 +119,35 @@
                             <div class="alert alert-info small mb-0 h-100 d-flex align-items-center"><div><i class="bi bi-info-circle me-1"></i>Pesanan sudah memiliki pembayaran terverifikasi. Penolakan otomatis dinonaktifkan; gunakan penyesuaian manual bila diperlukan.</div></div>
                             @endif
                         </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if ($isAdmin)
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-semibold">Ringkasan Admin</div>
+                <div class="card-body">
+                    <div class="fw-semibold small mb-2"><i class="bi bi-clock-history me-1"></i> Riwayat Verifikasi</div>
+                    @if ($audits->isNotEmpty())
+                        <div class="small text-muted">
+                            @foreach ($audits as $audit)
+                                <div class="d-flex justify-content-between gap-3 py-1 border-bottom">
+                                    <span>{{ $auditLabels[$audit->event] ?? ucfirst(str_replace('_', ' ', $audit->event)) }}</span>
+                                    <span>{{ $audit->created_at?->translatedFormat('d M Y H:i') }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="small text-muted">Belum ada aktivitas verifikasi.</div>
+                    @endif
+                    <div class="mt-3 pt-3 border-top">
+                        @if (in_array($order->status, ['paid', 'partially_paid'], true))
+                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Pesanan Disetujui</span>
+                        @else
+                            <div class="fw-semibold small">Verifikasi Admin</div>
+                            <div class="small text-muted">Alasan penolakan: {{ $order->admin_note ?: '-' }}</div>
+                        @endif
                     </div>
                 </div>
             </div>

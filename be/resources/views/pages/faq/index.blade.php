@@ -125,7 +125,9 @@ $totalInactive = (int) $statusCounts->get('inactive', 0);
 
             <div class="d-flex flex-wrap gap-2 mt-3">
                 @foreach ($categories as $category)
-                @php($active = $kategori === $category)
+                @php
+                    $active = $kategori === $category;
+                @endphp
                 <a href="{{ route('faq.index', ['kategori' => $category]) }}"
                     class="badge rounded-pill px-3 py-2 text-decoration-none {{ $active ? 'bg-primary' : 'bg-light-secondary text-body' }}">
                     {{ $category }} <span class="opacity-75">({{ $counts->get($category, 0) }})</span>
@@ -152,7 +154,9 @@ $totalInactive = (int) $statusCounts->get('inactive', 0);
                         </tr>
                     </thead>
                     <tbody>
-                        @php($previousKategori = null)
+                        @php
+                            $previousKategori = null;
+                        @endphp
                         @forelse ($items as $item)
                         @if ($item->kategori !== $previousKategori)
                         <tr class="table-light">
@@ -167,7 +171,9 @@ $totalInactive = (int) $statusCounts->get('inactive', 0);
                             <td></td>
                             <td></td>
                         </tr>
-                        @php($previousKategori = $item->kategori)
+                        @php
+                            $previousKategori = $item->kategori;
+                        @endphp
                         @endif
                         <tr>
                             <td>{{ $loop->iteration }}</td>

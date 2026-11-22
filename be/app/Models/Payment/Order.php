@@ -164,6 +164,7 @@ class Order extends Model
     public function getPaymentSchemeAttribute($value): string
     {
         $scheme = $value ?: (string) data_get($this->promo_snapshot, 'payment_scheme', 'full');
+
         return in_array($scheme, ['booking_fee', 'dp30', 'dp50', 'full'], true) ? $scheme : 'full';
     }
 
@@ -176,6 +177,7 @@ class Order extends Model
             'full' => 'Bayar Lunas',
         ];
         $scheme = $this->payment_scheme;
+
         return $labels[$scheme] ?? (string) data_get($this->promo_snapshot, 'scheme_label', 'Bayar Lunas');
     }
 
@@ -189,28 +191,42 @@ class Order extends Model
         $amount = (float) ($this->amount ?: 0);
         $paid = (float) ($this->attributes['amount_paid'] ?? 0);
         $remaining = (float) ($this->attributes['remaining_amount'] ?? 0);
-        return max($amount, $paid + $remaining, $amount + $remaining);
+
+        return max($amount, $paid + $remaining);
     }
 
     public function getAmountPaidValueAttribute(): float
     {
         $paid = (float) ($this->attributes['amount_paid'] ?? 0);
-        if ($paid > 0) return $paid;
-        if ($this->status === 'paid') return (float) $this->full_amount;
+        if ($paid > 0) {
+            return $paid;
+        }
+        if ($this->status === 'paid') {
+            return (float) $this->full_amount;
+        }
+
         return 0.0;
     }
 
     public function getRemainingAmountValueAttribute(): float
     {
         $remaining = $this->attributes['remaining_amount'] ?? null;
-        if ($remaining !== null) return max(0, (float) $remaining);
+        if ($remaining !== null) {
+            return max(0, (float) $remaining);
+        }
+
         return max(0, (float) $this->full_amount - (float) $this->amount_paid_value);
     }
 
     public function getDueAmountAttribute(): float
     {
-        if ($this->status === 'partially_paid') return (float) $this->remaining_amount_value;
-        if ($this->status === 'paid') return 0.0;
+        if ($this->status === 'partially_paid') {
+            return (float) $this->remaining_amount_value;
+        }
+        if ($this->status === 'paid') {
+            return 0.0;
+        }
+
         return (float) ($this->amount ?: 0);
     }
 

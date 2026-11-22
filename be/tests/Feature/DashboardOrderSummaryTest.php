@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
+use App\Models\Payment\Payment;
 use App\Models\Payment\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -76,6 +77,29 @@ class DashboardOrderSummaryTest extends TestCase
         return $package;
     }
 
+    private function paymentProof(Order $order, string $status, int $amount): Payment
+    {
+        $statusValues = [
+            'accepted' => ['paid', 'approved'],
+            'pending' => ['pending', 'pending'],
+            'rejected' => ['failed', 'rejected'],
+        ];
+        [$paymentStatus, $verificationStatus] = $statusValues[$status];
+
+        return Payment::create([
+            'order_uuid' => $order->uuid,
+            'kind' => 'installment',
+            'payment_gateway' => 'manual_transfer',
+            'payment_type' => 'Transfer Manual',
+            'amount' => $amount,
+            'gross_amount' => $amount,
+            'status' => $paymentStatus,
+            'verification_status' => $verificationStatus,
+            'proof_image_path' => 'proof/'.$status.'.jpg',
+            'proof_uploaded_at' => now(),
+        ]);
+    }
+
     public function test_member_dashboard_always_shows_timeline_and_package_recommendations(): void
     {
         $member = $this->userWithRole('user');
@@ -108,10 +132,74 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertSee(route('checkout.package', $recommendedPackage->uuid), false);
     }
 
+    public function test_ajax_recommendations_return_matching_packages_for_members(): void
+    {
+        $member = $this->userWithRole('user');
+        $recommendedPackage = $this->publishedPackage('Paket Anggrek', 7000000, 5500000);
+        $this->publishedPackage('Paket Mewah', 9000000);
+
+        $this->actingAs($member)
+            ->getJson(route('dashboard.recommendations', ['budget_max' => 6000000]))
+            ->assertOk()
+            ->assertJsonPath('budget_max', 6000000)
+            ->assertJsonCount(1, 'recommendations')
+            ->assertJsonPath('recommendations.0.name', 'Paket Anggrek')
+            ->assertJsonPath('recommendations.0.formatted_price', '5.500.000')
+            ->assertJsonPath('recommendations.0.checkout_url', route('checkout.package', $recommendedPackage->uuid));
+    }
+
+    public function test_ajax_recommendations_are_not_available_to_admins(): void
+    {
+        $admin = $this->userWithRole('admin');
+
+        $this->actingAs($admin)
+            ->getJson(route('dashboard.recommendations', ['budget_max' => 6000000]))
+            ->assertForbidden();
+    }
+
+    public function test_mobile_member_dashboard_shows_existing_orders_and_package_search(): void
+    {
+        $member = $this->userWithRole('user');
+        $order = $this->packageOrder($member);
+        $this->paymentProof($order, 'pending', 10000000);
+        $recommendedPackage = $this->publishedPackage('Paket Harmoni', 5000000);
+
+        $this->actingAs($member)
+            ->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 Mobile Safari/537.36')
+            ->get(route('dashboard.index', ['budget_max' => 6000000]))
+            ->assertOk()
+            ->assertViewIs('pages.mobile.home')
+            ->assertSee('Rencana pernikahan')
+            ->assertSee($order->order_number)
+            ->assertSee('Timeline persiapan')
+            ->assertSee('Paket Harmoni')
+            ->assertSee('Status bukti pembayaran')
+            ->assertSee('Pending')
+            ->assertSee(route('checkout.package', $recommendedPackage->uuid), false);
+    }
+
+    public function test_new_mobile_member_sees_timeline_and_budget_search_without_orders(): void
+    {
+        $member = $this->userWithRole('user');
+
+        $this->actingAs($member)
+            ->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 Mobile Safari/537.36')
+            ->get(route('dashboard.index'))
+            ->assertOk()
+            ->assertViewIs('pages.mobile.home')
+            ->assertSee('Belum ada pesanan paket')
+            ->assertSee('Timeline persiapan')
+            ->assertSee('name="budget_max"', false)
+            ->assertSee(route('dashboard.recommendations'), false);
+    }
+
     public function test_member_dashboard_reads_date_and_payment_from_existing_orders(): void
     {
         $member = $this->userWithRole('user');
         $order = $this->packageOrder($member);
+        $acceptedProof = $this->paymentProof($order, 'accepted', 30000000);
+        $pendingProof = $this->paymentProof($order, 'pending', 10000000);
+        $rejectedProof = $this->paymentProof($order, 'rejected', 5000000);
         $recommendedPackage = $this->publishedPackage('Paket Harmoni', 5000000);
 
         $this->actingAs($member)
@@ -123,6 +211,13 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertSee('Rp 30.000.000')
             ->assertSee($order->order_number)
             ->assertSee('Paket Harmoni')
+            ->assertSee('Rekap Pembayaran dan Bukti Transfer')
+            ->assertSee('Diterima')
+            ->assertSee('Pending')
+            ->assertSee('Ditolak')
+            ->assertSee(route('orders.payments.proof', [$order->uuid, $acceptedProof->uuid]), false)
+            ->assertSee(route('orders.payments.proof', [$order->uuid, $pendingProof->uuid]), false)
+            ->assertSee(route('orders.payments.proof', [$order->uuid, $rejectedProof->uuid]), false)
             ->assertSee(route('checkout.package', $recommendedPackage->uuid), false);
     }
 

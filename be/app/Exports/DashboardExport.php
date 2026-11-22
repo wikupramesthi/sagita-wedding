@@ -11,8 +11,10 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\StringValueBinder;
 
-class DashboardExport implements FromCollection, ShouldAutoSize, WithHeadings, WithTitle, WithCustomValueBinder
+class DashboardExport implements FromCollection, ShouldAutoSize, WithCustomValueBinder, WithHeadings, WithTitle
 {
+    private static ?StringValueBinder $binder = null;
+
     public function __construct(
         private array $rows,
         private string $period
@@ -37,6 +39,8 @@ class DashboardExport implements FromCollection, ShouldAutoSize, WithHeadings, W
     {
         $value = is_string($value) ? ConsultationExport::escape($value) : $value;
 
-        return (new StringValueBinder())->bindValue($cell, $value);
+        self::$binder ??= new StringValueBinder;
+
+        return self::$binder->bindValue($cell, $value);
     }
 }

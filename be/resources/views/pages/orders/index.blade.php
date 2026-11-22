@@ -106,7 +106,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             <div class="d-flex align-items-center gap-3">
                 <div class="order-revenue-icon"><i class="bi bi-wallet2"></i></div>
                 <div>
-                    <div class="order-revenue-label">Pendapatan Diterima</div>
+                    <div class="order-revenue-label">Pendapatan (Lunas)</div>
                     <div class="order-revenue-value">Rp {{ number_format($stats->revenue ?? 0, 0, ',', '.') }}</div>
                 </div>
             </div>
