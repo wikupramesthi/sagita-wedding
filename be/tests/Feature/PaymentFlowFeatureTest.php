@@ -88,6 +88,23 @@ class PaymentFlowFeatureTest extends TestCase
         ]);
     }
 
+    private function makePendingOrder(array $overrides = []): Order
+    {
+        return Order::create(array_merge([
+            'order_number' => 'ORD-TEST-'.uniqid(),
+            'user_uuid' => $this->member->uuid,
+            'package_uuid' => $this->package->uuid,
+            'package_option_uuid' => $this->option->uuid,
+            'event_date' => today()->addMonths(6)->toDateString(),
+            'amount' => 10000000,
+            'total_amount' => 10000000,
+            'amount_paid' => 0,
+            'remaining_amount' => 10000000,
+            'payment_scheme' => 'full',
+            'status' => 'pending',
+        ], $overrides));
+    }
+
     public function test_admin_can_crud_promo(): void
     {
         $this->actingAs($this->admin)
@@ -272,5 +289,53 @@ class PaymentFlowFeatureTest extends TestCase
             'kind' => 'balance',
             'payment_type' => 'Pencatatan Admin',
         ]);
+    }
+
+    public function test_admin_cannot_record_payment_over_remaining_amount(): void
+    {
+        $order = $this->makePendingOrder();
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.payments.store', $order->uuid), [
+                'amount' => 10000001,
+                'record_only' => 1,
+            ])
+            ->assertSessionHasErrors('amount');
+
+        $this->assertDatabaseMissing('payments', ['order_uuid' => $order->uuid]);
+    }
+
+    public function test_member_cannot_use_admin_record_only_payment(): void
+    {
+        $order = $this->makePendingOrder();
+
+        $this->actingAs($this->member)
+            ->post(route('orders.payments.store', $order->uuid), [
+                'amount' => 1000000,
+                'record_only' => 1,
+            ])
+            ->assertSessionHasErrors('proof');
+
+        $this->assertDatabaseMissing('payments', ['order_uuid' => $order->uuid]);
+    }
+
+    public function test_overpaid_pending_payment_is_rejected_on_approval(): void
+    {
+        $order = $this->makePendingOrder();
+        $payment = Payment::create([
+            'order_uuid' => $order->uuid,
+            'kind' => 'dp',
+            'status' => 'pending',
+            'verification_status' => 'pending',
+            'amount' => 10000001,
+            'gross_amount' => 10000001,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.payments.approve', [$order->uuid, $payment->uuid]))
+            ->assertSessionHas('error', 'Nominal pembayaran melebihi sisa tagihan.');
+
+        $this->assertSame('pending', $payment->fresh()->verification_status);
+        $this->assertEquals(0.0, (float) $order->fresh()->amount_paid);
     }
 }

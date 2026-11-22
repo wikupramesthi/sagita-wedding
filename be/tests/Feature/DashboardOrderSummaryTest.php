@@ -155,7 +155,7 @@ class DashboardOrderSummaryTest extends TestCase
     {
         $member = $this->userWithRole('user');
 
-        $this->actingAs($member)
+        $response = $this->actingAs($member)
             ->withHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36')
             ->get(route('dashboard.index'))
             ->assertOk()
@@ -163,7 +163,24 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertSee('12 bulan sebelum acara')
             ->assertSee('Batas anggaran paket')
             ->assertSee('name="budget_max"', false)
+            ->assertDontSee('dashboard-language-switcher', false)
             ->assertDontSee('Checklist persiapan');
+
+        $html = $response->getContent();
+        $planningGrid = strpos($html, 'member-planning-grid');
+        $planningEnd = $planningGrid === false ? false : strpos($html, '</section>', $planningGrid);
+        $recommendation = strpos($html, 'member-recommendation-card');
+        $timeline = strpos($html, 'Timeline persiapan');
+        $timelineEnd = $timeline === false ? false : strpos($html, '</section>', $timeline);
+        $actions = strpos($html, 'member-actions-card');
+
+        $this->assertNotFalse($planningEnd);
+        $this->assertNotFalse($recommendation);
+        $this->assertNotFalse($timeline);
+        $this->assertNotFalse($timelineEnd);
+        $this->assertNotFalse($actions);
+        $this->assertTrue($planningEnd < $recommendation && $recommendation < $timeline);
+        $this->assertTrue($timelineEnd < $actions);
     }
 
     public function test_new_member_can_get_matching_packages_without_leaving_dashboard(): void

@@ -9,17 +9,6 @@
         </div>
     </div>
 
-    @php
-        $myOrderStats = $myOrderStats ?? ['total' => 0, 'pending' => 0, 'paid' => 0, 'active_package' => 0];
-        $myOrders = $myOrders ?? collect();
-        $memberStats = [
-            ['label' => 'Total Pesanan', 'value' => $myOrderStats['total'], 'icon' => 'bi-receipt-cutoff', 'tone' => 'primary'],
-            ['label' => 'Menunggu Pembayaran', 'value' => $myOrderStats['pending'], 'icon' => 'bi-hourglass-split', 'tone' => 'warning'],
-            ['label' => 'Pesanan Lunas', 'value' => $myOrderStats['paid'], 'icon' => 'bi-patch-check', 'tone' => 'success'],
-            ['label' => 'Paket Aktif', 'value' => $myOrderStats['active_package'], 'icon' => 'bi-box-seam', 'tone' => 'info'],
-        ];
-    @endphp
-
     <div class="row g-3 mb-4 member-stats">
         @foreach ($memberStats as $stat)
             <div class="col-6 col-xl-3">
@@ -40,7 +29,7 @@
 
     <div class="row g-4">
         <div class="col-xl-8">
-            <section class="card member-card member-section-card h-100">
+            <section class="card member-card member-section-card">
                 <div class="card-body">
                     <div class="member-section-heading">
                         <div>
@@ -99,6 +88,33 @@
                     </div>
                 </div>
             </section>
+
+            <section class="card member-card member-section-card member-recommendation-card mt-4">
+                <div class="card-body">
+                    <div class="member-section-heading">
+                        <div>
+                            <span class="member-eyebrow">Sesuai anggaran</span>
+                            <h2>{{ __('dashboard.recommendations') }}</h2>
+                        </div>
+                        <i class="bi bi-stars member-heading-icon" aria-hidden="true"></i>
+                    </div>
+                    @if ($planningOrderTotal > 0)
+                        <div class="member-summary mt-2">
+                            <div class="fw-semibold">{{ $planningOrders->count() }} pesanan paket aktif tersinkron</div>
+                            <div class="small text-muted mt-1">Total disetujui dan kekurangan dapat dilihat pada rekap pembayaran.</div>
+                            <a href="#payment-recap" class="small fw-semibold text-decoration-none d-inline-block mt-2">Lihat rekap pembayaran</a>
+                        </div>
+                    @else
+                        <div class="member-summary mt-2">
+                            <div class="fw-semibold">Belum ada pesanan paket aktif</div>
+                            <div class="small text-muted mt-1">Setelah memilih paket, total biaya dan pembayaran akan muncul di sini.</div>
+                        </div>
+                    @endif
+                    <div class="mt-2">
+                        @include('pages.dashboard.partials.package-recommendations')
+                    </div>
+                </div>
+            </section>
         </div>
 
         <div class="col-xl-4">
@@ -125,6 +141,29 @@
                     @unless ($planningEventDate)
                         <a href="#package-recommendation" class="btn btn-sm btn-outline-success mt-3">Pilih paket untuk mulai</a>
                     @endunless
+                </div>
+            </section>
+
+            <section class="card member-card member-section-card member-actions-card mb-4">
+                <div class="card-body">
+                    <div class="member-section-heading">
+                        <div>
+                            <span class="member-eyebrow">Pintasan</span>
+                            <h2>{{ __('dashboard.quick_actions') }}</h2>
+                        </div>
+                        <i class="bi bi-lightning-charge member-heading-icon" aria-hidden="true"></i>
+                    </div>
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="#package-recommendation" class="btn btn-success"><i class="bi bi-search me-1"></i> {{ __('dashboard.find_packages') }}</a>
+                        <a href="{{ route('orders.index') }}" class="btn btn-outline-success"><i class="bi bi-receipt me-1"></i> {{ __('dashboard.check_payment') }}</a>
+                        <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary"><i class="bi bi-person me-1"></i> Profil Saya</a>
+                    </div>
+                    @if($activePackage)
+                        <hr>
+                        <div class="small text-muted mb-1">Paket Aktif</div>
+                        <div class="fw-semibold">{{ $activePackage->package?->name ?? 'Paket Wedding' }}</div>
+                        <div class="small text-muted">Berlaku sampai {{ $activePackage->expired_at?->translatedFormat('d M Y') ?? '-' }}</div>
+                    @endif
                 </div>
             </section>
 
@@ -174,7 +213,7 @@
     </div>
 
     <div class="row g-4 mt-1">
-        <div class="col-xl-8">
+        <div class="col-12">
             <section id="payment-recap" class="card member-card member-section-card h-100">
                 <div class="card-body">
                     <div class="member-section-heading">
@@ -263,56 +302,5 @@
             </section>
         </div>
 
-        <div class="col-xl-4">
-            <section class="card member-card member-section-card mb-4">
-                <div class="card-body">
-                    <div class="member-section-heading">
-                        <div>
-                            <span class="member-eyebrow">Sesuai anggaran</span>
-                            <h2>{{ __('dashboard.recommendations') }}</h2>
-                        </div>
-                        <i class="bi bi-stars member-heading-icon" aria-hidden="true"></i>
-                    </div>
-                    @if ($planningOrderTotal > 0)
-                        <div class="member-summary mt-3">
-                            <div class="fw-semibold">{{ $planningOrders->count() }} pesanan paket aktif tersinkron</div>
-                            <div class="small text-muted mt-1">Total disetujui dan kekurangan dapat dilihat pada rekap pembayaran.</div>
-                            <a href="#payment-recap" class="small fw-semibold text-decoration-none d-inline-block mt-2">Lihat rekap pembayaran</a>
-                        </div>
-                    @else
-                        <div class="member-summary mt-3">
-                            <div class="fw-semibold">Belum ada pesanan paket aktif</div>
-                            <div class="small text-muted mt-1">Setelah memilih paket, total biaya dan pembayaran akan muncul di sini.</div>
-                        </div>
-                    @endif
-                    <div class="mt-3">
-                        @include('pages.dashboard.partials.package-recommendations')
-                    </div>
-                </div>
-            </section>
-
-            <section class="card member-card member-section-card member-actions-card">
-                <div class="card-body">
-                    <div class="member-section-heading">
-                        <div>
-                            <span class="member-eyebrow">Pintasan</span>
-                            <h2>{{ __('dashboard.quick_actions') }}</h2>
-                        </div>
-                        <i class="bi bi-lightning-charge member-heading-icon" aria-hidden="true"></i>
-                    </div>
-                    <div class="d-grid gap-2 mt-3">
-                        <a href="#package-recommendation" class="btn btn-success"><i class="bi bi-search me-1"></i> {{ __('dashboard.find_packages') }}</a>
-                        <a href="{{ route('orders.index') }}" class="btn btn-outline-success"><i class="bi bi-receipt me-1"></i> {{ __('dashboard.check_payment') }}</a>
-                        <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary"><i class="bi bi-person me-1"></i> Profil Saya</a>
-                    </div>
-                    @if($activePackage)
-                        <hr>
-                        <div class="small text-muted mb-1">Paket Aktif</div>
-                        <div class="fw-semibold">{{ $activePackage->package?->name ?? 'Paket Wedding' }}</div>
-                        <div class="small text-muted">Berlaku sampai {{ $activePackage->expired_at?->translatedFormat('d M Y') ?? '-' }}</div>
-                    @endif
-                </div>
-            </section>
-        </div>
     </div>
 </div>

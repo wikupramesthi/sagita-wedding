@@ -13,6 +13,14 @@ class DashboardLocalizationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_backend_is_fixed_to_indonesian(): void
+    {
+        $this->assertSame('id', config('app.locale'));
+        $this->assertSame('id', config('app.fallback_locale'));
+        $this->assertSame('id_ID', config('app.faker_locale'));
+        $this->assertDirectoryDoesNotExist(lang_path('en'));
+    }
+
     protected function setUp(): void
     {
         parent::setUp();

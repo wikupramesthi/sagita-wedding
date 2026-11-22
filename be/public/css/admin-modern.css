@@ -5942,6 +5942,7 @@ form.d-flex.flex-wrap > div,
     --member-green-dark: #1f7a4b;
     max-width: 1480px;
     margin: 0 auto;
+    container-type: inline-size;
 }
 
 #main-content .member-dashboard .member-hero {
@@ -6121,7 +6122,7 @@ form.d-flex.flex-wrap > div,
 
 #main-content .member-dashboard .member-milestone {
     position: relative;
-    padding-bottom: 1rem;
+    padding-bottom: .65rem;
 }
 
 #main-content .member-dashboard .member-milestone:last-child {
@@ -6174,6 +6175,10 @@ form.d-flex.flex-wrap > div,
 #main-content .member-dashboard .member-actions-card .btn {
     padding: .7rem .85rem !important;
     text-align: left;
+}
+
+#main-content .member-dashboard .member-recommendation-card .member-summary {
+    padding: .75rem;
 }
 
 [data-bs-theme="dark"] #main-content .member-dashboard .member-card {

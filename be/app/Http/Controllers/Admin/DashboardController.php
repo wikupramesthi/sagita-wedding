@@ -5,18 +5,18 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\DashboardExport;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
-use App\Models\Banner;
 use App\Models\Consultation;
 use App\Models\Event;
 use App\Models\FailedLogin;
 use App\Models\LoginLockout;
 use App\Models\Package\Package;
 use App\Models\Payment\Order;
-use App\Models\Payment\WeddingChecklistItem;
 use App\Models\User;
 use App\Models\UserPackage;
 use App\Models\Venue;
 use App\Models\WebsiteIdentity;
+use App\Services\Dashboard\MemberDashboardService;
+use App\Services\Dashboard\PackageRecommendationService;
 use App\Support\DashboardCache;
 use App\Support\MemberView;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -24,7 +24,6 @@ use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +31,12 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        private readonly MemberDashboardService $memberDashboard,
+        private readonly PackageRecommendationService $packageRecommendations,
+    ) {
+    }
+
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -159,9 +164,6 @@ class DashboardController extends Controller
             $data = array_merge($data, $adminData, $adminViewData);
         }
 
-        $data['attendedCount'] = 0;
-        $data['totalClasses'] = 0;
-        $data['upcomingClasses'] = collect();
         $data += [
             'events' => Event::where('status', 'published')
                 ->whereDate('tanggal', '>=', now())
@@ -173,149 +175,7 @@ class DashboardController extends Controller
         ];
 
         if (! $isAdmin) {
-            $data['jumlahMembers'] = $countBetween(User::role('user'), 'created_at', $startDate, $endDate);
-            $data['jumlahVendor'] = $countBetween(User::role('vendor'), 'created_at', $startDate, $endDate);
-            $data['totalEvents'] = $countBetween(Event::query(), 'created_at', $startDate, $endDate);
-            $data['totalPackages'] = $countBetween(Package::query(), 'created_at', $startDate, $endDate);
-
-            $activePackage = $user->userPackages()
-                ->with('package')
-                ->where('status', 'active')
-                ->where(function ($q) {
-                    $q->whereNull('expired_at')->orWhere('expired_at', '>=', now());
-                })
-                ->latest('started_at')
-                ->first();
-            $data['activePackage'] = $activePackage;
-
-            $myOrders = Order::where('user_uuid', $user->uuid)->latest();
-            $planningOrders = (clone $myOrders)
-                ->where('type', 'package')
-                ->whereIn('status', ['pending', 'partially_paid', 'paid'])
-                ->whereHas('package', fn ($query) => $query->wedding())
-                ->with([
-                    'package:uuid,name',
-                    'packageOption:uuid,name',
-                    'payments' => fn ($query) => $query->latest(),
-                ])
-                ->orderBy('event_date')
-                ->get();
-            $data['myOrders'] = (clone $myOrders)
-                ->where('type', 'package')
-                ->whereIn('status', ['pending', 'partially_paid', 'paid'])
-                ->with([
-                    'package:uuid,name',
-                    'packageOption:uuid,name',
-                    'payments' => fn ($query) => $query->latest(),
-                ])
-                ->take(5)
-                ->get();
-            $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
-            $data['recentPaymentProofs'] = $data['myOrders']
-                ->flatMap(fn (Order $order) => $order->payments
-                    ->filter(fn ($payment) => $payment->proof_image_path)
-                    ->map(fn ($payment) => ['order' => $order, 'payment' => $payment]))
-                ->sortByDesc(fn (array $proof) => $proof['payment']->proof_uploaded_at ?? $proof['payment']->created_at)
-                ->take(5)
-                ->values();
-            $data['paymentOrderTotal'] = $data['myOrders']->sum(fn (Order $order) => (float) $order->full_amount);
-            $data['paymentPaidTotal'] = $data['myOrders']->sum(fn (Order $order) => (float) $order->amount_paid_value);
-            $data['paymentRemainingTotal'] = max(0, $data['paymentOrderTotal'] - $data['paymentPaidTotal']);
-            $data['paymentProgress'] = $data['paymentOrderTotal'] > 0
-                ? (int) min(100, round($data['paymentPaidTotal'] / $data['paymentOrderTotal'] * 100))
-                : 0;
-            $planningEventOrder = $planningOrders->first(
-                fn (Order $order) => $order->event_date?->greaterThanOrEqualTo(today())
-            ) ?? $planningOrders->first(fn (Order $order) => $order->event_date !== null);
-            $data['planningEventDate'] = $planningEventOrder?->event_date;
-            $data['planningOrders'] = $planningOrders;
-            $data['dashboardChecklistOrder'] = $planningEventOrder;
-            $data['dashboardChecklistItems'] = $planningEventOrder
-                ? WeddingChecklistItem::where('order_uuid', $planningEventOrder->uuid)->orderBy('due_at')->orderBy('created_at')->get()
-                : collect();
-            $data['planningOrderTotal'] = $planningOrders->sum(fn (Order $order) => (float) $order->full_amount);
-            $data['planningPaidTotal'] = $planningOrders->sum(fn (Order $order) => (float) $order->amount_paid_value);
-            $data['planningRemainingTotal'] = max(0, $data['planningOrderTotal'] - $data['planningPaidTotal']);
-            $data['planningBudgetProgress'] = $data['planningOrderTotal'] > 0
-                ? (int) min(100, round($data['planningPaidTotal'] / $data['planningOrderTotal'] * 100))
-                : 0;
-            $data['planningDaysRemaining'] = $data['planningEventDate']
-                ? now()->startOfDay()->diffInDays(Carbon::parse($data['planningEventDate'])->startOfDay(), false)
-                : null;
-            $data['planningTimeline'] = collect([
-                ['label' => 'Tentukan konsep & anggaran', 'months_before' => 12],
-                ['label' => 'Pilih venue dan vendor utama', 'months_before' => 9],
-                ['label' => 'Finalisasi daftar tamu dan undangan', 'months_before' => 6],
-                ['label' => 'Finalisasi dekorasi dan busana', 'months_before' => 3],
-                ['label' => 'Konfirmasi vendor dan susunan acara', 'months_before' => 1],
-                ['label' => 'Hari pernikahan', 'months_before' => 0],
-            ])->map(fn (array $milestone) => [
-                'label' => $milestone['label'],
-                'offset' => $milestone['months_before'] > 0
-                    ? $milestone['months_before'].' bulan sebelum acara'
-                    : 'Hari pernikahan',
-                'date' => $data['planningEventDate']
-                    ? Carbon::parse($data['planningEventDate'])->subMonthsNoOverflow($milestone['months_before'])
-                    : null,
-            ]);
-            $hasPlanningOrders = $planningOrders->isNotEmpty();
-            $allPlanningOrdersPaid = $hasPlanningOrders && $planningOrders->every(
-                fn (Order $order) => $order->status === 'paid'
-            );
-            $data['planningSteps'] = [
-                [
-                    'label' => 'Pilih paket wedding',
-                    'description' => $hasPlanningOrders
-                        ? $planningOrders->count().' pesanan paket aktif'
-                        : 'Pilih paket agar tanggal dan biaya acara terhubung di sini.',
-                    'done' => $hasPlanningOrders,
-                    'url' => $hasPlanningOrders ? route('orders.index') : '#package-recommendation',
-                    'action' => $hasPlanningOrders ? 'Lihat pesanan' : 'Cari paket',
-                ],
-                [
-                    'label' => 'Tentukan tanggal acara',
-                    'description' => $data['planningEventDate']
-                        ? Carbon::parse($data['planningEventDate'])->translatedFormat('d F Y')
-                        : 'Tanggal acara tercatat bersama pesanan paket.',
-                    'done' => $data['planningEventDate'] !== null,
-                    'url' => $hasPlanningOrders ? route('orders.index') : '#package-recommendation',
-                    'action' => $data['planningEventDate'] ? 'Lihat pesanan' : 'Cari paket',
-                ],
-                [
-                    'label' => 'Selesaikan pembayaran',
-                    'description' => ! $hasPlanningOrders
-                        ? 'Status pembayaran akan muncul setelah memilih paket.'
-                        : ($allPlanningOrdersPaid ? 'Semua pesanan aktif sudah lunas.' : 'Masih ada pembayaran yang perlu diselesaikan.'),
-                    'done' => $allPlanningOrdersPaid,
-                    'url' => $hasPlanningOrders ? route('orders.index') : '#package-recommendation',
-                    'action' => $hasPlanningOrders ? 'Cek pembayaran' : 'Cari paket',
-                ],
-            ];
-            $completedPlanningSteps = count(array_filter(
-                $data['planningSteps'],
-                fn (array $step) => $step['done']
-            ));
-            $data['completedPlanningSteps'] = $completedPlanningSteps;
-            $data['planningProgress'] = (int) round($completedPlanningSteps / count($data['planningSteps']) * 100);
-            $data['budgetMax'] = $validated['budget_max'] ?? null;
-            $data['recommendedPackages'] = $data['budgetMax'] === null
-                ? collect()
-                : $this->findPackageRecommendations((int) $data['budgetMax']);
-            $orderStatsRow = (clone $myOrders)
-                ->reorder()
-                ->selectRaw(
-                    'COUNT(*) as total, '.
-                    'SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as pending, '.
-                    "SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid",
-                    ['pending', 'partially_paid']
-                )
-                ->first();
-            $data['myOrderStats'] = [
-                'total' => (int) $orderStatsRow->total,
-                'pending' => (int) $orderStatsRow->pending,
-                'paid' => (int) $orderStatsRow->paid,
-                'active_package' => $activePackage ? 1 : 0,
-            ];
+            $data = array_merge($data, $this->memberDashboard->build($user, $validated['budget_max'] ?? null));
 
             if (MemberView::isMobile()) {
                 return view('pages.mobile.home', $data + [
@@ -340,57 +200,15 @@ class DashboardController extends Controller
         ]);
         $budgetMax = (int) $validated['budget_max'];
 
-        $recommendations = $this->findPackageRecommendations($budgetMax)
-            ->map(fn (array $recommendation) => [
-                'name' => $recommendation['package']->name,
-                'option' => $recommendation['option']->name,
-                'price' => $recommendation['price'],
-                'formatted_price' => number_format($recommendation['price'], 0, ',', '.'),
-                'checkout_url' => route('checkout.package', $recommendation['package']->uuid),
-            ]);
+        $recommendations = $this->packageRecommendations->toPayload(
+            $this->packageRecommendations->forBudget($budgetMax)
+        );
 
         return response()->json([
             'budget_max' => $budgetMax,
             'formatted_budget' => number_format($budgetMax, 0, ',', '.'),
             'recommendations' => $recommendations,
         ]);
-    }
-
-    private function findPackageRecommendations(int $budgetMax): Collection
-    {
-        $priceForOption = fn ($option): int => min(
-            (int) $option->price,
-            (int) ($option->discount_price ?? $option->price)
-        );
-
-        return Package::published()
-            ->wedding()
-            ->with(['options' => fn ($query) => $query
-                ->where('is_active', true)
-                ->orderBy('sort_order')])
-            ->get()
-            ->map(function (Package $package) use ($budgetMax, $priceForOption) {
-                $matchingOptions = $package->options
-                    ->filter(fn ($option) => $priceForOption($option) <= $budgetMax)
-                    ->sortBy($priceForOption)
-                    ->values();
-
-                if ($matchingOptions->isEmpty()) {
-                    return null;
-                }
-
-                $option = $matchingOptions->first();
-
-                return [
-                    'package' => $package,
-                    'option' => $option,
-                    'price' => $priceForOption($option),
-                ];
-            })
-            ->filter()
-            ->sortBy('price')
-            ->take(6)
-            ->values();
     }
 
     public function refresh(Request $request): JsonResponse
