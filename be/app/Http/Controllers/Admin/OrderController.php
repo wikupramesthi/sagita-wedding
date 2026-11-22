@@ -777,7 +777,9 @@ class OrderController extends Controller
      */
     private function rejectPendingOrder(string $orderUuid, string $note): Order
     {
-        return DB::transaction(function () use ($orderUuid, $note) {
+        $reservations = app(EventDateReservationService::class);
+
+        return DB::transaction(function () use ($orderUuid, $note, $reservations) {
             $order = Order::packageOnly()->where('uuid', $orderUuid)->lockForUpdate()->firstOrFail();
             if (! in_array($order->status, ['pending', 'partially_paid'], true)) {
                 throw ValidationException::withMessages(['order' => __('flash.order_only_pending_reject')]);
