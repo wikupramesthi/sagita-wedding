@@ -45,11 +45,6 @@ use Throwable;
 
 class OrderController extends Controller
 {
-    public function __construct()
-    {
-        app()->setLocale('id');
-    }
-
     /**
      * Display a listing of orders.
      */
@@ -351,7 +346,7 @@ class OrderController extends Controller
         }
 
         $perPage = (int) ($filters['per_page'] ?? 10);
-        $normalized['per_page'] = in_array($perPage, [10, 25, 50], true) ? $perPage : 10;
+        $normalized['per_page'] = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 10;
 
         $sort = (string) ($filters['sort'] ?? 'latest');
         $normalized['sort'] = in_array($sort, ['latest', 'oldest', 'amount_desc', 'amount_asc'], true) ? $sort : 'latest';

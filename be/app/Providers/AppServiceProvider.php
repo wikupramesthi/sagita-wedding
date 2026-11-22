@@ -13,6 +13,7 @@ use App\Services\EmailSettingService;
 use App\Services\WhatsApp\HttpWhatsAppGateway;
 use App\Services\WhatsApp\LinkWhatsAppGateway;
 use App\Services\WhatsApp\LogWhatsAppGateway;
+use Carbon\Carbon;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -48,6 +49,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Carbon::setLocale($this->app->getLocale());
+
         Gate::policy(Order::class, OrderPolicy::class);
 
         EmailSettingService::apply();

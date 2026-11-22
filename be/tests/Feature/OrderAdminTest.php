@@ -474,6 +474,22 @@ class OrderAdminTest extends TestCase
             ]));
     }
 
+    public function test_saved_filter_keeps_allowed_per_page_100(): void
+    {
+        $this->actingAs($this->admin)
+            ->post(route('orders.saved-filters.store'), [
+                'name' => 'Tampilkan 100',
+                'filters' => json_encode(['per_page' => 100]),
+            ])
+            ->assertRedirect();
+
+        $savedFilter = OrderSavedFilter::where('user_uuid', $this->admin->uuid)->firstOrFail();
+
+        $this->actingAs($this->admin)
+            ->get(route('orders.saved-filters.apply', $savedFilter))
+            ->assertRedirect(route('orders.index', ['per_page' => 100, 'sort' => 'latest']));
+    }
+
     public function test_admin_can_pin_reorder_and_unset_saved_filter_default(): void
     {
         $this->actingAs($this->admin)

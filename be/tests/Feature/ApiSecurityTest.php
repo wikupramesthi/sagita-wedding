@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Controllers\GoogleController;
 use App\Models\Event;
 use App\Models\User;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use ReflectionMethod;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -26,6 +28,7 @@ class ApiSecurityTest extends TestCase
         parent::setUp();
 
         config(['services.frontend_api.key' => self::API_KEY]);
+        $this->seed(RouteSeeder::class);
     }
 
     private function api()
@@ -118,7 +121,7 @@ class ApiSecurityTest extends TestCase
         config(['frontend.url' => 'https://frontend.test']);
         Role::findOrCreate('user', 'web');
 
-        $googleUser = (new SocialiteUser())->map([
+        $googleUser = (new SocialiteUser)->map([
             'id' => 'google-123',
             'nickname' => 'tester',
             'name' => 'Tester',
@@ -146,6 +149,20 @@ class ApiSecurityTest extends TestCase
         Role::findOrCreate('super-admin', 'web');
         Role::findOrCreate('user', 'web');
         Role::findOrCreate('vendor', 'web');
+
+        $rolePermissions = [
+            'admin' => ['events.store'],
+            'user' => ['events.index', 'dashboard.index'],
+        ];
+
+        foreach ($rolePermissions as $roleName => $permissionNames) {
+            foreach ($permissionNames as $permissionName) {
+                Role::findByName($roleName, 'web')->givePermissionTo(
+                    Permission::firstOrCreate(['name' => $permissionName, 'guard_name' => 'web'])
+                );
+            }
+        }
+
         $admin = User::factory()->create();
         $admin->assignRole('admin');
         $member = User::factory()->create();

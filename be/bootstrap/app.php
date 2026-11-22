@@ -3,7 +3,6 @@
 use App\Http\Middleware\ApiSecurityHeaders;
 use App\Http\Middleware\AutoLogoutInactive;
 use App\Http\Middleware\RouteMiddleware;
-use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\VerifyApiKey;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -37,7 +36,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // "Tetap Login / Logout" ada di layouts/app.blade.php (@auth).
         $middleware->appendToGroup('web', 'route.permission');
         $middleware->appendToGroup('web', AutoLogoutInactive::class);
-        $middleware->appendToGroup('web', SetLocale::class);
         $middleware->throttleApi('api');
         $middleware->prependToGroup('api', ApiSecurityHeaders::class);
         $middleware->appendToGroup('api', VerifyApiKey::class);

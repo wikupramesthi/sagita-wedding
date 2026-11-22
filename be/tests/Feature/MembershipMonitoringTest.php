@@ -7,9 +7,11 @@ use App\Models\Payment\Order;
 use App\Models\Payment\Payment;
 use App\Models\User;
 use App\Models\UserPackage;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -23,6 +25,22 @@ class MembershipMonitoringTest extends TestCase
 
         foreach (['user', 'admin', 'super-admin', 'vendor'] as $role) {
             Role::create(['name' => $role, 'guard_name' => 'web']);
+        }
+
+        $this->seed(RouteSeeder::class);
+
+        $rolePermissions = [
+            'admin' => ['memberships.index', 'memberships.show', 'memberships.export', 'orders.proof'],
+            'user' => ['memberships.index', 'memberships.show', 'orders.proof'],
+            'vendor' => ['dashboard.index'],
+        ];
+
+        foreach ($rolePermissions as $roleName => $permissions) {
+            foreach ($permissions as $permissionName) {
+                Role::findByName($roleName, 'web')->givePermissionTo(
+                    Permission::firstOrCreate(['name' => $permissionName, 'guard_name' => 'web'])
+                );
+            }
         }
     }
 

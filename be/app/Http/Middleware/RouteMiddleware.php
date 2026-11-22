@@ -80,7 +80,7 @@ class RouteMiddleware
             && $request->is('backend/*')
             && ! self::memberAllowed($routeName)
             && ! $user->hasAnyRole(['super-admin', 'admin'])
-            && ! ($user->hasRole('vendor') && $routeName === 'vendor.mobile')
+            && ! ($user->hasRole('vendor') && in_array($routeName, ['dashboard.index', 'vendor.mobile'], true))
         ) {
             abort(404);
         }

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -24,29 +25,13 @@ class DashboardLocalizationTest extends TestCase
         Role::findByName('admin', 'web')->givePermissionTo('konsultasi.index');
     }
 
-    public function test_admin_dashboard_follows_session_locale(): void
+    public function test_admin_dashboard_uses_indonesian_regardless_of_session_locale(): void
     {
         $admin = User::factory()->create(['email_verified_at' => now()]);
         $admin->assignRole('admin');
 
         $this->actingAs($admin)
             ->withSession(['locale' => 'en'])
-            ->get(route('dashboard.index'))
-            ->assertOk()
-            ->assertSee('Quick actions')
-            ->assertSee('Action queue')
-            ->assertSee('Admin overview')
-            ->assertSee('Last updated')
-            ->assertSee('Live')
-            ->assertSee('Revenue')
-            ->assertSee('Orders')
-            ->assertSee('Consultations')
-            ->assertSee('Events')
-            ->assertSee('Users')
-            ->assertSee('Language');
-
-        $this->actingAs($admin)
-            ->withSession(['locale' => 'id'])
             ->get(route('dashboard.index'))
             ->assertOk()
             ->assertSee('Aksi cepat')
@@ -59,10 +44,15 @@ class DashboardLocalizationTest extends TestCase
             ->assertSee('Konsultasi')
             ->assertSee('Acara')
             ->assertSee('Pengguna')
-            ->assertSee('Bahasa');
+            ->assertDontSee('Quick actions')
+            ->assertDontSee('Action queue')
+            ->assertDontSee('Admin overview')
+            ->assertDontSee('Last updated')
+            ->assertDontSee('Language')
+            ->assertDontSee('Bahasa');
     }
 
-    public function test_member_dashboard_follows_session_locale(): void
+    public function test_member_dashboard_uses_indonesian_regardless_of_session_locale(): void
     {
         $member = User::factory()->create(['email_verified_at' => now()]);
         $member->assignRole('user');
@@ -71,37 +61,29 @@ class DashboardLocalizationTest extends TestCase
             ->withSession(['locale' => 'en'])
             ->get(route('dashboard.index'))
             ->assertOk()
-            ->assertSee('Planning')
-            ->assertSee('Payment')
-            ->assertSee('Checklist')
-            ->assertSee('Recommendations')
-            ->assertSee('Find packages')
-            ->assertSee('Check payment')
-            ->assertSee('Language');
-
-        $this->actingAs($member)
-            ->withSession(['locale' => 'id'])
-            ->get(route('dashboard.index'))
-            ->assertOk()
             ->assertSee('Perencanaan')
-            ->assertSee('Pembayaran')
+            ->assertSee('Rekap Pembayaran dan Bukti Transfer')
             ->assertSee('Checklist')
             ->assertSee('Rekomendasi')
             ->assertSee('Cari paket')
             ->assertSee('Cek pembayaran')
-            ->assertSee('Bahasa');
+            ->assertDontSee('Planning')
+            ->assertDontSee('Payment and Transfer Proof Summary')
+            ->assertDontSee('Find packages')
+            ->assertDontSee('Check payment')
+            ->assertDontSee('Language')
+            ->assertDontSee('Bahasa');
     }
 
-    public function test_locale_route_switches_session_locale(): void
+    public function test_backend_locale_route_is_not_available(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
         $user->assignRole('user');
 
-        $response = $this->actingAs($user)
-            ->withSession(['locale' => 'id'])
-            ->get(route('locale', 'en'));
+        $this->assertFalse(Route::has('locale'));
 
-        $response->assertRedirect();
-        $response->assertSessionHas('locale', 'en');
+        $this->actingAs($user)
+            ->get('/lang/en')
+            ->assertNotFound();
     }
 }

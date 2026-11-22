@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Faq;
 use App\Models\User;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
@@ -21,6 +22,7 @@ class FaqCategoryTest extends TestCase
         parent::setUp();
 
         config(['services.frontend_api.key' => self::API_KEY]);
+        $this->seed(RouteSeeder::class);
     }
 
     public function test_faqs_table_has_kategori_column_and_expected_categories(): void

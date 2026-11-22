@@ -891,13 +891,10 @@
 @endpush
 
 @push('after-script')
-@php
-    $jsLocale = ['id' => 'id-ID', 'en' => 'en-US'][app()->getLocale()] ?? 'id-ID';
-@endphp
 <script src="{{ asset('dist/assets/extensions/chart.js/chart.umd.js') }}"></script>
 <script>
 (function () {
-    const jsLocale = @json($jsLocale);
+    const jsLocale = 'id-ID';
     const lastUpdatedLabel = @json(__('dashboard.last_updated'));
     const detailsFold = document.querySelector('.dashboard-details-fold');
     if (detailsFold && window.matchMedia('(max-width: 575.98px)').matches) {
