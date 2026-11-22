@@ -156,6 +156,23 @@ class Order extends Model
         return $this->hasMany(Payment::class, 'order_uuid', 'uuid');
     }
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(OrderDocument::class, 'order_uuid', 'uuid')->orderBy('issued_at');
+    }
+
+    public function checklistItems(): HasMany
+    {
+        return $this->hasMany(WeddingChecklistItem::class, 'order_uuid', 'uuid')
+            ->orderBy('due_at')
+            ->orderBy('created_at');
+    }
+
+    public function changeRequests(): HasMany
+    {
+        return $this->hasMany(OrderChangeRequest::class, 'order_uuid', 'uuid')->latest();
+    }
+
     public function proofUrl(): ?string
     {
         return $this->proof_image_path

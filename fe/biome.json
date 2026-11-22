@@ -38,6 +38,7 @@
 				"noConsole": "off"
 			},
 			"style": {
+				"noDescendingSpecificity": "off",
 				"noNonNullAssertion": "off",
 				"useImportType": "off"
 			},

@@ -182,6 +182,33 @@
                 </div>
             </div>
 
+            @if ($dashboardChecklistOrder && $dashboardChecklistItems->isNotEmpty())
+                <div class="app-card p-3 mt-3">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <h3 class="h6 fw-semibold mb-1">Checklist pernikahan</h3>
+                            <div class="small text-muted2">{{ $dashboardChecklistItems->where('status', 'completed')->count() }}/{{ $dashboardChecklistItems->count() }} selesai</div>
+                        </div>
+                        <a href="{{ route('orders.show', $dashboardChecklistOrder->uuid) }}" class="small text-nowrap">Detail</a>
+                    </div>
+                    @foreach ($dashboardChecklistItems->take(5) as $item)
+                        <div class="d-flex align-items-start gap-2 py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                            <form method="POST" action="{{ route('orders.checklist.update', [$dashboardChecklistOrder->uuid, $item->uuid]) }}">
+                                @csrf
+                                <input type="hidden" name="status" value="{{ $item->status === 'completed' ? 'pending' : 'completed' }}">
+                                <button type="submit" class="btn btn-link p-0 border-0" aria-label="{{ $item->status === 'completed' ? 'Tandai belum selesai' : 'Tandai selesai' }}">
+                                    <i class="bi {{ $item->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted' }}"></i>
+                                </button>
+                            </form>
+                            <div class="flex-grow-1">
+                                <div class="small fw-semibold {{ $item->status === 'completed' ? 'text-decoration-line-through text-muted' : '' }}">{{ $item->title }}</div>
+                                @if ($item->due_at)<div class="m-micro text-muted2">Target {{ $item->due_at->translatedFormat('d M Y') }}</div>@endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
             <div class="app-card p-3 mt-3">
                 <h3 class="h6 fw-semibold mb-1">Anggaran & rekomendasi paket</h3>
                 <p class="small text-muted2 mb-3">Temukan paket sesuai anggaran, lalu pilih untuk melanjutkan pemesanan.</p>

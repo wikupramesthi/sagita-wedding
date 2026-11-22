@@ -94,6 +94,8 @@
             </div>
         </div>
 
+        @include('pages.orders.partials.workflow', ['order' => $order, 'availableAddons' => $availableAddons, 'isAdmin' => $isAdmin, 'compact' => false])
+
         <div class="order-detail-layout">
             <div class="order-detail-main">
 

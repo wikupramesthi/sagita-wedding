@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Package\Package;
 use App\Models\Payment\Order;
+use App\Services\CheckoutSessionService;
 use App\Services\EventDateReservationService;
 use App\Support\MemberView;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,12 @@ use Illuminate\Http\Request;
 
 class CheckoutController extends Controller
 {
-    public function package(Request $request, string $packageUuid)
+    public function package(
+        Request $request,
+        string $packageUuid,
+        CheckoutSessionService $checkoutSessions,
+        EventDateReservationService $reservations
+    )
     {
         $package = Package::with([
             'options' => function ($query) {
@@ -59,8 +65,8 @@ class CheckoutController extends Controller
             })
             ->latest()
             ->first();
-        $unavailableEventDates = app(EventDateReservationService::class)
-            ->unavailableDates(now()->toDateString());
+        $checkoutSessions->start($request, $package->uuid);
+        $unavailableEventDates = $reservations->unavailableDates(now()->toDateString());
 
         $viewData = [
             'package' => $package,

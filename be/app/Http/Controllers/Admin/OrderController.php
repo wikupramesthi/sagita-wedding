@@ -20,6 +20,8 @@ use App\Notifications\OrderSlaReminderNotification;
 use App\Notifications\ProofUploadedNotification;
 use App\Services\MembershipService;
 use App\Services\EventDateReservationService;
+use App\Services\CheckoutSessionService;
+use App\Services\OrderWorkflowProvisioningService;
 use App\Support\ImageShrinker;
 use App\Support\MemberView;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -369,6 +371,9 @@ class OrderController extends Controller
             'packageOption',
             'payment',
             'payments',
+            'documents',
+            'checklistItems',
+            'changeRequests.addon',
         ])
             ->where('uuid', $uuid)
             ->firstOrFail();
@@ -383,6 +388,10 @@ class OrderController extends Controller
             abort(403);
         }
 
+        $availableAddons = PackageAddon::where('package_uuid', $order->package_uuid)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
         $userPackage = UserPackage::where('order_uuid', $order->uuid)->first();
         $audits = $isAdmin
             ? AuditLog::where('auditable_type', Order::class)
@@ -397,13 +406,13 @@ class OrderController extends Controller
         if (! $isAdmin && $isMobile) {
             return view(
                 'pages.mobile.order-show',
-                compact('order', 'isAdmin', 'userPackage', 'audits')
+                compact('order', 'isAdmin', 'userPackage', 'audits', 'availableAddons')
             );
         }
 
         return view(
             'pages.orders.show',
-            compact('order', 'isAdmin', 'userPackage', 'audits')
+            compact('order', 'isAdmin', 'userPackage', 'audits', 'availableAddons')
         );
     }
 
@@ -926,13 +935,13 @@ class OrderController extends Controller
             ]);
 
             $this->logOrderAction($lockedOrder, 'payment_approved', ['payment_uuid' => $lockedPayment->uuid, 'amount' => $amount]);
-            $updated = $this->applyVerifiedPaymentToOrder($lockedOrder->fresh());
+            $updated = $this->applyVerifiedPaymentToOrder($lockedOrder->fresh(), $lockedPayment);
 
             return [$updated, $lockedPayment->kind ?: 'payment'];
         });
     }
 
-    private function applyVerifiedPaymentToOrder(Order $order): Order
+    private function applyVerifiedPaymentToOrder(Order $order, Payment $payment): Order
     {
         $fullAmount = (float) ($order->full_amount ?: $order->total_amount ?: $order->amount ?: 0);
         $paid = (float) Payment::where('order_uuid', $order->uuid)
@@ -958,7 +967,10 @@ class OrderController extends Controller
             $this->activateMembershipFromOrder($order->fresh());
         }
 
-        return $order->fresh();
+        $order = $order->fresh();
+        app(OrderWorkflowProvisioningService::class)->afterVerifiedPayment($order, $payment);
+
+        return $order;
     }
 
     private function activateMembershipFromOrder(Order $order): ?UserPackage
@@ -1899,7 +1911,11 @@ class OrderController extends Controller
      * This is called when the user clicks
      * "Continue to Payment".
      */
-    public function store(Request $request, EventDateReservationService $reservations)
+    public function store(
+        Request $request,
+        EventDateReservationService $reservations,
+        CheckoutSessionService $checkoutSessions
+    )
     {
         /*
         |--------------------------------------------------------------------------
@@ -2198,6 +2214,8 @@ class OrderController extends Controller
             ->first();
 
         if ($existingPending) {
+            $checkoutSessions->complete($request, $option->package_uuid, $existingPending->uuid);
+
             return redirect()
                 ->route(
                     'orders.show',
@@ -2298,6 +2316,8 @@ class OrderController extends Controller
         } catch (QueryException $e) {
             return back()->with('error', __('flash.order_pending_exists'));
         }
+
+        $checkoutSessions->complete($request, $option->package_uuid, $order->uuid);
 
         /*
         |--------------------------------------------------------------------------

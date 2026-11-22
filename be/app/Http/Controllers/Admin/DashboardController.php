@@ -12,6 +12,7 @@ use App\Models\FailedLogin;
 use App\Models\LoginLockout;
 use App\Models\Package\Package;
 use App\Models\Payment\Order;
+use App\Models\Payment\WeddingChecklistItem;
 use App\Models\User;
 use App\Models\UserPackage;
 use App\Models\Venue;
@@ -228,6 +229,10 @@ class DashboardController extends Controller
             ) ?? $planningOrders->first(fn (Order $order) => $order->event_date !== null);
             $data['planningEventDate'] = $planningEventOrder?->event_date;
             $data['planningOrders'] = $planningOrders;
+            $data['dashboardChecklistOrder'] = $planningEventOrder;
+            $data['dashboardChecklistItems'] = $planningEventOrder
+                ? WeddingChecklistItem::where('order_uuid', $planningEventOrder->uuid)->orderBy('due_at')->orderBy('created_at')->get()
+                : collect();
             $data['planningOrderTotal'] = $planningOrders->sum(fn (Order $order) => (float) $order->full_amount);
             $data['planningPaidTotal'] = $planningOrders->sum(fn (Order $order) => (float) $order->amount_paid_value);
             $data['planningRemainingTotal'] = max(0, $data['planningOrderTotal'] - $data['planningPaidTotal']);

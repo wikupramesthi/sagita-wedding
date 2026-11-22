@@ -304,6 +304,8 @@
             </div>
         @endif
 
+        @include('pages.orders.partials.workflow', ['order' => $order, 'availableAddons' => $availableAddons, 'isAdmin' => $isAdmin, 'compact' => true])
+
         {{-- REORDER --}}
         @if (in_array($order->status, ['failed', 'expired', 'cancelled'], true))
             <form action="{{ route('orders.reorder', $order->uuid) }}" method="POST" class="mt-3">

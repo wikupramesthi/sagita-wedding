@@ -38,19 +38,34 @@ class ExpireStaleRecords extends Command
             ->get();
 
         $expiredOrders = 0;
+        $reservations = app(EventDateReservationService::class);
 
-        if ($staleOrders->isNotEmpty()) {
-            $expiredOrders = Order::whereIn('uuid', $staleOrders->pluck('uuid'))
-                ->where('status', 'pending')
-                ->update(['status' => 'expired']);
+        foreach ($staleOrders as $order) {
+            $expired = \Illuminate\Support\Facades\DB::transaction(function () use ($order, $reservations): bool {
+                $locked = Order::packageOnly()
+                    ->where('uuid', $order->uuid)
+                    ->lockForUpdate()
+                    ->first();
 
-            foreach ($staleOrders as $order) {
-                app(EventDateReservationService::class)->releaseForOrder($order->uuid);
-                try {
-                    $order->user?->notify(new OrderExpiredNotification($order->order_number));
-                } catch (\Throwable $e) {
-                    Log::warning('Order expiry notification failed for ' . $order->order_number . ': ' . $e->getMessage());
+                if (! $locked || $locked->status !== 'pending' || ! $locked->expired_at?->isPast()) {
+                    return false;
                 }
+
+                $locked->update(['status' => 'expired']);
+                $reservations->releaseForOrder($locked->uuid);
+
+                return true;
+            });
+
+            if (! $expired) {
+                continue;
+            }
+
+            $expiredOrders++;
+            try {
+                $order->user?->notify(new OrderExpiredNotification($order->order_number));
+            } catch (\Throwable $e) {
+                Log::warning('Order expiry notification failed for ' . $order->order_number . ': ' . $e->getMessage());
             }
         }
 

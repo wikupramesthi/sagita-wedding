@@ -194,7 +194,7 @@ const rawTranslations = {
 			venues: "Venues",
 			classes: "Classes",
 			schedules: "Schedules",
-			packages: "Packages & Services",
+			packages: "Wedding Packages",
 			portfolio: "Portfolio",
 			vendors: "Vendors",
 			faq: "FAQs",
@@ -252,7 +252,7 @@ const rawTranslations = {
 		// --- package detail ---
 		packageNotFoundTitle: "Package not found",
 		packageNotFoundDesc: "The package you are looking for is not available.",
-		backToMembership: "Back to Membership",
+		backToMembership: "Back to Packages",
 		mostPopular: "Most Popular",
 		chooseYourOption: "Choose Your Option",
 		chooseYourOptionDesc: "Select the option that best fits your practice.",
@@ -284,7 +284,7 @@ const rawTranslations = {
 		today: "Today",
 
 		// --- packages list ---
-		packagesSearchPlaceholder: "Search membership packages...",
+		packagesSearchPlaceholder: "Search wedding packages...",
 		pagination: "Pagination",
 		prevPage: "Previous",
 		nextPage: "Next",
@@ -427,10 +427,10 @@ const rawTranslations = {
 		eventsFilterWeek: "This Week",
 		eventsFilterMonth: "This Month",
 		eventsSearchBtn: "Search",
-		packagesTitleA: "Membership",
+		packagesTitleA: "Wedding",
 		packagesTitleB: "Packages",
 		packagesDesc:
-			"Find the membership that fits your practice, your pace, and your goals. Explore flexible packages designed to make every Sagita Wedding session more meaningful.",
+			"Choose a wedding package that fits your celebration, style, and priorities. Explore planning packages designed to make your special day seamless and unforgettable.",
 		blogTitleA: "Tips &",
 		blogTitleB: "Inspiration",
 		blogDesc:
@@ -586,7 +586,7 @@ const rawTranslations = {
 			venues: "Venue",
 			classes: "Kelas",
 			schedules: "Jadwal",
-			packages: "Paket & Layanan",
+			packages: "Paket Pernikahan",
 			portfolio: "Portofolio",
 			vendors: "Vendor",
 			faq: "FAQ",
@@ -645,7 +645,7 @@ const rawTranslations = {
 		// --- detail paket ---
 		packageNotFoundTitle: "Paket tidak ditemukan",
 		packageNotFoundDesc: "Paket yang kamu cari tidak tersedia.",
-		backToMembership: "Kembali ke Membership",
+		backToMembership: "Kembali ke Paket",
 		mostPopular: "Paling Populer",
 		chooseYourOption: "Pilih Opsi",
 		chooseYourOptionDesc: "Pilih opsi yang paling sesuai dengan praktikmu.",
@@ -677,7 +677,7 @@ const rawTranslations = {
 		today: "Hari ini",
 
 		// --- daftar paket ---
-		packagesSearchPlaceholder: "Cari paket membership...",
+		packagesSearchPlaceholder: "Cari paket pernikahan...",
 		pagination: "Navigasi halaman",
 		prevPage: "Sebelumnya",
 		nextPage: "Berikutnya",
@@ -822,9 +822,9 @@ const rawTranslations = {
 		eventsFilterMonth: "Bulan Ini",
 		eventsSearchBtn: "Cari",
 		packagesTitleA: "Paket",
-		packagesTitleB: "Membership",
+		packagesTitleB: "Pernikahan",
 		packagesDesc:
-			"Temukan membership yang sesuai dengan praktikmu, ritmemu, dan tujuanmu. Jelajahi paket fleksibel yang dirancang untuk membuat setiap sesi Sagita Wedding lebih bermakna.",
+			"Pilih paket pernikahan yang sesuai dengan perayaan, gaya, dan prioritas Anda. Jelajahi paket perencanaan yang dirancang untuk membuat hari istimewa Anda berjalan lancar dan tak terlupakan.",
 		blogTitleA: "Tips &",
 		blogTitleB: "Inspirasi",
 		blogDesc:
