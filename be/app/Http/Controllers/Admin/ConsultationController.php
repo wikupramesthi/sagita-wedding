@@ -292,6 +292,7 @@ class ConsultationController extends Controller
                 'success' => $records->count().' data konsultasi berhasil '.$messages[$data['action']].'.',
                 'undo_token' => $undoToken,
                 'undo_message' => $records->count().' data konsultasi berhasil '.$messages[$data['action']].'.',
+                'undo_url' => route('konsultasi.bulk-undo'),
             ]);
         };
 

@@ -220,7 +220,7 @@
 
             var csrfMeta = document.querySelector('meta[name="csrf-token"]');
             var csrf = csrfMeta ? csrfMeta.getAttribute('content') : '';
-            var undoUrl = "{{ route('orders.bulk-undo') }}";
+            var undoUrl = "{{ session('undo_url') ?: route('orders.bulk-undo') }}";
 
             function dismissToast(toast) {
                 if (!toast) return;

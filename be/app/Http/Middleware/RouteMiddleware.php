@@ -55,6 +55,17 @@ class RouteMiddleware
         }
 
         $routeName = $request->route()?->getName();
+
+        if (
+            $user
+            && $request->is('backend/*')
+            && ! self::memberAllowed($routeName)
+            && ! $user->hasAnyRole(['super-admin', 'admin'])
+            && ! ($user->hasRole('vendor') && $routeName === 'vendor.mobile')
+        ) {
+            abort(404);
+        }
+
         $routes = $routeName
             ? Cache::remember('route.permission.'.$routeName, 60, fn () => Route::firstWhere('route', $routeName))
             : null;

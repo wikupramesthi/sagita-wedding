@@ -440,6 +440,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             @if ($isAdmin)
             <form id="bulkForm" method="POST" action="{{ route('orders.bulk') }}">
                 @csrf
+                <input type="hidden" name="idempotency_key" value="{{ Str::uuid() }}">
                 <input type="hidden" name="action" id="bulkAction" value="">
                 <input type="hidden" name="admin_note" id="bulkNote" value="">
                 <div class="orders-bulk-bar">
@@ -471,6 +472,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             </form>
             <form id="singleRejectForm" method="POST" action="">
                 @csrf
+                <input type="hidden" name="idempotency_key" value="{{ Str::uuid() }}">
                 <input type="hidden" name="admin_note" id="singleRejectNote" value="">
             </form>
             @endif
@@ -658,6 +660,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                             <li>
                                                 <form method="POST" action="{{ route('orders.approve', $order->uuid) }}">
                                                     @csrf
+                                                    <input type="hidden" name="idempotency_key" value="{{ Str::uuid() }}">
                                                     <button type="submit" class="dropdown-item text-success"
                                                         onclick="return confirm('Setujui pesanan {{ $order->order_number }}?')">
                                                         <i class="bi bi-check-lg me-2"></i>Setujui

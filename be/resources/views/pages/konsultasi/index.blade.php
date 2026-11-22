@@ -450,24 +450,6 @@
     @endforeach
 @endcan
 
-@if (session('undo_token'))
-    <div class="konsultasi-undo-toast" id="konsultasiUndoToast" role="status" aria-live="polite">
-        <div class="d-flex align-items-center gap-3">
-            <i class="bi bi-arrow-counterclockwise fs-5 text-warning"></i>
-            <div class="min-w-0 flex-grow-1">
-                <div class="small fw-semibold">{{ session('undo_message') }}</div>
-                <div class="small text-muted">Klik urungkan dalam <span id="konsultasiUndoCountdown">5</span> detik.</div>
-            </div>
-            <form method="POST" action="{{ route('konsultasi.bulk-undo') }}">
-                @csrf
-                <input type="hidden" name="undo_token" value="{{ session('undo_token') }}">
-                <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-arrow-counterclockwise me-1"></i> Urungkan</button>
-            </form>
-            <button type="button" class="btn-close" data-konsultasi-undo-close aria-label="Tutup"></button>
-        </div>
-    </div>
-@endif
-
 @push('after-style')
 <style>
     #main-content .konsultasi-mobile-fold > summary {
@@ -1046,31 +1028,6 @@
 
             search.focus();
         });
-
-        var toast = document.getElementById('konsultasiUndoToast');
-
-        if (toast) {
-            var seconds = 5;
-            var countdown = document.getElementById('konsultasiUndoCountdown');
-            var timer = window.setInterval(function () {
-                seconds -= 1;
-
-                if (countdown) countdown.textContent = String(Math.max(seconds, 0));
-
-                if (seconds <= 0) {
-                    window.clearInterval(timer);
-                    toast.remove();
-                }
-            }, 1000);
-            var closeToast = toast.querySelector('[data-konsultasi-undo-close]');
-
-            if (closeToast) {
-                closeToast.addEventListener('click', function () {
-                    window.clearInterval(timer);
-                    toast.remove();
-                });
-            }
-        }
 
         var form = document.getElementById('konsultasi-bulk-form');
         if (!form) return;

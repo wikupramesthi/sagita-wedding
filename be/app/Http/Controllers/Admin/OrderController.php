@@ -1108,7 +1108,8 @@ class OrderController extends Controller
 
             if ($cachedResult !== 'done') {
                 $response->with('undo_token', $cachedResult)
-                    ->with('undo_message', 'Tindakan massal dapat dibatalkan dalam 10 menit.');
+                    ->with('undo_message', 'Tindakan massal dapat dibatalkan dalam 10 menit.')
+                    ->with('undo_url', route('orders.bulk-undo'));
             }
 
             return $response;
@@ -1226,7 +1227,8 @@ class OrderController extends Controller
             return back()
                 ->with($gagal > 0 ? 'error' : 'success', $pesan)
                 ->with('undo_token', $undoToken)
-                ->with('undo_message', 'Tindakan massal dapat dibatalkan dalam 10 menit.');
+                ->with('undo_message', 'Tindakan massal dapat dibatalkan dalam 10 menit.')
+                ->with('undo_url', route('orders.bulk-undo'));
         }
 
         $this->finishIdempotency($idempotencyKey, 'done');
