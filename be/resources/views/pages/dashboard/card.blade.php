@@ -5,13 +5,11 @@
         $localNow = now('Asia/Jakarta');
         $hour = $localNow->hour;
         $greeting = $hour < 11 ? 'Selamat pagi' : ($hour < 15 ? 'Selamat siang' : ($hour < 18 ? 'Selamat sore' : 'Selamat malam'));
-        $roleName = auth()->user()->getRoleNames()->first();
-        $roleLabel = $roleName ?: 'pengguna';
     @endphp
 
     <section class="dashboard-welcome" aria-labelledby="dashboard-welcome-title">
         <div class="dashboard-welcome__copy">
-            <p class="dashboard-eyebrow">{{ $greeting }}, <strong>{{ $roleLabel }}</strong></p>
+            <p class="dashboard-eyebrow">{{ $greeting }}, <strong>{{ auth()->user()->name }}</strong></p>
             <h1 id="dashboard-welcome-title">Selamat datang di dashboard {{ $brandName }}</h1>
             <p class="dashboard-welcome__subtitle">Pantau operasional, verifikasi pembayaran, dan kelola konten dari satu tempat.</p>
             <span class="dashboard-date"><i class="bi bi-calendar3" aria-hidden="true"></i> {{ $localNow->translatedFormat('l, j F Y') }}</span>

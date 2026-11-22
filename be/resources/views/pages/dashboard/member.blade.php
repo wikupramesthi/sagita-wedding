@@ -3,13 +3,11 @@
         $memberNow = now('Asia/Jakarta');
         $memberHour = $memberNow->hour;
         $memberGreeting = $memberHour < 11 ? 'Selamat pagi' : ($memberHour < 15 ? 'Selamat siang' : ($memberHour < 18 ? 'Selamat sore' : 'Selamat malam'));
-        $memberRoleName = auth()->user()->getRoleNames()->first();
-        $memberRoleLabel = $memberRoleName ?: 'pengguna';
     @endphp
     <div class="member-hero mb-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
-                <p class="member-hero-eyebrow">{{ $memberGreeting }}, <strong>{{ $memberRoleLabel }}</strong></p>
+                <p class="member-hero-eyebrow">{{ $memberGreeting }}, <strong>{{ auth()->user()->name }}</strong></p>
                 <h1>Selamat datang di dashboard {{ $brandName ?? 'Sagita Wedding' }}</h1>
                 <p>Pantau operasional, verifikasi pembayaran, dan kelola konten dari satu tempat.</p>
                 <span class="member-hero-date"><i class="bi bi-calendar3"></i>{{ $memberNow->translatedFormat('l, j F Y') }}</span>
