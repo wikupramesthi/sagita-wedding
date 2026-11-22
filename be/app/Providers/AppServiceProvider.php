@@ -35,9 +35,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(WhatsAppGateway::class, function ($app) {
             return match ($app['config']->get('whatsapp.driver')) {
-                'link' => new LinkWhatsAppGateway(),
-                'http' => new HttpWhatsAppGateway(),
-                default => new LogWhatsAppGateway(),
+                'link' => new LinkWhatsAppGateway,
+                'http' => new HttpWhatsAppGateway,
+                default => new LogWhatsAppGateway,
             };
         });
 

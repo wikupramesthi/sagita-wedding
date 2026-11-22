@@ -19,9 +19,9 @@ use App\Notifications\OrderBaruNotification;
 use App\Notifications\OrderRejectedNotification;
 use App\Notifications\OrderSlaReminderNotification;
 use App\Notifications\ProofUploadedNotification;
-use App\Services\MembershipService;
-use App\Services\EventDateReservationService;
 use App\Services\CheckoutSessionService;
+use App\Services\EventDateReservationService;
+use App\Services\MembershipService;
 use App\Services\OrderWorkflowProvisioningService;
 use App\Support\ImageShrinker;
 use App\Support\MemberView;
@@ -1959,8 +1959,7 @@ class OrderController extends Controller
         Request $request,
         EventDateReservationService $reservations,
         CheckoutSessionService $checkoutSessions
-    )
-    {
+    ) {
         /*
         |--------------------------------------------------------------------------
         | Validation
@@ -3025,4 +3024,3 @@ class OrderController extends Controller
         return $values;
     }
 }
-
