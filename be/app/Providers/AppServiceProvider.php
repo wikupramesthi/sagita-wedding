@@ -2,12 +2,17 @@
 
 namespace App\Providers;
 
+use App\Contracts\WhatsAppGateway;
 use App\Listeners\RecordFailedLogin;
 use App\Listeners\RecordLoginActivity;
 use App\Models\Payment\Order;
+use App\Notifications\Channels\WhatsAppChannel;
 use App\Observers\AuditObserver;
 use App\Policies\OrderPolicy;
 use App\Services\EmailSettingService;
+use App\Services\WhatsApp\HttpWhatsAppGateway;
+use App\Services\WhatsApp\LinkWhatsAppGateway;
+use App\Services\WhatsApp\LogWhatsAppGateway;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -15,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -26,7 +32,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(WhatsAppGateway::class, function ($app) {
+            return match ($app['config']->get('whatsapp.driver')) {
+                'link' => new LinkWhatsAppGateway(),
+                'http' => new HttpWhatsAppGateway(),
+                default => new LogWhatsAppGateway(),
+            };
+        });
+
+        Notification::extend('whatsapp', fn ($app) => $app->make(WhatsAppChannel::class));
     }
 
     /**

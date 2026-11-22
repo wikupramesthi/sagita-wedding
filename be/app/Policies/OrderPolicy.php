@@ -56,4 +56,10 @@ class OrderPolicy
     {
         return $user->can('orders.quickView') || $user->hasAnyRole(['super-admin', 'admin']);
     }
+
+    public function manageVendors(User $user): bool
+    {
+        return $user->can('orders.manageVendors') || $user->hasAnyRole(['super-admin', 'admin']);
+    }
 }
+

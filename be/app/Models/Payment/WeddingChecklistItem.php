@@ -27,11 +27,15 @@ class WeddingChecklistItem extends Model
         'status',
         'completed_at',
         'completed_by',
+        'reminder_sent_at',
+        'escalation_sent_at',
     ];
 
     protected $casts = [
         'due_at' => 'date',
         'completed_at' => 'datetime',
+        'reminder_sent_at' => 'datetime',
+        'escalation_sent_at' => 'datetime',
     ];
 
     public function order(): BelongsTo

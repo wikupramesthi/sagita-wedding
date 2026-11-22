@@ -77,7 +77,7 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="name" class="form-label small fw-semibold">Nama Vendor <span class="text-danger">*</span></label>
-                                <input type="text" name="name" id="name" placeholder="Contoh: Sanggar Yoga Sari"
+                                <input type="text" name="name" id="name" placeholder="Contoh: Dekorasi Sari"
                                     value="{{ old('name', $vendor->name) }}" class="form-control form-control-sm @error('name') is-invalid @enderror" required>
                                 @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>

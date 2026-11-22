@@ -320,7 +320,7 @@
     </table>
 
     <div class="filter-box">
-        <strong>Catatan:</strong> Laporan ini dibuat otomatis dari menu <em>Riwayat Pemesanan</em> Sagita Wedding Organizer. Pesanan menunggu perlu verifikasi transfer manual oleh admin sebelum keanggotaan diaktifkan.
+        <strong>Catatan:</strong> Laporan ini dibuat otomatis dari menu <em>Riwayat Pemesanan</em> Sagita Wedding Organizer. Pesanan menunggu perlu verifikasi transfer manual oleh admin sebelum paket pernikahan diaktifkan.
     </div>
 
     <div class="section-title">DAFTAR PESANAN ({{ number_format($total) }})</div>

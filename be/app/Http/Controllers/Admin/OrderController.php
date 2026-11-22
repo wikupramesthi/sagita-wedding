@@ -374,6 +374,8 @@ class OrderController extends Controller
             'documents',
             'checklistItems',
             'changeRequests.addon',
+            'vendorAssignments.vendor',
+            'vendorAssignments.assignedBy',
         ])
             ->where('uuid', $uuid)
             ->firstOrFail();
@@ -392,6 +394,9 @@ class OrderController extends Controller
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->get();
+        $vendors = $isAdmin
+            ? User::role('vendor')->orderBy('name')->get(['uuid', 'name'])
+            : collect();
         $userPackage = UserPackage::where('order_uuid', $order->uuid)->first();
         $audits = $isAdmin
             ? AuditLog::where('auditable_type', Order::class)
@@ -412,7 +417,7 @@ class OrderController extends Controller
 
         return view(
             'pages.orders.show',
-            compact('order', 'isAdmin', 'userPackage', 'audits', 'availableAddons')
+            compact('order', 'isAdmin', 'userPackage', 'audits', 'availableAddons', 'vendors')
         );
     }
 
@@ -2774,7 +2779,7 @@ class OrderController extends Controller
 
             $packageName = $order->package?->name ?? '-';
             if ($order->packageOption?->name) {
-                $packageName .= ' — '.$order->packageOption->name;
+                $packageName .= ' â€” '.$order->packageOption->name;
             }
 
             Notification::send($admins, new OrderBaruNotification(
@@ -2937,3 +2942,4 @@ class OrderController extends Controller
         return $values;
     }
 }
+

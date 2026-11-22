@@ -37,7 +37,7 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
-            'budget_max' => ['nullable', 'integer', 'min:0'],
+            'budget_max' => ['nullable', 'integer', 'min:100000'],
         ]);
 
         $user = Auth::user();
@@ -336,7 +336,7 @@ class DashboardController extends Controller
         abort_unless(Auth::user()?->hasRole('user'), 403);
 
         $validated = $request->validate([
-            'budget_max' => ['required', 'integer', 'min:0'],
+            'budget_max' => ['required', 'integer', 'min:100000'],
         ]);
         $budgetMax = (int) $validated['budget_max'];
 

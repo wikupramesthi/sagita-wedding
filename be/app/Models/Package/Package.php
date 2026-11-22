@@ -60,10 +60,19 @@ class Package extends Model
     public function scopeWedding($query)
     {
         return $query->where(function ($query) {
-            $query->whereNotNull('guest_capacity')
+            $query->where(function ($query) {
+                $query->whereNotNull('guest_capacity')
                 ->orWhereNotNull('event_duration_hours')
                 ->orWhereNotNull('venue_note')
                 ->orWhereNotNull('cover_url');
+            })->orWhere(function ($query) {
+                $query->whereRaw('LOWER(COALESCE(name, "")) NOT LIKE ?', ['%membership%'])
+                    ->whereRaw('LOWER(COALESCE(name, "")) NOT LIKE ?', ['%keanggotaan%'])
+                    ->whereRaw('LOWER(COALESCE(name, "")) NOT LIKE ?', ['%studio class%'])
+                    ->whereRaw('LOWER(COALESCE(slug, "")) NOT LIKE ?', ['%membership%'])
+                    ->whereRaw('LOWER(COALESCE(slug, "")) NOT LIKE ?', ['%keanggotaan%'])
+                    ->whereRaw('LOWER(COALESCE(slug, "")) NOT LIKE ?', ['%studio-class%']);
+            });
         });
     }
 

@@ -8,6 +8,9 @@ use App\Models\Package\PackageBlackoutDate;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
 use App\Models\Payment\Order;
+use App\Models\WebsiteIdentity;
+use App\Http\Controllers\Admin\QuotationController;
+use Illuminate\Http\Request;
 use App\Notifications\OrderBalanceDueNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -769,5 +772,24 @@ class PackageWeddingFeatureTest extends TestCase
             'attachment',
             (string) $download->headers->get('Content-Disposition')
         );
+    }
+
+    public function test_quotation_preview_uses_website_identity_and_embeds_pdf(): void
+    {
+        WebsiteIdentity::singleton()->update(['site_name' => 'Sagita Wedding Organizer']);
+
+        $package = $this->createPackage('Paket Pratinjau', 'paket-pratinjau', 5000000, null, 150);
+
+        $view = (new QuotationController())->preview(Request::create('/'), $package->uuid);
+        $data = $view->getData();
+
+        $this->assertSame('pages.package.quotation-preview', $view->name());
+        $this->assertSame('Sagita Wedding Organizer', $data['siteName']);
+        $this->assertStringContainsString(
+            'Sagita Wedding Organizer',
+            view('pages.package.quotation', $data)->render()
+        );
+        $this->assertStringContainsString('packages/'.$package->uuid.'/quotation', $view->render());
+        $this->assertStringContainsString('packages/'.$package->uuid.'/quotation/download', $view->render());
     }
 }

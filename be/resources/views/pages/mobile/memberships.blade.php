@@ -162,7 +162,7 @@ $rupiah = fn ($value) => 'Rp ' . number_format((float) $value, 0, ',', '.');
                             @endif
                         </div>
                         <div class="flex-fill" style="min-width:0">
-                            <p class="mb-0 small fw-semibold text-truncate">{{ $m->package?->name ?? 'Membership' }}</p>
+                            <p class="mb-0 small fw-semibold text-truncate">{{ $m->package?->name ?? 'Paket Pernikahan' }}</p>
                             <p class="mb-0 text-muted2 m-meta">
                                 @if (is_null($m->quota))
                                     {{ __('mobile.unlimited_classes') }}

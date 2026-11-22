@@ -49,7 +49,7 @@
         'approved_dp' => 'DP disetujui',
         'approved_installment' => 'Cicilan disetujui',
         'approved_balance' => 'Pelunasan disetujui',
-        'membership_activated' => 'Keanggotaan diaktifkan',
+        'membership_activated' => 'Paket pernikahan diaktifkan',
         'rejected' => 'Pesanan ditolak',
         'proof_uploaded' => 'Bukti diunggah',
         'approval_reverted' => 'Persetujuan dibatalkan',
@@ -95,6 +95,7 @@
         </div>
 
         @include('pages.orders.partials.workflow', ['order' => $order, 'availableAddons' => $availableAddons, 'isAdmin' => $isAdmin, 'compact' => false])
+        @include('pages.orders.partials.vendor-assignments', ['order' => $order, 'vendors' => $vendors ?? collect()])
 
         <div class="order-detail-layout">
             <div class="order-detail-main">
@@ -274,7 +275,7 @@
                         <div class="d-grid gap-2">
                             @foreach (data_get($order->installment_schedule, 'installments', []) as $installment)
                                 <div class="d-flex justify-content-between gap-3">
-                                    <span class="small text-muted">{{ $installment['label'] ?? 'Termin' }} · {{ \Carbon\Carbon::parse($installment['due_at'])->translatedFormat('d M Y') }}</span>
+                                    <span class="small text-muted">{{ $installment['label'] ?? 'Termin' }} Â· {{ \Carbon\Carbon::parse($installment['due_at'])->translatedFormat('d M Y') }}</span>
                                     <strong class="small text-nowrap">Rp {{ number_format((int) ($installment['amount'] ?? 0), 0, ',', '.') }}</strong>
                                 </div>
                             @endforeach
@@ -524,9 +525,9 @@
 
                                 <span>
                                     @if ($order->packageOption->quota === null)
-                                    Kelas Tanpa Batas
+                                    Layanan Tanpa Batas
                                     @else
-                                    {{ $order->packageOption->quota }} Kelas
+                                    {{ $order->packageOption->quota }} Layanan
                                     @endif
                                 </span>
 
@@ -1624,3 +1625,4 @@
 @endpush
 
 @endsection
+

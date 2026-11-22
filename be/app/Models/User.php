@@ -214,6 +214,25 @@ class User extends Authenticatable implements MustVerifyEmail
         return 'uuid';
     }
 
+    public function routeNotificationForWhatsApp(): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $this->no_hp) ?? '';
+
+        if ($digits === '') {
+            return null;
+        }
+
+        if (str_starts_with($digits, '0')) {
+            $digits = substr($digits, 1);
+        }
+
+        if (str_starts_with($digits, '8')) {
+            return '62'.$digits;
+        }
+
+        return str_starts_with($digits, '62') ? $digits : null;
+    }
+
     /**
      * The attributes that should be cast.
      *

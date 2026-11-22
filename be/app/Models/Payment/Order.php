@@ -173,6 +173,11 @@ class Order extends Model
         return $this->hasMany(OrderChangeRequest::class, 'order_uuid', 'uuid')->latest();
     }
 
+    public function vendorAssignments(): HasMany
+    {
+        return $this->hasMany(OrderVendorAssignment::class, 'order_uuid', 'uuid')->latest();
+    }
+
     public function proofUrl(): ?string
     {
         return $this->proof_image_path
@@ -282,3 +287,4 @@ class Order extends Model
             })->orderBy('paid_at')->orderBy('created_at');
     }
 }
+

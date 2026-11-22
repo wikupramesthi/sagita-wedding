@@ -414,7 +414,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                             {{ $viewMode === 'cards' ? 'Kartu pesanan' : ($viewMode === 'kanban' ? 'Papan antrean' : 'Tabel pesanan') }}
                         </div>
                         <div class="orders-table-tools-subtitle">
-                            {{ $viewMode === 'cards' ? 'Ringkasan setiap pesanan dalam satu kartu agar mudah dipindai.' : ($isAdmin ? 'Semua pesanan keanggotaan dan status pembayaran.' : 'Pesanan keanggotaan Anda dan status pembayaran.') }}
+                            {{ $viewMode === 'cards' ? 'Ringkasan setiap pesanan dalam satu kartu agar mudah dipindai.' : 'Semua pesanan paket pernikahan beserta status pembayarannya.' }}
                         </div>
                     </div>
                 </div>

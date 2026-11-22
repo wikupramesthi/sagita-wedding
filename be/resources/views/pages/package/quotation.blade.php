@@ -32,7 +32,7 @@
 <body>
     <table class="header">
         <tr>
-            <td class="brand">Sagita Wedding Organizer<span class="brand-sub"><br>Penyelenggara pernikahan Anda</span></td>
+            <td class="brand">{{ $siteName }}<span class="brand-sub"><br>Penyelenggara pernikahan Anda</span></td>
             <td class="doc-title">Penawaran Paket<br><span class="doc-meta">Dicetak {{ now()->translatedFormat('d F Y') }}</span></td>
         </tr>
     </table>
@@ -108,7 +108,7 @@
 
     <div class="notes">
         Penawaran ini berlaku sebagai gambaran biaya layanan wedding organizer untuk tanggal acara yang telah disebutkan.
-        Harga dapat disesuaikan kembali setelah detail teknis acara dikonfirmasi oleh tim Sagita Wedding Organizer.
+        Harga dapat disesuaikan kembali setelah detail teknis acara dikonfirmasi oleh tim {{ $siteName }}.
         Mohon konfirmasi Ketersediaan tanggal dan pemesanan melalui tautan WhatsApp di bawah ini.
     </div>
 
@@ -119,6 +119,6 @@
     </div>
     @endif
 
-    <div class="footer">Sagita Wedding Organizer — Penawaran Paket {{ $package->name }}</div>
+    <div class="footer">{{ $siteName }} — Penawaran Paket {{ $package->name }}</div>
 </body>
 </html>

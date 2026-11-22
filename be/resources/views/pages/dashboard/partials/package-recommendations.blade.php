@@ -1,25 +1,79 @@
 <div id="package-recommendation">
+    <style>
+        #package-recommendation-form .budget-input-row {
+            display: grid;
+            grid-template-columns: 44px minmax(180px, 1fr) auto;
+            gap: 0;
+            align-items: stretch;
+        }
+        #package-recommendation-form .budget-input-row .input-group-text,
+        #package-recommendation-form .budget-input-row .form-control,
+        #package-recommendation-form .budget-input-row .btn {
+            min-height: 44px;
+        }
+        #package-recommendation-form .budget-input-row .input-group-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: .375rem 0 0 .375rem;
+        }
+        #package-recommendation-form .budget-input-row .form-control {
+            border-radius: 0;
+        }
+        #package-recommendation-form .budget-input-row .budget-search-button {
+            border-radius: 0 .375rem .375rem 0;
+        }
+        #package-recommendation-results.is-updating {
+            opacity: .45;
+            transition: opacity .16s ease;
+        }
+        #package-recommendation-results {
+            transition: opacity .16s ease;
+        }
+        @media (max-width: 575.98px) {
+            #package-recommendation-form .budget-input-row {
+                display: grid;
+                grid-template-columns: 44px minmax(0, 1fr);
+            }
+            #package-recommendation-form .budget-input-row .input-group-text {
+                grid-column: 1;
+                grid-row: 1;
+            }
+            #package-recommendation-form .budget-input-row .form-control {
+                grid-column: 2;
+                grid-row: 1;
+            }
+            #package-recommendation-form .budget-input-row .budget-search-button {
+                grid-column: 1 / -1;
+                grid-row: 2;
+                width: 100%;
+                margin-top: 8px;
+            }
+        }
+    </style>
     <form
         id="package-recommendation-form"
         action="{{ route('dashboard.index') }}"
         method="GET"
         data-recommendations-url="{{ route('dashboard.recommendations') }}"
+        data-no-loader
+        novalidate
     >
         <label for="planning-budget-max" class="form-label small fw-semibold">Batas anggaran paket</label>
-        <div class="input-group">
+        <div class="budget-input-row">
             <span class="input-group-text">Rp</span>
             <input
                 id="planning-budget-max"
                 class="form-control"
-                type="number"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
                 name="budget_max"
-                min="0"
-                step="1000000"
-                value="{{ $budgetMax }}"
+                value="{{ $budgetMax !== null ? number_format($budgetMax, 0, ',', '.') : '' }}"
                 placeholder="Contoh 50000000"
                 required
             >
-            <button type="submit" class="btn btn-primary text-nowrap" data-search-button>
+            <button type="submit" class="btn btn-primary text-nowrap budget-search-button" data-search-button>
                 <i class="bi bi-search me-1"></i> Cari Paket
             </button>
         </div>
@@ -64,6 +118,17 @@
 
         const budgetInput = form.querySelector('[name="budget_max"]');
         const searchButton = form.querySelector('[data-search-button]');
+        const digitsOnly = (value) => String(value ?? '').replace(/\D/g, '');
+        const formatRupiah = (value) => digitsOnly(value).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+        budgetInput.addEventListener('input', () => {
+            const digits = digitsOnly(budgetInput.value);
+            budgetInput.value = formatRupiah(digits);
+        });
+
+        budgetInput.addEventListener('blur', () => {
+            budgetInput.value = formatRupiah(budgetInput.value);
+        });
 
         const setMessage = (message, className) => {
             const element = document.createElement('div');
@@ -118,16 +183,28 @@
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            if (!form.reportValidity()) {
+            const rawBudget = digitsOnly(budgetInput.value);
+            if (!rawBudget) {
+                setMessage('Masukkan batas anggaran terlebih dahulu.', 'small text-danger');
+                budgetInput.focus();
                 return;
             }
 
+            if (Number(rawBudget) < 100000) {
+                setMessage('Batas anggaran minimal Rp 100.000.', 'small text-danger');
+                budgetInput.focus();
+                return;
+            }
+
+            budgetInput.value = formatRupiah(rawBudget);
+
             const originalButtonContent = searchButton.innerHTML;
             const endpoint = new URL(form.dataset.recommendationsUrl, window.location.origin);
-            endpoint.searchParams.set('budget_max', budgetInput.value);
+            endpoint.searchParams.set('budget_max', rawBudget);
             searchButton.disabled = true;
-            searchButton.textContent = 'Mencari...';
+            searchButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Mencari';
             results.setAttribute('aria-busy', 'true');
+            results.classList.add('is-updating');
             setMessage('Sedang mencari paket yang sesuai...', 'small text-muted');
 
             try {
@@ -148,14 +225,18 @@
 
                 renderRecommendations(payload);
                 const pageUrl = new URL(window.location.href);
-                pageUrl.searchParams.set('budget_max', budgetInput.value);
+                pageUrl.searchParams.set('budget_max', rawBudget);
                 window.history.replaceState({}, '', pageUrl);
+                requestAnimationFrame(() => {
+                    results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                });
             } catch (error) {
                 console.error('Gagal mencari rekomendasi paket:', error);
                 setMessage(error.message || 'Rekomendasi belum dapat dimuat. Silakan coba kembali.', 'small text-danger');
             } finally {
                 searchButton.disabled = false;
                 searchButton.innerHTML = originalButtonContent;
+                results.classList.remove('is-updating');
                 results.setAttribute('aria-busy', 'false');
             }
         });

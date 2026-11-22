@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Consultation;
 use App\Models\Package\Package;
 use App\Models\Package\PackagePromo;
+use App\Models\WebsiteIdentity;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -13,6 +14,27 @@ use Illuminate\Support\Carbon;
 class QuotationController extends Controller
 {
     public function package(Request $request, string $packageUuid, bool $download = false)
+    {
+        $data = $this->buildQuotationData($request, $packageUuid);
+
+        $pdf = Pdf::loadView('pages.package.quotation', $data);
+
+        $filename = 'penawaran-'.$data['package']->slug.'.pdf';
+
+        return $download ? $pdf->download($filename) : $pdf->stream($filename);
+    }
+
+    public function download(Request $request, string $package)
+    {
+        return $this->package($request, $package, true);
+    }
+
+    public function preview(Request $request, string $package)
+    {
+        return view('pages.package.quotation-preview', $this->buildQuotationData($request, $package));
+    }
+
+    private function buildQuotationData(Request $request, string $packageUuid): array
     {
         $package = Package::with([
             'options' => function ($query) {
@@ -32,6 +54,8 @@ class QuotationController extends Controller
             ->where('uuid', $packageUuid)
             ->published()
             ->firstOrFail();
+
+        $siteName = WebsiteIdentity::singleton()->site_name;
 
         $optionUuid = $request->input('option_uuid');
         $option = is_string($optionUuid)
@@ -108,7 +132,7 @@ class QuotationController extends Controller
 
         $phone = Consultation::normalizeWhatsapp(config('manual_payment.admin_whatsapp'));
 
-        $message = 'Halo Sagita Wedding Organizer, saya ingin meminta penawaran paket '
+        $message = 'Halo '.$siteName.', saya ingin meminta penawaran paket '
             .$package->name
             .'. Opsi: '.($option?->name ?? '-')
             .'. Tanggal acara: '.($eventDate?->translatedFormat('d F Y') ?? 'belum ditentukan')
@@ -122,7 +146,7 @@ class QuotationController extends Controller
             ? 'https://wa.me/'.$phone.'?text='.rawurlencode($message)
             : null;
 
-        $pdf = Pdf::loadView('pages.package.quotation', compact(
+        return compact(
             'package',
             'option',
             'addons',
@@ -130,16 +154,8 @@ class QuotationController extends Controller
             'discount',
             'total',
             'waUrl',
-            'eventDate'
-        ));
-
-        $filename = 'penawaran-'.$package->slug.'.pdf';
-
-        return $download ? $pdf->download($filename) : $pdf->stream($filename);
-    }
-
-    public function download(Request $request, string $package)
-    {
-        return $this->package($request, $package, true);
+            'eventDate',
+            'siteName'
+        );
     }
 }

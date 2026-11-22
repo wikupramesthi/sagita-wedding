@@ -64,7 +64,7 @@ return [
     'book_and_in' => 'Book & In',
     'join' => 'Join',
     'waitlist' => 'Waitlist',
-    'check_in' => 'Check In',
+    'check_in' => 'Attendance Confirmation',
     'booked' => 'Booked',
     'done' => 'Done',
     'waiting' => 'Waiting',
@@ -87,8 +87,8 @@ return [
     'rate_subtitle' => 'How was your experience?',
     'rate_placeholder' => 'Tell us more (optional)',
     'show_qr' => 'Show QR',
-    'qr_title' => 'Check In',
-    'qr_desc' => 'Show this QR to the admin for check-in',
+    'qr_title' => 'Attendance Confirmation',
+    'qr_desc' => 'Show this QR to the admin on the event day.',
 
     // Packages & checkout
     'membership' => 'Wedding Package',

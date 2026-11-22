@@ -74,7 +74,7 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="tagging">Tag <span class="text-danger"> *Pisahkan tag dengan koma, mis. yoga, relaksasi, kesehatan</span></label>
+                    <label for="tagging">Tag <span class="text-danger"> *Pisahkan tag dengan koma, mis. pernikahan, dekorasi, catering</span></label>
                     <input type="text" name="tagging" class="form-control"
                         value="{{ old('tagging', $article->tagging ?? '') }}"
                         placeholder="Pisahkan dengan koma, mis.: slb patriot, berita, kota bekasi">

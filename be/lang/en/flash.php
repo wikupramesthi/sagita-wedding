@@ -3,7 +3,7 @@
 return [
     // Booking
     'schedule_unavailable' => 'This class schedule is not available.',
-    'need_membership' => 'You need an active membership with remaining quota to book a class.',
+    'need_membership' => 'You need an active package with remaining availability to book a service.',
     'already_booked_date' => 'You already booked this class for this date.',
     'overlap_booking' => 'You already have a booking at this time. Please choose another schedule.',
     'only_runs_on' => 'This class only runs on :day.',
@@ -13,7 +13,7 @@ return [
     'booked_in_remain' => 'Booked and checked in. Remaining quota: :count.',
     'already_checked_in' => 'This booking is already checked in.',
     'only_confirmed_checkin' => 'Only confirmed bookings can check in.',
-    'checkin_day_only' => 'Check-in is only available on the class day.',
+    'checkin_day_only' => 'Attendance confirmation is only available on the event day.',
     'no_quota_checkin' => 'No active membership with remaining quota. Check-in blocked.',
     'checkin_stale' => 'This booking can no longer check in.',
     'checked_in_ok' => 'Checked in successfully.',

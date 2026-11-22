@@ -416,8 +416,13 @@
                 </p>
             </div>
             <div class="col-lg-3 text-lg-end mt-3 mt-lg-0" style="position: relative;z-index: 1;">
+                <div class="dashboard-language-switcher d-flex justify-content-lg-end align-items-center gap-1 mb-2" role="group" aria-label="{{ __('dashboard.language') }}">
+                    <span class="small text-white-50 me-1"><i class="bi bi-translate me-1"></i>{{ __('dashboard.language') }}</span>
+                    <a href="{{ route('locale', 'id') }}" class="btn btn-sm {{ app()->getLocale() === 'id' ? 'btn-light' : 'btn-outline-light' }}">ID</a>
+                    <a href="{{ route('locale', 'en') }}" class="btn btn-sm {{ app()->getLocale() === 'en' ? 'btn-light' : 'btn-outline-light' }}">EN</a>
+                </div>
                 <a href="#package-recommendation" class="btn btn-light fw-bold px-4"><i
-                        class="bi bi-search me-1"></i> Cari Paket Sesuai Budget</a>
+                        class="bi bi-search me-1"></i> {{ __('dashboard.find_packages') }}</a>
             </div>
         </div>
     </div>
@@ -438,7 +443,7 @@
         <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
             <div>
                 <span class="small fw-semibold text-primary text-uppercase">Ringkasan akun dan pesanan</span>
-                <h2 id="wedding-preparation-title" class="fw-bold mb-1">Ringkasan persiapan</h2>
+                <h2 id="wedding-preparation-title" class="fw-bold mb-1">{{ __('dashboard.planning') }}</h2>
                 <p class="small text-muted mb-0">Tanggal, langkah persiapan, paket, dan pembayaran mengikuti pesanan Anda.</p>
             </div>
             <a href="#package-recommendation" class="btn btn-outline-primary d-none d-md-inline-flex">
@@ -533,7 +538,7 @@
                                         <div class="card-body">
                                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                                                 <div>
-                                                    <h3 class="fw-bold mb-1 member-section-title">Checklist pernikahan</h3>
+                                                    <h3 class="fw-bold mb-1 member-section-title">{{ __('dashboard.checklist') }}</h3>
                                                     <div class="small text-muted">Tugas untuk {{ $dashboardChecklistOrder->order_number }} · {{ $dashboardChecklistItems->where('status', 'completed')->count() }}/{{ $dashboardChecklistItems->count() }} selesai</div>
                                                 </div>
                                                 <a href="{{ route('orders.show', $dashboardChecklistOrder->uuid) }}" class="btn btn-sm btn-outline-primary">Buka detail pesanan</a>
@@ -571,7 +576,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                             <div>
-                                <h3 class="fw-bold mb-1 member-section-title">Anggaran & rekomendasi paket</h3>
+                                <h3 class="fw-bold mb-1 member-section-title">{{ __('dashboard.recommendations') }}</h3>
                                 <p class="small text-muted mb-0">Nilai pesanan dan pembayaran tersinkron otomatis.</p>
                             </div>
                             <i class="bi bi-wallet2 fs-4 text-primary"></i>
@@ -602,7 +607,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
-                            <h2 class="fw-bold mb-1 member-section-title">Rekap Pembayaran dan Bukti Transfer</h2>
+                            <h2 class="fw-bold mb-1 member-section-title">{{ __('dashboard.payment') }}</h2>
                             <div class="small text-muted">Rekap 5 pesanan paket terbaru. Pembayaran yang disetujui mengurangi sisa tagihan.</div>
                         </div>
                         <a href="{{ route('orders.index') }}" class="small fw-semibold text-decoration-none">Riwayat lengkap</a>
@@ -682,11 +687,11 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100 member-section-card member-actions-card">
                 <div class="card-body">
-                    <h2 class="fw-bold mb-1 member-section-title">Mulai dari sini</h2>
+                    <h2 class="fw-bold mb-1 member-section-title">{{ __('dashboard.quick_actions') }}</h2>
                     <p class="small text-muted mb-3">Akses cepat untuk mengelola rencana pernikahan Anda.</p>
                     <div class="d-grid gap-2">
-                        <a href="#package-recommendation" class="btn btn-primary"><i class="bi bi-search me-1"></i> Cari Paket Sesuai Budget</a>
-                        <a href="{{ route('orders.index') }}" class="btn btn-outline-primary"><i class="bi bi-receipt me-1"></i> Pesanan & Pembayaran</a>
+                        <a href="#package-recommendation" class="btn btn-primary"><i class="bi bi-search me-1"></i> {{ __('dashboard.find_packages') }}</a>
+                        <a href="{{ route('orders.index') }}" class="btn btn-outline-primary"><i class="bi bi-receipt me-1"></i> {{ __('dashboard.check_payment') }}</a>
                         <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary"><i class="bi bi-person me-1"></i> Profil Saya</a>
                     </div>
                     @if($activePackage)

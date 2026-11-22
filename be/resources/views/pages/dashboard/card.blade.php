@@ -24,7 +24,7 @@
     <section class="card" aria-labelledby="quickActionsTitle">
         <div class="card-body d-flex flex-column gap-3">
             <div>
-                <h2 id="quickActionsTitle" class="h6 mb-1">Aksi cepat</h2>
+                <h2 id="quickActionsTitle" class="h6 mb-1">{{ __('dashboard.quick_actions') }}</h2>
                 <p class="small text-muted mb-0">Pintasan ke tugas yang paling sering dilakukan.</p>
             </div>
             <div class="d-flex flex-wrap gap-2">
@@ -48,7 +48,7 @@
 
         <section id="dashboardActionQueue" aria-labelledby="actionQueueTitle" {{ $actionTotal > 0 ? '' : 'hidden' }}>
             <div class="dashboard-analytics-heading">
-                <h2 id="actionQueueTitle">Perlu tindakan</h2>
+                <h2 id="actionQueueTitle">{{ __('dashboard.action_queue') }}</h2>
                 <p>Ada <span data-action-total>{{ $actionTotal }}</span> item yang menunggu tindak lanjut Anda.</p>
             </div>
             <div class="row g-4 mt-1">
@@ -186,7 +186,7 @@
     <details class="dashboard-details-fold" open>
         <summary class="dashboard-details-summary">
             <span class="min-w-0">
-                <strong>Ringkasan aktivitas</strong>
+                <strong>{{ __('dashboard.admin_overview') }}</strong>
                 <small class="text-muted d-block text-truncate" data-period-label>Statistik, grafik, dan funnel mengikuti rentang {{ $periodLabel }}.</small>
             </span>
             <span class="dashboard-details-toggle"><i class="bi bi-chevron-up"></i> Lipat</span>
@@ -222,11 +222,17 @@
                         <a href="{{ route('dashboard.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
                         <a href="{{ route('dashboard.export', request()->query()) }}" class="btn btn-sm btn-success"><i class="bi bi-file-earmark-excel me-1"></i> Excel</a>
                         <a href="{{ route('dashboard.export-pdf', request()->query()) }}" class="btn btn-sm btn-danger"><i class="bi bi-file-earmark-pdf me-1"></i> PDF</a>
-                        <button type="button" id="dashboardRefreshBtn" class="btn btn-sm btn-warning"><i class="bi bi-arrow-clockwise me-1"></i> Segarkan</button>
+                        <button type="button" id="dashboardRefreshBtn" class="btn btn-sm btn-warning"><i class="bi bi-arrow-clockwise me-1"></i> {{ __('dashboard.refresh') }}</button>
+                        <div class="dashboard-language-switcher d-flex align-items-center gap-1" role="group" aria-label="{{ __('dashboard.language') }}">
+                            <span class="small text-muted me-1"><i class="bi bi-translate me-1"></i>{{ __('dashboard.language') }}</span>
+                            <a href="{{ route('locale', 'id') }}" class="btn btn-sm {{ app()->getLocale() === 'id' ? 'btn-primary' : 'btn-outline-secondary' }}">ID</a>
+                            <a href="{{ route('locale', 'en') }}" class="btn btn-sm {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-outline-secondary' }}">EN</a>
+                        </div>
                     </div>
                     <div class="col-12 d-flex align-items-center gap-2">
-                        <span class="dashboard-updated" id="dashboardUpdatedAt"><i class="bi bi-clock-history me-1"></i> Data diperbarui {{ now()->format('H.i') }}</span>
-                        <span class="small text-muted">Auto-refresh tiap 2 menit saat halaman aktif.</span>
+                        <span class="dashboard-updated" id="dashboardUpdatedAt"><i class="bi bi-clock-history me-1"></i> {{ __('dashboard.last_updated') }} {{ now()->format('H.i') }}</span>
+                        <span class="badge bg-success-subtle text-success-emphasis">{{ __('dashboard.live') }}</span>
+                        <span class="small text-muted">{{ __('dashboard.auto_refresh') }}</span>
                     </div>
                 </form>
             </div>
@@ -306,7 +312,7 @@
                             @endforeach
                         </div>
                         <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
-                            <span class="badge bg-light-success text-success"><i class="bi bi-graph-up-arrow me-1"></i> Konversi <span data-highlight="conversion_rate">{{ $consultationHighlights['conversion_rate'] }}</span>%</span>
+                                                         <span class="badge bg-light-success text-success"><i class="bi bi-graph-up-arrow me-1"></i> {{ __('dashboard.conversions') }} <span data-highlight="conversion_rate">{{ $consultationHighlights['conversion_rate'] }}</span>%</span>
                             <a href="{{ route('konsultasi.index', ['sla' => 'breach']) }}" class="badge bg-light-danger text-danger text-decoration-none"><i class="bi bi-alarm me-1"></i> SLA terlewat <span data-highlight="sla_breach">{{ $consultationHighlights['sla_breach'] }}</span></a>
                             <a href="{{ route('konsultasi.index', ['sla' => 'warning']) }}" class="badge bg-light-warning text-warning text-decoration-none"><i class="bi bi-stopwatch me-1"></i> SLA mendekat <span data-highlight="sla_warning">{{ $consultationHighlights['sla_warning'] }}</span></a>
                             <a href="{{ route('konsultasi.index', ['follow_up' => 'done']) }}" class="badge bg-light-primary text-primary text-decoration-none"><i class="bi bi-check2-circle me-1"></i> Terkonversi <span data-highlight="converted">{{ $consultationHighlights['converted'] }}</span></a>
@@ -334,7 +340,7 @@
                     <div class="card-body d-flex align-items-center gap-3">
                         <div class="stats-icon green"><i class="bi bi-person-plus"></i></div>
                         <div class="min-w-0">
-                            <h6 class="text-muted font-semibold mb-0">Keanggotaan baru</h6>
+                            <h6 class="text-muted font-semibold mb-0">{{ __('dashboard.users') }}</h6>
                             <a href="{{ route('memberships.index') }}" class="text-decoration-none"><h4 class="font-extrabold mb-0" data-metric="newMembershipCount">{{ number_format($newMembershipCount, 0, ',', '.') }}</h4></a>
                         </div>
                     </div>
@@ -345,7 +351,7 @@
                     <div class="card-body d-flex align-items-center gap-3">
                         <div class="stats-icon blue"><i class="bi bi-cash-stack"></i></div>
                         <div class="min-w-0">
-                            <h6 class="text-muted font-semibold mb-0">Pendapatan</h6>
+                            <h6 class="text-muted font-semibold mb-0">{{ __('dashboard.revenue') }}</h6>
                             <h4 class="font-extrabold mb-0 text-success">Rp <span data-metric="revenueMonth">{{ number_format($revenueMonth, 0, ',', '.') }}</span></h4>
                             <small class="text-muted">Total keseluruhan: Rp <span data-metric="revenueTotal">{{ number_format($revenueTotal, 0, ',', '.') }}</span></small>
                         </div>
@@ -422,7 +428,7 @@
                 <section class="card site-analytics-card" aria-labelledby="siteAnalyticsHeading">
                     <div class="site-analytics-tabs" role="tablist" aria-label="Statistik website">
                         <button class="site-analytics-tab active" id="analyticsVisitorsTab" type="button" role="tab"
-                            aria-selected="true" aria-controls="siteAnalyticsPanel" data-analytics-tab="visitors">Pengunjung</button>
+                            aria-selected="true" aria-controls="siteAnalyticsPanel" data-analytics-tab="visitors">{{ __('dashboard.visitors') }}</button>
                         <button class="site-analytics-tab" id="analyticsContentTab" type="button" role="tab"
                             aria-selected="false" aria-controls="siteAnalyticsPanel" tabindex="-1" data-analytics-tab="content">Konten</button>
                         <button class="site-analytics-tab" id="analyticsDevicesTab" type="button" role="tab"
@@ -467,8 +473,8 @@
             <div class="col-lg-{{ $canViewConsultations ? '7' : '12' }}">
                 <div class="card h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                        <h5 class="card-title h6 mb-0">Pesanan terbaru</h5>
-                        <a href="{{ route('orders.index') }}" class="small text-decoration-none text-primary fw-semibold">Lihat semua</a>
+                        <h5 class="card-title h6 mb-0">{{ __('dashboard.orders') }}</h5>
+                        <a href="{{ route('orders.index') }}" class="small text-decoration-none text-primary fw-semibold">{{ __('dashboard.view_orders') }}</a>
                     </div>
                     <div class="card-body table-responsive">
                         @if ($recentOrders->count())
@@ -511,7 +517,7 @@
             <div class="col-lg-5">
                 <div class="card h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                        <h5 class="card-title h6 mb-0">Calon Konsumen Baru</h5>
+                        <h5 class="card-title h6 mb-0">{{ __('dashboard.consultations') }}</h5>
                         <a href="{{ route('konsultasi.index') }}" class="small text-decoration-none text-primary fw-semibold">Lihat semua</a>
                     </div>
                     <div class="card-body">
@@ -543,7 +549,7 @@
             <div class="col-lg-12">
                 <div class="card h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                        <h5 class="card-title h6 mb-0">Acara mendatang</h5>
+                        <h5 class="card-title h6 mb-0">{{ __('dashboard.events') }}</h5>
                         <a href="{{ route('events.index') }}" class="small text-decoration-none">Lihat semua</a>
                     </div>
                     <div class="card-body p-0">
@@ -890,9 +896,14 @@
 @endpush
 
 @push('after-script')
+@php
+    $jsLocale = ['id' => 'id-ID', 'en' => 'en-US'][app()->getLocale()] ?? 'id-ID';
+@endphp
 <script src="{{ asset('dist/assets/extensions/chart.js/chart.umd.js') }}"></script>
 <script>
 (function () {
+    const jsLocale = @json($jsLocale);
+    const lastUpdatedLabel = @json(__('dashboard.last_updated'));
     const detailsFold = document.querySelector('.dashboard-details-fold');
     if (detailsFold && window.matchMedia('(max-width: 575.98px)').matches) {
         detailsFold.open = false;
@@ -943,7 +954,7 @@
                     window.location.href = '{{ route('orders.index') }}?' + params.toString();
                 },
                 scales: {
-                    y: { ticks: { callback: (value) => 'Rp ' + Number(value).toLocaleString('id-ID') } },
+                    y: { ticks: { callback: (value) => 'Rp ' + Number(value).toLocaleString(jsLocale) } },
                 },
             },
         });
@@ -1136,7 +1147,7 @@
     let refreshing = false;
 
     function formatCount(value) {
-        return Number(value || 0).toLocaleString('id-ID');
+        return Number(value || 0).toLocaleString(jsLocale);
     }
 
     function applySummary(payload) {
@@ -1275,8 +1286,8 @@
         }
 
         if (updatedAt) {
-            const time = new Date(payload.updatedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
-            updatedAt.innerHTML = '<i class="bi bi-clock-history me-1"></i> Data diperbarui ' + time;
+            const time = new Date(payload.updatedAt).toLocaleTimeString(jsLocale, { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
+            updatedAt.innerHTML = '<i class="bi bi-clock-history me-1"></i> ' + lastUpdatedLabel + ' ' + time;
         }
     }
 
@@ -1320,7 +1331,7 @@
 
     window.setInterval(() => {
         if (!document.hidden) refreshDashboard(true);
-    }, 120000);
+    }, 30000);
 })();
 </script>
 @endpush

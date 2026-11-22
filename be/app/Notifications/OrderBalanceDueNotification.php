@@ -23,7 +23,27 @@ class OrderBalanceDueNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        $channels = ['database', 'mail'];
+
+        if (config('whatsapp.enabled')
+            && method_exists($notifiable, 'routeNotificationForWhatsApp')
+            && $notifiable->routeNotificationForWhatsApp()) {
+            $channels[] = 'whatsapp';
+        }
+
+        return $channels;
+    }
+
+    public function toWhatsApp(object $notifiable): array
+    {
+        $due = $this->dueAt ? \Carbon\Carbon::parse($this->dueAt)->translatedFormat('d F Y') : 'segera';
+        $amount = 'Rp '.number_format($this->remainingAmount, 0, ',', '.');
+        $message = 'Pengingat '.$this->orderNumber.': sisa '.$amount.', jatuh tempo '.$due.'. Bayar via '.route('orders.show', $this->orderUuid);
+
+        return [
+            'to' => method_exists($notifiable, 'routeNotificationForWhatsApp') ? $notifiable->routeNotificationForWhatsApp() : null,
+            'message' => $message,
+        ];
     }
 
     public function toMail(object $notifiable): MailMessage

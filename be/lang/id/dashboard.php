@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'live' => 'Langsung',
+    'last_updated' => 'Data diperbarui',
+    'refresh' => 'Segarkan',
+    'dashboard' => 'Dashboard',
+    'admin_overview' => 'Ringkasan admin',
+    'action_queue' => 'Perlu tindakan',
+    'revenue' => 'Pendapatan',
+    'conversions' => 'Konversi',
+    'visitors' => 'Pengunjung',
+    'orders' => 'Pesanan',
+    'consultations' => 'Konsultasi',
+    'events' => 'Acara',
+    'users' => 'Pengguna',
+    'quick_actions' => 'Aksi cepat',
+    'planning' => 'Perencanaan',
+    'payment' => 'Rekap Pembayaran dan Bukti Transfer',
+    'checklist' => 'Checklist',
+    'recommendations' => 'Rekomendasi',
+    'view_orders' => 'Lihat pesanan',
+    'find_packages' => 'Cari paket',
+    'check_payment' => 'Cek pembayaran',
+    'language' => 'Bahasa',
+    'auto_refresh' => 'Auto-refresh tiap 30 detik saat halaman aktif.',
+];

@@ -167,6 +167,7 @@
             document.addEventListener('submit', function (e) {
                 var form = e.target;
                 if (form.tagName !== 'FORM') { return; }
+                if (form.hasAttribute('data-no-loader')) { return; }
                 var btns = form.querySelectorAll('button[type="submit"]');
                 btns.forEach(function (b) {
                     if (!b.dataset.loading) {

@@ -117,7 +117,7 @@
             </div>
 
             <div class="app-card p-3 mt-3">
-                <h3 class="h6 fw-semibold mb-1">Rekap pembayaran</h3>
+                <h3 class="h6 fw-semibold mb-1">Rekap Pembayaran dan Bukti Transfer</h3>
                 <p class="small text-muted2 mb-3">Ringkasan ini mengikuti lima pesanan paket terbaru. Pembayaran yang disetujui mengurangi sisa tagihan.</p>
                 <div class="progress mb-3" style="height:6px">
                     <div class="progress-bar bg-success" role="progressbar" style="width:{{ $paymentProgress }}%" aria-valuenow="{{ $paymentProgress }}" aria-valuemin="0" aria-valuemax="100"></div>

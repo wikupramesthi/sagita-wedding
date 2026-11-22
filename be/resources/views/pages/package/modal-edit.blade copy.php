@@ -371,7 +371,7 @@
                                     name="features[]"
                                     class="form-control"
                                     value="{{ $feature->feature }}"
-                                    placeholder="Example: 4x Yoga Class">
+                                    placeholder="Contoh: 4 kali konsultasi perencanaan">
 
                                 <button
                                     type="button"
@@ -390,7 +390,7 @@
                                     type="text"
                                     name="features[]"
                                     class="form-control"
-                                    placeholder="Example: 4x Yoga Class">
+                                    placeholder="Contoh: 4 kali konsultasi perencanaan">
 
                                 <button
                                     type="button"
