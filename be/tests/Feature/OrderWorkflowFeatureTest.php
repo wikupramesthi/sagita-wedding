@@ -16,10 +16,13 @@ use App\Models\Payment\WeddingChecklistItem;
 use App\Models\User;
 use App\Services\EventDateReservationService;
 use App\Services\OrderWorkflowProvisioningService;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -43,6 +46,15 @@ class OrderWorkflowFeatureTest extends TestCase
 
         Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+        $this->seed(RouteSeeder::class);
+        Cache::flush();
+
+        foreach (['orders.index', 'orders.show', 'orders.store'] as $permission) {
+            $permission = Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+            Role::findByName('admin', 'web')->givePermissionTo($permission);
+            Role::findByName('user', 'web')->givePermissionTo($permission);
+        }
+
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
         $this->member = User::factory()->create();
@@ -351,6 +363,41 @@ class OrderWorkflowFeatureTest extends TestCase
             ->assertSee('Akses Ditolak')
             ->assertSee('admin yang sudah memverifikasi email')
             ->assertDontSee('Internal Server Error');
+    }
+
+    public function test_expire_command_processes_more_than_one_batch(): void
+    {
+        for ($i = 1; $i <= 501; $i++) {
+            $batchOption = PackageOption::create([
+                'package_uuid' => $this->package->uuid,
+                'name' => 'Batch '.$i,
+                'price' => 1000000,
+                'duration' => 1,
+                'duration_unit' => 'month',
+                'quota' => 1,
+                'is_active' => true,
+            ]);
+
+            Order::create([
+                'user_uuid' => $this->member->uuid,
+                'order_number' => 'ORD-BATCH-'.$i,
+                'type' => 'package',
+                'package_uuid' => $this->package->uuid,
+                'package_option_uuid' => $batchOption->uuid,
+                'event_date' => today()->addMonth()->toDateString(),
+                'amount' => 1000000,
+                'payment_scheme' => 'full',
+                'total_amount' => 1000000,
+                'amount_paid' => 0,
+                'remaining_amount' => 1000000,
+                'status' => 'pending',
+                'expired_at' => now()->subMinute(),
+            ]);
+        }
+
+        Artisan::call('records:expire');
+
+        $this->assertSame(501, Order::packageOnly()->where('status', 'expired')->count());
     }
 
     public function test_expired_pending_order_releases_its_date_reservation(): void

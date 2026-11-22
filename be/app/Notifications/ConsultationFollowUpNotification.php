@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use App\Models\Consultation;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class ConsultationFollowUpNotification extends Notification
@@ -17,7 +16,7 @@ class ConsultationFollowUpNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database'];
     }
 
     public function toArray(object $notifiable): array
@@ -30,13 +29,4 @@ class ConsultationFollowUpNotification extends Notification
         ];
     }
 
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->subject('Tindak lanjut konsultasi jatuh tempo')
-            ->greeting('Halo '.$notifiable->name.',')
-            ->line('Tindak lanjut konsultasi '.$this->consultation->full_name.' dijadwalkan pada '.$this->consultation->follow_up_date_label.'.')
-            ->action('Lihat konsultasi', route('konsultasi.show', $this->consultation->uuid))
-            ->line('Mohon segera ditindaklanjuti.');
-    }
 }

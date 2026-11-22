@@ -30,9 +30,18 @@
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header py-3">
                         <h6 class="mb-0 fw-semibold"><i class="bi bi-hdd-network me-2"></i> Koneksi SMTP</h6>
-                        <small class="text-body-secondary">Digunakan oleh seluruh notifikasi email sistem.</small>
+                        <small class="text-body-secondary">Digunakan untuk pengingat pembayaran pesanan.</small>
                     </div>
                     <div class="card-body">
+                        <div class="alert alert-info small d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                            <span>
+                                Untuk Brevo, gunakan login SMTP dan <strong>SMTP key</strong> (bukan API key).
+                                Alamat pengirim harus sudah diverifikasi di Brevo.
+                            </span>
+                            <button type="button" class="btn btn-sm btn-outline-primary flex-shrink-0" id="brevo-smtp-preset">
+                                Gunakan preset Brevo
+                            </button>
+                        </div>
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label for="mail_driver" class="form-label fw-semibold">Metode Pengiriman</label>
@@ -184,34 +193,6 @@
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header py-3">
-                    <h6 class="mb-0 fw-semibold"><i class="bi bi-send me-2"></i> Kirim Email Uji</h6>
-                    <small class="text-body-secondary">Pastikan konfigurasi bekerja sebelum dipakai sistem.</small>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('email-setting.test') }}" method="POST">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="recipient" class="form-label fw-semibold">Alamat Tujuan</label>
-                            <input type="email" id="recipient" name="recipient"
-                                class="form-control @error('recipient') is-invalid @enderror"
-                                value="{{ old('recipient') }}" placeholder="nama@example.com">
-                            @error('recipient')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        @can('email-setting.test')
-                        <button type="submit" class="btn btn-outline-primary w-100">
-                            <i class="bi bi-send me-1"></i> Kirim Uji
-                        </button>
-                        @else
-                        <p class="text-body-secondary small mb-0">Anda tidak memiliki izin untuk mengirim email uji.</p>
-                        @endcan
-                    </form>
-                </div>
-            </div>
-
             <div class="card border-0 shadow-sm mb-4 identity-tip">
                 <div class="identity-tip__glow"></div>
                 <div class="identity-tip__body">
@@ -227,7 +208,7 @@
                             <span class="tip-bullet"><i class="bi bi-bell"></i></span>
                             <div>
                                 <strong>Notifikasi</strong>
-                                <span>Tindak lanjut konsultasi, reset password, dan verifikasi email memakai setting ini.</span>
+                                <span>Pengingat sisa pembayaran dan cicilan pesanan memakai pengaturan SMTP ini.</span>
                             </div>
                         </li>
                         <li>
@@ -256,6 +237,7 @@
 <script>
     const emailDriver = document.getElementById('mail_driver');
     const smtpFields = document.querySelectorAll('[data-smtp-field] input, [data-smtp-field] select');
+    const brevoPreset = document.getElementById('brevo-smtp-preset');
 
     const syncSmtpFields = () => {
         const disabled = emailDriver.value !== 'smtp';
@@ -264,6 +246,14 @@
             field.closest('[data-smtp-field]')?.classList.toggle('d-none', disabled);
         });
     };
+
+    brevoPreset.addEventListener('click', () => {
+        emailDriver.value = 'smtp';
+        document.getElementById('mail_host').value = 'smtp-relay.brevo.com';
+        document.getElementById('mail_port').value = '587';
+        document.getElementById('mail_encryption').value = 'tls';
+        syncSmtpFields();
+    });
 
     emailDriver.addEventListener('change', syncSmtpFields);
     syncSmtpFields();

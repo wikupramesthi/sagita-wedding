@@ -149,10 +149,6 @@
                     </div>
                 </div>
 
-                <div class="forgot-row">
-                    <a href="{{ route('password.request') }}">Lupa kata sandi?</a>
-                </div>
-
                 <button type="submit" class="btn-primary block" id="lanjutBtn">Masuk</button>
 
                 <div class="divider">atau masuk dengan</div>

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\PaymentProofReceivedMail;
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
@@ -11,6 +12,7 @@ use App\Models\Payment\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -102,6 +104,7 @@ class PaymentFlowFeatureTest extends TestCase
 
     public function test_dp_then_installment_then_balance_marks_paid(): void
     {
+        Mail::fake();
         Storage::fake('local');
         $order = Order::create([
             'order_number' => 'ORD-TEST-'.uniqid(),
@@ -152,6 +155,13 @@ class PaymentFlowFeatureTest extends TestCase
                 'amount' => 2000000,
                 'proof' => UploadedFile::fake()->image('i.jpg'),
             ])->assertRedirect();
+
+        Mail::assertSent(
+            PaymentProofReceivedMail::class,
+            fn (PaymentProofReceivedMail $mail) => $mail->hasTo($this->member->email)
+                && $mail->orderNumber === $order->order_number
+                && $mail->amount === 2000000.0
+        );
 
         $inst = Payment::where('order_uuid', $order->uuid)->whereIn('verification_status', ['pending'])->latest()->firstOrFail();
         $this->actingAs($this->admin)->post(route('orders.payments.approve', [$order->uuid, $inst->uuid]), ['admin_note' => 'ok'])->assertRedirect();

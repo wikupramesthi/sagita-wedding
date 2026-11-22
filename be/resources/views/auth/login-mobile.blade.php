@@ -70,12 +70,6 @@
                     </div>
                 </div>
 
-                <div class="text-end mb-3">
-                    <a href="{{ route('password.request') }}" class="text-small text-decoration-none" style="color: var(--sage);">
-                        Lupa kata sandi?
-                    </a>
-                </div>
-
                 <button type="submit" class="btn btn-sage w-100 py-2">
                     Masuk
                 </button>

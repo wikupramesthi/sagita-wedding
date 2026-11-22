@@ -101,6 +101,18 @@
         color: #fff;
     }
 
+    .mobile-filter-btn[data-filter="popular"]:not(.active) {
+        background: #fff4df;
+        border-color: #efd5a6;
+        color: #a2602c;
+    }
+
+    .mobile-filter-btn[data-filter="popular"].active {
+        background: #f3c886;
+        border-color: #e2a94f;
+        color: #5d3818;
+    }
+
     .mobile-package-filter-form {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -662,6 +674,7 @@
             <i class="bi bi-grid"></i>{{ __('mobile.all') }} Paket</a>
 
         <a href="{{ route('packages.member', array_merge($filterQuery, ['filter' => 'popular'])) }}"
+            data-filter="popular"
             class="mobile-filter-btn {{ request('filter') === 'popular' ? 'active' : '' }}">
             <i class="bi bi-star-fill"></i>{{ __('mobile.paling_dipilih') }}</a>
 

@@ -24,6 +24,8 @@
 .package-filter-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border-radius: 9px; color: #777; background: transparent; text-decoration: none; font-size: 13px; font-weight: 600; transition: all .2s ease; }
 .package-filter-btn:hover { color: #4b6b52; background: #eef3ee; }
 .package-filter-btn.active { color: #4b6b52; background: #e3ece4; }
+.package-filter-btn[data-filter="popular"]:not(.active) { background: #fff4df; color: #a2602c; }
+.package-filter-btn[data-filter="popular"].active { background: #f3c886; color: #5d3818; }
 .package-filter-btn i { font-size: 16px; margin-top: 1px; }
 
 /* Sort */
@@ -184,7 +186,7 @@
                 <a href="{{ route('packages.member', array_filter(['sort' => request('sort'), 'guests' => request('guests'), 'budget_max' => request('budget_max')])) }}" class="package-filter-btn {{ !request('filter') ? 'active' : '' }}">
                     <i class="bi bi-grid-3x3-gap"></i> Semua Paket
                 </a>
-                <a href="{{ route('packages.member', array_filter(['filter' => 'popular', 'sort' => request('sort'), 'guests' => request('guests'), 'budget_max' => request('budget_max')])) }}" class="package-filter-btn {{ request('filter') === 'popular' ? 'active' : '' }}">
+                <a href="{{ route('packages.member', array_filter(['filter' => 'popular', 'sort' => request('sort'), 'guests' => request('guests'), 'budget_max' => request('budget_max')])) }}" data-filter="popular" class="package-filter-btn {{ request('filter') === 'popular' ? 'active' : '' }}">
                     <i class="bi bi-star-fill"></i> Paling Dipilih
                 </a>
                 <a href="{{ route('packages.member', array_filter(['filter' => 'unlimited', 'sort' => request('sort'), 'guests' => request('guests'), 'budget_max' => request('budget_max')])) }}" class="package-filter-btn {{ request('filter') === 'unlimited' ? 'active' : '' }}">

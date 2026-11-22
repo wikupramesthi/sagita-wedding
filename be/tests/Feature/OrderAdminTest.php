@@ -9,6 +9,7 @@ use App\Models\Payment\Order;
 use App\Models\User;
 use App\Models\UserPackage;
 use App\Notifications\OrderRejectedNotification;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -38,9 +39,11 @@ class OrderAdminTest extends TestCase
         foreach (['user', 'admin', 'super-admin', 'vendor'] as $roleName) {
             Role::findOrCreate($roleName, 'web');
         }
+        $this->seed(RouteSeeder::class);
 
         $permissions = [
             'orders.index',
+            'orders.show',
             'orders.approve',
             'orders.reject',
             'orders.proof',

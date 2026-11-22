@@ -30,9 +30,6 @@ class SetLocale
             'profile.destroy',
             'password.confirm',
             'password.update',
-            'verification.notice',
-            'verification.verify',
-            'verification.send',
         ], true);
 
         if (($path === 'backend' || str_starts_with($path, 'backend/')) && ! $isDashboard) {

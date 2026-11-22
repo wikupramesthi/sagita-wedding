@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Mail\ConsultationReceivedMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -133,6 +135,7 @@ class ContactControllerTest extends TestCase
 
     public function test_duplicate_contact_is_not_stored_twice(): void
     {
+        Mail::fake();
         $payload = [
             'nama' => 'Test User',
             'email' => 'duplicate@example.test',
@@ -156,5 +159,10 @@ class ContactControllerTest extends TestCase
         }
 
         $this->assertDatabaseCount('consultations', 1);
+        Mail::assertSentCount(1);
+        Mail::assertSent(
+            ConsultationReceivedMail::class,
+            fn (ConsultationReceivedMail $mail) => $mail->hasTo('duplicate@example.test')
+        );
     }
 }

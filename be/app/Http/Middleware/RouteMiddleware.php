@@ -85,9 +85,20 @@ class RouteMiddleware
             abort(404);
         }
 
-        $routes = $routeName
-            ? Cache::remember('route.permission.'.$routeName, 60, fn () => Route::firstWhere('route', $routeName))
-            : null;
+        $routes = null;
+
+        if ($routeName) {
+            $cacheKey = 'route.permission.'.$routeName;
+            $routes = Cache::get($cacheKey);
+
+            if (! $routes) {
+                $routes = Route::firstWhere('route', $routeName);
+
+                if ($routes) {
+                    Cache::put($cacheKey, $routes, now()->addSeconds(60));
+                }
+            }
+        }
 
         if (blank($routes)) {
             if (

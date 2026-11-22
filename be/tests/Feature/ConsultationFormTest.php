@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Consultation;
+use App\Mail\ConsultationReceivedMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -29,6 +31,7 @@ class ConsultationFormTest extends TestCase
 
     public function test_public_consultation_form_saves_a_new_lead_without_frontend_api_key(): void
     {
+        Mail::fake();
         $captchaId = (string) Str::uuid();
         Cache::put('consultation_form_captcha_'.$captchaId, '0042', now()->addMinutes(10));
 
@@ -66,6 +69,11 @@ class ConsultationFormTest extends TestCase
         $this->assertStringContainsString('Rp100–250 juta', $consultation->wedding_concept);
         $this->assertStringContainsString('Ingin konsultasi paket pernikahan.', $consultation->wedding_concept);
         $this->assertNull(Cache::get('consultation_form_captcha_'.$captchaId));
+        Mail::assertSent(
+            ConsultationReceivedMail::class,
+            fn (ConsultationReceivedMail $mail) => $mail->hasTo('test@example.test')
+                && $mail->customerName === 'Test User'
+        );
     }
 
     public function test_public_consultation_form_rejects_an_invalid_or_replayed_captcha(): void

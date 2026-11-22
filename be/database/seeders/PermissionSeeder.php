@@ -75,7 +75,6 @@ class PermissionSeeder extends Seeder
             'checkout.package',
             'dashboard.submitSumber',
             'email-setting.index',
-            'email-setting.test',
             'email-setting.update',
             'events.destroy',
             'events.index',

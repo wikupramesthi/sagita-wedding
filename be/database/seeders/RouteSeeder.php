@@ -304,7 +304,6 @@ class RouteSeeder extends Seeder
             ['route' => 'website-identity.update', 'permission_name' => 'website-identity.update'],
 
             ['route' => 'email-setting.index', 'permission_name' => 'email-setting.index'],
-            ['route' => 'email-setting.test', 'permission_name' => 'email-setting.test'],
             ['route' => 'email-setting.update', 'permission_name' => 'email-setting.update'],
         ]);
 

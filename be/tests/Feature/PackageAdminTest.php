@@ -9,7 +9,9 @@ use App\Models\Package\PackageFeature;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
 use App\Models\User;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -27,9 +29,11 @@ class PackageAdminTest extends TestCase
         foreach (['user', 'admin', 'super-admin'] as $roleName) {
             Role::findOrCreate($roleName, 'web');
         }
+        $this->seed(RouteSeeder::class);
+        Cache::flush();
 
         $adminRole = Role::findByName('admin', 'web');
-        foreach (['package.store', 'package.update', 'package.destroy'] as $permission) {
+        foreach (['package.index', 'package.store', 'package.update', 'package.destroy'] as $permission) {
             $adminRole->givePermissionTo(Permission::firstOrCreate(
                 ['name' => $permission, 'guard_name' => 'web']
             ));
@@ -511,6 +515,26 @@ class PackageAdminTest extends TestCase
             ])
             ->assertStatus(422)
             ->assertJsonPath('message', 'Urutan tidak valid.');
+    }
+
+    public function test_cleanup_migration_updates_legacy_package_name_and_slug(): void
+    {
+        $package = Package::create([
+            'name' => 'First Timer Package',
+            'slug' => 'first-timer-package',
+            'description' => 'Paket lama.',
+            'price' => 100000,
+            'is_active' => 'active',
+        ]);
+
+        $migration = require database_path('migrations/2026_11_22_000001_cleanup_legacy_wedding_copy.php');
+        $migration->up();
+
+        $this->assertDatabaseHas('packages', [
+            'uuid' => $package->uuid,
+            'name' => 'Paket Rencana Pernikahan',
+            'slug' => 'paket-rencana-pernikahan',
+        ]);
     }
 
     /** @return array<string, mixed> */

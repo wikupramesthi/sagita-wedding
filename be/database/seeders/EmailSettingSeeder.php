@@ -57,7 +57,6 @@ class EmailSettingSeeder extends Seeder
         $routes = [
             'email-setting.index' => 'email-setting.index',
             'email-setting.update' => 'email-setting.update',
-            'email-setting.test' => 'email-setting.test',
         ];
 
         foreach ($routes as $route => $permission) {
@@ -68,7 +67,7 @@ class EmailSettingSeeder extends Seeder
         }
 
         foreach (Role::whereIn('name', ['super-admin', 'admin'])->get() as $role) {
-            $role->givePermissionTo(['email-setting.index', 'email-setting.update', 'email-setting.test']);
+            $role->givePermissionTo(['email-setting.index', 'email-setting.update']);
         }
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();

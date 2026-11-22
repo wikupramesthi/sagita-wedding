@@ -4,17 +4,6 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    @auth
-        @role('user')
-            <script>
-                if (window.matchMedia('(max-width: 768px)').matches && new URLSearchParams(window.location.search).get('view') !== 'mobile') {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('view', 'mobile');
-                    window.location.replace(url.toString());
-                }
-            </script>
-        @endrole
-    @endauth
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <meta name="description" content="Panel admin Sagita Wedding Organizer untuk mengelola pesanan, pelanggan, dan layanan pernikahan." />
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />

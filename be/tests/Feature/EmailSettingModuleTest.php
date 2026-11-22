@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\EmailSetting;
 use App\Models\User;
 use App\Models\WebsiteIdentity;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
@@ -24,10 +26,12 @@ class EmailSettingModuleTest extends TestCase
 
         $role = Role::findOrCreate('admin', 'web');
 
+        $this->seed(RouteSeeder::class);
+        Cache::flush();
+
         foreach ([
             'email-setting.index',
             'email-setting.update',
-            'email-setting.test',
             'website-identity.index',
             'website-identity.update',
         ] as $name) {
@@ -43,7 +47,7 @@ class EmailSettingModuleTest extends TestCase
         $this->assertTrue(Schema::hasTable('email_settings'));
         $this->assertTrue(RouteFacade::has('email-setting.index'));
         $this->assertTrue(RouteFacade::has('email-setting.update'));
-        $this->assertTrue(RouteFacade::has('email-setting.test'));
+        $this->assertFalse(RouteFacade::has('email-setting.test'));
 
         $this->assertDatabaseHas('menu_groups', ['name' => 'Pengaturan Sistem']);
         $this->assertDatabaseHas('menu_items', [
@@ -55,6 +59,8 @@ class EmailSettingModuleTest extends TestCase
             'route' => 'email-setting.index',
             'permission_name' => 'email-setting.index',
         ]);
+        $this->assertDatabaseMissing('routes', ['route' => 'email-setting.test']);
+        $this->assertDatabaseMissing('permissions', ['name' => 'email-setting.test']);
     }
 
     public function test_admin_can_open_and_update_email_settings(): void
@@ -63,7 +69,11 @@ class EmailSettingModuleTest extends TestCase
             ->get(route('email-setting.index'))
             ->assertOk()
             ->assertSee('Pengaturan Email')
-            ->assertSee('Koneksi SMTP');
+            ->assertSee('Koneksi SMTP')
+            ->assertSee('Gunakan preset Brevo')
+            ->assertSee('smtp-relay.brevo.com')
+            ->assertSee('SMTP key')
+            ->assertDontSee('Kirim Email Uji');
 
         $this->actingAs($this->user)
             ->put(route('email-setting.update'), [
@@ -116,24 +126,6 @@ class EmailSettingModuleTest extends TestCase
             ->assertRedirect(route('email-setting.index'));
 
         $this->assertSame('password-lama', $setting->fresh()->mail_password);
-    }
-
-    public function test_test_email_endpoint_accepts_recipient(): void
-    {
-        $this->actingAs($this->user)
-            ->put(route('email-setting.update'), [
-                'mail_driver' => 'array',
-                'mail_timeout' => 60,
-                'from_address' => 'noreply@example.com',
-                'from_name' => 'Sagita Wedding',
-                'is_active' => 1,
-            ])
-            ->assertRedirect(route('email-setting.index'));
-
-        $this->actingAs($this->user)
-            ->post(route('email-setting.test'), ['recipient' => 'qa@example.com'])
-            ->assertRedirect()
-            ->assertSessionHas('success');
     }
 
     public function test_website_identity_changes_sync_default_sender(): void

@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ConsultationReceivedMail;
 use App\Models\Consultation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Throwable;
 
 class ConsultationFormController extends Controller
 {
@@ -143,6 +147,14 @@ class ConsultationFormController extends Controller
 
             return false;
         });
+
+        if (! $isDuplicate) {
+            try {
+                Mail::to($data['email'])->send(new ConsultationReceivedMail($data['full_name']));
+            } catch (Throwable $exception) {
+                Log::error('Consultation confirmation email failed: '.$exception->getMessage());
+            }
+        }
 
         $message = $isDuplicate
             ? 'Permintaan Anda sebelumnya sudah kami terima. Tim kami akan segera menghubungi Anda.'

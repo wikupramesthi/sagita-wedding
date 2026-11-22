@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ConsultationReceivedMail;
 use App\Models\Consultation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Throwable;
 
 class ContactController extends Controller
 {
@@ -158,6 +162,14 @@ class ContactController extends Controller
 
             return false;
         });
+
+        if (! $isDuplicate) {
+            try {
+                Mail::to($email)->send(new ConsultationReceivedMail($fullName));
+            } catch (Throwable $exception) {
+                Log::error('Consultation confirmation email failed: '.$exception->getMessage());
+            }
+        }
 
         return response()->json([
             'success' => true,

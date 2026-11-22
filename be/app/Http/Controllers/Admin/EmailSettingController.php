@@ -3,14 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\TestEmailRequest;
 use App\Http\Requests\Admin\UpdateEmailSettingRequest;
 use App\Models\EmailSetting;
 use App\Models\WebsiteIdentity;
 use App\Services\EmailSettingService;
-use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 class EmailSettingController extends Controller
@@ -65,23 +62,4 @@ class EmailSettingController extends Controller
         }
     }
 
-    public function test(TestEmailRequest $request)
-    {
-        $recipient = $request->validated('recipient');
-
-        EmailSettingService::apply();
-
-        try {
-            Mail::raw("Halo,\n\nIni adalah email uji dari Sagita Wedding. Jika Anda menerima pesan ini, pengaturan email sudah berfungsi.\n\nTerima kasih.", function (Message $message) use ($recipient) {
-                $message->to($recipient)
-                    ->subject('Uji Pengaturan Email Sagita Wedding');
-            });
-
-            return redirect()->back()->with('success', 'Email uji berhasil dikirim ke '.$recipient.'.');
-        } catch (Throwable $th) {
-            report($th);
-
-            return redirect()->back()->withInput()->with('error', $this->safeErrorMessage($th));
-        }
-    }
 }

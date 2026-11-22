@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\PaymentProofReceivedMail;
 use App\Models\AuditLog;
 use App\Models\OrderSavedFilter;
 use App\Models\Package\PackageAddon;
@@ -33,6 +34,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -880,12 +882,26 @@ class OrderController extends Controller
         if (! $recordOnly) {
             try {
                 $admins = User::role(['admin', 'super-admin'])->where('is_active', true)->get();
-                $notif = new ProofUploadedNotification($record->uuid, $record->order_number, $user->name);
+                $notif = new ProofUploadedNotification($record->uuid, $record->order_number, $user->name, $amount);
                 foreach ($admins as $admin) {
                     $admin->notify($notif);
                 }
             } catch (Throwable $e) {
                 Log::error('Payment submission notification failed: '.$e->getMessage());
+            }
+
+            try {
+                $record->loadMissing('user');
+                if (filled($record->user?->email)) {
+                    Mail::to($record->user->email)->send(new PaymentProofReceivedMail(
+                        $record->user->name,
+                        $record->uuid,
+                        $record->order_number,
+                        $amount,
+                    ));
+                }
+            } catch (Throwable $e) {
+                Log::error('Payment proof confirmation email failed: '.$e->getMessage());
             }
         }
 
@@ -1810,6 +1826,19 @@ class OrderController extends Controller
             }
         } catch (Throwable $e) {
             Log::error('Proof upload notification failed: '.$e->getMessage());
+        }
+
+        try {
+            if (filled($order->user?->email)) {
+                Mail::to($order->user->email)->send(new PaymentProofReceivedMail(
+                    $order->user->name,
+                    $order->uuid,
+                    $order->order_number,
+                    (float) $order->amount,
+                ));
+            }
+        } catch (Throwable $e) {
+            Log::error('Payment proof confirmation email failed: '.$e->getMessage());
         }
 
         return back()->with('success', __('flash.proof_ok'));

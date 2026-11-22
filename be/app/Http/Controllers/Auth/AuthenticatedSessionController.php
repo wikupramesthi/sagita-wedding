@@ -31,12 +31,7 @@ class AuthenticatedSessionController extends Controller
         $jumlahVendor = $hasRoles ? User::role('vendor')->count() : 0;
         $jumlahMembers = $hasRoles ? User::role('user')->count() : 0;
 
-        $mobileView = $request->query('view') === 'mobile';
-        if ($mobileView) {
-            $request->session()->put('member_view', 'mobile');
-        }
-
-        if ($this->isMobile() || $mobileView) {
+        if ($this->isMobile()) {
             return view('auth.login-mobile');
         }
 

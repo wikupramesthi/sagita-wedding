@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Models\Package\Package;
 use App\Models\Payment\Order;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // payment
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
 

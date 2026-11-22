@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Consultation;
 use App\Models\User;
 use Carbon\Carbon;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,18 @@ class MemberAuthorizationTest extends TestCase
         Role::create(['name' => 'admin', 'guard_name' => 'web']);
         Role::create(['name' => 'super-admin', 'guard_name' => 'web']);
         Role::create(['name' => 'vendor', 'guard_name' => 'web']);
+
+        $this->seed(RouteSeeder::class);
+        Cache::flush();
+
+        Role::findByName('admin', 'web')->givePermissionTo(Permission::firstOrCreate(
+            ['name' => 'dashboard.index', 'guard_name' => 'web']
+        ));
+        foreach (['dashboard.index', 'orders.index'] as $permission) {
+            Role::findByName('user', 'web')->givePermissionTo(Permission::firstOrCreate(
+                ['name' => $permission, 'guard_name' => 'web']
+            ));
+        }
 
         // Jangan panggil API Art of Living saat test dashboard.
         Cache::put('dashboard.artofliving.courses', [], now()->addHour());
@@ -109,7 +122,7 @@ class MemberAuthorizationTest extends TestCase
 
     public function test_public_route_without_registration_remains_accessible(): void
     {
-        $this->get('/')->assertOk();
+        $this->get('/')->assertRedirect();
     }
 
     public function test_admin_dashboard_clamps_inverted_date_range(): void
@@ -180,14 +193,14 @@ class MemberAuthorizationTest extends TestCase
             ->assertViewIs('pages.mobile.home');
     }
 
-    public function test_member_dashboard_is_mobile_on_responsive_width(): void
+    public function test_member_dashboard_stays_desktop_on_narrow_laptop_viewport(): void
     {
         $this->actingAs($this->member())
             ->withHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36')
             ->withHeader('Sec-CH-Viewport-Width', '390')
             ->get('/backend/dashboard')
             ->assertOk()
-            ->assertViewIs('pages.mobile.home');
+            ->assertViewIs('pages.dashboard.index');
     }
 
     public function test_member_dashboard_is_desktop_on_laptop(): void

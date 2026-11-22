@@ -153,7 +153,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
 });
 
-Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCache::class], 'prefix' => 'backend'], function () {
+Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 'prefix' => 'backend'], function () {
     $superAdmin = 'role:super-admin';
     // $user = 'role:user';
     Route::post('/dashboard/sumber-informasi', [DashboardController::class, 'submitSumber'])->name('dashboard.submitSumber');
@@ -195,7 +195,6 @@ Route::group(['middleware' => ['web', 'auth', 'verified', InvalidateDashboardCac
     Route::put('website-identity', [WebsiteIdentityController::class, 'update'])->name('website-identity.update');
     Route::get('email-setting', [EmailSettingController::class, 'index'])->name('email-setting.index');
     Route::put('email-setting', [EmailSettingController::class, 'update'])->name('email-setting.update');
-    Route::post('email-setting/test', [EmailSettingController::class, 'test'])->name('email-setting.test');
     Route::get('pengguna', [PenggunaController::class, 'index'])->name('pengguna.index');
     Route::get('/pengguna/export', [PenggunaController::class, 'export'])->name('pengguna.export');
     Route::put('/pengguna/{user}/status', [PenggunaController::class, 'updateStatus'])->name('pengguna.update-status');

@@ -10,6 +10,7 @@ use App\Models\Payment\Payment;
 use App\Models\User;
 use App\Models\UserPackage;
 use App\Notifications\OrderSlaReminderNotification;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
@@ -39,6 +40,7 @@ class OrderOpsTest extends TestCase
         foreach (['user', 'admin', 'super-admin'] as $roleName) {
             Role::findOrCreate($roleName, 'web');
         }
+        $this->seed(RouteSeeder::class);
 
         $permissions = [
             'orders.approve',

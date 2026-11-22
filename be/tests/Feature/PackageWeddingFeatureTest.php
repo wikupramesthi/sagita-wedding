@@ -16,7 +16,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
+use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -40,10 +42,19 @@ class PackageWeddingFeatureTest extends TestCase
         foreach (['user', 'admin', 'super-admin'] as $roleName) {
             Role::findOrCreate($roleName, 'web');
         }
+        $this->seed(RouteSeeder::class);
+        Cache::flush();
 
         $adminRole = Role::findByName('admin', 'web');
-        foreach (['package.store', 'package.update', 'package.destroy'] as $permission) {
+        foreach (['orders.show', 'package.index', 'package.store', 'package.update', 'package.destroy'] as $permission) {
             $adminRole->givePermissionTo(Permission::firstOrCreate(
+                ['name' => $permission, 'guard_name' => 'web']
+            ));
+        }
+
+        $userRole = Role::findByName('user', 'web');
+        foreach (['checkout.package', 'orders.index', 'orders.show', 'orders.store', 'package.member'] as $permission) {
+            $userRole->givePermissionTo(Permission::firstOrCreate(
                 ['name' => $permission, 'guard_name' => 'web']
             ));
         }
