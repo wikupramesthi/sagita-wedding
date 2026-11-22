@@ -402,10 +402,13 @@ const rawTranslations = {
 			},
 		],
 
-		// Events
-		upcoming: "Upcoming",
-		eventsTitle: "Events &",
-		eventsTitleItalic: "Announcements",
+		// Homepage articles
+		homeArticlesEyebrow: "WEDDING PLANNING READS",
+		homeArticlesTitle: "Articles &",
+		homeArticlesTitleItalic: "Wedding Inspiration",
+		homeArticleLabel: "ARTICLE",
+		homeArticleReadMore: "Read article",
+		viewAllArticles: "View all articles",
 
 		// Final CTA
 		readyTitle: "Ready to plan",
@@ -821,10 +824,13 @@ const rawTranslations = {
 			},
 		],
 
-		// Events
-		upcoming: "Mendatang",
-		eventsTitle: "Acara &",
-		eventsTitleItalic: "Pengumuman",
+		// Homepage articles
+		homeArticlesEyebrow: "BACAAN SEPUTAR PERNIKAHAN",
+		homeArticlesTitle: "Artikel &",
+		homeArticlesTitleItalic: "Inspirasi Pernikahan",
+		homeArticleLabel: "ARTIKEL",
+		homeArticleReadMore: "Baca artikel",
+		viewAllArticles: "Lihat semua artikel",
 
 		// Final CTA
 		readyTitle: "Mari rencanakan",

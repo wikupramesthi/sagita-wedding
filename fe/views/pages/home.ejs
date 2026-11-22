@@ -363,20 +363,22 @@
           <div class="reveal min-w-0">
             <div id="homeFaqGroups" class="space-y-8">
               <% homeFaqGroups.forEach((group, groupIndex) => { %>
-                <section id="home-faq-group-<%= group.id %>" class="home-faq-group scroll-mt-28" data-home-faq-group="<%= group.id %>">
+                <section id="home-faq-group-<%= group.id %>" class="home-faq-group reveal scroll-mt-28" data-delay="<%= groupIndex * 90 %>" data-home-faq-group="<%= group.id %>">
                   <h3 class="mb-3 font-semibold text-sm text-sage-700 sm:text-base"><%= group.kategori %></h3>
                   <div class="border-t border-sand-200">
                     <% group.items.forEach((item, itemIndex) => { %>
                       <% const isFirst = groupIndex === 0 && itemIndex === 0; %>
                       <% const buttonId = `home-faq-question-${group.id}-${item.id}`; %>
                       <% const panelId = `home-faq-answer-${group.id}-${item.id}`; %>
-                      <article class="home-faq-item border-b border-sand-200" data-home-faq-item>
+                      <article class="home-faq-item border-b border-sand-200 <%= isFirst ? 'is-open' : '' %>" data-home-faq-item>
                         <button type="button" id="<%= buttonId %>" data-home-faq-button class="flex w-full items-start gap-4 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage-500/30 sm:py-5" aria-expanded="<%= isFirst ? 'true' : 'false' %>" aria-controls="<%= panelId %>">
                           <span class="min-w-0 flex-1 font-semibold text-base leading-snug text-sage-900 sm:text-lg"><%= item.question %></span>
                           <span class="home-faq-toggle ms-auto grid h-6 w-6 shrink-0 place-items-center text-xl leading-none text-sage-600 transition-colors"><%= isFirst ? '×' : '+' %></span>
                         </button>
-                        <div id="<%= panelId %>" data-home-faq-panel role="region" aria-labelledby="<%= buttonId %>" class="<%= isFirst ? '' : 'hidden' %> max-w-3xl pb-5 text-sm leading-relaxed text-stone-warm whitespace-pre-line sm:text-base">
-                          <%= item.answer %>
+                        <div id="<%= panelId %>" data-home-faq-panel role="region" aria-labelledby="<%= buttonId %>" aria-hidden="<%= isFirst ? 'false' : 'true' %>" class="home-faq-panel <%= isFirst ? 'is-open' : '' %>">
+                          <div class="home-faq-panel-inner">
+                            <div class="max-w-3xl pb-5 text-sm leading-relaxed text-stone-warm whitespace-pre-line sm:text-base"><%= item.answer %></div>
+                          </div>
                         </div>
                       </article>
                     <% }) %>

@@ -22,6 +22,58 @@ import {
 
 const router = Router();
 
+interface HomeArticle {
+	slug: string;
+	title: string;
+	image: string;
+	date: string;
+}
+
+function getHomeArticles(value: unknown, locale: string): HomeArticle[] {
+	if (!Array.isArray(value)) return [];
+
+	return value
+		.flatMap((item): HomeArticle[] => {
+			if (!item || typeof item !== "object") return [];
+			const article = item as Record<string, unknown>;
+			if (typeof article.slug !== "string" || typeof article.title !== "string") {
+				return [];
+			}
+
+			const dateValue =
+				typeof article.scheduled_at === "string"
+					? article.scheduled_at
+					: article.created_at;
+			const datePart =
+				typeof dateValue === "string" ? dateValue.slice(0, 10) : "";
+			let date = "";
+			if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+				const parsedDate = new Date(`${datePart}T00:00:00Z`);
+				if (parsedDate.toISOString().startsWith(datePart)) {
+					date = new Intl.DateTimeFormat(locale, {
+						day: "numeric",
+						month: "short",
+						timeZone: "UTC",
+						year: "numeric",
+					}).format(parsedDate);
+				}
+			}
+
+			return [
+				{
+					slug: article.slug,
+					title: article.title,
+					image:
+						typeof article.featured_image === "string"
+							? article.featured_image
+							: "",
+					date,
+				},
+			];
+		})
+		.slice(0, 3);
+}
+
 function getHomeSliderBanners(value: unknown): BannerItem[] {
 	if (!Array.isArray(value)) return [];
 
@@ -62,8 +114,11 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 				: "Plan your wedding with Sagita Wedding Planner. Explore venues, coordinate trusted vendors, and get thoughtful support on your wedding day.",
 			heroNav: sliderBanners.length > 0,
 			pageScript: "home",
-			assetV: `${res.locals.assetV}-home-slider26`,
+			assetV: `${res.locals.assetV}-home-slider27`,
 			weddingContentReady,
+			articles: weddingContentReady
+				? getHomeArticles(data?.articles, isID ? "id-ID" : "en-US")
+				: [],
 			sliderBanners,
 			venueDataLoaded: weddingContentReady && Array.isArray(data?.venues),
 			venues:
@@ -74,8 +129,6 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 				weddingContentReady && Array.isArray(data?.packages)
 					? data.packages
 					: [],
-			events:
-				weddingContentReady && Array.isArray(data?.events) ? data.events : [],
 			testimonials:
 				weddingContentReady && Array.isArray(data?.testimonials)
 					? data.testimonials.slice(0, 10)

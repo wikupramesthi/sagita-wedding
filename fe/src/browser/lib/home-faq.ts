@@ -1,10 +1,13 @@
 function setHomeFaqItemOpen(button: HTMLButtonElement, open: boolean): void {
 	const panelId = button.getAttribute("aria-controls");
 	const panel = panelId ? document.getElementById(panelId) : null;
+	const item = button.closest<HTMLElement>("[data-home-faq-item]");
 	const toggle = button.querySelector<HTMLElement>(".home-faq-toggle");
 
 	button.setAttribute("aria-expanded", String(open));
-	panel?.classList.toggle("hidden", !open);
+	panel?.classList.toggle("is-open", open);
+	panel?.setAttribute("aria-hidden", String(!open));
+	item?.classList.toggle("is-open", open);
 	if (toggle) toggle.textContent = open ? "×" : "+";
 }
 

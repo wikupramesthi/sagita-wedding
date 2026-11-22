@@ -653,9 +653,9 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('class="reveal self-start lg:sticky lg:top-24"');
 		expect(res.text).toContain('aria-controls="home-faq-group-packages"');
 		expect(res.text).toContain('id="home-faq-group-packages"');
-		expect(res.text).toContain(
-			'class="home-faq-group scroll-mt-28" data-home-faq-group="start"',
-		);
+		expect(res.text).toContain('id="home-faq-group-start"');
+		expect(res.text).toContain('class="home-faq-group reveal scroll-mt-28"');
+		expect(res.text).toContain('data-home-faq-group="start"');
 		expect(res.text).toContain("data-home-faq-expand");
 		expect(res.text).toContain("data-home-faq-collapse");
 		expect(res.text).toContain(
