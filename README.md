@@ -150,6 +150,7 @@ Edit `be/.env` bila perlu (default `.env.example` sudah memakai MySQL/XAMPP data
 ```dotenv
 APP_NAME="Sagita Wedding"
 APP_ENV=local
+APP_DEBUG=false
 APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
@@ -160,6 +161,8 @@ DB_USERNAME=root
 DB_PASSWORD=
 
 SESSION_DRIVER=database
+SESSION_COOKIE=sagita_session
+SESSION_SECURE_COOKIE=false   # true di produksi (HTTPS)
 CACHE_STORE=database
 QUEUE_CONNECTION=database
 
@@ -209,6 +212,7 @@ API_URL=http://127.0.0.1:8000/api
 API_KEY=secret-bersama-anda      # HARUS sama dengan FRONTEND_API_KEY di be/.env
 SITE_URL=http://localhost:3000
 GOOGLE_AUTH_URL=http://localhost:8000/auth/google
+SESSION_COOKIE_NAME=sagita_session # HARUS sama dengan SESSION_COOKIE di be/.env
 WHATSAPP_NUMBER=6281380760095
 PORT=3000
 ASSET_V=20261120t
@@ -249,7 +253,10 @@ Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Role`, `Menu`, `Route`, 
 | `FRONTEND_API_KEY`                          | `be/.env` | Shared secret untuk middleware `VerifyApiKey` pada semua `/api/*`                                     |
 | `API_KEY`                                   | `fe/.env` | **Nilainya harus identik** dengan `FRONTEND_API_KEY`                                                  |
 | `API_URL`                                   | `fe/.env` | Base URL API Laravel, contoh `http://127.0.0.1:8000/api`                                              |
-| `FRONTEND_URL`                              | `be/.env` | Dipakai untuk canonical URL & redirect setelah OAuth                                                  |
+| `SESSION_COOKIE`                            | `be/.env` | Nama cookie session Laravel; default `sagita_session`                                                 |
+| `SESSION_COOKIE_NAME`                       | `fe/.env` | **Nilainya harus identik** dengan `SESSION_COOKIE`                                                    |
+| `SESSION_SECURE_COOKIE`                     | `be/.env` | `true` di produksi HTTPS agar cookie tidak dikirim lewat HTTP                                        |
+| `FRONTEND_URL`                              | `be/.env` | Dipakai untuk canonical URL & redirect setelah OAuth (host harus persis, bukan prefix)                 |
 | `CORS_ALLOWED_ORIGINS`                      | `be/.env` | Harus mengizinkan origin `fe` (`localhost:3000`, `127.0.0.1:3000`)                                    |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | `be/.env` | Kredensial OAuth Google Cloud Console                                                                 |
 | `GOOGLE_REDIRECT_URL`                       | `be/.env` | Harus **persis** sama dengan Authorized Redirect URI di Google. `localhost` ≠ `127.0.0.1` bagi Google |
@@ -303,9 +310,9 @@ Endpoint di bawah ini diawali `/api` dan melewati middleware `ApiSecurityHeaders
 
 `GET /api/batch/{page}`, dengan `{page}` salah satu dari:
 
-`home`, `about`, `classes`, `class-detail`, `blog`, `blog-detail`, `packages`, `package-detail`, `vendors`, `events`, `gallery`, `contact`, `page-detail`, `schedules`
+`home`, `venues`, `about`, `blog`, `blog-detail`, `packages`, `package-detail`, `vendors`, `events`, `gallery`, `contact`, `faq`, `page-detail`
 
-Contoh parameter: `?slug=...`, `?date=...`, `?level=...`, `?time=...`, `?venue_uuid=...` (tergantung halaman). Respons umum:
+Contoh parameter: `?slug=...`, `?search=...`, `?filter=...`, `?sort=...`, `?date_from=...`, `?date_to=...`, `?page=...`, `?per_page=...` (tergantung halaman). Respons umum:
 
 ```json
 {
@@ -326,8 +333,6 @@ GET  /api/categories           /api/website-identity   /api/site-stats
 GET  /api/articles             /api/articles/{slug}    /api/articles/category/{slug}
 GET  /api/pages                /api/pages/{slug}
 GET  /api/events               /api/events/{slug}
-GET  /api/classes              /api/classes/{slug}
-GET  /api/class-schedules      /api/class-schedules/{uuid}
 GET  /api/vendors              /api/packages           /api/packages/{slug}
 GET  /api/staff                /api/pegawai            (alias legacy)
 GET  /api/contact/captcha
@@ -337,7 +342,9 @@ POST /api/analytics/visits
 
 `GET /api/faqs` menerima `?kategori=<nama kategori>` dan mengembalikan `data` berisi `uuid`, `kategori`, `question`, `answer` serta `meta` berisi `total`, `kategori`, dan daftar `categories`.
 
-Endpoint internal Express (dipanggil browser) ada di `fe/src/routes/api.ts`, antara lain `/api/classes`, `/api/class-schedules`, `/api/batch/schedules`, `/api/contact/captcha`, `/api/contact`.
+Endpoint internal Express (dipanggil browser) ada di `fe/src/routes/api.ts`, antara lain `/api/contact/captcha`, `/api/contact`, dan passthrough `/api/batch/{page}`. Endpoint lama `/api/classes`, `/api/class-schedules`, dan `/api/batch/schedules` sengaja membalas `410 Gone`.
+
+Error API memakai amplop konsisten: `{ "success": false, "status": "error", "message": "...", "errors": { ... } }` (field `errors` hanya untuk 422). `POST /api/contact` punya honeypot `website`; `POST /api/analytics/visits` dibatasi 30/menit/IP + 10/menit/visitor dan deduplikasi per menit.
 
 Endpoint sesi untuk frontend: `GET /auth/me`, `POST /auth/me/logout`, `GET /auth/google` (di backend, tanpa prefiks `/api`).
 

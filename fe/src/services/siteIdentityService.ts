@@ -11,127 +11,127 @@ import type { BackendPayload, SiteIdentity } from "../types/index.js";
 
 // Bentuk default — kunci sama persis dengan yang dipakai views (site.*).
 const FALLBACK: SiteIdentity = {
-  name: sagitaData.site.name,
-  title: sagitaData.site.name,
-  tagline: sagitaData.site.tagline,
-  description: sagitaData.site.description,
-  phone: sagitaData.site.phone,
-  phoneTel: sagitaData.site.phone,
-  email: sagitaData.site.email,
-  address: sagitaData.site.address,
-  instagramHandle: sagitaData.site.instagram,
-  instagramHref: sagitaData.site.instagram
-    ? `https://www.instagram.com/${sagitaData.site.instagram}/`
-    : "",
-  facebookHref: "",
-  youtubeHref: "",
-  tiktokHref: "",
-  metaTitle: "",
-  metaDescription: "",
-  metaKeywords: "",
-  gaId: "",
-  siteVerification: "",
-  logoUrl: "/img/logo.WebP",
-  logoWhiteUrl: "/img/logo.WebP",
-  faviconUrl: "/img/fav.png",
-  ogImage: "/img/logo.WebP",
-  year: new Date().getFullYear(),
+	name: sagitaData.site.name,
+	title: sagitaData.site.name,
+	tagline: sagitaData.site.tagline,
+	description: sagitaData.site.description,
+	phone: sagitaData.site.phone,
+	phoneTel: sagitaData.site.phone,
+	email: sagitaData.site.email,
+	address: sagitaData.site.address,
+	instagramHandle: sagitaData.site.instagram,
+	instagramHref: sagitaData.site.instagram
+		? `https://www.instagram.com/${sagitaData.site.instagram}/`
+		: "",
+	facebookHref: "",
+	youtubeHref: "",
+	tiktokHref: "",
+	metaTitle: "",
+	metaDescription: "",
+	metaKeywords: "",
+	gaId: "",
+	siteVerification: "",
+	logoUrl: "/img/logo.WebP",
+	logoWhiteUrl: "/img/logo.WebP",
+	faviconUrl: "/img/fav.png",
+	ogImage: "/img/logo.WebP",
+	year: new Date().getFullYear(),
 };
 
 const TTL_MS = 10 * 60 * 1000;
 let cache: { data: SiteIdentity; expiresAt: number } = {
-  data: FALLBACK,
-  expiresAt: 0,
+	data: FALLBACK,
+	expiresAt: 0,
 };
 let inflight: Promise<SiteIdentity> | null = null;
 
 function text(value: unknown, fallback = ""): string {
-  const s = String(value ?? "").trim();
-  return s || fallback;
+	const s = String(value ?? "").trim();
+	return s || fallback;
 }
 
 function legacyYogaCopy(value: string): boolean {
-  return /Sagita Wedding|yoga|serene yoga|meditation|wellness/i.test(value);
+	return /Sagita Wedding|yoga|serene yoga|meditation|wellness/i.test(value);
 }
 
 /** Ambil handle @user dari URL instagram penuh untuk tampilan "@user". */
 function instagramHandleFrom(url: string, fallback: string): string {
-  const m = String(url || "").match(/instagram\.com\/([A-Za-z0-9._]+)/i);
-  return m ? m[1] : fallback;
+	const m = String(url || "").match(/instagram\.com\/([A-Za-z0-9._]+)/i);
+	return m ? m[1] : fallback;
 }
 
 /** Normalisasi payload API -> bentuk siap pakai views (anti null/undefined). */
 export function normalizeIdentity(
-  api: Record<string, unknown> = {},
+	api: Record<string, unknown> = {},
 ): SiteIdentity {
-  const fallback = FALLBACK;
-  const instagramHref = text(api.instagram_url);
-  const apiName = text(api.site_name);
-  const apiTitle = text(api.site_title);
-  const apiTagline = text(api.tagline);
-  const apiDescription = text(api.short_description, fallback.description);
-  const apiMetaTitle = text(api.meta_title);
-  const apiMetaDescription = text(api.meta_description);
-  const apiEmail = text(api.email);
-  const apiAddress = text(api.address);
-  const legacyNames = new Set([
-    "Laravel",
-    "Sagita Wedding",
-    "Yoga Roots",
-    "Serene Yoga",
-  ]);
-  return {
-    name: legacyNames.has(apiName)
-      ? fallback.name
-      : text(apiName, fallback.name),
-    title: legacyNames.has(apiTitle)
-      ? fallback.title
-      : text(apiTitle, fallback.title),
-    tagline: legacyNames.has(apiTagline)
-      ? fallback.tagline
-      : text(apiTagline, fallback.tagline),
-    description: legacyYogaCopy(apiDescription)
-      ? fallback.description
-      : apiDescription,
-    phone: text(api.phone, fallback.phone),
-    phoneTel:
-      text(api.phone, fallback.phoneTel).replace(/[^\d+]/g, "") ||
-      fallback.phoneTel,
-    email: legacyYogaCopy(apiEmail)
-      ? fallback.email
-      : text(apiEmail, fallback.email),
-    address: legacyYogaCopy(apiAddress)
-      ? fallback.address
-      : text(apiAddress, fallback.address),
-    instagramHandle: instagramHref
-      ? legacyYogaCopy(instagramHref)
-        ? fallback.instagramHandle
-        : instagramHandleFrom(instagramHref, fallback.instagramHandle)
-      : fallback.instagramHandle,
-    instagramHref: legacyYogaCopy(instagramHref)
-      ? fallback.instagramHref
-      : instagramHref || fallback.instagramHref,
-    facebookHref: text(api.facebook_url),
-    youtubeHref: text(api.youtube_url),
-    tiktokHref: text(api.tiktok_url),
-    metaTitle: legacyYogaCopy(apiMetaTitle) ? "" : apiMetaTitle,
-    metaDescription: legacyYogaCopy(apiMetaDescription)
-      ? ""
-      : apiMetaDescription,
-    metaKeywords: text(api.meta_keywords),
-    gaId: text(api.google_analytics_id),
-    siteVerification: text(api.google_site_verification),
-    logoUrl: text(api.logo_url, fallback.logoUrl),
-    logoWhiteUrl: fallback.logoWhiteUrl,
-    faviconUrl: text(api.favicon_url, fallback.faviconUrl),
-    ogImage: text(api.og_image_url, fallback.ogImage),
-    year: fallback.year,
-  };
+	const fallback = FALLBACK;
+	const instagramHref = text(api.instagram_url);
+	const apiName = text(api.site_name);
+	const apiTitle = text(api.site_title);
+	const apiTagline = text(api.tagline);
+	const apiDescription = text(api.short_description, fallback.description);
+	const apiMetaTitle = text(api.meta_title);
+	const apiMetaDescription = text(api.meta_description);
+	const apiEmail = text(api.email);
+	const apiAddress = text(api.address);
+	const legacyNames = new Set([
+		"Laravel",
+		"Sagita Wedding",
+		"Yoga Roots",
+		"Serene Yoga",
+	]);
+	return {
+		name: legacyNames.has(apiName)
+			? fallback.name
+			: text(apiName, fallback.name),
+		title: legacyNames.has(apiTitle)
+			? fallback.title
+			: text(apiTitle, fallback.title),
+		tagline: legacyNames.has(apiTagline)
+			? fallback.tagline
+			: text(apiTagline, fallback.tagline),
+		description: legacyYogaCopy(apiDescription)
+			? fallback.description
+			: apiDescription,
+		phone: text(api.phone, fallback.phone),
+		phoneTel:
+			text(api.phone, fallback.phoneTel).replace(/[^\d+]/g, "") ||
+			fallback.phoneTel,
+		email: legacyYogaCopy(apiEmail)
+			? fallback.email
+			: text(apiEmail, fallback.email),
+		address: legacyYogaCopy(apiAddress)
+			? fallback.address
+			: text(apiAddress, fallback.address),
+		instagramHandle: instagramHref
+			? legacyYogaCopy(instagramHref)
+				? fallback.instagramHandle
+				: instagramHandleFrom(instagramHref, fallback.instagramHandle)
+			: fallback.instagramHandle,
+		instagramHref: legacyYogaCopy(instagramHref)
+			? fallback.instagramHref
+			: instagramHref || fallback.instagramHref,
+		facebookHref: text(api.facebook_url),
+		youtubeHref: text(api.youtube_url),
+		tiktokHref: text(api.tiktok_url),
+		metaTitle: legacyYogaCopy(apiMetaTitle) ? "" : apiMetaTitle,
+		metaDescription: legacyYogaCopy(apiMetaDescription)
+			? ""
+			: apiMetaDescription,
+		metaKeywords: text(api.meta_keywords),
+		gaId: text(api.google_analytics_id),
+		siteVerification: text(api.google_site_verification),
+		logoUrl: text(api.logo_url, fallback.logoUrl),
+		logoWhiteUrl: fallback.logoWhiteUrl,
+		faviconUrl: text(api.favicon_url, fallback.faviconUrl),
+		ogImage: text(api.og_image_url, fallback.ogImage),
+		year: fallback.year,
+	};
 }
 
 /** Bentuk default saat backend tidak terjangkau (halaman tetap render & SEO aman). */
 export function defaultSite(): SiteIdentity {
-  return { ...FALLBACK };
+	return { ...FALLBACK };
 }
 
 /**
@@ -139,19 +139,19 @@ export function defaultSite(): SiteIdentity {
  * gunakan resolveSite() bila ingin fallback otomatis.
  */
 export async function getSiteIdentity(): Promise<SiteIdentity> {
-  if (cache.expiresAt > Date.now()) return cache.data;
-  if (!inflight) {
-    inflight = fetchIdentity()
-      .then((payload: BackendPayload) => {
-        const normalized = normalizeIdentity(payload ?? {});
-        cache = { data: normalized, expiresAt: Date.now() + TTL_MS };
-        return normalized;
-      })
-      .finally(() => {
-        inflight = null;
-      });
-  }
-  return inflight;
+	if (cache.expiresAt > Date.now()) return cache.data;
+	if (!inflight) {
+		inflight = fetchIdentity()
+			.then((payload: BackendPayload) => {
+				const normalized = normalizeIdentity(payload ?? {});
+				cache = { data: normalized, expiresAt: Date.now() + TTL_MS };
+				return normalized;
+			})
+			.finally(() => {
+				inflight = null;
+			});
+	}
+	return inflight;
 }
 
 /**
@@ -159,26 +159,26 @@ export async function getSiteIdentity(): Promise<SiteIdentity> {
  * apiClient 10 dtk) agar halaman tetap cepat saat backend lambat/mati.
  */
 async function fetchIdentity(): Promise<unknown> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 3_500);
-  try {
-    const res = await fetch(`${env.API_URL}/website-identity`, {
-      signal: controller.signal,
-      headers: { Accept: "application/json", "X-Api-Key": env.API_KEY },
-    });
-    if (!res.ok) throw new Error(`Identity API: ${res.status}`);
-    const json = await res.json();
-    return json.data ?? json;
-  } finally {
-    clearTimeout(timer);
-  }
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), 3_500);
+	try {
+		const res = await fetch(`${env.API_URL}/website-identity`, {
+			signal: controller.signal,
+			headers: { Accept: "application/json", "X-Api-Key": env.API_KEY },
+		});
+		if (!res.ok) throw new Error(`Identity API: ${res.status}`);
+		const json = await res.json();
+		return json.data ?? json;
+	} finally {
+		clearTimeout(timer);
+	}
 }
 
 /** Resolve aman untuk middleware: gagal -> fallback, halaman/SEO tetap jalan. */
 export async function resolveSite(): Promise<SiteIdentity> {
-  try {
-    return await getSiteIdentity();
-  } catch {
-    return defaultSite();
-  }
+	try {
+		return await getSiteIdentity();
+	} catch {
+		return defaultSite();
+	}
 }

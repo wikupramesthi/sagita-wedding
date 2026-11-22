@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Payment\Order;
 use App\Models\UserPackage;
 use App\Notifications\OrderExpiredNotification;
+use App\Services\EventDateReservationService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -44,6 +45,7 @@ class ExpireStaleRecords extends Command
                 ->update(['status' => 'expired']);
 
             foreach ($staleOrders as $order) {
+                app(EventDateReservationService::class)->releaseForOrder($order->uuid);
                 try {
                     $order->user?->notify(new OrderExpiredNotification($order->order_number));
                 } catch (\Throwable $e) {

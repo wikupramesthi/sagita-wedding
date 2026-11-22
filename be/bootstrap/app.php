@@ -1,33 +1,46 @@
 <?php
 
+use App\Http\Middleware\ApiSecurityHeaders;
+use App\Http\Middleware\AutoLogoutInactive;
+use App\Http\Middleware\RouteMiddleware;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\VerifyApiKey;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
-        commands: __DIR__ . '/../routes/console.php',
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-            'route.permission' => \App\Http\Middleware\RouteMiddleware::class,
-            'inactive' => \App\Http\Middleware\AutoLogoutInactive::class,
+            'role' => RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'route.permission' => RouteMiddleware::class,
+            'inactive' => AutoLogoutInactive::class,
         ]);
         // Auto-logout bila 30 menit tanpa aktivitas (ala DBMSDA).
         // Server-side layer: proteksi walau JS dimatikan. JS warning
         // "Tetap Login / Logout" ada di layouts/app.blade.php (@auth).
         $middleware->appendToGroup('web', 'route.permission');
-        $middleware->appendToGroup('web', \App\Http\Middleware\AutoLogoutInactive::class);
-        $middleware->appendToGroup('web', \App\Http\Middleware\SetLocale::class);
+        $middleware->appendToGroup('web', AutoLogoutInactive::class);
+        $middleware->appendToGroup('web', SetLocale::class);
         $middleware->throttleApi('api');
-        $middleware->prependToGroup('api', \App\Http\Middleware\ApiSecurityHeaders::class);
-        $middleware->appendToGroup('api', \App\Http\Middleware\VerifyApiKey::class);
+        $middleware->prependToGroup('api', ApiSecurityHeaders::class);
+        $middleware->appendToGroup('api', VerifyApiKey::class);
         // Logout yang dipanggil frontend publik (Express) tidak mengirim
         // token CSRF; endpoint ini tetap butuh cookie session yang valid.
         $middleware->validateCsrfTokens(except: [
@@ -35,14 +48,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+        $exceptions->render(function (TokenMismatchException $e, Request $request) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Sesi berakhir. Silakan login kembali.'], 419);
             }
+
             return redirect()->route('login')->withErrors(['session_expired' => 'Sesi Anda telah berakhir. Silakan login kembali.']);
         });
 
-        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, \Illuminate\Http\Request $request) {
+        $exceptions->render(function (ValidationException $e, Request $request) {
             if (! $request->is('api/*')) {
                 return null;
             }
@@ -55,7 +69,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 422);
         });
 
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e, \Illuminate\Http\Request $request) {
+        $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
             if (! $request->is('api/*')) {
                 return null;
             }
@@ -79,12 +93,12 @@ return Application::configure(basePath: dirname(__DIR__))
             ], $status);
         });
 
-        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+        $exceptions->render(function (Throwable $e, Request $request) {
             if (! $request->is('api/*')) {
                 return null;
             }
 
-            \Illuminate\Support\Facades\Log::error('API exception', [
+            Log::error('API exception', [
                 'method' => $request->method(),
                 'path' => $request->path(),
                 'exception' => get_class($e),

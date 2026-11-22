@@ -18,6 +18,7 @@
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab",
+		"lineEnding": "crlf",
 		"lineWidth": 80
 	},
 	"css": {

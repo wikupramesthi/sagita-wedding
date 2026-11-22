@@ -15,7 +15,7 @@ import { env } from "./src/config/env.js";
 import { logger } from "./src/utils/logger.js";
 
 createApp().listen(env.PORT, () => {
-  logger.info(`Sagita Wedding FE running at http://localhost:${env.PORT}`, {
-    api: env.API_URL,
-  });
+	logger.info(`Sagita Wedding FE running at http://localhost:${env.PORT}`, {
+		api: env.API_URL,
+	});
 });

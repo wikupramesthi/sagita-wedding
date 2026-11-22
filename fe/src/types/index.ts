@@ -13,16 +13,16 @@ export type { NextFunction, Request, Response };
 
 /** Error dengan status HTTP + detail validasi (dilempar apiClient / validate). */
 export interface ApiError extends Error {
-  status?: number;
-  errors?: Record<string, string[]>;
-  fromBackend?: boolean;
+	status?: number;
+	errors?: Record<string, string[]>;
+	fromBackend?: boolean;
 }
 
 /** Opsi request ke backend Laravel (subset RequestInit yang dipakai theme). */
 export interface ApiRequestOptions {
-  method?: string;
-  headers?: Record<string, string>;
-  body?: string;
+	method?: string;
+	headers?: Record<string, string>;
+	body?: string;
 }
 
 /**
@@ -36,172 +36,172 @@ export type BackendPayload = any;
 
 /** Opsi cleanText() (src/utils/validate.ts). */
 export interface CleanTextOptions {
-  max?: number;
-  label?: string;
+	max?: number;
+	label?: string;
 }
 
 /** Identitas website — bentuk normalisasi siap pakai views (`site.*`). */
 export interface SiteIdentity {
-  name: string;
-  title: string;
-  tagline: string;
-  description: string;
-  phone: string;
-  phoneTel: string;
-  email: string;
-  address: string;
-  instagramHandle: string;
-  instagramHref: string;
-  facebookHref: string;
-  youtubeHref: string;
-  tiktokHref: string;
-  metaTitle: string;
-  metaDescription: string;
-  metaKeywords: string;
-  gaId: string;
-  siteVerification: string;
-  logoUrl: string;
-  logoWhiteUrl: string;
-  faviconUrl: string;
-  ogImage: string;
-  year: number;
+	name: string;
+	title: string;
+	tagline: string;
+	description: string;
+	phone: string;
+	phoneTel: string;
+	email: string;
+	address: string;
+	instagramHandle: string;
+	instagramHref: string;
+	facebookHref: string;
+	youtubeHref: string;
+	tiktokHref: string;
+	metaTitle: string;
+	metaDescription: string;
+	metaKeywords: string;
+	gaId: string;
+	siteVerification: string;
+	logoUrl: string;
+	logoWhiteUrl: string;
+	faviconUrl: string;
+	ogImage: string;
+	year: number;
 }
 
 /** Artikel blog — bentuk siap pakai views. */
 export interface Article {
-  id: string;
-  slug: string;
-  title: string;
-  content: string;
-  image: string;
-  category: string;
-  date: string;
-  read: string;
-  excerpt: string;
+	id: string;
+	slug: string;
+	title: string;
+	content: string;
+	image: string;
+	category: string;
+	date: string;
+	read: string;
+	excerpt: string;
 }
 
 /** Statistik agregat publik (tanpa PII). */
 export interface SiteStats {
-  members: number | null;
-  vendors: number | null;
+	members: number | null;
+	vendors: number | null;
 }
 
 /** Kelas yoga dari backend. */
 export interface YogaClass {
-  slug?: string;
-  name?: string;
-  description?: string;
-  level?: string;
-  image?: string;
-  vendor?: { name?: string; avatar?: string };
+	slug?: string;
+	name?: string;
+	description?: string;
+	level?: string;
+	image?: string;
+	vendor?: { name?: string; avatar?: string };
 }
 
 /** Instruktur yoga. */
 export interface Vendor {
-  uuid?: string;
-  slug?: string;
-  name?: string;
-  avatar?: string;
-  pengalaman?: string;
-  biografi?: string;
-  vendors_categories?: { name: string }[];
+	uuid?: string;
+	slug?: string;
+	name?: string;
+	avatar?: string;
+	pengalaman?: string;
+	biografi?: string;
+	vendors_categories?: { name: string }[];
 }
 
 /** Event / workshop. */
 export interface EventItem {
-  slug?: string;
-  gambar?: string;
-  judul?: string;
-  tanggal?: string;
-  waktu_mulai?: string;
-  waktu_selesai?: string;
-  lokasi?: string;
-  kapasitas?: string | number;
-  deskripsi?: string;
+	slug?: string;
+	gambar?: string;
+	judul?: string;
+	tanggal?: string;
+	waktu_mulai?: string;
+	waktu_selesai?: string;
+	lokasi?: string;
+	kapasitas?: string | number;
+	deskripsi?: string;
 }
 
 /** Testimonial shown in the homepage story carousel. */
 export interface TestimonialItem {
-  id?: string;
-  nama?: string;
-  jabatan?: string | null;
-  foto?: string | null;
-  isi_testimoni?: string;
+	id?: string;
+	nama?: string;
+	jabatan?: string | null;
+	foto?: string | null;
+	isi_testimoni?: string;
 }
 
 /** Opsi harga paket membership. */
 export interface PackageOption {
-  name?: string;
-  quota?: string | number;
-  duration?: string;
-  duration_unit?: string;
-  price?: number | string;
-  discount_price?: number | string;
-  final_price?: number | string;
+	name?: string;
+	quota?: string | number;
+	duration?: string;
+	duration_unit?: string;
+	price?: number | string;
+	discount_price?: number | string;
+	final_price?: number | string;
 }
 
 /** Fitur yang termasuk dalam paket membership. */
 export interface PackageFeature {
-  name?: string;
-  [key: string]: unknown;
+	name?: string;
+	[key: string]: unknown;
 }
 
 /** Paket membership. */
 export interface PackageItem {
-  slug?: string;
-  name?: string;
-  description?: string;
-  is_popular?: boolean | number | string;
-  options?: PackageOption[];
-  features?: PackageFeature[];
+	slug?: string;
+	name?: string;
+	description?: string;
+	is_popular?: boolean | number | string;
+	options?: PackageOption[];
+	features?: PackageFeature[];
 }
 
 /** Pertanyaan yang sering ditanyakan. */
 export interface FaqItem {
-  question: string;
-  answer: string;
+	question: string;
+	answer: string;
 }
 
 /** Banner / gambar galeri dari backend. */
 export interface BannerItem {
-  gambar: string;
-  nama?: string;
-  posisi?: string;
+	gambar: string;
+	nama?: string;
+	posisi?: string;
 }
 
 /** Halaman CMS (konten statis yang dikelola via backend). */
 export interface CmsPage {
-  slug?: string;
-  title: string;
-  excerpt?: string;
-  content: string;
-  published_at?: string;
-  featured_image?: string;
+	slug?: string;
+	title: string;
+	excerpt?: string;
+	content: string;
+	published_at?: string;
+	featured_image?: string;
 }
 
 /** Local arithmetic CAPTCHA for contact forms. */
 export interface ContactCaptcha {
-  question?: string;
-  captcha_id?: string;
-  image?: string;
+	question?: string;
+	captcha_id?: string;
+	image?: string;
 }
 
 /** Payload form kontak setelah validasi (src/utils/validate.ts). */
 export interface ContactPayload {
-  nama: string;
-  email: string;
-  no_telp: string;
-  isi: string;
-  captcha_id: string;
-  captcha_answer: string;
+	nama: string;
+	email: string;
+	no_telp: string;
+	isi: string;
+	captcha_id: string;
+	captcha_answer: string;
 }
 
 /** Payload booking dummy setelah validasi. */
 export interface BookingPayload {
-  name: string;
-  email: string;
-  kelas: string;
-  date: string;
+	name: string;
+	email: string;
+	kelas: string;
+	date: string;
 }
 
 /**
@@ -209,9 +209,9 @@ export interface BookingPayload {
  * backend `GET /auth/me` (lihat src/services/authService.ts).
  */
 export interface SessionUser {
-  uuid?: string;
-  name?: string;
-  email?: string;
-  avatar?: string | null;
-  roles?: string[];
+	uuid?: string;
+	name?: string;
+	email?: string;
+	avatar?: string | null;
+	roles?: string[];
 }

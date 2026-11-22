@@ -1,5 +1,5 @@
-import { $, escapeHtml, lockScroll, onAction, unlockScroll } from "../lib/dom";
 import type { TestimonialItem } from "../../types/index";
+import { $, escapeHtml, lockScroll, onAction, unlockScroll } from "../lib/dom";
 
 interface EventData {
 	judul?: string;
@@ -182,7 +182,10 @@ if (testimonialContainer && testimonialDataElement) {
 			});
 
 			quoteElement.textContent = testimonial.isi_testimoni ?? "";
-			currentCountElement.textContent = String(activeIndex + 1).padStart(2, "0");
+			currentCountElement.textContent = String(activeIndex + 1).padStart(
+				2,
+				"0",
+			);
 
 			if (window.matchMedia("(max-width: 639px)").matches) {
 				activePanel.scrollIntoView({

@@ -19,6 +19,7 @@ use App\Notifications\OrderRejectedNotification;
 use App\Notifications\OrderSlaReminderNotification;
 use App\Notifications\ProofUploadedNotification;
 use App\Services\MembershipService;
+use App\Services\EventDateReservationService;
 use App\Support\ImageShrinker;
 use App\Support\MemberView;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -716,7 +717,7 @@ class OrderController extends Controller
      * Reject a pending order (manual transfer verification failed).
      * Admin only.
      */
-    public function reject(Request $request, string $order)
+    public function reject(Request $request, string $order, EventDateReservationService $reservations)
     {
         abort_unless($this->canRejectOrders(), 403);
 
@@ -776,6 +777,7 @@ class OrderController extends Controller
                 throw ValidationException::withMessages(['order' => 'Pesanan yang sudah memiliki pembayaran terverifikasi tidak bisa ditolak otomatis.']);
             }
             $order->update(['status' => 'failed', 'admin_note' => $note, 'assigned_admin_uuid' => $order->assigned_admin_uuid ?: Auth::user()->uuid]);
+            $reservations->releaseForOrder($order->uuid);
             $order->payments()->where(function ($q) {
                 $q->where('verification_status', 'pending')->orWhere('status', 'pending');
             })->update(['status' => 'failed', 'verification_status' => 'rejected']);
@@ -1897,7 +1899,7 @@ class OrderController extends Controller
      * This is called when the user clicks
      * "Continue to Payment".
      */
-    public function store(Request $request)
+    public function store(Request $request, EventDateReservationService $reservations)
     {
         /*
         |--------------------------------------------------------------------------
@@ -2227,8 +2229,11 @@ class OrderController extends Controller
                 $fullAmount,
                 $bookingFee,
                 $netAmount,
-                $installmentSchedule
+                $installmentSchedule,
+                $reservations
             ) {
+                $dateReservation = $reservations->lockDate($eventDate);
+
                 if ($promo) {
                     $claimed = PackagePromo::where('uuid', $promo->uuid)
                         ->usable()
@@ -2247,7 +2252,7 @@ class OrderController extends Controller
                 $remainingAmount = max(0, (int) $fullAmount - $amountPaid);
                 $status = $remainingAmount <= 0 ? 'paid' : 'pending';
 
-                return Order::create([
+                $order = Order::create([
                     'uuid' => (string) Str::uuid(),
                     'user_uuid' => $user->uuid,
                     'order_number' => 'ORD-'.strtoupper(Str::random(10)),
@@ -2283,6 +2288,10 @@ class OrderController extends Controller
                         'due_now' => $dueNow,
                     ],
                 ]);
+
+                $reservations->hold($dateReservation, $order);
+
+                return $order;
             });
         } catch (ValidationException $e) {
             throw $e;
@@ -2371,7 +2380,7 @@ class OrderController extends Controller
      * Creates a fresh pending order with the same package option
      * (re-validated), reusing a recent pending order if one exists.
      */
-    public function reorder(Request $request, string $order)
+    public function reorder(Request $request, string $order, EventDateReservationService $reservations)
     {
         $old = Order::packageOnly()->where('uuid', $order)->firstOrFail();
 
@@ -2429,7 +2438,10 @@ class OrderController extends Controller
         }
 
         try {
-            $newOrder = DB::transaction(function () use ($owner, $option, $amount, $old) {
+            $newOrder = DB::transaction(function () use ($owner, $option, $amount, $old, $reservations) {
+                $dateReservation = $old->event_date
+                    ? $reservations->lockDate($old->event_date)
+                    : null;
                 $paymentScheme = in_array($old->payment_scheme, ['dp30', 'dp50', 'full'], true) ? $old->payment_scheme : 'full';
                 $fullAmount = (float) ($old->total_amount ?: $old->amount ?: $amount);
                 $schemeFactor = match ($paymentScheme) {
@@ -2438,7 +2450,7 @@ class OrderController extends Controller
                 $newAmount = (int) round($fullAmount * $schemeFactor);
                 $remainingAmount = max(0, (int) round($fullAmount - $newAmount));
 
-                return Order::create([
+                $newOrder = Order::create([
                     'uuid' => (string) Str::uuid(),
                     'user_uuid' => $owner->uuid,
                     'order_number' => 'ORD-'.strtoupper(Str::random(10)),
@@ -2467,6 +2479,12 @@ class OrderController extends Controller
                         'due_amount' => $newAmount,
                     ]),
                 ]);
+
+                if ($dateReservation) {
+                    $reservations->hold($dateReservation, $newOrder);
+                }
+
+                return $newOrder;
             });
         } catch (QueryException $e) {
             return back()->with('error', __('flash.order_pending_exists'));

@@ -268,7 +268,10 @@ class BatchController extends Controller
     private function contactPage(): array
     {
         return [
-            'faqs' => $this->data(app(FaqController::class)->index(), 'faqs') ?? [],
+            'faqs' => $this->data(
+                app(FaqController::class)->index(Request::create('/api/faqs', 'GET')),
+                'faqs',
+            ) ?? [],
         ];
     }
 

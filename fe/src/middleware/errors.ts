@@ -9,15 +9,12 @@ import { logger } from "../utils/logger.js";
 /** Render halaman 404 standar (noindex). Dipakai route & handler error. */
 export function renderNotFound(res: Response, title?: string) {
 	const pageTitle =
-		title ||
-		`${res.locals.t?.notFoundTitle || "Page Not Found"} — 404`;
-	return res
-		.status(404)
-		.render("pages/404", {
-			title: pageTitle,
-			robots: "noindex, nofollow",
-			heroNav: true,
-		});
+		title || `${res.locals.t?.notFoundTitle || "Page Not Found"} — 404`;
+	return res.status(404).render("pages/404", {
+		title: pageTitle,
+		robots: "noindex, nofollow",
+		heroNav: true,
+	});
 }
 
 /** True bila error = resource tidak ada / input slug tidak valid. */

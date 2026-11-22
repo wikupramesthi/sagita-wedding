@@ -57,9 +57,8 @@ fe/
 
 ## API internal
 
-- `GET /api/classes` → proxy rapi ke backend
-- `GET /api/class-schedules` → jadwal kelas (filter `date`, `level`, `time`, `venue_uuid`)
-- `GET /api/batch/schedules` → jadwal + daftar venue dalam satu request
+- `GET /api/batch/{page}` → passthrough batch; daftar page mengikuti `SUPPORTED_BATCH_PAGES` di `src/services/batchService.ts`
+- `GET /api/classes`, `GET /api/class-schedules`, `GET /api/batch/schedules` → `410 Gone` (modul dihapus)
 - `GET /api/contact/captcha` → soal captcha + `captcha_id`
 - `POST /api/contact` `{nama,email,no_telp,isi,captcha_id,captcha_answer}` → teruskan ke backend
 - `POST /api/booking` → **501 Not Implemented** (backend belum punya endpoint booking; booking publik lewat WhatsApp)
@@ -71,7 +70,7 @@ mengira aksi tersimpan.
 ## Testing
 
 ```bash
-npm test          # vitest run (70 test: unit validate + integrasi supertest)
+npm test          # vitest run (95 test: unit validate + integrasi supertest)
 npm run typecheck # tsc server + browser
 npm run lint      # biome
 npm run build     # build CSS + bundle browser

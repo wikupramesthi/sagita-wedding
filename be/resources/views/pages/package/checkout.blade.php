@@ -760,7 +760,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                                 data-date-input="event_date"
                                 data-min-date="{{ $minEventDate }}"
                                 data-today="{{ now()->toDateString() }}"
-                                data-blackout-dates='@json($blackoutDateStrings)'>
+                                data-blackout-dates='@json($blackoutDateStrings)'
+                                data-unavailable-dates='@json($unavailableEventDates)'>
                                 <div class="checkout-calendar-header">
                                     <button type="button" class="btn btn-sm btn-light" data-calendar-prev aria-label="Bulan sebelumnya">
                                         <i class="bi bi-chevron-left"></i>
@@ -776,7 +777,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                                 <div class="checkout-calendar-grid" data-calendar-grid></div>
                                 <div class="checkout-calendar-legend">
                                     <span><i class="available-dot"></i>Tersedia</span>
-                                    <span><i class="unavailable-dot"></i>Blackout</span>
+                                    <span><i class="unavailable-dot"></i>Tidak tersedia</span>
                                 </div>
                             </div>
 
@@ -2170,7 +2171,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
             const option = Array.from(options).find(item => item.dataset.optionUuid === draft.optionUuid);
             if (draft.eventDate && draft.eventDate >= (eventDateInput?.min || '') &&
-                !@json($blackoutDateStrings).includes(draft.eventDate)) {
+                !@json($blackoutDateStrings).includes(draft.eventDate) &&
+                !@json($unavailableEventDates).includes(draft.eventDate)) {
                 eventDateInput.value = draft.eventDate;
             }
             if (promoInput && typeof draft.promoCode === 'string') {
@@ -2208,6 +2210,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 const monthLabel = calendar.querySelector('[data-calendar-month]');
                 const grid = calendar.querySelector('[data-calendar-grid]');
                 const blackoutDates = JSON.parse(calendar.dataset.blackoutDates || '[]');
+                const unavailableDates = JSON.parse(calendar.dataset.unavailableDates || '[]');
                 if (!input || !grid || !monthLabel) {
                     return;
                 }
@@ -2229,15 +2232,17 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                     for (let day = 1; day <= daysInMonth; day++) {
                         const date = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day);
                         const dateValue = formatDateInput(date);
+                        const isBlackout = blackoutDates.includes(dateValue);
+                        const isReserved = unavailableDates.includes(dateValue);
                         const button = document.createElement('button');
                         button.type = 'button';
                         button.className = 'checkout-calendar-day';
                         button.textContent = String(day);
-                        button.disabled = dateValue < input.min || blackoutDates.includes(dateValue);
+                        button.disabled = dateValue < input.min || isBlackout || isReserved;
                         button.classList.toggle('is-selected', dateValue === input.value);
-                        if (blackoutDates.includes(dateValue)) {
+                        if (isBlackout || isReserved) {
                             button.classList.add('is-blackout');
-                            button.setAttribute('aria-label', `${day}, tanggal blackout`);
+                            button.setAttribute('aria-label', `${day}, tanggal tidak tersedia`);
                         } else {
                             button.setAttribute('aria-label', date.toLocaleDateString('id-ID', {
                                 weekday: 'long',

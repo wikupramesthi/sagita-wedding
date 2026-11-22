@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Package\Package;
 use App\Models\Payment\Order;
+use App\Services\EventDateReservationService;
 use App\Support\MemberView;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -58,6 +59,8 @@ class CheckoutController extends Controller
             })
             ->latest()
             ->first();
+        $unavailableEventDates = app(EventDateReservationService::class)
+            ->unavailableDates(now()->toDateString());
 
         $viewData = [
             'package' => $package,
@@ -65,6 +68,7 @@ class CheckoutController extends Controller
             'orderHistory' => $orderHistory,
             'orderHistoryCount' => $orderHistoryCount,
             'activePackageOrder' => $activePackageOrder,
+            'unavailableEventDates' => $unavailableEventDates,
         ];
 
         /*
