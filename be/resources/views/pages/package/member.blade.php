@@ -93,8 +93,8 @@
 
 .package-card-tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0 18px; }
 .package-tool-form { margin: 0; }
-.package-tool-btn, .package-tool-link { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; min-height: 44px; padding: 8px 5px; border: 1px solid #e7e4df; border-radius: 10px; background: #fff; color: #666; font-size: 11px; font-weight: 700; line-height: 1.2; text-decoration: none; transition: all .2s ease; }
-.package-tool-btn i, .package-tool-link i { flex-shrink: 0; font-size: 14px; }
+.package-tool-btn, .package-tool-link { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 100%; min-height: 58px; padding: 7px 4px; border: 1px solid #e7e4df; border-radius: 12px; background: #fff; color: #666; font-size: 12px; font-weight: 700; line-height: 1.15; text-align: center; text-decoration: none; transition: all .2s ease; }
+.package-tool-btn i, .package-tool-link i { flex-shrink: 0; font-size: 16px; line-height: 1; }
 .package-tool-btn:hover, .package-tool-link:hover { border-color: #4b6b52; color: #4b6b52; }
 .package-tool-btn.active { border-color: #4b6b52; background: #e3ece4; color: #4b6b52; }
 .package-catalog-card.popular .package-tool-btn, .package-catalog-card.popular .package-tool-link { border-color: rgba(255, 255, 255, .28); background: rgba(255, 255, 255, .08); color: #fff; }
