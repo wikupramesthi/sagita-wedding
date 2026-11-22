@@ -40,7 +40,6 @@ use App\Http\Controllers\ManagementAccess\RoleController;
 use App\Http\Controllers\ManagementAccess\RouteController;
 use App\Http\Controllers\ManagementAccess\UserController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WeddingPlanningController;
 use App\Http\Middleware\InvalidateDashboardCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -113,9 +112,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::put('/wedding-planning', [WeddingPlanningController::class, 'update'])->name('wedding-planning.update');
-    Route::patch('/wedding-planning/tasks/{task}', [WeddingPlanningController::class, 'updateTask'])
-        ->name('wedding-planning.tasks.update');
     // Keep-alive to reset the idle timer (called via JS when the user clicks "Stay signed in")
     Route::post('/keep-alive', function (Request $request) {
         $request->session()->put('last_activity', time());
@@ -267,6 +263,7 @@ Route::get('/checkout/package/{packageUuid}', [
     Route::post('orders/{order}/payments', [OrderController::class, 'submitPayment'])->name('orders.payments.store')->middleware('throttle:10,1');
     Route::post('orders/{order}/payments/{payment}/approve', [OrderController::class, 'approvePayment'])->name('orders.payments.approve');
     Route::post('orders/{order}/payments/{payment}/reject', [OrderController::class, 'rejectPayment'])->name('orders.payments.reject');
+    Route::get('orders/{order}/payments/{payment}/proof', [OrderController::class, 'showPaymentProof'])->name('orders.payments.proof');
     Route::get('orders/{order}/proof', [OrderController::class, 'showProof'])->name('orders.proof.show');
     Route::post('orders/{order}/proof', [OrderController::class, 'uploadProof'])->name('orders.proof')->middleware('throttle:10,1');
     Route::resource('orders', OrderController::class)
@@ -275,6 +272,7 @@ Route::get('/checkout/package/{packageUuid}', [
         ->name('orders.store')->middleware('throttle:30,1');
     Route::post('orders/{order}/reorder', [OrderController::class, 'reorder'])
         ->name('orders.reorder')->middleware('throttle:10,1');
+    Route::get('memberships/export', [MembershipController::class, 'export'])->name('memberships.export');
     Route::resource('memberships', MembershipController::class)
         ->only(['index', 'show']);
     // end payment

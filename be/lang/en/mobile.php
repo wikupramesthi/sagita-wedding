@@ -155,6 +155,17 @@ return [
         'Tanpa pesanan' => 'No order',
     ],
     'payment_history' => 'Payment History',
+    'follow_up' => 'Needs Follow-up',
+    'view_proof' => 'View proof',
+    'no_payments' => 'No payments yet',
+    'payment_kind' => 'Payment',
+    'payment_verification' => [
+        'verified' => 'Verified',
+        'approved' => 'Verified',
+        'paid' => 'Paid',
+        'pending' => 'Awaiting verification',
+        'rejected' => 'Rejected',
+    ],
 
     // Orders
     'my_orders_title' => 'My Orders',

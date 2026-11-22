@@ -92,7 +92,8 @@ class MembershipMonitoringTest extends TestCase
                 && (float) $finance['remaining'] === 0.0
                 && $finance['fully_paid'] === 1)
             ->assertSee('Ringkasan Pembayaran')
-            ->assertSee('Pengingat Acara');
+            ->assertSee('Pengingat Acara')
+            ->assertViewHas('followUps', fn ($followUps) => $followUps === []);
     }
 
     public function test_admin_sees_all_memberships_and_upcoming_events(): void
@@ -123,7 +124,9 @@ class MembershipMonitoringTest extends TestCase
                 && $finance['partial'] === 1)
             ->assertViewHas('upcomingEvents', fn ($events) => count($events) === 2
                 && $events[0]['days'] === 5)
-            ->assertSee('Sisa');
+            ->assertViewHas('followUps', fn ($followUps) => count($followUps) === 1)
+            ->assertSee('Sisa')
+            ->assertSee('Tagihan Perlu Ditindaklanjuti');
     }
 
     public function test_member_cannot_open_other_membership_detail(): void
@@ -201,6 +204,152 @@ class MembershipMonitoringTest extends TestCase
             ->assertOk()
             ->assertViewIs('pages.mobile.memberships')
             ->assertSee('Ringkasan Pembayaran')
-            ->assertSee('Tanggal Acara');
+            ->assertSee('Tanggal Acara')
+            ->assertSee('Perlu Ditindaklanjuti');
+    }
+
+    public function test_admin_can_filter_and_export_memberships_csv(): void
+    {
+        config(['manual_payment.proof_disk' => 'public']);
+        Storage::fake('public');
+
+        $admin = $this->userWithRole('admin');
+        $paidMember = User::factory()->create(['name' => '=1+1']);
+        $paidMember->assignRole('user');
+        $otherMember = $this->userWithRole('user');
+        $package = $this->package();
+
+        $this->membershipWithOrder($paidMember, $package);
+        $this->membershipWithOrder($otherMember, $package, [
+            'amount' => 5000000,
+            'total_amount' => 10000000,
+            'amount_paid' => 5000000,
+            'remaining_amount' => 5000000,
+            'status' => 'partially_paid',
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('memberships.export', ['payment' => 'lunas']))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->assertSee('=1+1')
+            ->assertDontSee($otherMember->email);
+
+        $cacheControl = $response->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('private', $cacheControl);
+        $this->assertStringNotContainsString('public', $cacheControl);
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString("'=1+1", $content);
+        $this->assertStringNotContainsString($otherMember->name, $content);
+    }
+
+    public function test_member_cannot_export_memberships_csv(): void
+    {
+        $member = $this->userWithRole('user');
+
+        $this->actingAs($member)
+            ->get(route('memberships.export'))
+            ->assertForbidden();
+    }
+
+    public function test_payment_proof_is_visible_to_owner_and_admin_only(): void
+    {
+        config(['manual_payment.proof_disk' => 'public']);
+        Storage::fake('public');
+        Storage::disk('public')->put('payments/proof.png', 'bukti');
+
+        $owner = $this->userWithRole('user');
+        $other = $this->userWithRole('user');
+        $admin = $this->userWithRole('admin');
+        $package = $this->package();
+
+        $membership = $this->membershipWithOrder($owner, $package);
+        $order = $membership->order;
+        $otherMembership = $this->membershipWithOrder($other, $package);
+
+        $payment = Payment::create([
+            'order_uuid' => $order->uuid,
+            'kind' => 'dp',
+            'amount' => 4000000,
+            'gross_amount' => 4000000,
+            'status' => 'paid',
+            'verification_status' => 'verified',
+            'paid_at' => now(),
+            'proof_image_path' => 'payments/proof.png',
+        ]);
+
+        $foreignPayment = Payment::create([
+            'order_uuid' => $otherMembership->order_uuid,
+            'kind' => 'pelunasan',
+            'amount' => 6000000,
+            'gross_amount' => 6000000,
+            'status' => 'paid',
+            'verification_status' => 'verified',
+            'paid_at' => now(),
+        ]);
+
+        $proofUrl = route('orders.payments.proof', [$order->uuid, $payment->uuid]);
+
+        $this->actingAs($other)
+            ->get($proofUrl)
+            ->assertForbidden();
+
+        $proofResponse = $this->actingAs($owner)
+            ->get($proofUrl)
+            ->assertOk();
+
+        $proofCacheControl = $proofResponse->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('no-store', $proofCacheControl);
+        $this->assertStringContainsString('private', $proofCacheControl);
+        $this->assertStringNotContainsString('public', $proofCacheControl);
+
+        $this->actingAs($admin)
+            ->get($proofUrl)
+            ->assertOk();
+
+        $this->actingAs($owner)
+            ->get(route('orders.payments.proof', [$order->uuid, $foreignPayment->uuid]))
+            ->assertNotFound();
+    }
+
+    public function test_mobile_membership_detail_shows_payment_history(): void
+    {
+        config(['manual_payment.proof_disk' => 'public']);
+        Storage::fake('public');
+        Storage::disk('public')->put('payments/proof.png', 'bukti');
+
+        $member = $this->userWithRole('user');
+        $membership = $this->membershipWithOrder($member, $this->package(), [
+            'amount_paid' => 4000000,
+            'remaining_amount' => 6000000,
+            'status' => 'partially_paid',
+        ]);
+
+        $payment = Payment::create([
+            'order_uuid' => $membership->order_uuid,
+            'kind' => 'dp',
+            'amount' => 4000000,
+            'gross_amount' => 4000000,
+            'status' => 'paid',
+            'verification_status' => 'verified',
+            'paid_at' => now(),
+            'note' => 'DP pertama',
+            'proof_image_path' => 'payments/proof.png',
+        ]);
+
+        $this->actingAs($member)
+            ->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 13) Mobile')
+            ->get(route('memberships.show', $membership->uuid))
+            ->assertOk()
+            ->assertViewIs('pages.mobile.membership-show')
+            ->assertSee('Riwayat Pembayaran')
+            ->assertSee('Rp 4.000.000')
+            ->assertSee('DP pertama')
+            ->assertSee(route('orders.payments.proof', [$membership->order_uuid, $payment->uuid]), false);
     }
 }

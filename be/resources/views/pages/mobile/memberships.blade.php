@@ -66,6 +66,31 @@ $rupiah = fn ($value) => 'Rp ' . number_format((float) $value, 0, ',', '.');
             </div>
         </div>
 
+        {{-- TAGIHAN --}}
+        @if (!empty($followUps))
+            @php $followUp = $followUps[0]; @endphp
+            <a href="{{ route('memberships.show', $followUp['membership']->uuid) }}"
+                class="app-card p-3 mt-3 text-decoration-none text-dark d-block">
+                <div class="d-flex align-items-center justify-content-between gap-2">
+                    <p class="mb-0 small fw-semibold"><i class="bi bi-cash-coin me-1 text-terra"></i>{{ __('mobile.follow_up') }}</p>
+                    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">{{ count($followUps) }}</span>
+                </div>
+                <div class="d-flex justify-content-between gap-2 mt-2">
+                    <div style="min-width:0">
+                        <p class="mb-0 small fw-semibold text-truncate">{{ $followUp['package'] }}</p>
+                        <p class="mb-0 text-muted2 m-meta">
+                            @if ($followUp['membership']->event_date)
+                                {{ $followUp['membership']->event_date->format('d M Y') }}
+                            @else
+                                {{ __('mobile.no_event') }}
+                            @endif
+                        </p>
+                    </div>
+                    <span class="small fw-semibold text-danger flex-shrink-0">{{ $rupiah($followUp['remaining']) }}</span>
+                </div>
+            </a>
+        @endif
+
         {{-- PENGINGAT ACARA --}}
         @if (!empty($upcomingEvents))
             <div class="app-card p-3 mt-3 ms-mobile-reminder">
@@ -108,6 +133,13 @@ $rupiah = fn ($value) => 'Rp ' . number_format((float) $value, 0, ',', '.');
                 class="filter d-inline-block text-decoration-none {{ $st === 'active' ? 'active' : '' }}">{{ __('mobile.membership_status.active') }}</a>
             <a href="{{ route('memberships.index', ['status' => 'expired']) }}"
                 class="filter d-inline-block text-decoration-none {{ $st === 'expired' ? 'active' : '' }}">{{ __('mobile.membership_status.expired') }}</a>
+            @php $pay = $filters['payment'] ?? ''; @endphp
+            <a href="{{ route('memberships.index', ['payment' => 'lunas']) }}"
+                class="filter d-inline-block text-decoration-none {{ $pay === 'lunas' ? 'active' : '' }}">{{ __('mobile.payment_status_label.Lunas') }}</a>
+            <a href="{{ route('memberships.index', ['payment' => 'cicilan']) }}"
+                class="filter d-inline-block text-decoration-none {{ $pay === 'cicilan' ? 'active' : '' }}">{{ __('mobile.payment_status_label.Cicilan') }}</a>
+            <a href="{{ route('memberships.index', ['payment' => 'menunggu']) }}"
+                class="filter d-inline-block text-decoration-none {{ $pay === 'menunggu' ? 'active' : '' }}">{{ __('mobile.payment_status_label.Menunggu') }}</a>
         </div>
 
         {{-- LIST --}}

@@ -116,6 +116,73 @@
             </div>
         </section>
 
+    @if (auth()->user()->hasAnyRole(['admin', 'super-admin']))
+        <section class="card" aria-labelledby="upcomingWeddingOrdersTitle">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center gap-3">
+                <div>
+                    <h2 id="upcomingWeddingOrdersTitle" class="card-title h6 mb-1">Pesanan wedding mendatang</h2>
+                    <p class="small text-muted mb-0">Tanggal, paket, dan pembayaran langsung dari pesanan member.</p>
+                </div>
+                <a href="{{ route('orders.index') }}" class="small text-decoration-none text-primary fw-semibold text-nowrap">Semua pesanan</a>
+            </div>
+            <div class="card-body table-responsive">
+                @if ($upcomingWeddingOrders->isNotEmpty())
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Paket</th>
+                                <th>Tanggal acara</th>
+                                <th>Pembayaran</th>
+                                <th>Status</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($upcomingWeddingOrders as $order)
+                                @php
+                                    $orderTotal = (float) $order->full_amount;
+                                    $orderPaid = (float) $order->amount_paid_value;
+                                    $orderProgress = $orderTotal > 0 ? min(100, (int) round($orderPaid / $orderTotal * 100)) : 0;
+                                    $orderStatusLabels = [
+                                        'pending' => 'Menunggu pembayaran',
+                                        'partially_paid' => 'Dibayar sebagian',
+                                        'paid' => 'Lunas',
+                                    ];
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ $order->user?->name ?? '-' }}</div>
+                                        <div class="small text-muted">{{ $order->order_number }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ $order->package?->name ?? 'Paket wedding' }}</div>
+                                        <div class="small text-muted">{{ $order->packageOption?->name ?? '' }}</div>
+                                    </td>
+                                    <td class="text-nowrap">{{ $order->event_date?->translatedFormat('d M Y') ?? '-' }}</td>
+                                    <td>
+                                        <div class="small fw-semibold">Rp {{ number_format($orderPaid, 0, ',', '.') }} / Rp {{ number_format($orderTotal, 0, ',', '.') }}</div>
+                                        <div class="progress mt-1" style="height:5px">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width:{{ $orderProgress }}%" aria-valuenow="{{ $orderProgress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge {{ $order->status === 'paid' ? 'bg-success-subtle text-success-emphasis' : ($order->status === 'partially_paid' ? 'bg-warning-subtle text-warning-emphasis' : 'bg-primary-subtle text-primary-emphasis') }}">{{ $orderStatusLabels[$order->status] ?? ucfirst($order->status) }}</span></td>
+                                    <td class="text-end"><a href="{{ route('orders.show', $order->uuid) }}" class="btn btn-sm btn-outline-primary">Detail</a></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-calendar-heart fs-2 d-block mb-2 opacity-50"></i>
+                        <p class="mb-0 fw-semibold">Belum ada pesanan wedding mendatang</p>
+                        <p class="small mb-0">Pesanan member akan tampil setelah tanggal dan paket tersimpan.</p>
+                    </div>
+                @endif
+            </div>
+        </section>
+    @endif
+
     <details class="dashboard-details-fold" open>
         <summary class="dashboard-details-summary">
             <span class="min-w-0">

@@ -128,23 +128,39 @@ $days = $membership->days_to_event;
                         <div class="progress-bar" style="width: {{ $membership->payment_progress }}%"></div>
                     </div>
 
-                    @if ($membership->order?->payments?->isNotEmpty())
-                        <div class="ms-pay-history mt-4">
-                            <div class="ms-pay-history-title">Riwayat Pembayaran</div>
-                            <div class="table-responsive">
+                    <div class="ms-pay-history mt-4">
+                        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                            <div class="ms-pay-history-title">
+                                Riwayat Pembayaran
+                                @if ($membership->order?->payments?->isNotEmpty())
+                                    <span class="ms-toolbar-badge">{{ $membership->order->payments->count() }}</span>
+                                @endif
+                            </div>
+                            @if ($membership->order)
+                                <a href="{{ route('orders.show', $membership->order->uuid) }}" class="ms-link small">Detail pesanan →</a>
+                            @endif
+                        </div>
+                        @if ($membership->order?->payments?->isNotEmpty())
+                            <div class="table-responsive mt-2">
                                 <table class="table ms-history-table mb-0">
                                     <thead>
                                         <tr>
                                             <th>Jenis</th>
                                             <th>Nominal</th>
                                             <th>Status</th>
-                                            <th>Tanggal</th>
+                                            <th>Bukti</th>
+                                            <th>Waktu</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($membership->order->payments->sortByDesc('created_at')->take(5) as $payment)
+                                        @foreach ($membership->order->payments->sortByDesc('created_at') as $payment)
                                             <tr>
-                                                <td class="text-capitalize fw-semibold">{{ $payment->kind ?? 'pembayaran' }}</td>
+                                                <td class="text-capitalize fw-semibold">
+                                                    {{ $payment->kind ?? 'pembayaran' }}
+                                                    @if ($payment->note)
+                                                        <small class="ms-detail-note">{{ $payment->note }}</small>
+                                                    @endif
+                                                </td>
                                                 <td>{{ $rupiah($payment->amount ?: $payment->gross_amount) }}</td>
                                                 <td>
                                                     @if (in_array($payment->verification_status, ['verified', 'approved'], true) || $payment->status === 'paid')
@@ -152,17 +168,32 @@ $days = $membership->days_to_event;
                                                     @elseif ($payment->verification_status === 'rejected')
                                                         <span class="ms-badge ms-badge-danger">Ditolak</span>
                                                     @else
-                                                        <span class="ms-badge ms-badge-muted">Menunggu</span>
+                                                        <span class="ms-badge ms-badge-muted">Menunggu verifikasi</span>
                                                     @endif
                                                 </td>
-                                                <td>{{ ($payment->paid_at ?? $payment->created_at)?->format('d M Y') ?? '-' }}</td>
+                                                <td>
+                                                    @if ($payment->proof_image_path)
+                                                        <a href="{{ route('orders.payments.proof', [$membership->order->uuid, $payment->uuid]) }}" target="_blank" rel="noopener" class="ms-link">Lihat</a>
+                                                    @else
+                                                        <span class="ms-detail-note">-</span>
+                                                    @endif
+                                                </td>
+                                                <td>{{ ($payment->paid_at ?? $payment->created_at)?->format('d M Y H:i') ?? '-' }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    @endif
+                        @else
+                            <div class="ms-pay-empty mt-2">
+                                <i class="bi bi-receipt"></i>
+                                <span>Belum ada pembayaran.</span>
+                                @if ($membership->order)
+                                    <a href="{{ route('orders.show', $membership->order->uuid) }}" class="ms-link">Unggah bukti pembayaran →</a>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
 
@@ -243,6 +274,9 @@ $days = $membership->days_to_event;
     .ms-progress { height: 9px; border-radius: 999px; background: #e9edf7; overflow: hidden; }
     .ms-progress .progress-bar { border-radius: 999px; background: linear-gradient(90deg, #4b6b52, #6b8f6f); }
     .ms-pay-history-title, .ms-history-head { font-size: 13px; font-weight: 700; color: #344054; }
+    .ms-pay-history-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .ms-pay-empty { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 14px; border: 1px dashed var(--ms-line); border-radius: 12px; background: #fbfcff; font-size: 12px; color: var(--ms-muted); }
+    .ms-pay-empty i { font-size: 16px; color: var(--ms-primary); }
     .ms-history-head { padding: 15px 20px; border-bottom: 1px solid var(--ms-line); }
     .ms-history-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #98a2b3; background: #fafbfc; white-space: nowrap; }
     .ms-history-table td { font-size: 12px; color: #475467; vertical-align: middle; white-space: nowrap; }

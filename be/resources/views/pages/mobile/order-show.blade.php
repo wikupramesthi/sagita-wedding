@@ -181,7 +181,7 @@
                             <span class="badge {{ $pStatus==='verified'||$p->status==='paid'?'bg-success-subtle text-success':($pStatus==='pending'?'bg-warning-subtle text-warning-emphasis':'bg-danger-subtle text-danger') }} align-self-start">{{ $pStatus }}</span>
                         </div>
                         @if($p->proof_image_path)
-                            <a href="{{ asset('storage/'.$p->proof_image_path) }}" target="_blank" class="small">Lihat bukti</a>
+                            <a href="{{ route('orders.payments.proof', [$order->uuid, $p->uuid]) }}" target="_blank" class="small">Lihat bukti</a>
                         @endif
                         @if($p->note)<div class="m-micro text-muted2">{{ $p->note }}</div>@endif
                     </div>

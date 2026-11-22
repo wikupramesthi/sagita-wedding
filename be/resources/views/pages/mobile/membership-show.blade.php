@@ -82,6 +82,45 @@ $avatar = $membership->user?->avatar_url;
             @endif
         </div>
 
+        {{-- RIWAYAT PEMBAYARAN --}}
+        @if ($membership->order)
+            <div class="app-card p-3 mt-3">
+                <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                    <h3 class="h6 fw-semibold mb-0">{{ __('mobile.payment_history') }}</h3>
+                    <span class="badge rounded-pill bg-sage-soft text-muted2">{{ $membership->order->payments->count() }}</span>
+                </div>
+                @forelse ($membership->order->payments->sortByDesc('created_at') as $payment)
+                    @php
+                        $pStatus = $payment->verification_status ?: $payment->status;
+                        $pLabel = __('mobile.payment_verification.' . $pStatus);
+                        $pLabel = $pLabel === 'mobile.payment_verification.' . $pStatus ? ucfirst($pStatus) : $pLabel;
+                    @endphp
+                    <div class="py-2 {{ $loop->last ? '' : 'border-bottom' }}">
+                        <div class="d-flex justify-content-between gap-2">
+                            <div>
+                                <p class="mb-0 small fw-semibold">{{ ucfirst($payment->kind ?: __('mobile.payment_kind')) }} · {{ $rupiah($payment->amount ?: $payment->gross_amount) }}</p>
+                                <p class="mb-0 text-muted2 m-meta">{{ ($payment->paid_at ?: $payment->created_at)?->format('d M Y H:i') }}</p>
+                            </div>
+                            <span class="badge rounded-pill align-self-start {{ in_array($pStatus, ['verified', 'approved', 'paid'], true) ? 'bg-success-subtle text-success-emphasis' : ($pStatus === 'pending' ? 'bg-warning-subtle text-warning-emphasis' : 'bg-danger-subtle text-danger-emphasis') }}">{{ $pLabel }}</span>
+                        </div>
+                        @if ($payment->note)
+                            <p class="mb-0 mt-1 text-muted2 m-meta">{{ $payment->note }}</p>
+                        @endif
+                        @if ($payment->proof_image_path)
+                            <a href="{{ route('orders.payments.proof', [$membership->order->uuid, $payment->uuid]) }}" target="_blank" rel="noopener"
+                                class="small text-terra text-decoration-none">{{ __('mobile.view_proof') }} →</a>
+                        @endif
+                    </div>
+                @empty
+                    <p class="mb-0 text-muted2 text-small mt-2">{{ __('mobile.no_payments') }}</p>
+                @endforelse
+                <a href="{{ route('orders.show', $membership->order->uuid) }}"
+                    class="d-flex justify-content-between align-items-center mt-2 text-decoration-none text-terra small fw-semibold">
+                    {{ __('mobile.view_all') }} <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        @endif
+
         {{-- DETAIL --}}
         <div class="app-card p-3 mt-3">
             <div class="d-flex justify-content-between py-2 border-bottom">

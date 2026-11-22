@@ -36,15 +36,23 @@ $paymentClasses = [
             <h1 class="ms-page-title">{{ $isAdmin ? 'Monitoring Paket' : 'Paket Saya' }}</h1>
             <p class="ms-page-subtitle">Pantau kuota, pembayaran, dan jadwal acara dalam satu tampilan.</p>
         </div>
-        <div class="ms-page-meta">
-            <span class="ms-page-meta-dot"></span>
-            {{ now()->translatedFormat('l, d F Y') }}
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            @if ($isAdmin)
+                <a href="{{ route('memberships.export', request()->only(['search', 'status', 'expiring', 'payment', 'event'])) }}"
+                    class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-download me-1"></i>Ekspor CSV
+                </a>
+            @endif
+            <div class="ms-page-meta">
+                <span class="ms-page-meta-dot"></span>
+                {{ now()->translatedFormat('l, d F Y') }}
+            </div>
         </div>
     </div>
 
     <div class="row g-3 mb-4 ms-stats">
         <div class="col-6 col-xl-3">
-            <div class="card ms-stat ms-stat-total h-100">
+            <a href="{{ route('memberships.index') }}" class="card ms-stat ms-stat-total h-100 ms-stat-link">
                 <div class="card-body">
                     <div class="ml-stat">
                         <div class="ml-stat-icon ic-primary"><i class="bx bx-package"></i></div>
@@ -54,10 +62,10 @@ $paymentClasses = [
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-xl-3">
-            <div class="card ms-stat ms-stat-active h-100">
+            <a href="{{ route('memberships.index', ['status' => 'active']) }}" class="card ms-stat ms-stat-active h-100 ms-stat-link">
                 <div class="card-body">
                     <div class="ml-stat">
                         <div class="ml-stat-icon ic-success"><i class="bx bx-check-circle"></i></div>
@@ -67,10 +75,10 @@ $paymentClasses = [
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-xl-3">
-            <div class="card ms-stat ms-stat-expiring h-100">
+            <a href="{{ route('memberships.index', ['expiring' => '7days']) }}" class="card ms-stat ms-stat-expiring h-100 ms-stat-link">
                 <div class="card-body">
                     <div class="ml-stat">
                         <div class="ml-stat-icon ic-warning"><i class="bx bx-time-five"></i></div>
@@ -80,10 +88,10 @@ $paymentClasses = [
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-6 col-xl-3">
-            <div class="card ms-stat ms-stat-event h-100">
+            <a href="{{ route('memberships.index', ['event' => '30days']) }}" class="card ms-stat ms-stat-event h-100 ms-stat-link">
                 <div class="card-body">
                     <div class="ml-stat">
                         <div class="ml-stat-icon ic-violet"><i class="bx bx-calendar-event"></i></div>
@@ -93,7 +101,7 @@ $paymentClasses = [
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -193,6 +201,74 @@ $paymentClasses = [
         </div>
     @endif
 
+    @if (! empty($followUps))
+        <div class="card ms-followup mb-4">
+            <div class="card-header ms-followup-head">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="ms-followup-icon"><i class="bi bi-cash-coin"></i></div>
+                    <div>
+                        <h6 class="ms-followup-title mb-0">Tagihan Perlu Ditindaklanjuti</h6>
+                        <div class="ms-followup-subtitle">Pembayaran belum lunas · {{ count($followUps) }} teratas menurut tanggal acara</div>
+                    </div>
+                </div>
+                <a href="{{ route('memberships.index', ['payment' => 'cicilan']) }}" class="ms-link small">Lihat semua cicilan →</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table ms-followup-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ $isAdmin ? 'Pelanggan' : 'Paket' }}</th>
+                                <th>Sisa Tagihan</th>
+                                <th>Pembayaran Terakhir</th>
+                                <th>Acara</th>
+                                <th class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($followUps as $followUp)
+                                <tr>
+                                    <td>
+                                        <span class="d-block fw-semibold">{{ $isAdmin ? $followUp['customer'] : $followUp['package'] }}</span>
+                                        <small class="log-muted">{{ $isAdmin ? $followUp['package'] : '#' . $followUp['membership']->order?->order_number }}</small>
+                                    </td>
+                                    <td class="fw-bold text-danger">{{ $rupiah($followUp['remaining']) }}</td>
+                                    <td>
+                                        @if ($followUp['last_payment'])
+                                            <span class="d-block">{{ $rupiah($followUp['last_payment']->amount ?: $followUp['last_payment']->gross_amount) }}</span>
+                                            <small class="log-muted">{{ ($followUp['last_payment']->paid_at ?? $followUp['last_payment']->created_at)?->format('d M Y H:i') }}</small>
+                                        @else
+                                            <small class="log-muted">Belum ada pembayaran</small>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($followUp['membership']->event_date)
+                                            <span class="d-block fw-semibold">{{ $followUp['membership']->event_date->format('d M Y') }}</span>
+                                            @if ($followUp['days'] >= 0)
+                                                <span class="ms-day {{ $followUp['days'] === 0 ? 'ms-day-today' : ($followUp['days'] <= 7 ? 'ms-day-near' : '') }}">
+                                                    {{ $followUp['days'] === 0 ? 'Hari ini' : 'H-' . $followUp['days'] }}
+                                                </span>
+                                            @else
+                                                <span class="ms-day ms-day-past">Sudah lewat</span>
+                                            @endif
+                                        @else
+                                            <small class="log-muted">Belum dijadwalkan</small>
+                                        @endif
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ route('memberships.show', $followUp['membership']->uuid) }}" class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-credit-card me-1"></i>Riwayat
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="card ms-toolbar mb-4">
         <div class="ms-toolbar-head">
             <div class="d-flex align-items-center gap-3">
@@ -227,6 +303,16 @@ $paymentClasses = [
                     <select name="expiring" id="filterExpiring" class="form-select">
                         <option value="">Semua</option>
                         <option value="7days" @selected(($filters['expiring'] ?? '') === '7days')>Berakhir ≤ 7 hari</option>
+                    </select>
+                </div>
+                <div class="ms-filter-field">
+                    <label class="ms-filter-label" for="filterPayment">Pembayaran</label>
+                    <select name="payment" id="filterPayment" class="form-select">
+                        <option value="">Semua pembayaran</option>
+                        <option value="lunas" @selected(($filters['payment'] ?? '') === 'lunas')>Lunas</option>
+                        <option value="cicilan" @selected(($filters['payment'] ?? '') === 'cicilan')>Cicilan</option>
+                        <option value="menunggu" @selected(($filters['payment'] ?? '') === 'menunggu')>Menunggu</option>
+                        <option value="tanpa" @selected(($filters['payment'] ?? '') === 'tanpa')>Tanpa pesanan</option>
                     </select>
                 </div>
                 <div class="ms-filter-actions">
@@ -307,6 +393,17 @@ $paymentClasses = [
                                         @else
                                             <small class="ms-pay-clear"><i class="bi bi-check2"></i> Lunas</small>
                                         @endif
+                                        @php
+                                            $lastPayment = $membership->order?->payments?->sortByDesc('created_at')->first();
+                                        @endphp
+                                        <small class="ms-pay-last">
+                                            @if ($lastPayment)
+                                                Terakhir: {{ $rupiah($lastPayment->amount ?: $lastPayment->gross_amount) }}
+                                                · {{ ($lastPayment->paid_at ?? $lastPayment->created_at)?->format('d M Y') }}
+                                            @else
+                                                Belum ada pembayaran
+                                            @endif
+                                        </small>
                                     </div>
                                 </td>
                                 <td class="text-center">
@@ -328,8 +425,8 @@ $paymentClasses = [
                                 </td>
                                 <td class="text-end">
                                     <a href="{{ route('memberships.show', $membership->uuid) }}"
-                                        class="btn btn-sm btn-outline-primary" title="Lihat detail">
-                                        <i class="bi bi-eye"></i>
+                                        class="btn btn-sm btn-outline-success" title="Lihat detail & riwayat pembayaran">
+                                        <i class="bi bi-credit-card me-1"></i>Detail & Riwayat
                                     </a>
                                 </td>
                             </tr>
@@ -360,34 +457,35 @@ $paymentClasses = [
 
 @push('after-style')
 <style>
-    .ms-page { --ms-primary: #5b7cfa; --ms-ink: #101828; --ms-muted: #667085; --ms-line: #eef0f4; }
+    .ms-page { --ms-primary: #4b6b52; --ms-sage-soft: #eef3ee; --ms-ink: #101828; --ms-muted: #667085; --ms-line: #eef0f4; }
     .ms-stats .ms-stat { position: relative; overflow: hidden; border-radius: 16px; transition: transform .18s ease, box-shadow .18s ease; }
     .ms-stats .ms-stat:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(16,24,40,.1); }
     .ms-stats .ms-stat::after { content: ''; position: absolute; inset: auto 0 0; height: 3px; background: var(--ms-accent); }
-    .ms-stats .ms-stat-total { --ms-accent: #5b7cfa; }
+    .ms-stat-link { color: inherit; text-decoration: none; }
+    .ms-stats .ms-stat-total { --ms-accent: #4b6b52; }
     .ms-stats .ms-stat-active { --ms-accent: #10b981; }
     .ms-stats .ms-stat-expiring { --ms-accent: #f59e0b; }
-    .ms-stats .ms-stat-event { --ms-accent: #7c5cfa; }
+    .ms-stats .ms-stat-event { --ms-accent: #c4703c; }
 
     .ms-finance {
         display: grid; grid-template-columns: minmax(260px, 1.2fr) minmax(260px, 1fr) auto;
         gap: 24px; align-items: center; padding: 22px 24px; border-radius: 18px;
-        border: 1px solid #dfe7ff; background: linear-gradient(110deg, #f7f9ff 0%, #fff 55%, #f4fdf8 100%);
+        border: 1px solid #d8e6da; background: linear-gradient(110deg, #f6faf7 0%, #fff 55%, #fdf8f4 100%);
         box-shadow: 0 10px 28px rgba(16,24,40,.05);
     }
     .ms-finance-main { display: flex; align-items: center; gap: 16px; min-width: 0; }
     .ms-finance-icon {
         width: 52px; height: 52px; flex-shrink: 0; border-radius: 16px; display: grid; place-items: center;
-        font-size: 24px; color: #fff; background: linear-gradient(135deg, #5b7cfa, #7c5cfa);
-        box-shadow: 0 8px 18px rgba(91,124,250,.28);
+        font-size: 24px; color: #fff; background: linear-gradient(135deg, #4b6b52, #6b8f6f);
+        box-shadow: 0 8px 18px rgba(75,107,82,.28);
     }
     .ms-finance-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ms-muted); }
     .ms-finance-value { font-size: 27px; font-weight: 750; letter-spacing: -.02em; color: var(--ms-ink); font-variant-numeric: tabular-nums; }
     .ms-finance-caption { font-size: 12px; color: var(--ms-muted); }
     .ms-finance-label { font-size: 12px; font-weight: 650; color: var(--ms-muted); }
-    .ms-finance-percent { font-size: 15px; color: #3538cd; font-variant-numeric: tabular-nums; }
-    .ms-progress { height: 9px; border-radius: 999px; background: #e9edf7; overflow: hidden; }
-    .ms-progress .progress-bar { border-radius: 999px; background: linear-gradient(90deg, #5b7cfa, #7c5cfa); }
+    .ms-finance-percent { font-size: 15px; color: var(--ms-primary); font-variant-numeric: tabular-nums; }
+    .ms-progress { height: 9px; border-radius: 999px; background: #e6ece7; overflow: hidden; }
+    .ms-progress .progress-bar { border-radius: 999px; background: linear-gradient(90deg, #4b6b52, #6b8f6f); }
     .ms-finance-remaining { margin-top: 8px; font-size: 12px; color: var(--ms-muted); }
     .ms-finance-remaining strong { color: #b42318; font-size: 13px; }
     .ms-finance-counts { display: flex; gap: 18px; padding-left: 22px; border-left: 1px solid #e4e7ec; }
@@ -397,31 +495,31 @@ $paymentClasses = [
     .ms-finance-count strong { display: block; font-size: 17px; line-height: 1.1; color: var(--ms-ink); }
     .ms-finance-count small { font-size: 11px; color: var(--ms-muted); }
 
-    .ms-reminder { border-radius: 16px; overflow: hidden; border-color: #e7e3ff; }
-    .ms-reminder-head { padding: 14px 20px; background: linear-gradient(90deg, #faf9ff, #fff); border-bottom: 1px solid var(--ms-line); }
-    .ms-reminder-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; color: #6941c6; background: #f4f3ff; }
-    .ms-reminder-title { font-size: 15px; font-weight: 700; color: var(--ms-ink); }
-    .ms-reminder-subtitle { font-size: 12px; color: #98a2b3; }
-    .ms-reminder-badge { font-size: 11px; font-weight: 650; color: #6941c6; background: #f4f3ff; border-radius: 999px; padding: 6px 12px; }
-    .ms-reminder-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #98a2b3; background: #fcfcfe; white-space: nowrap; }
-    .ms-reminder-table td { font-size: 13px; vertical-align: middle; white-space: nowrap; color: #475467; }
-    .ms-link { color: #3538cd; font-weight: 650; text-decoration: none; }
+    .ms-reminder, .ms-followup { border-radius: 16px; overflow: hidden; border-color: #d8e6da; }
+    .ms-reminder-head, .ms-followup-head { padding: 14px 20px; background: linear-gradient(90deg, #f6faf7, #fff); border-bottom: 1px solid var(--ms-line); }
+    .ms-reminder-icon, .ms-followup-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; color: var(--ms-primary); background: var(--ms-sage-soft); }
+    .ms-reminder-title, .ms-followup-title { font-size: 15px; font-weight: 700; color: var(--ms-ink); }
+    .ms-reminder-subtitle, .ms-followup-subtitle { font-size: 12px; color: #98a2b3; }
+    .ms-reminder-badge { font-size: 11px; font-weight: 650; color: var(--ms-primary); background: var(--ms-sage-soft); border-radius: 999px; padding: 6px 12px; }
+    .ms-reminder-table th, .ms-followup-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #98a2b3; background: #fafcfb; white-space: nowrap; }
+    .ms-reminder-table td, .ms-followup-table td { font-size: 13px; vertical-align: middle; white-space: nowrap; color: #475467; }
+    .ms-link { color: var(--ms-primary); font-weight: 650; text-decoration: none; }
     .ms-link:hover { text-decoration: underline; }
 
-    .ms-day { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 650; color: #3538cd; background: #eef2ff; }
+    .ms-day { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 650; color: var(--ms-primary); background: var(--ms-sage-soft); }
     .ms-day-today { color: #b54708; background: #fffaeb; }
     .ms-day-near { color: #b54708; background: #fff7e6; }
     .ms-day-past { color: #667085; background: #f2f4f7; }
 
     .ms-toolbar, .ms-table-card { border-radius: 16px; border-color: var(--ms-line); box-shadow: 0 8px 24px rgba(16,24,40,.04); overflow: hidden; }
     .ms-toolbar-head { padding: 15px 20px; border-bottom: 1px solid var(--ms-line); background: linear-gradient(90deg, #fbfcff, #fff); }
-    .ms-toolbar-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: var(--ms-primary); background: #eef2ff; font-size: 18px; }
+    .ms-toolbar-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: var(--ms-primary); background: var(--ms-sage-soft); font-size: 18px; }
     .ms-toolbar-title { font-size: 15px; font-weight: 700; color: var(--ms-ink); }
     .ms-toolbar-subtitle { font-size: 12px; color: #98a2b3; }
-    .ms-toolbar-badge { font-size: 12px; font-weight: 650; color: #3538cd; background: #eef2ff; border-radius: 999px; padding: 6px 12px; white-space: nowrap; }
+    .ms-toolbar-badge { font-size: 12px; font-weight: 650; color: var(--ms-primary); background: var(--ms-sage-soft); border-radius: 999px; padding: 6px 12px; white-space: nowrap; }
     .ms-toolbar-body { padding: 18px 20px; }
-    .ms-filter-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px 14px; align-items: end; padding: 16px; border: 1px solid var(--ms-line); border-radius: 14px; background: #fbfcff; }
-    .ms-field-search { grid-column: span 5; }
+    .ms-filter-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px 14px; align-items: end; padding: 16px; border: 1px solid var(--ms-line); border-radius: 14px; background: #fafcfa; }
+    .ms-field-search { grid-column: span 4; }
     .ms-filter-field { grid-column: span 3; min-width: 0; }
     .ms-filter-actions { grid-column: span 4; display: flex; align-items: end; gap: 8px; }
     .ms-filter-label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 650; color: var(--ms-muted); }
@@ -436,8 +534,9 @@ $paymentClasses = [
     .ms-pay-paid { display: block; font-size: 14px; font-weight: 700; color: #027a48; font-variant-numeric: tabular-nums; }
     .ms-pay-total { display: block; font-size: 11px; color: #98a2b3; }
     .ms-mini-progress { height: 5px; margin: 7px 0 5px; border-radius: 999px; background: #eef0f4; overflow: hidden; }
-    .ms-mini-progress span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #10b981, #5b7cfa); }
-    .ms-mini-progress span.is-complete { background: #10b981; }
+    .ms-mini-progress span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #10b981, #4b6b52); }
+    .ms-mini-progress span.is-complete { background: #4b6b52; }
+    .ms-pay-last { display: block; margin-top: 5px; font-size: 10px; color: #98a2b3; }
     .ms-pay-due { display: block; font-size: 11px; font-weight: 650; color: #b42318; }
     .ms-pay-clear { display: block; font-size: 11px; font-weight: 650; color: #027a48; }
     .ms-quota-unit { font-size: 11px; color: #98a2b3; }

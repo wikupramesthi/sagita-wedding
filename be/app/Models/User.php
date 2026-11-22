@@ -259,6 +259,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
         $path = ltrim($this->avatar, '/');
 
+        if ($path === '' || Str::contains($path, '..')) {
+            return null;
+        }
+
         return Storage::disk('public')->exists($path) ? asset('storage/'.$path) : null;
     }
 

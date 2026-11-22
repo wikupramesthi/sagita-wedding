@@ -277,7 +277,7 @@
                                 <td>{{ ucfirst($p->kind ?: 'payment') }}</td>
                                 <td>Rp {{ number_format((float)($p->amount ?? $p->gross_amount),0,',','.') }}</td>
                                 <td><span class="badge {{ $pStatus==='verified'||$p->status==='paid'?'bg-success':($pStatus==='pending'?'bg-warning text-dark':'bg-danger') }}">{{ $pStatus }}</span></td>
-                                <td>@if($p->proof_image_path)<a href="{{ asset('storage/'.$p->proof_image_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Lihat</a>@endif</td>
+                                <td>@if($p->proof_image_path)<a href="{{ route('orders.payments.proof', [$order->uuid, $p->uuid]) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Lihat</a>@endif</td>
                                 <td>
                                     @if($isAdmin && $pStatus === 'pending')
                                         <form action="{{ route('orders.payments.approve', [$order->uuid, $p->uuid]) }}" method="POST" class="d-inline">@csrf<button class="btn btn-sm btn-success">Terima</button></form>

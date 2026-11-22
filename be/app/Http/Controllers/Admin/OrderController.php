@@ -1635,7 +1635,49 @@ public function rejectPayment(Request $request, string $order, string $payment)
             abort(404);
         }
 
-        return response()->file($disk->path($order->proof_image_path));
+        $response = response()->file($disk->path($order->proof_image_path));
+        $response->setPrivate();
+        $response->headers->set('Cache-Control', 'private, no-store');
+
+        return $response;
+    }
+
+    /**
+     * Serve a single payment proof (order owner or admin only).
+     */
+    public function showPaymentProof(Request $request, string $order, string $payment)
+    {
+        $order = Order::packageOnly()->where('uuid', $order)->firstOrFail();
+
+        $user = Auth::user();
+        $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
+
+        if (! $isAdmin && $order->user_uuid !== $user->uuid) {
+            abort(403);
+        }
+
+        $payment = $order->payments()->where('uuid', $payment)->firstOrFail();
+
+        if (! $payment->proof_image_path) {
+            abort(404);
+        }
+
+        $diskName = config('manual_payment.proof_disk', 'local');
+        $disk = Storage::disk($diskName);
+
+        if (! $disk->exists($payment->proof_image_path) && $diskName !== 'public') {
+            $disk = Storage::disk('public');
+        }
+
+        abort_unless($disk->exists($payment->proof_image_path), 404);
+
+        $response = response()->file($disk->path($payment->proof_image_path), [
+            'Content-Disposition' => 'inline',
+        ]);
+        $response->setPrivate();
+        $response->headers->set('Cache-Control', 'private, no-store');
+
+        return $response;
     }
 
     /**

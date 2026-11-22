@@ -184,6 +184,27 @@
         min-width: 130px;
     }
 
+    .member-planning .planning-budget-summary {
+        padding: 18px;
+        border: 1px solid #eceaff;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f8f7ff, #fff);
+    }
+
+    .member-planning .planning-budget-category {
+        padding: 12px 0;
+        border-bottom: 1px solid #edf0f5;
+    }
+
+    .member-planning .planning-budget-category:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .member-planning .planning-budget-category .input-group {
+        max-width: 260px;
+    }
+
     .hero-panel {
         background: var(--brand-gradient);
         border-radius: var(--bs-border-radius-xl);
@@ -411,36 +432,15 @@
         <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100 member-stat-card"><div class="card-body d-flex align-items-center gap-3"><div class="rounded-3 bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width:46px;height:46px;font-size:1.2rem"><i class="bi bi-box-seam"></i></div><div><div class="fw-bold fs-4 lh-1">{{ $myOrderStats['active_package'] }}</div><div class="small text-muted mt-1">Paket Aktif</div></div></div></div></div>
     </div>
 
-    @php
-        $planningTasks = \App\Models\WeddingPlan::TASKS;
-        $completedPlanningTasks = $weddingPlan?->completed_tasks ?? [];
-        $completedTaskCount = count(array_intersect(array_keys($planningTasks), $completedPlanningTasks));
-        $planningProgress = count($planningTasks) > 0 ? (int) round($completedTaskCount / count($planningTasks) * 100) : 0;
-        $budgetCategories = \App\Models\WeddingPlan::BUDGET_CATEGORIES;
-        $budgetBreakdown = $weddingPlan?->budget_breakdown ?? [];
-        $allocatedBudget = collect($budgetCategories)->keys()->sum(fn ($category) => (float) ($budgetBreakdown[$category] ?? 0));
-        $totalBudget = (float) ($weddingPlan?->total_budget ?? 0);
-        $remainingBudget = $totalBudget - $allocatedBudget;
-        $planningDaysRemaining = $planningEventDate
-            ? now()->startOfDay()->diffInDays(\Illuminate\Support\Carbon::parse($planningEventDate)->startOfDay(), false)
-            : null;
-    @endphp
-
-    <section class="member-planning mb-4" aria-labelledby="wedding-planning-title">
-        @if (session('success'))
-            <div class="alert alert-success py-2" role="status">{{ session('success') }}</div>
-        @endif
-        @if ($errors->any())
-            <div class="alert alert-danger py-2" role="alert">{{ $errors->first() }}</div>
-        @endif
+    <section class="member-planning mb-4" aria-labelledby="wedding-preparation-title">
         <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
             <div>
-                <span class="small fw-semibold text-primary text-uppercase">Pusat persiapan</span>
-                <h2 id="wedding-planning-title" class="fw-bold mb-1">Wedding Planning Hub</h2>
-                <p class="small text-muted mb-0">Atur tanggal, checklist, dan rencana anggaran pernikahan Anda.</p>
+                <span class="small fw-semibold text-primary text-uppercase">Ringkasan akun dan pesanan</span>
+                <h2 id="wedding-preparation-title" class="fw-bold mb-1">Ringkasan persiapan</h2>
+                <p class="small text-muted mb-0">Tanggal, langkah persiapan, paket, dan pembayaran mengikuti pesanan Anda.</p>
             </div>
             <a href="{{ route('packages.member') }}" class="btn btn-outline-primary d-none d-md-inline-flex">
-                <i class="bi bi-search me-1"></i> Jelajahi Paket & Vendor
+                <i class="bi bi-search me-1"></i> Jelajahi Paket
             </a>
         </div>
 
@@ -453,7 +453,7 @@
                         </div>
                         <div>
                             <div class="small text-muted">Tanggal pernikahan</div>
-                            <div class="fw-bold">{{ $planningEventDate ? \Illuminate\Support\Carbon::parse($planningEventDate)->translatedFormat('d F Y') : 'Belum ditentukan' }}</div>
+                            <div class="fw-bold">{{ $planningEventDate ? $planningEventDate->translatedFormat('d F Y') : 'Belum ada tanggal pesanan' }}</div>
                         </div>
                     </div>
                     @if ($planningDaysRemaining !== null)
@@ -467,12 +467,12 @@
                             @endif
                         </div>
                     @else
-                        <div class="small text-muted">Tambahkan tanggal untuk melihat hitung mundur dan timeline.</div>
+                        <div class="small text-muted">Tanggal tampil otomatis dari pesanan paket aktif.</div>
                     @endif
                     <hr>
                     <div class="d-flex justify-content-between small mb-2">
-                        <span class="text-muted">Progress checklist</span>
-                        <span class="fw-semibold">{{ $completedTaskCount }}/{{ count($planningTasks) }} selesai</span>
+                        <span class="text-muted">Langkah persiapan</span>
+                        <span class="fw-semibold">{{ $completedPlanningSteps }}/{{ count($planningSteps) }} selesai</span>
                     </div>
                     <div class="progress planning-progress" role="progressbar" aria-label="Progress checklist" aria-valuenow="{{ $planningProgress }}" aria-valuemin="0" aria-valuemax="100">
                         <div class="progress-bar bg-primary" style="width: {{ $planningProgress }}%"></div>
@@ -485,29 +485,24 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                <h3 class="fw-bold mb-1 member-section-title">Checklist persiapan</h3>
-                                <div class="small text-muted">Tandai langkah yang sudah selesai.</div>
+                                <h3 class="fw-bold mb-1 member-section-title">Langkah persiapan</h3>
+                                <div class="small text-muted">Status mengikuti paket, tanggal acara, dan pembayaran.</div>
                             </div>
                             <i class="bi bi-check2-square fs-4 text-primary"></i>
                         </div>
-                        <div class="row g-0">
-                            @foreach ($planningTasks as $taskKey => $taskLabel)
-                                <div class="col-md-6 pe-md-3">
-                                    <form method="POST" action="{{ route('wedding-planning.tasks.update', $taskKey) }}" class="planning-task">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="completed" value="0">
-                                        <input
-                                            class="form-check-input mt-1"
-                                            type="checkbox"
-                                            name="completed"
-                                            value="1"
-                                            aria-label="{{ $taskLabel }}"
-                                            onchange="this.form.requestSubmit()"
-                                            @checked(in_array($taskKey, $completedPlanningTasks, true))
-                                        >
-                                        <span class="{{ in_array($taskKey, $completedPlanningTasks, true) ? 'text-muted text-decoration-line-through' : 'fw-medium' }}">{{ $taskLabel }}</span>
-                                    </form>
+                        <div>
+                            @foreach ($planningSteps as $step)
+                                <div class="planning-task">
+                                    <i class="bi {{ $step['done'] ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted' }} mt-1" aria-hidden="true"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">{{ $step['label'] }}</div>
+                                        <div class="small text-muted">{{ $step['description'] }}</div>
+                                    </div>
+                                    @if ($step['done'])
+                                        <span class="badge bg-success-subtle text-success-emphasis">Selesai</span>
+                                    @else
+                                        <a href="{{ $step['url'] }}" class="btn btn-sm btn-outline-primary text-nowrap">{{ $step['action'] }}</a>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
@@ -521,21 +516,20 @@
                 <div class="card border-0 shadow-sm h-100 member-section-card">
                     <div class="card-body">
                         <h3 class="fw-bold mb-1 member-section-title">Timeline persiapan</h3>
-                        <p class="small text-muted mb-3">Tahapan rekomendasi dihitung dari tanggal acara.</p>
-                        @if ($planningTimeline->isNotEmpty())
-                            <div class="planning-timeline">
-                                @foreach ($planningTimeline as $milestone)
-                                    <div class="planning-milestone">
-                                        <div class="fw-semibold">{{ $milestone['label'] }}</div>
-                                        <div class="small text-muted">{{ $milestone['date']->translatedFormat('d F Y') }}</div>
+                        <p class="small text-muted mb-3">Tanggal tahap dihitung dari tanggal acara pada pesanan.</p>
+                        <div class="planning-timeline">
+                            @foreach ($planningTimeline as $milestone)
+                                <div class="planning-milestone">
+                                    <div class="fw-semibold">{{ $milestone['label'] }}</div>
+                                    <div class="small text-muted">
+                                        {{ $milestone['date'] ? $milestone['date']->translatedFormat('d F Y') : $milestone['offset'] }}
                                     </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="rounded-3 bg-light p-3 small text-muted">
-                                Simpan tanggal pernikahan untuk membuat timeline persiapan.
-                            </div>
-                        @endif
+                                </div>
+                            @endforeach
+                        </div>
+                        @unless ($planningEventDate)
+                            <a href="#package-recommendation" class="btn btn-sm btn-outline-primary mt-3">Pilih paket untuk mulai</a>
+                        @endunless
                     </div>
                 </div>
             </div>
@@ -545,67 +539,53 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                             <div>
-                                <h3 class="fw-bold mb-1 member-section-title">Rencana anggaran</h3>
-                                <p class="small text-muted mb-0">Tetapkan batas dan alokasikan anggaran per kategori.</p>
+                                <h3 class="fw-bold mb-1 member-section-title">Anggaran & rekomendasi paket</h3>
+                                <p class="small text-muted mb-0">Nilai pesanan dan pembayaran tersinkron otomatis.</p>
                             </div>
                             <i class="bi bi-wallet2 fs-4 text-primary"></i>
                         </div>
-                        <form method="POST" action="{{ route('wedding-planning.update') }}">
-                            @csrf
-                            @method('PUT')
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-5">
-                                    <label for="planning-event-date" class="form-label small fw-semibold">Tanggal pernikahan</label>
-                                    <input
-                                        id="planning-event-date"
-                                        class="form-control"
-                                        type="date"
-                                        name="event_date"
-                                        value="{{ old('event_date', $weddingPlan?->event_date?->format('Y-m-d') ?? ($planningEventDate ? \Illuminate\Support\Carbon::parse($planningEventDate)->format('Y-m-d') : '')) }}"
-                                    >
+                        @if ($planningOrderTotal > 0)
+                            <div class="planning-budget-summary mb-3">
+                                <div class="d-flex justify-content-between small mb-2">
+                                    <span class="text-muted">Nilai pesanan aktif ({{ $planningOrders->count() }})</span>
+                                    <strong>Rp {{ number_format($planningOrderTotal, 0, ',', '.') }}</strong>
                                 </div>
-                                <div class="col-md-7">
-                                    <label for="planning-total-budget" class="form-label small fw-semibold">Total anggaran (Rp)</label>
-                                    <input
-                                        id="planning-total-budget"
-                                        class="form-control"
-                                        type="number"
-                                        name="total_budget"
-                                        min="0"
-                                        step="1000"
-                                        value="{{ old('total_budget', $totalBudget) }}"
-                                        required
-                                    >
+                                <div class="progress planning-progress mb-2" role="progressbar" aria-label="Pembayaran pesanan" aria-valuenow="{{ $planningBudgetProgress }}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-success" style="width: {{ $planningBudgetProgress }}%"></div>
                                 </div>
+                                <div class="d-flex justify-content-between small">
+                                    <span class="text-muted">Terbayar Rp {{ number_format($planningPaidTotal, 0, ',', '.') }}</span>
+                                    <strong class="text-danger">Sisa Rp {{ number_format($planningRemainingTotal, 0, ',', '.') }}</strong>
+                                </div>
+                                <a href="{{ route('orders.index') }}" class="small fw-semibold text-decoration-none d-inline-block mt-2">Lihat detail pesanan & pembayaran</a>
                             </div>
-                            <div class="row g-2 planning-budget-grid">
-                                @foreach ($budgetCategories as $categoryKey => $categoryLabel)
-                                    <div class="col-md-6">
-                                        <label for="budget-{{ $categoryKey }}" class="form-label small fw-semibold mb-1">{{ $categoryLabel }}</label>
-                                        <input
-                                            id="budget-{{ $categoryKey }}"
-                                            class="form-control"
-                                            type="number"
-                                            name="budget_breakdown[{{ $categoryKey }}]"
-                                            min="0"
-                                            step="1000"
-                                            value="{{ old('budget_breakdown.'.$categoryKey, $budgetBreakdown[$categoryKey] ?? 0) }}"
-                                            required
-                                        >
-                                    </div>
-                                @endforeach
+                        @else
+                            <div class="planning-budget-summary mb-3">
+                                <div class="fw-semibold">Belum ada pesanan paket aktif</div>
+                                <div class="small text-muted">Setelah memilih paket, total biaya dan pembayaran akan muncul di sini.</div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
-                                <div class="small">
-                                    <span class="text-muted">Dialokasikan:</span>
-                                    <strong>Rp {{ number_format($allocatedBudget, 0, ',', '.') }}</strong>
-                                    <span class="text-muted ms-2">{{ $remainingBudget < 0 ? 'Melebihi anggaran:' : 'Sisa:' }}</span>
-                                    <strong class="{{ $remainingBudget >= 0 ? 'text-success' : 'text-danger' }}">Rp {{ number_format(abs($remainingBudget), 0, ',', '.') }}</strong>
-                                </div>
+                        @endif
+
+                        <form id="package-recommendation" action="{{ route('packages.member') }}" method="GET">
+                            <label for="planning-budget-max" class="form-label small fw-semibold">Budget maksimal untuk paket</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input
+                                    id="planning-budget-max"
+                                    class="form-control"
+                                    type="number"
+                                    name="budget_max"
+                                    min="0"
+                                    step="1000000"
+                                    value="{{ request('budget_max') }}"
+                                    placeholder="Contoh 50000000"
+                                    required
+                                >
                                 <button type="submit" class="btn btn-primary text-nowrap">
-                                    <i class="bi bi-check2 me-1"></i> Simpan Rencana
+                                    <i class="bi bi-search me-1"></i> Cari Paket
                                 </button>
                             </div>
+                            <div class="form-text">Katalog akan menampilkan paket yang harganya sesuai budget Anda.</div>
                         </form>
                     </div>
                 </div>

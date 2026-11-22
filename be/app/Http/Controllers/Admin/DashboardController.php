@@ -15,7 +15,6 @@ use App\Models\Payment\Order;
 use App\Models\User;
 use App\Models\UserPackage;
 use App\Models\Venue;
-use App\Models\WeddingPlan;
 use App\Models\WebsiteIdentity;
 use App\Support\DashboardCache;
 use App\Support\MemberView;
@@ -136,6 +135,17 @@ class DashboardController extends Controller
                 'recentOrders' => Cache::remember('dashboard.admin.recent-orders.'.$freshKey, 60, fn () => Order::with('user:id,name', 'package:id,name')->latest()->take(5)->get()),
             ];
 
+            if ($user->hasAnyRole(['admin', 'super-admin'])) {
+                $adminViewData['upcomingWeddingOrders'] = Order::packageOnly()
+                    ->whereIn('status', ['pending', 'partially_paid', 'paid'])
+                    ->whereNotNull('event_date')
+                    ->whereDate('event_date', '>=', now()->toDateString())
+                    ->with(['user:uuid,name,email', 'package:uuid,name', 'packageOption:uuid,name'])
+                    ->orderBy('event_date')
+                    ->take(8)
+                    ->get();
+            }
+
             if ($canViewConsultations) {
                 $adminViewData['recentConsultations'] = Cache::remember('dashboard.admin.recent-consultations.'.$freshKey, 60, fn () => Consultation::latest()->take(5)->get([
                     'uuid',
@@ -176,31 +186,84 @@ class DashboardController extends Controller
 
         if ($isMember) {
             $myOrders = Order::where('user_uuid', $user->uuid)->latest();
-            $weddingPlan = WeddingPlan::where('user_uuid', $user->uuid)->first();
+            $planningOrders = (clone $myOrders)
+                ->where('type', 'package')
+                ->whereIn('status', ['pending', 'partially_paid', 'paid'])
+                ->with(['package:uuid,name', 'packageOption:uuid,name'])
+                ->orderBy('event_date')
+                ->get();
             $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
             $data['courses'] = [];
             $data['myOrders'] = (clone $myOrders)->with(['package:uuid,name', 'packageOption:uuid,name'])->take(5)->get();
-            $data['weddingPlan'] = $weddingPlan;
-            $data['planningEventDate'] = $weddingPlan?->event_date
-                ?: (clone $myOrders)
-                    ->whereIn('status', ['pending', 'partially_paid', 'paid'])
-                    ->whereNotNull('event_date')
-                    ->orderByDesc('event_date')
-                    ->value('event_date');
-            $data['planningTimeline'] = $data['planningEventDate']
-                ? collect([
-                    ['label' => 'Tentukan konsep & anggaran', 'months_before' => 12],
-                    ['label' => 'Pilih venue dan vendor utama', 'months_before' => 9],
-                    ['label' => 'Finalisasi daftar tamu dan undangan', 'months_before' => 6],
-                    ['label' => 'Finalisasi dekorasi dan busana', 'months_before' => 3],
-                    ['label' => 'Konfirmasi vendor dan susunan acara', 'months_before' => 1],
-                    ['label' => 'Hari pernikahan', 'months_before' => 0],
-                ])->map(fn (array $milestone) => [
+            $planningEventOrder = $planningOrders->first(
+                fn (Order $order) => $order->event_date?->greaterThanOrEqualTo(today())
+            ) ?? $planningOrders->first(fn (Order $order) => $order->event_date !== null);
+            $data['planningEventDate'] = $planningEventOrder?->event_date;
+            $data['planningOrders'] = $planningOrders;
+            $data['planningOrderTotal'] = $planningOrders->sum(fn (Order $order) => (float) $order->full_amount);
+            $data['planningPaidTotal'] = $planningOrders->sum(fn (Order $order) => (float) $order->amount_paid_value);
+            $data['planningRemainingTotal'] = max(0, $data['planningOrderTotal'] - $data['planningPaidTotal']);
+            $data['planningBudgetProgress'] = $data['planningOrderTotal'] > 0
+                ? (int) min(100, round($data['planningPaidTotal'] / $data['planningOrderTotal'] * 100))
+                : 0;
+            $data['planningDaysRemaining'] = $data['planningEventDate']
+                ? now()->startOfDay()->diffInDays(Carbon::parse($data['planningEventDate'])->startOfDay(), false)
+                : null;
+            $data['planningTimeline'] = collect([
+                ['label' => 'Tentukan konsep & anggaran', 'months_before' => 12],
+                ['label' => 'Pilih venue dan vendor utama', 'months_before' => 9],
+                ['label' => 'Finalisasi daftar tamu dan undangan', 'months_before' => 6],
+                ['label' => 'Finalisasi dekorasi dan busana', 'months_before' => 3],
+                ['label' => 'Konfirmasi vendor dan susunan acara', 'months_before' => 1],
+                ['label' => 'Hari pernikahan', 'months_before' => 0],
+            ])->map(fn (array $milestone) => [
                     'label' => $milestone['label'],
-                    'date' => \Carbon\Carbon::parse($data['planningEventDate'])
-                        ->subMonthsNoOverflow($milestone['months_before']),
-                ])
-                : collect();
+                    'offset' => $milestone['months_before'] > 0
+                        ? $milestone['months_before'].' bulan sebelum acara'
+                        : 'Hari pernikahan',
+                    'date' => $data['planningEventDate']
+                        ? Carbon::parse($data['planningEventDate'])->subMonthsNoOverflow($milestone['months_before'])
+                        : null,
+                ]);
+            $hasPlanningOrders = $planningOrders->isNotEmpty();
+            $allPlanningOrdersPaid = $hasPlanningOrders && $planningOrders->every(
+                fn (Order $order) => $order->status === 'paid'
+            );
+            $data['planningSteps'] = [
+                [
+                    'label' => 'Pilih paket wedding',
+                    'description' => $hasPlanningOrders
+                        ? $planningOrders->count().' pesanan paket aktif'
+                        : 'Pilih paket agar tanggal dan biaya acara terhubung di sini.',
+                    'done' => $hasPlanningOrders,
+                    'url' => $hasPlanningOrders ? route('orders.index') : route('packages.member'),
+                    'action' => $hasPlanningOrders ? 'Lihat pesanan' : 'Jelajahi paket',
+                ],
+                [
+                    'label' => 'Tentukan tanggal acara',
+                    'description' => $data['planningEventDate']
+                        ? Carbon::parse($data['planningEventDate'])->translatedFormat('d F Y')
+                        : 'Tanggal acara tercatat bersama pesanan paket.',
+                    'done' => $data['planningEventDate'] !== null,
+                    'url' => $hasPlanningOrders ? route('orders.index') : route('packages.member'),
+                    'action' => $data['planningEventDate'] ? 'Lihat pesanan' : 'Pilih paket',
+                ],
+                [
+                    'label' => 'Selesaikan pembayaran',
+                    'description' => ! $hasPlanningOrders
+                        ? 'Status pembayaran akan muncul setelah memilih paket.'
+                        : ($allPlanningOrdersPaid ? 'Semua pesanan aktif sudah lunas.' : 'Masih ada pembayaran yang perlu diselesaikan.'),
+                    'done' => $allPlanningOrdersPaid,
+                    'url' => $hasPlanningOrders ? route('orders.index') : route('packages.member'),
+                    'action' => $hasPlanningOrders ? 'Cek pembayaran' : 'Jelajahi paket',
+                ],
+            ];
+            $completedPlanningSteps = count(array_filter(
+                $data['planningSteps'],
+                fn (array $step) => $step['done']
+            ));
+            $data['completedPlanningSteps'] = $completedPlanningSteps;
+            $data['planningProgress'] = (int) round($completedPlanningSteps / count($data['planningSteps']) * 100);
             $data['myOrderStats'] = [
                 'total' => (clone $myOrders)->count(),
                 'pending' => (clone $myOrders)->whereIn('status', ['pending','partially_paid'])->count(),
