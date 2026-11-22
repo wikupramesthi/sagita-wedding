@@ -62,7 +62,7 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 				: "Plan your wedding with Sagita Wedding Planner. Explore venues, coordinate trusted vendors, and get thoughtful support on your wedding day.",
 			heroNav: sliderBanners.length > 0,
 			pageScript: "home",
-			assetV: `${res.locals.assetV}-home-slider25`,
+			assetV: `${res.locals.assetV}-home-slider26`,
 			weddingContentReady,
 			sliderBanners,
 			venueDataLoaded: weddingContentReady && Array.isArray(data?.venues),

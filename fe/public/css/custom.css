@@ -2273,6 +2273,11 @@ header[data-home] .mobile-drawer {
 		box-shadow 0.35s ease;
 }
 
+.home-planning-summary__title,
+.home-planning-summary__card-title {
+	font-family: var(--font-body, system-ui, sans-serif);
+}
+
 .home-venue-card:hover .home-venue-icon,
 .home-venue-card:focus-visible .home-venue-icon {
 	transform: translateY(-2px) scale(1.04);
