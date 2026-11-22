@@ -90,11 +90,11 @@ sagita-wedding/
 │   ├── config/                      # database, cors, frontend, security, ...
 │   ├── database/
 │   │   ├── migrations/              # 63 migrasi
-│   │   ├── seeders/                 # 10 file seeder (8 dipanggil DatabaseSeeder)
+│   │   ├── seeders/                 # 11 file seeder (10 dipanggil DatabaseSeeder)
 │   │   └── factories/
 │   ├── resources/views/             # Blade panel admin
 │   ├── routes/{web,api,auth,console}.php
-│   ├── sagita.sql                   # dump database MariaDB (55 tabel)
+│   ├── sagita (3).sql               # dump database MariaDB (55 tabel)
 │   └── .env / .env.example
 └── fe/                              # Express (website publik)
     ├── server.ts                    # bootstrap tipis
@@ -110,7 +110,7 @@ sagita-wedding/
     ├── views/
     │   ├── pages/                   # 14 halaman EJS
     │   └── partials/                # head, navbar, footer, WA float, booking modal
-    ├── public/css/ public/js/       # aset hasil build (generated)
+    ├── public/css/ public/js/       # aset hasil build (disimpan di repo)
     ├── tests/
     ├── scripts/build-js.mjs
     └── .env.example
@@ -145,7 +145,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Edit `be/.env` untuk MySQL (default `.env.example` memakai SQLite, harus diganti):
+Edit `be/.env` bila perlu (default `.env.example` sudah memakai MySQL/XAMPP database `sagita`):
 
 ```dotenv
 APP_NAME="Sagita Wedding"
@@ -173,7 +173,7 @@ Siapkan database **pilih salah satu**:
 **Opsi A — Import dump (paling cepat, data lengkap):**
 
 ```bash
-# Buat database bernama `sagita` di phpMyAdmin, lalu import file sagita.sql
+# Buat database bernama `sagita` di phpMyAdmin, lalu import file "sagita (3).sql"
 php artisan migrate          # pastikan tidak ada migrasi yang tertinggal
 ```
 
@@ -198,7 +198,7 @@ php artisan serve      # http://localhost:8000
 cd ../fe                       # kembali ke root, lalu masuk ke folder fe
 cp .env.example .env
 npm install
-npm run build:css      # hasil: public/css/output.css
+npm run build:css      # opsional; hasil build sudah ikut repo, jalankan setelah ubah CSS
 npm run dev            # http://localhost:3000
 ```
 
@@ -211,7 +211,7 @@ SITE_URL=http://localhost:3000
 GOOGLE_AUTH_URL=http://localhost:8000/auth/google
 WHATSAPP_NUMBER=6281380760095
 PORT=3000
-ASSET_V=20261007a
+ASSET_V=20261120t
 HTML_MINIFY=1
 ```
 
@@ -229,19 +229,13 @@ Untuk mode produksi: `npm run build` lalu `npm start`.
 | `http://localhost:3000/sitemap.xml` / `/robots.txt` | SEO                       |
 
 <details>
-<summary><strong>Akun default dari seeder</strong> (klik untuk membuka)</summary>
+<summary><strong>Akun setelah seed</strong> (klik untuk membuka)</summary>
 
-| Email             | Password   | Role                        |
-| ----------------- | ---------- | --------------------------- |
-| `super@admin.com` | `password` | `super-admin` (akses penuh) |
-| `user@user.com`   | `password` | `user`                      |
-
-> [!WARNING]
-> Ganti password default di lingkungan selain lokal.
+Seeder sengaja **tidak membuat akun admin/user dengan password statis**. Setelah migrasi + seed, daftar lewat `http://localhost:8000/register`, lalu beri role `super-admin`/`admin` melalui Management Access. Seeder hanya membuat satu author konten internal dengan password random yang tidak disimpan atau ditampilkan.
 
 </details>
 
-Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Menu`, `Role`, `Route`, `Security`, `Membership`, `BannerMedia`, `WebsiteIdentity`.
+Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Role`, `Menu`, `Route`, `Security`, `Membership`, `BannerMedia`, `WebsiteIdentity`, `EmailSetting`, `Content`.
 
 ---
 

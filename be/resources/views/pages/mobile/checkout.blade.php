@@ -8,6 +8,15 @@
 $leadTimeDays = (int) ($package->lead_time_days ?? 0);
 $minEventDate = now()->addDays($leadTimeDays)->toDateString();
 $blackoutDates = $package->blackoutDates ?? collect();
+$initialOption = $package->options->first();
+$initialPrice = $initialOption
+    ? (int) ($initialOption->discount_price !== null && $initialOption->discount_price < $initialOption->price
+        ? $initialOption->discount_price
+        : $initialOption->price)
+    : 0;
+$initialBookingFee = min((int) $bookingFeeAmount, $initialPrice);
+$initialNetAmount = max(0, $initialPrice - $initialBookingFee);
+$initialRemainingAmount = max(0, $initialPrice - $initialBookingFee);
 $promos = ($package->promos ?? collect())->map(function ($promo) {
     return [
         'code' => strtoupper($promo->code),
@@ -310,7 +319,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         @endif
 
 
-        <div class="app-card p-4 mt-4 mb-4">
+        <div class="app-card p-4 mt-4 mb-4 checkout-input-card">
 
             <h3 class="h5 fw-semibold mb-1">Tanggal Acara</h3>
 
@@ -358,22 +367,22 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             <h3 class="h6 fw-semibold mb-1">Skema Pembayaran</h3>
             <p class="small text-muted2 mb-3">Pilih jumlah yang dibayar sekarang.</p>
 
-                        <div class="checkout-scheme-options">
+            <div class="checkout-scheme-options">
                 <label class="checkout-scheme-option">
                     <input type="radio" name="payment_scheme" value="no_dp" form="checkoutForm" class="payment-scheme-input" checked>
                     <span><strong>Tanpa DP</strong><small>Bayar booking fee sekarang</small></span>
                 </label>
                 <label class="checkout-scheme-option">
                     <input type="radio" name="payment_scheme" value="dp30" form="checkoutForm" class="payment-scheme-input">
-                    <span><strong>DP 30%</strong><small>Dari sisa setelah booking fee</small></span>
+                    <span><strong>DP 30%</strong><small>30% dari sisa setelah booking fee</small></span>
                 </label>
                 <label class="checkout-scheme-option">
                     <input type="radio" name="payment_scheme" value="dp50" form="checkoutForm" class="payment-scheme-input">
-                    <span><strong>DP 50%</strong><small>Dari sisa setelah booking fee</small></span>
+                    <span><strong>DP 50%</strong><small>50% dari sisa setelah booking fee</small></span>
                 </label>
                 <label class="checkout-scheme-option">
                     <input type="radio" name="payment_scheme" value="full" form="checkoutForm" class="payment-scheme-input">
-                    <span><strong>Bayar Lunas</strong><small>Lunasi sisa setelah booking fee</small></span>
+                    <span><strong>Bayar Lunas</strong><small>Lunasi seluruh sisa</small></span>
                 </label>
             </div>
         </div>{{-- =====================================================
@@ -460,110 +469,56 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
     <div class="checkout-bottom-bar">
 
-        <div class="checkout-bottom-details mb-2">
-
-            <div class="small fw-semibold">{{ $package->name }}</div>
-
-            <div id="summaryAddonsList"></div>
-
-            <div class="d-flex justify-content-between d-none" id="summaryDiscountRow">
-                <span>Diskon promo</span>
-                <span id="summaryDiscount">Rp 0</span>
-            </div>
-
-            <div class="d-flex justify-content-between">
-                <span>Total Paket</span>
-                <span id="summaryTotal">Rp 0</span>
-            </div>
-            <div class="d-flex justify-content-between">
-                <span>Booking Fee</span>
-                <span id="summaryBookingFee">Rp 2.000.000</span>
-            </div>
-            <div class="d-flex justify-content-between">
-                <span>Sisa setelah booking fee</span>
-                <span id="summaryNetAmount">Rp 0</span>
-            </div>
-            <div class="d-flex justify-content-between checkout-due-row">
+        <div class="checkout-mobile-payment-highlight">
+            <div>
                 <span>Dibayar sekarang</span>
-                <span id="summaryDue">Rp 2.000.000</span>
+                <strong id="summaryDue">Rp {{ number_format($initialBookingFee, 0, ',', '.') }}</strong>
             </div>
-
+            <div>
+                <span>Sisa pembayaran</span>
+                <strong id="summaryRemainingAmount">Rp {{ number_format($initialRemainingAmount, 0, ',', '.') }}</strong>
+            </div>
         </div>
 
-        <div class="d-flex align-items-center gap-3">
-
-            <div class="flex-fill">
-
-                <p class="mb-1 text-muted2 m-tiny" style="letter-spacing:.08em;">{{ __('mobile.total') }}</p>
-
-                <div
-                    id="summaryPrice"
-                    class="summary-price">
-
-                    @if($package->options->first())
-
-                    @php
-                    $firstOption = $package->options->first();
-
-                    $firstHasDiscount =
-                    $firstOption->discount_price !== null &&
-                    $firstOption->discount_price < $firstOption->price;
-
-                        $firstFinalPrice = $firstHasDiscount
-                        ? $firstOption->discount_price
-                        : $firstOption->price;
-                        @endphp
-
-                        Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}
-
-                        @else
-                        Rp 0
-                        @endif
-
+        <details class="checkout-mobile-details">
+            <summary>
+                <span>Rincian pembayaran</span>
+                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+            </summary>
+            <div class="checkout-bottom-details">
+                <div class="checkout-mobile-line">
+                    <span>Total pesanan</span>
+                    <strong id="summaryTotal">Rp {{ number_format($initialPrice, 0, ',', '.') }}</strong>
                 </div>
-
-                <div
-                    id="summaryOption"
-                    class="summary-option">
-
-                    {{ $package->options->first()?->name ?? '-' }}
-
+                <div class="checkout-mobile-line">
+                    <span>Booking Fee (wajib)</span>
+                    <strong id="summaryBookingFee">Rp {{ number_format($initialBookingFee, 0, ',', '.') }}</strong>
                 </div>
-
+                <div class="checkout-mobile-line">
+                    <span>Sisa setelah booking fee</span>
+                    <strong id="summaryNetAmount">Rp {{ number_format($initialNetAmount, 0, ',', '.') }}</strong>
+                </div>
+                <div id="summarySchemeRow" class="checkout-mobile-line d-none">
+                    <span id="summarySchemeLabel">DP dari sisa</span>
+                    <strong id="summarySchemeDue">Rp 0</strong>
+                </div>
+                <div id="summaryDiscountRow" class="checkout-mobile-line d-none">
+                    <span>Diskon promo</span>
+                    <strong id="summaryDiscount">Rp 0</strong>
+                </div>
+                <div id="summaryAddonsList" class="checkout-mobile-addon-list"></div>
             </div>
+        </details>
 
-
-            <form
-                action="{{ route('orders.store') }}"
-                method="POST"
-                id="checkoutForm"
-                class="m-0">
-                @csrf
-
-                <input
-                    type="hidden"
-                    name="type"
-                    value="package">
-
-                <input
-                    type="hidden"
-                    name="package_option_uuid"
-                    id="packageOptionUuid">
-
-                <button
-                    type="button"
-                    id="continuePayment"
-                    class="btn btn-warm checkout-button">
-
-                    {{ __('mobile.continue') }}
-
-                    <i class="bi bi-arrow-right ms-1"></i>
-
-                </button>
-
-            </form>
-
-        </div>
+        <form action="{{ route('orders.store') }}" method="POST" id="checkoutForm" class="checkout-mobile-action">
+            @csrf
+            <input type="hidden" name="type" value="package">
+            <input type="hidden" name="package_option_uuid" id="packageOptionUuid">
+            <button type="button" id="continuePayment" class="btn btn-warm checkout-button w-100">
+                {{ __('mobile.continue') }}
+                <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+        </form>
 
     </div>
 
@@ -602,6 +557,10 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 <span>Dibayar sekarang</span>
                 <strong id="confirmDue">Rp 0</strong>
             </div>
+            <div class="checkout-confirm-row">
+                <span>Sisa pembayaran</span>
+                <strong id="confirmRemaining">Rp 0</strong>
+            </div>
 
             <button type="submit" form="checkoutForm" id="confirmCheckout" class="btn btn-warm w-100 mt-4">
                 Konfirmasi & Bayar
@@ -622,6 +581,17 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         background: var(--bg, #faf8f2);
     }
 
+    #checkout .app-card {
+        border: 1px solid rgba(75, 107, 82, .08);
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(34, 45, 34, .045);
+    }
+
+    .checkout-input-card .form-control {
+        min-height: 46px;
+        border-radius: 12px;
+        font-size: 16px;
+    }
 
     /* =========================================================
    PACKAGE OPTION
@@ -727,10 +697,9 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
 
     .option-old-price {
-
         color: #999;
 
-        font-size: 9px;
+        font-size: 11px;
 
         text-decoration: line-through;
 
@@ -747,7 +716,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         color: #858d83;
 
-        font-size: 9px;
+        font-size: 11px;
 
     }
 
@@ -799,7 +768,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         color: #4b6b52;
 
-        font-size: 9px;
+        font-size: 11px;
 
         font-weight: 700;
 
@@ -930,14 +899,21 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         transform: translateX(-50%);
 
-        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+        container-type: inline-size;
 
-        background: rgba(255, 253, 248, .96);
+        display: grid;
+        gap: 10px;
+        max-height: min(58vh, 520px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px));
 
-        border-top: 1px solid rgba(75, 107, 82, .10);
+        background: rgba(255, 253, 248, .98);
+
+        border-top: 1px solid rgba(75, 107, 82, .12);
 
         box-shadow:
-            0 -6px 25px rgba(0, 0, 0, .06);
+            0 -8px 28px rgba(34, 45, 34, .10);
 
         backdrop-filter: blur(12px);
 
@@ -946,98 +922,150 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
     }
 
 
-    .summary-price {
+    .checkout-button {
+        min-height: 48px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+    }
 
-        color: #c4703c;
+    .checkout-mobile-payment-highlight {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+        padding: 12px 14px;
+        border: 1px solid rgba(75, 107, 82, .10);
+        border-radius: 14px;
+        background: rgba(75, 107, 82, .07);
+    }
 
+    .checkout-mobile-payment-highlight > div {
+        display: grid;
+        align-content: center;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .checkout-mobile-payment-highlight span {
+        color: #737d70;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .checkout-mobile-payment-highlight strong {
+        color: #4b6b52;
         font-size: 18px;
-
-        font-weight: 800;
-
+        font-variant-numeric: tabular-nums;
         line-height: 1.2;
-
-    }
-
-
-    .summary-option {
-
-        overflow: hidden;
-
-        margin-top: 2px;
-
-        color: #858d83;
-
-        font-size: 9px;
-
-        text-overflow: ellipsis;
-
         white-space: nowrap;
-
     }
 
+    .checkout-mobile-payment-highlight > div:last-child strong {
+        color: #b86a3c;
+        font-size: 15px;
+    }
+
+    .checkout-mobile-details {
+        container-type: inline-size;
+    }
+
+    .checkout-mobile-details > summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 3px 2px;
+        color: #39483a;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        list-style: none;
+    }
+
+    .checkout-mobile-details > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .checkout-mobile-details > summary i {
+        transition: transform .2s ease;
+    }
+
+    .checkout-mobile-details[open] > summary i {
+        transform: rotate(180deg);
+    }
 
     .checkout-bottom-details {
-
-        color: #858d83;
-
-        font-size: 9px;
-
-        line-height: 1.5;
-
-    }
-
-
-    .checkout-bottom-details .small {
-
-        color: #31392f;
-
-    }
-
-
-    .checkout-button {
-
-        min-width: 118px;
-
-        min-height: 44px;
-
-        border-radius: 11px;
-
+        display: grid;
+        gap: 9px;
+        margin-top: 8px;
+        padding: 12px;
+        border: 1px solid rgba(75, 107, 82, .08);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, .78);
         font-size: 12px;
-
-        font-weight: 700;
-
+        line-height: 1.4;
     }
 
-
-    .checkout-bottom-details #summaryAddonsList {
-
-        max-height: 58px;
-
-        overflow-y: auto;
-
+    .checkout-mobile-line,
+    .checkout-mobile-addon-list > div {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) max-content;
+        align-items: start;
+        gap: 8px;
     }
 
-
-    .checkout-due-row {
-
-        margin-top: 4px;
-
-        padding-top: 4px;
-
-        border-top: 1px dashed rgba(75, 107, 82, .18);
-
-        color: #4b6b52;
-
-        font-weight: 700;
-
+    .checkout-mobile-line > :first-child,
+    .checkout-mobile-addon-list > div > :first-child {
+        min-width: 0;
+        color: #737d70;
     }
 
+    .checkout-mobile-line > :last-child,
+    .checkout-mobile-addon-list > div > :last-child {
+        color: #39483a;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .checkout-mobile-addon-list {
+        display: grid;
+        gap: 7px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(75, 107, 82, .08);
+    }
+
+    .checkout-mobile-action {
+        position: sticky;
+        bottom: 0;
+        margin: 0;
+        padding-top: 10px;
+        border-top: 1px solid rgba(75, 107, 82, .10);
+        background: rgba(255, 253, 248, .98);
+    }
+
+    @container (max-width: 300px) {
+        .checkout-mobile-payment-highlight {
+            grid-template-columns: 1fr;
+        }
+
+        .checkout-mobile-line,
+        .checkout-mobile-addon-list > div {
+            grid-template-columns: minmax(0, 1fr);
+            row-gap: 2px;
+        }
+
+        .checkout-mobile-line > :last-child,
+        .checkout-mobile-addon-list > div > :last-child {
+            text-align: left;
+        }
+    }
 
     .checkout-scheme-options {
 
         display: grid;
 
-        gap: 8px;
+        gap: 10px;
 
     }
 
@@ -1050,15 +1078,25 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         gap: 9px;
 
-        padding: 11px 12px;
+        padding: 14px;
+        min-height: 68px;
 
         border: 1px solid var(--line);
 
-        border-radius: 11px;
+        border-radius: 14px;
 
         background: var(--card, #fffdf8);
 
         cursor: pointer;
+
+        transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+
+
+    .checkout-scheme-option:has(input:checked) {
+        border-color: #4b6b52;
+        background: rgba(75, 107, 82, .055);
+        box-shadow: 0 0 0 2px rgba(75, 107, 82, .07);
 
     }
 
@@ -1085,7 +1123,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
     .checkout-scheme-option strong {
 
-        font-size: 12px;
+        font-size: 14px;
 
     }
 
@@ -1094,7 +1132,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         color: #858d83;
 
-        font-size: 10px;
+        font-size: 12px;
+        line-height: 1.4;
 
     }
 
@@ -1135,7 +1174,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         overflow-y: auto;
 
-        padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+        padding: 22px 20px calc(22px + env(safe-area-inset-bottom, 0px));
 
         border-radius: 20px 20px 0 0;
 
@@ -1154,11 +1193,11 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         gap: 14px;
 
-        padding: 9px 0;
+        padding: 11px 0;
 
         border-bottom: 1px solid rgba(75, 107, 82, .08);
 
-        font-size: 12px;
+        font-size: 14px;
 
     }
 
@@ -1176,7 +1215,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         color: #4b6b52;
 
-        font-size: 14px;
+        font-size: 16px;
 
     }
 
@@ -1201,8 +1240,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         .checkout-button {
 
-            min-width: 105px;
-
+            font-size: 13px;
         }
 
     }
@@ -1218,12 +1256,6 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         const addons =
             document.querySelectorAll('.addon-checkbox');
 
-        const summaryPrice =
-            document.getElementById('summaryPrice');
-
-        const summaryOption =
-            document.getElementById('summaryOption');
-
         const continuePayment =
             document.getElementById('continuePayment');
 
@@ -1238,6 +1270,24 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         const summaryDue =
             document.getElementById('summaryDue');
+
+        const summaryBookingFee =
+            document.getElementById('summaryBookingFee');
+
+        const summaryNetAmount =
+            document.getElementById('summaryNetAmount');
+
+        const summarySchemeRow =
+            document.getElementById('summarySchemeRow');
+
+        const summarySchemeLabel =
+            document.getElementById('summarySchemeLabel');
+
+        const summarySchemeDue =
+            document.getElementById('summarySchemeDue');
+
+        const summaryRemainingAmount =
+            document.getElementById('summaryRemainingAmount');
 
         const confirmOverlay =
             document.getElementById('checkoutConfirmOverlay');
@@ -1261,6 +1311,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             document.getElementById('summaryTotal');
 
         const promos = @json($promos);
+        const BOOKING_FEE = @json((int) $bookingFeeAmount);
 
 
         function formatRupiah(value) {
@@ -1282,18 +1333,42 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
             return {
                 value: value,
-                label: value === 'dp30'
-                    ? 'DP 30%'
-                    : value === 'dp50'
-                        ? 'DP 50%'
-                        : 'Bayar Lunas',
+                label: value === 'no_dp'
+                    ? 'Tanpa DP'
+                    : value === 'dp30'
+                        ? 'DP 30%'
+                        : value === 'dp50'
+                            ? 'DP 50%'
+                            : 'Bayar Lunas',
                 factor: value === 'dp30'
                     ? 0.30
                     : value === 'dp50'
                         ? 0.50
-                        : 1,
+                        : value === 'full'
+                            ? 1
+                            : 0,
             };
 
+        }
+
+        function calculatePaymentBreakdown(total, scheme) {
+            const safeTotal = Math.max(0, Math.round(Number(total) || 0));
+            const bookingFee = Math.min(BOOKING_FEE, safeTotal);
+            const netAmount = Math.max(0, safeTotal - bookingFee);
+            const schemeDue = Math.min(
+                netAmount,
+                Math.max(0, Math.round(netAmount * scheme.factor))
+            );
+            const dueNow = Math.min(safeTotal, bookingFee + schemeDue);
+
+            return {
+                total: safeTotal,
+                bookingFee,
+                netAmount,
+                schemeDue,
+                dueNow,
+                remainingAmount: Math.max(0, safeTotal - dueNow),
+            };
         }
 
 
@@ -1376,22 +1451,49 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             const discount =
                 promoDiscount(subtotal);
 
-            const total =
-                subtotal - discount;
-
-            summaryPrice.textContent =
-                formatRupiah(total);
+            const total = Math.max(0, subtotal - discount);
+            const scheme = selectedPaymentScheme();
+            const breakdown = calculatePaymentBreakdown(total, scheme);
 
             summaryTotal.textContent =
-                formatRupiah(total);
+                formatRupiah(breakdown.total);
 
             if (summaryDue) {
                 summaryDue.textContent =
-                    formatRupiah(Math.round(total * selectedPaymentScheme().factor));
+                    formatRupiah(breakdown.dueNow);
             }
 
-            summaryOption.textContent =
-                selected.dataset.optionName;
+            if (summaryBookingFee) {
+                summaryBookingFee.textContent =
+                    formatRupiah(breakdown.bookingFee);
+            }
+
+            if (summaryNetAmount) {
+                summaryNetAmount.textContent =
+                    formatRupiah(breakdown.netAmount);
+            }
+
+            if (summarySchemeRow) {
+                summarySchemeRow.classList.toggle(
+                    'd-none',
+                    breakdown.schemeDue === 0
+                );
+            }
+
+            if (summarySchemeLabel) {
+                summarySchemeLabel.textContent =
+                    scheme.value === 'full' ? 'Pelunasan sisa' : 'DP dari sisa';
+            }
+
+            if (summarySchemeDue) {
+                summarySchemeDue.textContent =
+                    formatRupiah(breakdown.schemeDue);
+            }
+
+            if (summaryRemainingAmount) {
+                summaryRemainingAmount.textContent =
+                    formatRupiah(breakdown.remainingAmount);
+            }
 
             packageOptionUuid.value =
                 selected.dataset.optionUuid;
@@ -1583,8 +1685,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 const scheme =
                     selectedPaymentScheme();
 
-                const due =
-                    Math.round(total * scheme.factor);
+                const breakdown = calculatePaymentBreakdown(total, scheme);
 
                 document.getElementById('confirmOption').textContent =
                     selected.dataset.optionName || '-';
@@ -1595,7 +1696,9 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 document.getElementById('confirmTotal').textContent =
                     formatRupiah(total);
                 document.getElementById('confirmDue').textContent =
-                    formatRupiah(due);
+                    formatRupiah(breakdown.dueNow);
+                document.getElementById('confirmRemaining').textContent =
+                    formatRupiah(breakdown.remainingAmount);
 
                 confirmOverlay.classList.add('is-open');
                 confirmOverlay.setAttribute('aria-hidden', 'false');

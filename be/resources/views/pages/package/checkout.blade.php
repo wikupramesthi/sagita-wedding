@@ -677,7 +677,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                         @csrf
 
                         <div class="mb-3">
-                            <label for="event_date" class="form-label small fw-semibold mb-1">
+                            <label for="event_date" class="form-label small fw-semibold">
                                 Tanggal Acara
                             </label>
 
@@ -701,7 +701,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                         </div>
 
                         <div class="mb-3">
-                            <label for="promo_code" class="form-label small fw-semibold mb-1">
+                            <label for="promo_code" class="form-label small fw-semibold">
                                 Kode Promo
                             </label>
 
@@ -832,6 +832,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
     .package-checkout {
         padding-bottom: 40px;
+        max-width: 1520px;
+        margin: 0 auto;
     }
 
 
@@ -1317,7 +1319,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
 
     .summary-total {
-        color: var(--bs-primary);
+        color: #4b6b52;
 
         font-size: 24px;
         font-weight: 800;
@@ -1445,6 +1447,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         border: 1px solid var(--bs-border-color);
         border-radius: 14px;
         background: var(--bs-tertiary-bg);
+        box-shadow: 0 6px 20px rgba(34, 45, 34, .04);
     }
 
     .checkout-scheme-options {
@@ -1463,18 +1466,23 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         border: 1px solid var(--bs-border-color);
         border-radius: 11px;
         background: var(--bs-body-bg);
+        color: var(--bs-body-color);
         cursor: pointer;
         transition: border-color .2s ease, background .2s ease;
     }
 
     .checkout-scheme-option:has(input:checked) {
-        border-color: var(--bs-primary);
-        background: rgba(13, 110, 253, .06);
+        border-color: #4b6b52;
+        background: rgba(75, 107, 82, .07);
+        box-shadow: 0 0 0 2px rgba(75, 107, 82, .06);
     }
 
     .checkout-scheme-option input {
         margin-top: 3px;
-        accent-color: var(--bs-primary);
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+        accent-color: #4b6b52;
     }
 
     .checkout-scheme-body {
@@ -1484,12 +1492,12 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
     }
 
     .checkout-scheme-body strong {
-        font-size: 13px;
+        font-size: 14px;
     }
 
     .checkout-scheme-body small {
         color: var(--bs-secondary-color);
-        font-size: 11px;
+        font-size: 12px;
         line-height: 1.35;
     }
 
@@ -1536,12 +1544,42 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
     @media (max-width: 575.98px) {
         .checkout-summary .card-body {
-            padding: 1.25rem !important;
+            padding: 1.5rem !important;
         }
 
         .checkout-price-breakdown {
-            gap: 8px;
-            padding: 14px;
+            gap: 10px;
+            padding: 16px;
+        }
+
+        #checkoutForm {
+            margin-top: 24px;
+            padding-top: 24px;
+        }
+
+        #checkoutForm .mb-3 {
+            margin-bottom: 24px !important;
+        }
+
+        #checkoutForm .form-label {
+            margin-bottom: 9px;
+        }
+
+        #checkoutForm .form-control {
+            min-height: 48px;
+        }
+
+        #checkoutForm .form-text {
+            margin-top: 8px;
+        }
+
+        .checkout-summary .continue-payment {
+            min-height: 50px;
+        }
+
+        .checkout-summary .card-body > p.text-center {
+            margin-top: 16px !important;
+            line-height: 1.5;
         }
 
         .checkout-summary-row > span,

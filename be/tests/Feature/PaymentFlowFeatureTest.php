@@ -20,8 +20,11 @@ class PaymentFlowFeatureTest extends TestCase
     use DatabaseTransactions;
 
     private User $admin;
+
     private User $member;
+
     private Package $package;
+
     private PackageOption $option;
 
     protected function setUp(): void
@@ -30,9 +33,9 @@ class PaymentFlowFeatureTest extends TestCase
         Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         foreach ([
-            'package.index','package.store','package.update','package.destroy','package.member',
-            'package.promo.index','package.promo.store','package.promo.update','package.promo.destroy',
-            'order.index','order.report','order.update',
+            'package.index', 'package.store', 'package.update', 'package.destroy', 'package.member',
+            'package.promo.index', 'package.promo.store', 'package.promo.update', 'package.promo.destroy',
+            'order.index', 'order.report', 'order.update',
         ] as $perm) {
             Permission::findOrCreate($perm, 'web');
         }
@@ -98,7 +101,7 @@ class PaymentFlowFeatureTest extends TestCase
 
     public function test_dp_then_installment_then_balance_marks_paid(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $order = Order::create([
             'order_number' => 'ORD-TEST-'.uniqid(),
             'user_uuid' => $this->member->uuid,
@@ -157,7 +160,7 @@ class PaymentFlowFeatureTest extends TestCase
 
     public function test_admin_can_mark_remaining_balance_as_received(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $order = Order::create([
             'order_number' => 'ORD-TEST-'.uniqid(),
             'user_uuid' => $this->member->uuid,
@@ -187,7 +190,7 @@ class PaymentFlowFeatureTest extends TestCase
         $firstPayment = Payment::where('order_uuid', $order->uuid)->firstOrFail();
         $this->assertSame('approved', $firstPayment->verification_status);
         $this->assertNotNull($firstPayment->proof_image_path);
-        Storage::disk('public')->assertExists($firstPayment->proof_image_path);
+        Storage::disk('local')->assertExists($firstPayment->proof_image_path);
 
         $this->actingAs($this->admin)
             ->post(route('orders.payments.store', $order->uuid), [

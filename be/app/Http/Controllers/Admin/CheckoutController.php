@@ -38,10 +38,10 @@ class CheckoutController extends Controller
         |--------------------------------------------------------------------------
         */
         if (auth()->check() && auth()->user()->hasRole('user') && MemberView::isMobile()) {
-            return view(
-                'pages.mobile.checkout',
-                compact('package')
-            );
+            return view('pages.mobile.checkout', [
+                'package' => $package,
+                'bookingFeeAmount' => (int) Order::BOOKING_FEE_AMOUNT,
+            ]);
         }
 
         /*

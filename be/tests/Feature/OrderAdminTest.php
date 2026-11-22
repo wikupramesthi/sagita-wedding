@@ -99,7 +99,7 @@ class OrderAdminTest extends TestCase
         foreach ([$this->option, $this->option2] as $option) {
             $order = Order::create([
                 'user_uuid' => $this->member->uuid,
-                'order_number' => 'ORD-' . strtoupper(Str::random(10)),
+                'order_number' => 'ORD-'.strtoupper(Str::random(10)),
                 'type' => 'package',
                 'package_uuid' => $package->uuid,
                 'package_option_uuid' => $option->uuid,
@@ -124,8 +124,8 @@ class OrderAdminTest extends TestCase
             ->assertSee('Pendapatan (Lunas)')
             ->assertDontSee('Total Orders')
             ->assertDontSee('Order List')
-            ->assertDontSee('Sagita Wedding')
-            ->assertDontSee('Sagita Wedding');
+            ->assertDontSee('YogaRoots')
+            ->assertDontSee('YogaRoots');
 
         $this->actingAs($this->admin)
             ->get(route('orders.report'))
@@ -134,7 +134,7 @@ class OrderAdminTest extends TestCase
             ->assertSee('Dicetak oleh')
             ->assertSee('Semua Periode')
             ->assertDontSee('Order Report')
-            ->assertDontSee('Sagita Wedding');
+            ->assertDontSee('YogaRoots');
     }
 
     public function test_admin_can_export_filtered_orders_to_csv(): void
@@ -243,7 +243,7 @@ class OrderAdminTest extends TestCase
         foreach (range(1, 12) as $index) {
             Order::create([
                 'user_uuid' => $this->member->uuid,
-                'order_number' => 'ORD-' . Str::upper(Str::random(10)) . '-' . $index,
+                'order_number' => 'ORD-'.Str::upper(Str::random(10)).'-'.$index,
                 'type' => 'package',
                 'package_uuid' => $this->option->package_uuid,
                 'package_option_uuid' => $this->option->uuid,
@@ -260,12 +260,12 @@ class OrderAdminTest extends TestCase
             ->assertSee('Halaman 1 dari')
             ->assertSee('ordersPerPageQuick')
             ->assertSee('ordersPageJump')
-            ->assertViewHas('orders', fn($orders) => $orders->total() === 14 && $orders->perPage() === 10);
+            ->assertViewHas('orders', fn ($orders) => $orders->total() === 14 && $orders->perPage() === 10);
 
         $this->actingAs($this->admin)
             ->get(route('orders.index', ['per_page' => 100]))
             ->assertOk()
-            ->assertViewHas('filters', fn(array $filters) => $filters['per_page'] === 100);
+            ->assertViewHas('filters', fn (array $filters) => $filters['per_page'] === 100);
     }
 
     public function test_index_explains_short_search_keyword(): void
@@ -274,7 +274,7 @@ class OrderAdminTest extends TestCase
             ->get(route('orders.index', ['search' => 'A']))
             ->assertOk()
             ->assertSee('Kata kunci pencarian minimal 2 karakter')
-            ->assertViewHas('orders', fn($orders) => $orders->total() === 0);
+            ->assertViewHas('orders', fn ($orders) => $orders->total() === 0);
     }
 
     public function test_index_shows_sla_claim_presets_and_card_view(): void
@@ -291,7 +291,7 @@ class OrderAdminTest extends TestCase
             ->assertSee('Langkah: minta bukti transfer')
             ->assertSee('Tekan')
             ->assertSee('id="orderStickyBar"', false)
-            ->assertViewHas('queueCounts', fn($counts) => $counts['sla'] === 1 && $counts['claimed'] === 1);
+            ->assertViewHas('queueCounts', fn ($counts) => $counts['sla'] === 1 && $counts['claimed'] === 1);
 
         $this->actingAs($this->admin)
             ->get(route('orders.index', ['search' => 'TIDAKADAHASIL']))
@@ -356,8 +356,8 @@ class OrderAdminTest extends TestCase
             ->assertSee('Belum upload')
             ->assertSee('Urutkan')
             ->assertSee('amount_desc', false)
-            ->assertViewHas('queueCounts', fn(array $counts) => $counts['all'] === 2 && $counts['missing'] === 2)
-            ->assertViewHas('filters', fn(array $filters) => $filters['per_page'] === 25 && $filters['sort'] === 'amount_desc');
+            ->assertViewHas('queueCounts', fn (array $counts) => $counts['all'] === 2 && $counts['missing'] === 2)
+            ->assertViewHas('filters', fn (array $filters) => $filters['per_page'] === 25 && $filters['sort'] === 'amount_desc');
     }
 
     public function test_reject_requires_reason_and_notifies_member(): void
@@ -562,7 +562,7 @@ class OrderAdminTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('orders.whatsapp', $this->orderUuids[1]))
             ->assertRedirect()
-            ->assertHeader('location', 'https://wa.me/6281234567890?text=' . rawurlencode('Halo ' . $this->member->name . ', kami dari Sagita Wedding Organizer ingin mengonfirmasi pesanan ' . Order::where('uuid', $this->orderUuids[1])->value('order_number') . '. Mohon ditindaklanjuti, terima kasih.'));
+            ->assertHeader('location', 'https://wa.me/6281234567890?text='.rawurlencode('Halo '.$this->member->name.', kami dari Sagita Wedding Organizer ingin mengonfirmasi pesanan '.Order::where('uuid', $this->orderUuids[1])->value('order_number').'. Mohon ditindaklanjuti, terima kasih.'));
 
         $this->assertDatabaseHas('audit_logs', [
             'auditable_id' => $this->orderUuids[1],
@@ -603,8 +603,8 @@ class OrderAdminTest extends TestCase
             ->assertOk()
             ->assertDontSee('ORD-CLASS')
             ->assertDontSee('Semua Tipe')
-            ->assertViewHas('orders', fn($orders) => ! $orders->contains(fn($order) => $order->uuid === $classOrder->uuid))
-            ->assertViewHas('queueCounts', fn(array $counts) => $counts['all'] === 2);
+            ->assertViewHas('orders', fn ($orders) => ! $orders->contains(fn ($order) => $order->uuid === $classOrder->uuid))
+            ->assertViewHas('queueCounts', fn (array $counts) => $counts['all'] === 2);
     }
 
     public function test_member_cannot_open_admin_audit_or_whatsapp(): void

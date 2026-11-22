@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Testimonial;
 use App\Models\Venue;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BatchApiTest extends TestCase
@@ -107,23 +107,21 @@ class BatchApiTest extends TestCase
     public function test_detail_batch_requires_slug(): void
     {
         $this->api()
-            ->getJson('/api/batch/class-detail')
+            ->getJson('/api/batch/package-detail')
             ->assertStatus(422)
             ->assertJsonPath('status', 'error')
             ->assertJsonStructure(['errors' => ['slug']]);
     }
 
-    public function test_schedules_batch_returns_schedules_and_venues(): void
+    public function test_events_batch_returns_events_and_meta(): void
     {
         $this->api()
-            ->getJson('/api/batch/schedules')
+            ->getJson('/api/batch/events')
             ->assertOk()
-            ->assertJsonPath('page', 'schedules')
+            ->assertJsonPath('page', 'events')
             ->assertJsonStructure([
                 'data' => [
-                    'date',
-                    'schedules',
-                    'venues',
+                    'events',
                     'meta',
                 ],
             ]);
