@@ -173,14 +173,17 @@ class DashboardOrderSummaryTest extends TestCase
         $timeline = strpos($html, 'Timeline persiapan');
         $timelineEnd = $timeline === false ? false : strpos($html, '</section>', $timeline);
         $actions = strpos($html, 'member-actions-card');
+        $checklist = strpos($html, 'member-checklist-card');
 
         $this->assertNotFalse($planningEnd);
         $this->assertNotFalse($recommendation);
         $this->assertNotFalse($timeline);
         $this->assertNotFalse($timelineEnd);
         $this->assertNotFalse($actions);
+        $this->assertNotFalse($checklist);
         $this->assertTrue($planningEnd < $recommendation && $recommendation < $timeline);
         $this->assertTrue($timelineEnd < $actions);
+        $this->assertTrue($recommendation < $checklist);
     }
 
     public function test_new_member_can_get_matching_packages_without_leaving_dashboard(): void

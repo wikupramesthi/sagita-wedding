@@ -167,7 +167,12 @@
                 </div>
             </section>
 
-            <section class="card member-card member-section-card">
+        </div>
+    </div>
+
+    <div class="row g-4 mt-1">
+        <div class="col-12">
+            <section class="card member-card member-section-card member-checklist-card">
                 <div class="card-body">
                     <div class="member-section-heading">
                         <div>

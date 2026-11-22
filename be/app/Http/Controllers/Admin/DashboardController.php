@@ -34,8 +34,7 @@ class DashboardController extends Controller
     public function __construct(
         private readonly MemberDashboardService $memberDashboard,
         private readonly PackageRecommendationService $packageRecommendations,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {

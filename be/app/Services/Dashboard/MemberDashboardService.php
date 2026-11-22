@@ -12,9 +12,7 @@ use Illuminate\Support\Collection;
 
 class MemberDashboardService
 {
-    public function __construct(private readonly PackageRecommendationService $recommendations)
-    {
-    }
+    public function __construct(private readonly PackageRecommendationService $recommendations) {}
 
     public function build(User $user, ?int $budgetMax): array
     {
