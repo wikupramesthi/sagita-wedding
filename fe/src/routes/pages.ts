@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { localizeFaqCategories, localizeFaqs } from "../data/faqContent.js";
+import {
+	getHomeFaqs,
+	localizeFaqCategories,
+	localizeFaqs,
+} from "../data/faqContent.js";
 import { getPageBatch } from "../services/batchService.js";
 import type {
 	BannerItem,
@@ -64,6 +68,7 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 			testimonials: Array.isArray(data?.testimonials)
 				? data.testimonials.slice(0, 10)
 				: [],
+			homeFaqs: getHomeFaqs(isID ? "id" : "en"),
 		});
 	} catch (err) {
 		next(err);
@@ -121,7 +126,9 @@ router.get("/about", (_req: Request, res: Response) => {
 		metaDescription: isID
 			? "Kenali Sagita Wedding Planner, wedding organizer yang membantu menyusun konsep, anggaran, vendor, dan koordinasi hari pernikahan sesuai cerita Anda."
 			: "Meet Sagita Wedding Planner, a wedding organizer helping you plan your concept, budget, vendors, and wedding-day coordination around your story.",
+		assetV: `${res.locals.assetV}-about-wedding-icons1`,
 		pageSchemaType: "AboutPage",
+		heroNav: true,
 	});
 });
 

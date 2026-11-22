@@ -335,6 +335,18 @@ const rawTranslations = {
 		testimonialPrevious: "Previous testimonial",
 		testimonialNext: "Next testimonial",
 		testimonialPosition: "Testimonial",
+		homeFaqEyebrow: "GOOD TO KNOW",
+		homeFaqTitleA: "Questions before",
+		homeFaqTitleItalic: "we begin?",
+		homeFaqDesc:
+			"Quick answers about planning, packages, vendors, and the support you can expect on your wedding day.",
+		homeFaqExpandAll: "Expand all",
+		homeFaqCollapseAll: "Collapse all",
+		homeFaqViewAll: "View all FAQs",
+		homeFaqStillTitle: "Still have a question?",
+		homeFaqStillDesc:
+			"Tell us what you have in mind. We’ll listen, answer your questions, and help you decide what comes next.",
+		homeFaqStillBtn: "Talk with our team",
 		fallbackClasses: [
 			{
 				name: "Yoga Nidra",
@@ -729,6 +741,18 @@ const rawTranslations = {
 		testimonialPrevious: "Testimoni sebelumnya",
 		testimonialNext: "Testimoni berikutnya",
 		testimonialPosition: "Testimoni",
+		homeFaqEyebrow: "INFORMASI UNTUK ANDA",
+		homeFaqTitleA: "Ada yang ingin",
+		homeFaqTitleItalic: "ditanyakan?",
+		homeFaqDesc:
+			"Jawaban singkat seputar perencanaan, paket, vendor, dan pendampingan yang kami siapkan pada hari pernikahan Anda.",
+		homeFaqExpandAll: "Perluas semua",
+		homeFaqCollapseAll: "Tutup semua",
+		homeFaqViewAll: "Lihat semua FAQ",
+		homeFaqStillTitle: "Masih ada pertanyaan?",
+		homeFaqStillDesc:
+			"Ceritakan rencana Anda. Kami siap mendengarkan, menjawab pertanyaan, dan membantu langkah berikutnya.",
+		homeFaqStillBtn: "Bicarakan dengan tim kami",
 		fallbackClasses: [
 			{
 				name: "Yoga Nidra",

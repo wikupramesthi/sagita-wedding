@@ -1,5 +1,6 @@
 import type { TestimonialItem } from "../../types/index";
 import { $, escapeHtml, lockScroll, onAction, unlockScroll } from "../lib/dom";
+import "../lib/home-faq";
 
 interface EventData {
 	judul?: string;

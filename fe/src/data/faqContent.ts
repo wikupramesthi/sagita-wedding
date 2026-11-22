@@ -92,6 +92,34 @@ const faqCopyByUuid: Record<string, Record<Locale, FaqCopy>> = {
 				"Jika perlu melakukan perubahan, silakan hubungi tim kami sesegera mungkin. Permintaan yang diajukan setidaknya 30 hari sebelum acara dapat dipertimbangkan sesuai ketersediaan. Pembatalan mengikuti ketentuan dalam kesepakatan layanan.",
 		},
 	},
+	"a7c3f5e1-4b2d-4c68-9a1f-0d5e7b9c2a44": {
+		en: {
+			kategori: "Wedding Planning",
+			question: "Can we start before our wedding date is final?",
+			answer:
+				"Yes. You can start with your preferred venue, budget range, and the overall feel of the day. We will help refine the timeline and details once the date is confirmed.",
+		},
+		id: {
+			kategori: "Perencanaan Pernikahan",
+			question: "Boleh mulai merencanakan sebelum tanggal pernikahan pasti?",
+			answer:
+				"Boleh. Anda bisa mulai dari venue incaran, rentang anggaran, dan gambaran suasana acara. Tim kami akan membantu menyusun linimasa dan detailnya setelah tanggal dipastikan.",
+		},
+	},
+	"b6e8d0a2-7c13-4f59-8d24-1a9c3e5f7b60": {
+		en: {
+			kategori: "Changes & Cancellations",
+			question: "How can we reach the team if we have other questions?",
+			answer:
+				"You can chat with us on WhatsApp or use the consultation form. Share your plans and questions, and our team will help you decide on the next steps.",
+		},
+		id: {
+			kategori: "Perubahan & Pembatalan",
+			question: "Bagaimana cara menghubungi tim jika ada pertanyaan lain?",
+			answer:
+				"Anda bisa menghubungi kami melalui WhatsApp atau mengisi formulir konsultasi. Ceritakan rencana dan pertanyaan Anda, tim kami akan membantu langkah berikutnya.",
+		},
+	},
 };
 
 const categoryNames: Record<string, Record<Locale, string>> = {
@@ -142,4 +170,50 @@ export function localizeFaqCategories(
 			? (categoryNames[category]?.[locale] ?? category)
 			: category,
 	);
+}
+
+type HomeFaqItem = { id: string; question: string; answer: string };
+export type HomeFaqGroup = {
+	id: string;
+	kategori: string;
+	items: HomeFaqItem[];
+};
+
+const homeFaqGroupCopy: Record<string, Record<Locale, string>> = {
+	start: { en: "Getting started", id: "Memulai" },
+	packages: { en: "Packages & payment", id: "Paket & pembayaran" },
+	vendors: { en: "Vendors & coordination", id: "Vendor & koordinasi" },
+	support: { en: "Changes & support", id: "Perubahan & bantuan" },
+};
+
+const homeFaqItemsByGroup: Record<string, string[]> = {
+	start: [
+		"4b9411a3-ccc5-44fd-bc24-e8dc7065773c",
+		"a7c3f5e1-4b2d-4c68-9a1f-0d5e7b9c2a44",
+	],
+	packages: [
+		"fa2b17f9-f0d4-4849-8373-8d787b80113e",
+		"9f25d34e-2a60-42cf-8379-ed069dc50ac0",
+	],
+	vendors: [
+		"6bb623f8-916a-436b-85b3-a57035fe5ac5",
+		"fd90f57c-53aa-4b5d-8e11-faea4808686d",
+	],
+	support: [
+		"95b200f1-69c7-4f1b-a76b-172bcf5fcc55",
+		"b6e8d0a2-7c13-4f59-8d24-1a9c3e5f7b60",
+	],
+};
+
+export function getHomeFaqs(locale: Locale): HomeFaqGroup[] {
+	return Object.entries(homeFaqItemsByGroup).map(([id, uuids]) => ({
+		id,
+		kategori: homeFaqGroupCopy[id][locale],
+		items: uuids.flatMap((uuid) => {
+			const copy = faqCopyByUuid[uuid]?.[locale];
+			return copy
+				? [{ id: uuid, question: copy.question, answer: copy.answer }]
+				: [];
+		}),
+	}));
 }

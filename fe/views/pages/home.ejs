@@ -277,6 +277,85 @@
     </section>
   <% } %>
 
+  <% const homeFaqGroups = Array.isArray(homeFaqs) ? homeFaqs : []; %>
+  <% if (homeFaqGroups.length) { %>
+    <section id="home-faq" class="home-faq-section py-20 sm:py-24">
+      <div class="site-container">
+        <div class="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+          <div class="reveal">
+            <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.homeFaqEyebrow %></p>
+            <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-sage-900"><%= t.homeFaqTitleA %> <span class="italic"><%= t.homeFaqTitleItalic %></span></h2>
+            <p class="mt-5 max-w-md text-sm leading-relaxed text-stone-warm sm:text-base"><%= t.homeFaqDesc %></p>
+            <div class="mt-7 flex flex-wrap items-center gap-3">
+              <a href="/faq" class="btn-secondary group text-sm px-5 py-2.5">
+                <%= t.homeFaqViewAll %>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow ms-2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </a>
+            </div>
+            <div class="mt-8 flex flex-wrap gap-2" role="group" aria-label="<%= t.homeFaqEyebrow %>">
+              <% homeFaqGroups.forEach((group, i) => { %>
+                <button type="button" class="home-faq-tab inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30 sm:text-sm <%= i === 0 ? 'bg-sand-900 text-sand-50 shadow-sm ring-1 ring-sand-900' : 'bg-white text-sand-700 ring-1 ring-sand-200 hover:bg-sand-100' %>" data-home-faq-tab="<%= group.id %>" aria-pressed="<%= i === 0 ? 'true' : 'false' %>">
+                  <%= group.kategori %>
+                  <span class="grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] font-semibold <%= i === 0 ? 'bg-white/15 text-sand-50' : 'bg-sand-100 text-sand-700' %>"><%= group.items.length %></span>
+                </button>
+              <% }) %>
+            </div>
+            <div class="mt-5 flex items-center gap-4">
+              <button type="button" data-home-faq-expand class="text-xs font-semibold uppercase tracking-[0.12em] text-sage-700 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30"><%= t.homeFaqExpandAll %></button>
+              <span class="h-3 w-px bg-sand-300"></span>
+              <button type="button" data-home-faq-collapse class="text-xs font-semibold uppercase tracking-[0.12em] text-sage-700 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30"><%= t.homeFaqCollapseAll %></button>
+            </div>
+          </div>
+
+          <div class="reveal">
+            <div id="homeFaqGroups" class="space-y-3">
+              <% homeFaqGroups.forEach((group, groupIndex) => { %>
+                <section class="home-faq-group <%= groupIndex === 0 ? '' : 'hidden' %>" data-home-faq-group="<%= group.id %>">
+                  <div class="mb-3 flex items-center gap-3 border-b border-sand-200 pb-3">
+                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-sand-100 font-display text-sm text-terracotta-600"><%= String(groupIndex + 1).padStart(2, '0') %></span>
+                    <h3 class="font-display text-lg text-sage-900 sm:text-xl"><%= group.kategori %></h3>
+                    <span class="ms-auto shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-medium text-sand-700"><%= group.items.length %></span>
+                  </div>
+                  <div class="grid gap-2.5">
+                    <% group.items.forEach((item, itemIndex) => { %>
+                      <% const isFirst = groupIndex === 0 && itemIndex === 0; %>
+                      <% const buttonId = `home-faq-question-${group.id}-${item.id}`; %>
+                      <% const panelId = `home-faq-answer-${group.id}-${item.id}`; %>
+                      <article class="home-faq-item overflow-hidden rounded-xl border border-sand-200 bg-white shadow-sm transition-all duration-200" data-home-faq-item>
+                        <button type="button" id="<%= buttonId %>" data-home-faq-button class="flex w-full items-center gap-3 px-4 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage-500/30 sm:px-5" aria-expanded="<%= isFirst ? 'true' : 'false' %>" aria-controls="<%= panelId %>">
+                          <span class="w-5 shrink-0 text-[11px] font-semibold tracking-[0.1em] text-sand-500"><%= String(itemIndex + 1).padStart(2, '0') %></span>
+                          <span class="min-w-0 flex-1 font-semibold text-sm leading-snug text-sage-900 sm:text-[15px]"><%= item.question %></span>
+                          <span class="home-faq-toggle grid h-7 w-7 shrink-0 place-items-center rounded-full bg-sand-100 text-base leading-none text-sage-700 transition-colors"><%= isFirst ? '−' : '+' %></span>
+                        </button>
+                        <div id="<%= panelId %>" data-home-faq-panel role="region" aria-labelledby="<%= buttonId %>" class="<%= isFirst ? '' : 'hidden' %> px-4 pb-4 sm:px-5">
+                          <div class="ml-8 rounded-xl bg-sand-50 px-4 py-3 text-sm leading-relaxed text-stone-warm whitespace-pre-line"><%= item.answer %></div>
+                        </div>
+                      </article>
+                    <% }) %>
+                  </div>
+                </section>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal relative mt-14 overflow-hidden rounded-3xl bg-sage-900 px-6 py-10 text-center text-sand-50 sm:px-10">
+          <div class="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full border border-white/10"></div>
+          <div class="pointer-events-none absolute -bottom-24 -right-10 h-64 w-64 rounded-full border border-white/10"></div>
+          <div class="relative">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-light"><%= t.homeFaqEyebrow %></p>
+            <h3 class="mt-3 font-display text-2xl sm:text-3xl"><%= t.homeFaqStillTitle %></h3>
+            <p class="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-sand-100/80"><%= t.homeFaqStillDesc %></p>
+            <a href="<%= contactLinks.whatsappShortLink %>" target="_blank" rel="noopener noreferrer" class="mt-7 inline-flex items-center gap-2.5 rounded-full bg-sand-50 px-7 py-3 text-sm font-semibold text-sage-900 transition-colors hover:bg-white">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              <%= t.homeFaqStillBtn %>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  <% } %>
+
   <!-- ======================= FINAL CTA ======================= -->
   <section class="py-16 px-6 bg-sand-200/40">
     <div class="reveal max-w-3xl mx-auto text-center">

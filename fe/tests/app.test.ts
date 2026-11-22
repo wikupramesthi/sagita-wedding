@@ -593,6 +593,24 @@ describe("pageScript wiring", () => {
 		expect(res.text).not.toContain("Pasangan 12");
 	});
 
+	it("beranda menampilkan FAQ ringkas setelah testimoni", async () => {
+		const res = await request(app).get("/").set("Cookie", "locale=id");
+		expect(res.status).toBe(200);
+		expect(res.text.indexOf('id="home-faq"')).toBeGreaterThan(
+			res.text.indexOf('class="home-testimonials-section'),
+		);
+		expect(res.text).toContain("INFORMASI UNTUK ANDA");
+		expect(res.text).toContain("Ada yang ingin");
+		expect(res.text).toContain('data-home-faq-tab="start"');
+		expect(res.text).toContain('data-home-faq-tab="packages"');
+		expect(res.text).toContain("data-home-faq-expand");
+		expect(res.text).toContain("data-home-faq-collapse");
+		expect(res.text).toContain(
+			"Kapan sebaiknya kami mulai merencanakan pernikahan?",
+		);
+		expect(res.text).toContain("Lihat semua FAQ");
+	});
+
 	it("beranda hanya menampilkan maksimal lima banner slider valid", async () => {
 		homeSliderBanners = [
 			...Array.from({ length: 6 }, (_, index) => ({
@@ -719,6 +737,7 @@ describe("pageScript wiring", () => {
 		const response = await request(app).get("/about");
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("About Sagita Wedding Planner");
+		expect(response.text).toContain('data-hero-overlay="true"');
 		expect(response.text).toContain("Vendor coordination");
 		expect(response.text).toContain(
 			"<title>About Sagita Wedding Planner | Wedding Organizer</title>",
@@ -726,6 +745,7 @@ describe("pageScript wiring", () => {
 		expect(response.text).toContain(
 			'name="description" content="Meet Sagita Wedding Planner, a wedding organizer helping you plan your concept, budget, vendors, and wedding-day coordination around your story."',
 		);
+		expect(response.text).toContain("-about-wedding-icons1");
 		const structuredData = response.text.match(
 			/<script type="application\/ld\+json">([\s\S]*?)<\/script>/,
 		)?.[1];
