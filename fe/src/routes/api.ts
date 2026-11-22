@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { clearSessionCache } from "../middleware/locals.js";
 import { getSessionUser, logoutSession } from "../services/authService.js";
-import { getContactCaptcha, sendContact } from "../services/contactService.js";
+import {
+	getContactCaptcha,
+	sendBooking,
+	sendContact,
+} from "../services/contactService.js";
 import type { Request, Response } from "../types/index.js";
 import { toApiError } from "../utils/errors.js";
 import {
@@ -55,30 +59,29 @@ router.get("/session", async (req: Request, res: Response) => {
 	});
 });
 
-/**
- * Booking belum punya endpoint di backend (order dibuat lewat panel
- * /backend yang butuh session). Endpoint ini sengaja TIDAK mengembalikan
- * sukses palsu — balas 501 supaya klien tahu belum tersedia.
- * Booking dari situs publik saat ini lewat WhatsApp (siteContact).
- */
-router.post("/booking", (req: Request, res: Response) => {
+router.post("/booking", async (req: Request, res: Response) => {
 	try {
-		validateBooking(req.body);
+		const result = await sendBooking(validateBooking(req.body));
+		res.status(200).json({
+			success: true,
+			message: result.message || "Permintaan booking berhasil dikirim.",
+			duplicate: Boolean(result.duplicate),
+		});
 	} catch (e) {
 		const err = toApiError(e);
-		const status = Number(err.status) || 400;
-		return res.status(status).json({
+		const status = Number(err.status) || 500;
+		const isClientError = status >= 400 && status < 500;
+		res.status(status).json({
 			success: false,
-			message: status < 500 ? err.message : "Booking failed.",
+			message: isClientError
+				? err.message || "Failed to send booking request."
+				: "Failed to send booking request.",
+			errors: isClientError ? err.errors || null : null,
 		});
 	}
-	res.status(501).json({
-		success: false,
-		message: "Online booking is not available yet. Please book via WhatsApp.",
-	});
 });
 
-router.get("/contact/captcha", async (req: Request, res: Response) => {
+const captchaHandler = async (req: Request, res: Response) => {
 	try {
 		const captcha = await getContactCaptcha(
 			req.query.lang === "en" ? "en" : "id",
@@ -96,7 +99,10 @@ router.get("/contact/captcha", async (req: Request, res: Response) => {
 			message: "Verification unavailable, please reload the page.",
 		});
 	}
-});
+};
+
+router.get("/contact/captcha", captchaHandler);
+router.get("/booking/captcha", captchaHandler);
 
 // Forward contact messages to backend
 router.post("/contact", async (req: Request, res: Response) => {

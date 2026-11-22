@@ -79,13 +79,35 @@ export function cleanDate(value: unknown): string {
 export function validateBooking(
 	body: Record<string, unknown> = {},
 ): BookingPayload {
-	const name = cleanText(body.name, { max: 80, label: "Name" });
+	const nama = cleanText(body.nama, { max: 80, label: "Name" });
 	const email = cleanEmail(body.email);
-	const kelas = cleanText(body.kelas, { max: 80, label: "Class" });
-	const date = body.date ? cleanDate(body.date) : "";
-	if (!name || !email || !kelas)
-		throw bad("Name, email, and class are required");
-	return { name, email, kelas, date };
+	const no_telp = String(body.no_telp ?? "")
+		.trim()
+		.slice(0, 20);
+	if (!PHONE_RE.test(no_telp)) throw bad("Invalid phone number");
+	const paket = cleanText(body.paket, { max: 80, label: "Package" });
+	const tanggal = cleanDate(body.tanggal);
+	if (!tanggal) throw bad("Event date is required");
+	const catatan = cleanText(body.isi, { max: 1000, label: "Notes" });
+	const captcha_id = String(body.captcha_id ?? "").trim();
+	if (!UUID_RE.test(captcha_id))
+		throw bad("Verification expired, please reload the page");
+	const captcha_answer = String(body.captcha_answer ?? "").trim();
+	if (!/^\d{4}$/.test(captcha_answer)) throw bad("Invalid verification answer");
+	if (!nama || !paket)
+		throw bad("Name, email, package, and event date are required");
+
+	const isi = `Permintaan booking paket ${paket} untuk tanggal ${tanggal}.`;
+	return {
+		nama,
+		email,
+		no_telp,
+		paket,
+		tanggal,
+		isi: catatan ? `${isi} Catatan: ${catatan}` : isi,
+		captcha_id,
+		captcha_answer,
+	};
 }
 
 export function validateContact(

@@ -111,17 +111,17 @@ router.get("/formulir-konsultasi", (_req: Request, res: Response) => {
 	});
 });
 
-// ---------- About (Art of Living / Gurudev) ----------
+// ---------- About ----------
 router.get("/about", (_req: Request, res: Response) => {
 	const isID = res.locals.lang === "id";
-	res.render("pages/art-of-living", {
+	res.render("pages/about", {
 		title: isID
-			? "Gurudev Sri Sri Ravi Shankar & Art of Living | Sagita Wedding"
-			: "Gurudev Sri Sri Ravi Shankar & Art of Living | Sagita Wedding",
+			? "Tentang Sagita Wedding Planner | Wedding Organizer"
+			: "About Sagita Wedding Planner | Wedding Organizer",
 		metaDescription: isID
-			? "Mengenal Gurudev Sri Sri Ravi Shankar, pendiri Art of Living � duta perdamaian, pencipta Sudarshan Kriya, menjangkau 800 juta+ jiwa di 180 negara."
-			: "Meet Gurudev Sri Sri Ravi Shankar, founder of Art of Living � ambassador of peace, creator of Sudarshan Kriya, reaching 800M+ lives across 180 countries.",
-		heroNav: true,
+			? "Kenali Sagita Wedding Planner, wedding organizer yang membantu menyusun konsep, anggaran, vendor, dan koordinasi hari pernikahan sesuai cerita Anda."
+			: "Meet Sagita Wedding Planner, a wedding organizer helping you plan your concept, budget, vendors, and wedding-day coordination around your story.",
+		pageSchemaType: "AboutPage",
 	});
 });
 

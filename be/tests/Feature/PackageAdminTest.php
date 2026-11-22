@@ -9,6 +9,7 @@ use App\Models\Package\PackageFeature;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
 use App\Models\User;
+use App\Models\Venue;
 use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -534,6 +535,24 @@ class PackageAdminTest extends TestCase
             'uuid' => $package->uuid,
             'name' => 'Paket Rencana Pernikahan',
             'slug' => 'paket-rencana-pernikahan',
+        ]);
+    }
+
+    public function test_cleanup_migration_updates_legacy_venue_name_and_slug(): void
+    {
+        $venue = Venue::create([
+            'name' => 'Yoga Roots Studio',
+            'slug' => 'yoga-roots-studio',
+            'address' => 'Jl. Uji',
+        ]);
+
+        $migration = require database_path('migrations/2026_11_22_000001_cleanup_legacy_wedding_copy.php');
+        $migration->up();
+
+        $this->assertDatabaseHas('venues', [
+            'uuid' => $venue->uuid,
+            'name' => 'Sagita Wedding Venue',
+            'slug' => 'sagita-wedding-venue',
         ]);
     }
 

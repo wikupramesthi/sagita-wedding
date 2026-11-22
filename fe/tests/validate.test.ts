@@ -140,23 +140,33 @@ describe("UUID_RE", () => {
 });
 
 describe("validateBooking", () => {
-	it("butuh name, email, kelas", () => {
+	const valid = {
+		nama: "Budi",
+		email: "budi@example.com",
+		no_telp: "081234567890",
+		paket: "Paket Uji",
+		tanggal: "2026-12-20",
+		isi: "Ingin konsultasi.",
+		captcha_id: "cf4e35eb-36da-4de1-b0d9-4f36d3a618d8",
+		captcha_answer: "0042",
+	};
+
+	it("butuh data booking lengkap", () => {
 		expect(statusOf(() => validateBooking({}))).toBe(400);
 	});
 
-	it("menerwati payload lengkap", () => {
-		const out = validateBooking({
-			name: "Budi",
-			email: "budi@example.com",
-			kelas: "Hatha",
-			date: "2026-10-07",
-		});
+	it("menerima payload lengkap", () => {
+		const out = validateBooking(valid);
 		expect(out).toEqual({
-			name: "Budi",
-			email: "budi@example.com",
-			kelas: "Hatha",
-			date: "2026-10-07",
+			...valid,
+			isi: `Permintaan booking paket ${valid.paket} untuk tanggal ${valid.tanggal}. Catatan: ${valid.isi}`,
 		});
+	});
+
+	it("menolak tanggal tanpa format YYYY-MM-DD", () => {
+		expect(
+			statusOf(() => validateBooking({ ...valid, tanggal: "20/12/2026" })),
+		).toBe(400);
 	});
 });
 

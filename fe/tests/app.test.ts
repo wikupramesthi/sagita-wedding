@@ -1,6 +1,9 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const { apiRequestMock } = vi.hoisted(() => ({ apiRequestMock: vi.fn() }));
+vi.mock("../src/services/apiClient.js", () => ({ default: apiRequestMock }));
+
 /* ---------- mock semua service agar test tidak menyentuh backend ---------- */
 
 vi.mock("../src/services/siteIdentityService.js", () => ({
@@ -129,13 +132,6 @@ vi.mock("../src/services/batchService.js", () => ({
 		getPageBatch(page, params),
 }));
 
-vi.mock("../src/services/contactService.js", () => ({
-	getContactCaptcha: async () => CAPTCHA,
-	sendContact: async () => ({
-		message: "Pesan berhasil dikirim. Kami akan segera menghubungi Anda.",
-	}),
-}));
-
 vi.mock("../src/services/siteStatsService.js", () => ({
 	formatStatCount: (v: unknown) => String(v ?? 0),
 }));
@@ -146,6 +142,13 @@ const app = createApp();
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	apiRequestMock.mockImplementation(async (path: string) => {
+		if (path.startsWith("/contact/captcha")) return CAPTCHA;
+		return {
+			message: "Pesan berhasil dikirim. Kami akan segera menghubungi Anda.",
+			duplicate: false,
+		};
+	});
 	homeSliderBanners = [];
 	homeTestimonials = [];
 	homeVenues = [
@@ -279,21 +282,49 @@ describe("consultation form", () => {
 	});
 });
 
-/* ------------------- endpoint yang belum diimplementasi ------------------ */
+describe("booking publik", () => {
+	const payload = {
+		nama: "Budi",
+		email: "budi@example.com",
+		no_telp: "081234567890",
+		paket: "Paket Uji",
+		tanggal: "2026-12-20",
+		isi: "Ingin konsultasi.",
+		captcha_id: CAPTCHA.captcha_id,
+		captcha_answer: "0042",
+	};
 
-describe("endpoint belum tersedia", () => {
-	it("POST /api/booking membalas 501, bukan sukses palsu", async () => {
-		const res = await request(app).post("/api/booking").send({
-			name: "Budi",
-			email: "budi@example.com",
-			kelas: "Hatha",
-		});
-		expect(res.status).toBe(501);
-		expect(res.body.success).toBe(false);
+	it("POST /api/booking meneruskan permintaan ke backend", async () => {
+		const res = await request(app).post("/api/booking").send(payload);
+
+		expect(res.status).toBe(200);
+		expect(res.body.success).toBe(true);
+		expect(res.body.duplicate).toBe(false);
+		expect(apiRequestMock).toHaveBeenCalledWith(
+			"/contact",
+			expect.objectContaining({
+				method: "POST",
+				body: JSON.stringify({
+					nama: payload.nama,
+					email: payload.email,
+					no_telp: payload.no_telp,
+					isi: `Permintaan booking paket ${payload.paket} untuk tanggal ${payload.tanggal}. Catatan: ${payload.isi}`,
+					captcha_id: payload.captcha_id,
+					captcha_answer: payload.captcha_answer,
+				}),
+			}),
+		);
+	});
+
+	it("POST /api/booking/captcha memakai captcha kontak", async () => {
+		const res = await request(app).get("/api/booking/captcha");
+
+		expect(res.status).toBe(200);
+		expect(res.body.captcha_id).toBe(CAPTCHA.captcha_id);
 	});
 
 	it("POST /api/booking tetap 400 bila payload tidak valid", async () => {
-		const res = await request(app).post("/api/booking").send({ name: "" });
+		const res = await request(app).post("/api/booking").send({ nama: "" });
 		expect(res.status).toBe(400);
 	});
 
@@ -684,10 +715,36 @@ describe("pageScript wiring", () => {
 		}
 	});
 
-	it("halaman About menampilkan Art of Living dan tautan lama diarahkan", async () => {
+	it("halaman About menampilkan layanan wedding planner dan SEO yang sesuai", async () => {
 		const response = await request(app).get("/about");
 		expect(response.status).toBe(200);
-		expect(response.text).toContain("Art of Living");
+		expect(response.text).toContain("About Sagita Wedding Planner");
+		expect(response.text).toContain("Vendor coordination");
+		expect(response.text).toContain(
+			"<title>About Sagita Wedding Planner | Wedding Organizer</title>",
+		);
+		expect(response.text).toContain(
+			'name="description" content="Meet Sagita Wedding Planner, a wedding organizer helping you plan your concept, budget, vendors, and wedding-day coordination around your story."',
+		);
+		const structuredData = response.text.match(
+			/<script type="application\/ld\+json">([\s\S]*?)<\/script>/,
+		)?.[1];
+		expect(JSON.parse(structuredData as string)["@graph"]).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ "@type": "AboutPage" }),
+			]),
+		);
+
+		const indonesianResponse = await request(app).get("/about?lang=id");
+		expect(indonesianResponse.status).toBe(200);
+		expect(indonesianResponse.text).toContain(
+			"<title>Tentang Sagita Wedding Planner | Wedding Organizer</title>",
+		);
+		expect(indonesianResponse.text).toContain(
+			'name="description" content="Kenali Sagita Wedding Planner, wedding organizer yang membantu menyusun konsep, anggaran, vendor, dan koordinasi hari pernikahan sesuai cerita Anda."',
+		);
+		expect(indonesianResponse.text).toContain("Koordinasi vendor");
+		expect(indonesianResponse.text).toContain("Keunggulan Wedding Organizer");
 
 		const oldUrl = await request(app).get("/art-of-living");
 		expect(oldUrl.status).toBe(301);

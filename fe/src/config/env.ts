@@ -69,7 +69,7 @@ export const env = {
 	WHATSAPP_NUMBER: optional("WHATSAPP_NUMBER", "6281380760095"),
 	WHATSAPP_NUMBERS: optional("WHATSAPP_NUMBERS", "6281380760095,6281288569002"),
 	// Cache-busting untuk /css/* dan /js/* (?v=) — naikkan tiap rilis statis
-	ASSET_V: optional("ASSET_V", "20261120t"),
+	ASSET_V: optional("ASSET_V", "20261122u"),
 	// "0" = matikan HTML minify (view-source readable saat debug)
 	HTML_MINIFY: optional("HTML_MINIFY", "1"),
 };

@@ -336,7 +336,7 @@
                             class="relative rounded-[24px] overflow-hidden border flex flex-col h-full
                                    transition-all duration-300 hover:-translate-y-1
                                    <%= isPopular
-                                       ? 'bg-sage-700 text-white border-sage-700 shadow-xl'
+                                       ? 'bg-[#315d52] text-white border-[#315d52] shadow-xl'
                                        : 'bg-white border-stone-200 hover:shadow-lg'
                                    %>"
                         >
@@ -357,7 +357,7 @@
 
                                         <span
                                             class="absolute top-3 left-3 inline-flex items-center gap-1.5
-                                            bg-terracotta-500 text-white
+                                            bg-[#d7bd85] text-[#403a34]
                                             text-[10px] font-bold tracking-widest
                                             px-3 py-1.5 rounded-full"
                                         >
@@ -374,11 +374,11 @@
 
                             <% } else if (isPopular) { %>
 
-                                <div class="p-7 pb-0">
+                                <div class="p-7 pb-0 flex justify-center">
 
                                     <span
                                         class="self-start inline-flex items-center gap-1.5
-                                        bg-terracotta-500 text-white
+                                        bg-[#d7bd85] text-[#403a34]
                                         text-[10px] font-bold tracking-widest
                                         px-3 py-1.5 rounded-full"
                                     >
@@ -415,7 +415,7 @@
                                     <p
                                         class="text-sm leading-relaxed mt-2
                                         <%= isPopular
-                                            ? 'text-sage-200'
+                                            ? 'text-white/80'
                                             : 'text-stone-500'
                                         %>"
                                     >
@@ -435,7 +435,7 @@
                                             <span
                                                 class="inline-flex items-center gap-1 text-[11px] font-medium
                                                 px-2.5 py-1 rounded-lg
-                                                <%= isPopular ? 'bg-white/10 text-sage-100' : 'bg-sand-100 text-stone-600' %>"
+                                                <%= isPopular ? 'bg-white/10 text-white/90' : 'bg-sand-100 text-stone-600' %>"
                                             >
                                                 <i class="bi bi-people-fill"></i>
                                                 <%= pkg.guest_capacity %> <%= lang === 'id' ? 'tamu' : 'guests' %>
@@ -448,7 +448,7 @@
                                             <span
                                                 class="inline-flex items-center gap-1 text-[11px] font-medium
                                                 px-2.5 py-1 rounded-lg
-                                                <%= isPopular ? 'bg-white/10 text-sage-100' : 'bg-sand-100 text-stone-600' %>"
+                                                <%= isPopular ? 'bg-white/10 text-white/90' : 'bg-sand-100 text-stone-600' %>"
                                             >
                                                 <i class="bi bi-clock-fill"></i>
                                                 <%= pkg.event_duration_hours %> <%= lang === 'id' ? 'jam' : 'hours' %>
@@ -461,7 +461,7 @@
                                             <span
                                                 class="inline-flex items-center gap-1 text-[11px] font-medium
                                                 px-2.5 py-1 rounded-lg
-                                                <%= isPopular ? 'bg-white/10 text-sage-100' : 'bg-sand-100 text-stone-600' %>"
+                                                <%= isPopular ? 'bg-white/10 text-white/90' : 'bg-sand-100 text-stone-600' %>"
                                             >
                                                 <i class="bi bi-geo-alt-fill"></i>
                                                 <%= pkg.venue_note %>
@@ -501,7 +501,7 @@
                                                         <p
                                                             class="text-[11px] mt-1
                                                             <%= isPopular
-                                                                ? 'text-sage-200'
+                                                                ? 'text-white/70'
                                                                 : 'text-stone-400'
                                                             %>"
                                                         >
@@ -523,7 +523,7 @@
                                                         <% if (option.discount_price && Number(option.discount_price) < Number(option.price)) { %>
 
                                                             <p class="text-[11px] line-through opacity-60
-                                                            <%= isPopular ? 'text-sage-200' : 'text-stone-400' %>">
+                                                            <%= isPopular ? 'text-white/70' : 'text-stone-400' %>">
                                                                 Rp <%= formatPrice(option.price) %>
                                                             </p>
 
@@ -558,7 +558,7 @@
                                     <div
                                         class="mt-5 pt-5 border-t
                                         <%= isPopular
-                                            ? 'border-white/10'
+                                            ? 'border-white/20'
                                             : 'border-stone-100'
                                         %>"
                                     >
@@ -567,7 +567,7 @@
                                             class="text-xs font-semibold uppercase
                                             tracking-wider mb-3
                                             <%= isPopular
-                                                ? 'text-sage-200'
+                                                ? 'text-white/75'
                                                 : 'text-stone-500'
                                             %>"
                                         >
@@ -581,12 +581,12 @@
                                                 <li
                                                     class="flex items-start gap-2 text-sm
                                                     <%= isPopular
-                                                        ? 'text-sage-100'
+                                                        ? 'text-white/90'
                                                         : 'text-stone-warm'
                                                     %>"
                                                 >
 
-                                                <span class="mt-0.5 shrink-0 <%= isPopular ? 'text-white' : 'text-sage-700' %>">
+                                                <span class="mt-0.5 shrink-0 <%= isPopular ? 'text-[#f4dfaa]' : 'text-sage-700' %>">
     <svg xmlns="http://www.w3.org/2000/svg"
          width="16"
          height="16"
@@ -622,7 +622,7 @@
                                            flex items-center justify-center
                                            font-semibold text-sm transition
                                            <%= isPopular
-                                               ? 'bg-white text-sage-700 hover:bg-sage-50'
+                                               ? 'bg-white text-[#315d52] hover:bg-[#edf5f1]'
                                                : 'bg-sage-700 text-white hover:bg-sage-800'
                                            %>"
                                 >

@@ -196,12 +196,15 @@ export interface ContactPayload {
 	captcha_answer: string;
 }
 
-/** Payload booking dummy setelah validasi. */
 export interface BookingPayload {
-	name: string;
+	nama: string;
 	email: string;
-	kelas: string;
-	date: string;
+	no_telp: string;
+	paket: string;
+	tanggal: string;
+	isi: string;
+	captcha_id: string;
+	captcha_answer: string;
 }
 
 /**

@@ -1260,8 +1260,8 @@ class ContentSeeder extends Seeder
                 'venues' => [
                     0 => [
                         'uuid' => '363f49dc-b34f-4ac2-ad18-95b140c6335e',
-                        'name' => 'Yoga Roots Studio',
-                        'slug' => 'yoga-roots-studio',
+                        'name' => 'Sagita Wedding Venue',
+                        'slug' => 'sagita-wedding-venue',
                         'excerpt' => null,
                         'description' => 'At Yoga Roots Studio, we see yoga as a journey of connection ?????? between the body, mind, and breath. Through thoughtful guidance, you??????ll deepen your practice, refine your understanding of each posture, and cultivate greater clarity, balance, and inner peace.',
                         'address' => 'Roots Prasasta Building, Jl. Kawi Raya No.37, RT.6/RW.2, Guntur, Setiabudi, South Jakarta City, Jakarta 12980',

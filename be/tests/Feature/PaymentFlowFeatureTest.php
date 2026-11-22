@@ -369,4 +369,37 @@ class PaymentFlowFeatureTest extends TestCase
 
         $this->assertSame(1, Order::where('user_uuid', $this->member->uuid)->count());
     }
+
+    public function test_reorder_creates_new_pending_order(): void
+    {
+        $this->package->update(['is_published' => true, 'lead_time_days' => 0]);
+        $order = $this->makePendingOrder([
+            'status' => 'failed',
+            'event_date' => today()->addDays(7)->toDateString(),
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('orders.reorder', $order->uuid));
+
+        $newOrder = Order::where('user_uuid', $this->member->uuid)
+            ->where('uuid', '!=', $order->uuid)
+            ->firstOrFail();
+
+        $response->assertRedirect(route('orders.show', $newOrder->uuid))
+            ->assertSessionHas('success', __('flash.reorder_created'));
+
+        $this->assertSame(2, Order::where('user_uuid', $this->member->uuid)->count());
+        $this->assertSame('failed', $order->fresh()->status);
+        $this->assertDatabaseHas('orders', [
+            'uuid' => $newOrder->uuid,
+            'user_uuid' => $this->member->uuid,
+            'status' => 'pending',
+            'payment_scheme' => 'full',
+            'amount' => 10000000,
+            'total_amount' => 10000000,
+            'amount_paid' => 0,
+            'remaining_amount' => 0,
+            'event_date' => $order->event_date->toDateString(),
+        ]);
+    }
 }

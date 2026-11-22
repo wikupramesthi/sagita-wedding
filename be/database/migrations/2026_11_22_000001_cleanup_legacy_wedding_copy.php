@@ -47,11 +47,20 @@ return new class extends Migration
             ]);
         }
 
-        if (DB::getSchemaBuilder()->hasTable('vendors')) {
-            DB::table('vendors')->where('name', 'Yoga Roots Studio')->update([
-                'name' => 'Sagita Wedding Vendor',
-                'updated_at' => now(),
-            ]);
+        if (DB::getSchemaBuilder()->hasTable('venues')) {
+            foreach (DB::table('venues')->where('name', 'Yoga Roots Studio')->pluck('uuid') as $uuid) {
+                $slug = 'sagita-wedding-venue';
+
+                if (DB::table('venues')->where('slug', $slug)->where('uuid', '!=', $uuid)->exists()) {
+                    $slug .= '-'.substr((string) $uuid, 0, 8);
+                }
+
+                DB::table('venues')->where('uuid', $uuid)->update([
+                    'name' => 'Sagita Wedding Venue',
+                    'slug' => $slug,
+                    'updated_at' => now(),
+                ]);
+            }
         }
     }
 

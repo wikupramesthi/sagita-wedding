@@ -295,7 +295,7 @@ Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Role`, `Menu`, `Route`, 
 - Login Google (session bersama dengan backend)
 
 > [!NOTE]
-> `POST /api/booking` dan `POST /api/newsletter` **sengaja mengembalikan 501 Not Implemented** agar klien tidak mengira data tersimpan. Booking publik saat ini lewat WhatsApp.
+> `POST /api/booking` kini menyimpan permintaan sebagai leads konsultasi via backend `/api/contact`. `POST /api/newsletter` tetap **501 Not Implemented** agar klien tidak mengira data tersimpan.
 
 ### Panel admin (`be/`)
 

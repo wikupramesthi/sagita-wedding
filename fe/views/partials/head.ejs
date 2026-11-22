@@ -48,7 +48,7 @@ const _jsonLd = {
       "publisher": { "@id": _siteUrl + "/#organization" }
     },
     {
-      "@type": "WebPage",
+      "@type": typeof pageSchemaType !== "undefined" ? pageSchemaType : "WebPage",
       "@id": _canonical + "#webpage",
       "url": _canonical,
       "name": _pageTitle,

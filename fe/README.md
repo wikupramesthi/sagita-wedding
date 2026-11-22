@@ -59,12 +59,12 @@ fe/
 
 - `GET /api/batch/{page}` → passthrough batch; daftar page mengikuti `SUPPORTED_BATCH_PAGES` di `src/services/batchService.ts`
 - `GET /api/classes`, `GET /api/class-schedules`, `GET /api/batch/schedules` → `410 Gone` (modul dihapus)
-- `GET /api/contact/captcha` → soal captcha + `captcha_id`
+- `GET /api/contact/captcha`, `GET /api/booking/captcha` → soal captcha + `captcha_id`
 - `POST /api/contact` `{nama,email,no_telp,isi,captcha_id,captcha_answer}` → teruskan ke backend
-- `POST /api/booking` → **501 Not Implemented** (backend belum punya endpoint booking; booking publik lewat WhatsApp)
+- `POST /api/booking` `{nama,email,no_telp,paket,tanggal,isi,captcha_id,captcha_answer}` → dibuat sebagai leads konsultasi via `/api/contact`
 - `POST /api/newsletter` → **501 Not Implemented** (belum ada fitur newsletter)
 
-Keduanya sengaja membalas 501, bukan sukses palsu, supaya klien tidak
+Newsletter sengaja membalas 501, bukan sukses palsu, supaya klien tidak
 mengira aksi tersimpan.
 
 ## Testing
