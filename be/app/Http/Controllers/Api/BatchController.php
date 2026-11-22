@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Venue;
+use App\Services\BatchVersionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +28,15 @@ class BatchController extends Controller
 {
     public function show(Request $request, string $page): JsonResponse
     {
+        $etag = $this->etag($request, $page);
+        $preflight = response()->json([], 200);
+        $preflight->setEtag($etag);
+        $preflight->headers->set('Cache-Control', 'no-cache, must-revalidate');
+
+        if ($preflight->isNotModified($request)) {
+            return $preflight;
+        }
+
         try {
             $data = match ($page) {
                 'home' => $this->home(),
@@ -86,12 +96,23 @@ class BatchController extends Controller
             'data' => $data,
         ], 200);
 
-        // Realtime: klien selalu revalidasi. 304 hanya bila isi benar-benar sama.
-        $response->setEtag(md5((string) $response->getContent()));
+        $response->setEtag($etag);
         $response->headers->set('Cache-Control', 'no-cache, must-revalidate');
-        $response->isNotModified($request);
 
         return $response;
+    }
+
+    private function etag(Request $request, string $page): string
+    {
+        $query = $request->query();
+        ksort($query);
+
+        return md5(
+            $page
+            .'|'.BatchVersionService::current()
+            .'|'.now()->format('Y-m-d H:i')
+            .'|'.json_encode($query)
+        );
     }
 
     private function home(): array

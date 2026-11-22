@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Testimonial;
 use App\Models\Venue;
+use App\Services\BatchVersionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -153,6 +154,30 @@ class BatchApiTest extends TestCase
             ->withHeader('If-None-Match', $etag)
             ->getJson('/api/batch/home')
             ->assertStatus(304);
+    }
+
+    public function test_etag_changes_immediately_when_batch_content_changes(): void
+    {
+        $version = BatchVersionService::current();
+        $venue = Venue::query()->create([
+            'name' => 'Garden Hall',
+            'address' => 'Jl. Garden 1',
+            'status' => 'active',
+        ]);
+
+        $this->assertGreaterThan($version, BatchVersionService::current());
+
+        $first = $this->api()->getJson('/api/batch/venues');
+        $etag = $first->headers->get('ETag');
+        $this->assertNotEmpty($etag);
+
+        $venue->update(['name' => 'Garden Hall Revisi']);
+
+        $this->api()
+            ->withHeader('If-None-Match', $etag)
+            ->getJson('/api/batch/venues')
+            ->assertOk()
+            ->assertJsonPath('data.venues.0.name', 'Garden Hall Revisi');
     }
 
     public function test_all_supported_batch_pages_are_reachable(): void

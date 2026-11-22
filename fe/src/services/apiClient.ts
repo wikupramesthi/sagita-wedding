@@ -7,15 +7,21 @@ import type {
 
 const TIMEOUT_MS = 10_000;
 
+export interface ApiEnvelopeResult {
+	status: number;
+	body: BackendPayload | null;
+	etag: string | null;
+}
+
 /**
  * Fetch mentah ke backend Laravel. Mengembalikan amplop apa adanya
  * (`{ data, meta, ... }`) supaya pemanggil bisa membaca `meta` untuk paginasi.
  * Melempar ApiError (status + errors) saat backend menolak.
  */
-async function apiEnvelope(
+export async function apiEnvelopeRaw(
 	endpoint: string,
 	options: ApiRequestOptions = {},
-): Promise<BackendPayload> {
+): Promise<ApiEnvelopeResult> {
 	const controller = new AbortController();
 	const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -29,6 +35,14 @@ async function apiEnvelope(
 				"X-Api-Key": env.API_KEY,
 			},
 		});
+
+		if (response.status === 304) {
+			return {
+				status: 304,
+				body: null,
+				etag: response.headers.get("etag"),
+			};
+		}
 
 		const contentType = response.headers.get("content-type") || "";
 		if (!contentType.includes("application/json")) {
@@ -50,7 +64,11 @@ async function apiEnvelope(
 			throw error;
 		}
 
-		return result;
+		return {
+			status: response.status,
+			body: result,
+			etag: response.headers.get("etag"),
+		};
 	} catch (err) {
 		if ((err as { name?: string }).name === "AbortError") {
 			const timeout = new Error(
@@ -63,6 +81,14 @@ async function apiEnvelope(
 	} finally {
 		clearTimeout(timer);
 	}
+}
+
+async function apiEnvelope(
+	endpoint: string,
+	options: ApiRequestOptions = {},
+): Promise<BackendPayload> {
+	const result = await apiEnvelopeRaw(endpoint, options);
+	return result.body;
 }
 
 /**

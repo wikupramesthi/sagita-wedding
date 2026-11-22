@@ -331,7 +331,7 @@ Contoh parameter: `?slug=...`, `?search=...`, `?filter=...`, `?sort=...`, `?date
 }
 ```
 
-Batch memakai ETag + `Cache-Control: no-cache, must-revalidate`: data selalu segar dari admin, 304 hanya bila isi benar-benar sama.
+Batch memakai ETag berbasis `BatchVersionService` + `Cache-Control: no-cache, must-revalidate`. Versi naik otomatis saat model konten (artikel, venue, paket, banner, FAQ, dll.) ditulis dari admin, sehingga ETag berubah dan perubahan langsung tampil. Jika ETag masih sama, backend langsung membalas 304 tanpa menjalankan query agregasi. FE menyimpan body per `page + query`, mengirim `If-None-Match` pada setiap akses halaman, dan menggabungkan request bersamaan (single-flight) untuk kunci yang sama. ETag juga menyertakan bucket menit supaya konten terjadwal (`scheduled_at`, `published_at`) tetap terlihat maksimal 1 menit setelah waktunya; perubahan dari admin langsung terlihat tanpa menunggu menit berikutnya.
 
 ### Endpoint individual (sebagian)
 
@@ -375,7 +375,7 @@ Endpoint sesi untuk frontend: `GET /auth/me`, `POST /auth/me/logout`, `GET /auth
 - Semua input (slug, query, body POST) wajib lewat `src/utils/validate.ts`.
 - HTML dari CMS wajib melewati `sanitizeRichHtml()` sebelum dicetak dengan `<%- ... %>`.
 - Query ke backend wajib lewat `buildQuery(params, whitelist)` di `src/services/apiClient.ts`.
-- Halaman publik wajib mengambil data lewat `getPageBatch(page)`, bukan memanggil service per resource satu per satu.
+- Halaman publik wajib mengambil data lewat `getPageBatch(page)`, bukan memanggil service per resource satu per satu. `getPageBatch` sudah menangani cache ETag + single-flight; jangan membungkusnya dengan cache TTL karena bisa membuat konten admin basi.
 - Tambah bahasa baru: update `src/config/locales.ts` **dan** `src/data/translations.ts`.
 
 ### Aturan penting di `be/`
@@ -384,6 +384,7 @@ Endpoint sesi untuk frontend: `GET /auth/me`, `POST /auth/me/logout`, `GET /auth
 - Middleware global & alias ada di `bootstrap/app.php` — baca sebelum menambah proteksi.
 - Panel admin memakai `route.permission` (Spatie) + auto-logout idle; daftar menu/route diatur lewat Management Access.
 - Gunakan `php artisan make:controller/model/request`, lalu daftarkan route, migrasi, dan permission bila perlu.
+- Model konten baru yang dipakai `/api/batch/{page}` wajib masuk `BatchVersionService::WATCHED_MODELS` agar ETag berubah saat datanya ditulis.
 - Format kode PHP dengan `vendor/bin/pint`.
 
 ---

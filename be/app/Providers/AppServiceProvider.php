@@ -97,6 +97,7 @@ class AppServiceProvider extends ServiceProvider
             }
 
             app(AuditObserver::class)->handle($action, $model);
+            BatchVersionService::touchFor($model);
         });
     }
 }

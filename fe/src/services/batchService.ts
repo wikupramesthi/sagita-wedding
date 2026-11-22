@@ -1,6 +1,6 @@
 import type { BackendPayload } from "../types/index.js";
 import { sanitizeRichHtml } from "../utils/sanitize.js";
-import apiRequest, { buildQuery } from "./apiClient.js";
+import { apiEnvelopeRaw, buildQuery } from "./apiClient.js";
 
 export const SUPPORTED_BATCH_PAGES = [
 	"home",
@@ -31,6 +31,30 @@ const ALLOWED_KEYS = [
 	"per_page",
 ];
 
+const MAX_CACHE_ENTRIES = 200;
+
+interface CachedBatch {
+	etag?: string;
+	value: BackendPayload;
+}
+
+const cache = new Map<string, CachedBatch>();
+const inflight = new Map<string, Promise<BackendPayload>>();
+
+export function clearBatchCache(): void {
+	cache.clear();
+}
+
+function remember(key: string, entry: CachedBatch): void {
+	cache.delete(key);
+	cache.set(key, entry);
+	while (cache.size > MAX_CACHE_ENTRIES) {
+		const oldest = cache.keys().next().value;
+		if (oldest === undefined) break;
+		cache.delete(oldest);
+	}
+}
+
 function sanitizeEvents(value: unknown): unknown[] {
 	if (!Array.isArray(value)) return [];
 	return value.map((event) => {
@@ -41,20 +65,46 @@ function sanitizeEvents(value: unknown): unknown[] {
 }
 
 /**
- * Satu request untuk seluruh data halaman. Backend mengembalikan payload
- * fresh (tanpa cache konten), jadi perubahan admin langsung terlihat.
+ * Satu request untuk seluruh data halaman, dengan ETag + cache lokal di FE.
+ * Setiap akses halaman tetap revalidasi ke backend: 304 memakai body cache,
+ * 200 (setelah admin mengubah konten) langsung menggantikan cache.
  */
 export async function getPageBatch(
 	page: BatchPage,
 	params: Record<string, unknown> = {},
 ): Promise<BackendPayload> {
-	const data = await apiRequest(
-		`/batch/${page}${buildQuery(params, ALLOWED_KEYS)}`,
-	);
+	const query = buildQuery(params, ALLOWED_KEYS);
+	const key = `${page}${query}`;
+	const pending = inflight.get(key);
+	if (pending) return pending;
 
-	if (data && Array.isArray(data.events)) {
-		data.events = sanitizeEvents(data.events);
+	const task = (async () => {
+		const cached = cache.get(key);
+		const result = await apiEnvelopeRaw(`/batch/${page}${query}`, {
+			headers: cached?.etag ? { "If-None-Match": cached.etag } : {},
+		});
+
+		if (result.status === 304) {
+			if (!cached) {
+				throw new Error("Backend returned 304 without a cached batch body");
+			}
+			remember(key, cached);
+			return cached.value;
+		}
+
+		const body = result.body ?? {};
+		const data = body?.data ?? body;
+		if (data && Array.isArray(data.events)) {
+			data.events = sanitizeEvents(data.events);
+		}
+		remember(key, { etag: result.etag ?? undefined, value: data });
+		return data;
+	})();
+
+	inflight.set(key, task);
+	try {
+		return await task;
+	} finally {
+		inflight.delete(key);
 	}
-
-	return data ?? {};
 }
