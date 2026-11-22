@@ -69,11 +69,11 @@ class ConsultationFormTest extends TestCase
         $this->assertStringContainsString('Rp100–250 juta', $consultation->wedding_concept);
         $this->assertStringContainsString('Ingin konsultasi paket pernikahan.', $consultation->wedding_concept);
         $this->assertNull(Cache::get('consultation_form_captcha_'.$captchaId));
-        Mail::assertSent(
-            ConsultationReceivedMail::class,
-            fn (ConsultationReceivedMail $mail) => $mail->hasTo('test@example.test')
-                && $mail->customerName === 'Test User'
-        );
+        Mail::assertSent(ConsultationReceivedMail::class, function (ConsultationReceivedMail $mail): bool {
+            $mail->assertSeeInHtml('Formulir konsultasi pernikahan Anda sudah kami terima.');
+
+            return $mail->hasTo('test@example.test') && $mail->customerName === 'Test User';
+        });
     }
 
     public function test_public_consultation_form_rejects_an_invalid_or_replayed_captcha(): void

@@ -12,6 +12,8 @@ use App\Models\Payment\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
@@ -39,6 +41,7 @@ class PaymentFlowFeatureTest extends TestCase
             'package.index', 'package.store', 'package.update', 'package.destroy', 'package.member',
             'package.promo.index', 'package.promo.store', 'package.promo.update', 'package.promo.destroy',
             'order.index', 'order.report', 'order.update',
+            'orders.store', 'orders.approve',
         ] as $perm) {
             Permission::findOrCreate($perm, 'web');
         }
@@ -46,6 +49,26 @@ class PaymentFlowFeatureTest extends TestCase
         $this->admin->assignRole('admin');
         Role::findByName('admin', 'web')->syncPermissions(Permission::all());
         $this->member = User::factory()->create();
+        $memberRole = Role::findOrCreate('user', 'web');
+        $memberRole->givePermissionTo(Permission::findByName('orders.store', 'web'));
+        $this->member->assignRole($memberRole);
+
+        foreach ([
+            'orders.approve' => 'orders.approve',
+            'orders.payments.store' => 'orders.store',
+            'orders.payments.approve' => 'orders.approve',
+        ] as $routeName => $permissionName) {
+            DB::table('routes')->updateOrInsert(
+                ['route' => $routeName],
+                [
+                    'permission_name' => $permissionName,
+                    'status' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
+        Cache::flush();
         $this->package = Package::create([
             'name' => 'Paket Test',
             'slug' => 'paket-test-payment-'.uniqid(),
@@ -158,9 +181,13 @@ class PaymentFlowFeatureTest extends TestCase
 
         Mail::assertSent(
             PaymentProofReceivedMail::class,
-            fn (PaymentProofReceivedMail $mail) => $mail->hasTo($this->member->email)
-                && $mail->orderNumber === $order->order_number
-                && $mail->amount === 2000000.0
+            function (PaymentProofReceivedMail $mail) use ($order): bool {
+                $mail->assertSeeInHtml('Status pembayaran akan diperbarui setelah proses pemeriksaan selesai.');
+
+                return $mail->hasTo($this->member->email)
+                    && $mail->orderNumber === $order->order_number
+                    && $mail->amount === 2000000.0;
+            }
         );
 
         $inst = Payment::where('order_uuid', $order->uuid)->whereIn('verification_status', ['pending'])->latest()->firstOrFail();

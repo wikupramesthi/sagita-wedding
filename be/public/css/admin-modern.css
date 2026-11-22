@@ -10,6 +10,9 @@
     --modern-primary: #5e72e4;
     --modern-primary-600: #4a56d8;
     --modern-primary-soft: #eef1fe;
+    --sidebar-active-bg: #e7f6ed;
+    --sidebar-active-bg-soft: rgba(46, 168, 104, 0.12);
+    --sidebar-active-text: #1f7a4b;
     --modern-brand: #5e72e4;
     --modern-brand-2: #825ee4;
     --modern-shadow-sm:
@@ -32,6 +35,9 @@
     --modern-primary: #8b9cf7;
     --modern-primary-600: #6d7ef0;
     --modern-primary-soft: rgba(139, 156, 247, 0.14);
+    --sidebar-active-bg: rgba(46, 168, 104, 0.16);
+    --sidebar-active-bg-soft: rgba(46, 168, 104, 0.1);
+    --sidebar-active-text: #a7f3c8;
     --modern-brand: #8b9cf7;
     --modern-brand-2: #a78bfa;
     --modern-shadow-sm:
@@ -278,13 +284,13 @@ a {
 }
 
 .menu .sidebar-item.active > .sidebar-link {
-    background: var(--brand-gradient);
-    color: #fff;
-    box-shadow: 0 10px 22px rgba(79, 70, 229, 0.32);
+    background: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    box-shadow: 0 8px 18px rgba(31, 122, 75, 0.1);
 }
 
 .menu .sidebar-item.active > .sidebar-link i {
-    color: #fff;
+    color: var(--sidebar-active-text);
 }
 
 .menu .sidebar-item.has-sub .sidebar-link::after {

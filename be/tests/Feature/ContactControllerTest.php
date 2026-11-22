@@ -160,9 +160,10 @@ class ContactControllerTest extends TestCase
 
         $this->assertDatabaseCount('consultations', 1);
         Mail::assertSentCount(1);
-        Mail::assertSent(
-            ConsultationReceivedMail::class,
-            fn (ConsultationReceivedMail $mail) => $mail->hasTo('duplicate@example.test')
-        );
+        Mail::assertSent(ConsultationReceivedMail::class, function (ConsultationReceivedMail $mail): bool {
+            $mail->assertSeeInHtml('Tim Sagita Wedding Planner');
+
+            return $mail->hasTo('duplicate@example.test');
+        });
     }
 }
