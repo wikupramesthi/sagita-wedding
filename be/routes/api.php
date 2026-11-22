@@ -43,7 +43,7 @@ Route::get('/website-identity', [WebsiteIdentityController::class, 'index']);
 
 // Statistik publik (agregat member/vendor/kelas) — untuk frontend
 Route::get('/site-stats', [SiteStatsController::class, 'index']);
-Route::post('/analytics/visits', [SiteAnalyticsController::class, 'storeVisit']);
+Route::post('/analytics/visits', [SiteAnalyticsController::class, 'storeVisit'])->middleware('throttle:api-analytics');
 
 // Articles
 Route::prefix('articles')->group(function () {

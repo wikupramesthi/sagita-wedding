@@ -8,6 +8,11 @@
 $leadTimeDays = (int) ($package->lead_time_days ?? 0);
 $minEventDate = now()->addDays($leadTimeDays)->toDateString();
 $blackoutDates = $package->blackoutDates ?? collect();
+$blackoutDateStrings = $blackoutDates
+    ->map(fn ($blackout) => $blackout->date?->format('Y-m-d'))
+    ->filter()
+    ->values()
+    ->all();
 $initialOption = $package->options->first();
 $initialPrice = $initialOption
     ? (int) ($initialOption->discount_price !== null && $initialOption->discount_price < $initialOption->price
@@ -113,6 +118,51 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             @endif
 
         </div>
+
+        @if ($orderHistoryCount > 0)
+        @php
+            $orderStatusLabels = [
+                'pending' => 'Menunggu pembayaran',
+                'partially_paid' => 'Sudah DP',
+                'paid' => 'Lunas',
+                'failed' => 'Gagal',
+                'expired' => 'Kedaluwarsa',
+                'cancelled' => 'Dibatalkan',
+            ];
+        @endphp
+        <div class="app-card p-3 mb-4 checkout-order-history {{ $activePackageOrder ? 'is-active-order' : '' }}">
+            <div class="d-flex align-items-start gap-2">
+                <i class="bi {{ $activePackageOrder ? 'bi-exclamation-triangle' : 'bi-info-circle' }} mt-1"></i>
+                <div class="min-w-0">
+                    @if ($activePackageOrder)
+                        <strong class="small">Checkout aktif untuk paket ini</strong>
+                        <p class="small text-muted2 my-1">
+                            {{ $activePackageOrder->order_number }} · {{ $orderStatusLabels[$activePackageOrder->status] ?? $activePackageOrder->status }}
+                            · sisa Rp {{ number_format((float) $activePackageOrder->remaining_amount_value, 0, ',', '.') }}.
+                        </p>
+                        <a class="btn btn-sm btn-outline-secondary mt-1" href="{{ route('orders.show', $activePackageOrder->uuid) }}">Lanjutkan pesanan</a>
+                    @else
+                        <strong class="small">Anda pernah membuat {{ $orderHistoryCount }} pesanan.</strong>
+                        <p class="small text-muted2 mb-1">Periksa riwayat checkout agar tidak membuat pesanan yang sama lagi.</p>
+                    @endif
+                    <details class="small mt-2">
+                        <summary class="fw-semibold">Riwayat checkout</summary>
+                        <ul class="mt-2 mb-1 ps-3">
+                            @foreach ($orderHistory as $historyOrder)
+                            <li class="mb-1">
+                                <a href="{{ route('orders.show', $historyOrder->uuid) }}">{{ $historyOrder->order_number }}</a>
+                                — {{ $historyOrder->package?->name ?? 'Paket' }},
+                                {{ $orderStatusLabels[$historyOrder->status] ?? $historyOrder->status }}
+                                ({{ $historyOrder->created_at?->translatedFormat('d M Y') }})
+                            </li>
+                            @endforeach
+                        </ul>
+                        <a href="{{ route('orders.index') }}">Buka modul Orders</a>
+                    </details>
+                </div>
+            </div>
+        </div>
+        @endif
 
 
         {{-- =====================================================
@@ -342,6 +392,31 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 value="{{ old('event_date', $minEventDate) }}"
                 required>
 
+            <div class="checkout-calendar mt-3"
+                data-checkout-calendar
+                data-date-input="event_date"
+                data-min-date="{{ $minEventDate }}"
+                data-today="{{ now()->toDateString() }}"
+                data-blackout-dates='@json($blackoutDateStrings)'>
+                <div class="checkout-calendar-header">
+                    <button type="button" class="btn btn-sm btn-light" data-calendar-prev aria-label="Bulan sebelumnya">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <strong data-calendar-month></strong>
+                    <button type="button" class="btn btn-sm btn-light" data-calendar-next aria-label="Bulan berikutnya">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="checkout-calendar-grid checkout-calendar-weekdays" aria-hidden="true">
+                    <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span>
+                </div>
+                <div class="checkout-calendar-grid" data-calendar-grid></div>
+                <div class="checkout-calendar-legend">
+                    <span><i class="available-dot"></i>Tersedia</span>
+                    <span><i class="unavailable-dot"></i>Blackout</span>
+                </div>
+            </div>
+
             <h3 class="h6 fw-semibold mt-4 mb-1">Kode Promo</h3>
 
             <input
@@ -385,7 +460,19 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                     <span><strong>Bayar Lunas</strong><small>Lunasi seluruh sisa</small></span>
                 </label>
             </div>
-        </div>{{-- =====================================================
+        </div>
+
+        <div class="secure-checkout mt-3 mb-4">
+            <div class="secure-icon">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div>
+                <div class="fw-semibold small">Pemesanan Aman</div>
+                <div class="text-muted">Informasi pembayaran Anda ditangani dengan aman.</div>
+            </div>
+        </div>
+
+        {{-- =====================================================
              INCLUDED
         ====================================================== --}}
 
@@ -507,6 +594,11 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                     <strong id="summaryDiscount">Rp 0</strong>
                 </div>
                 <div id="summaryAddonsList" class="checkout-mobile-addon-list"></div>
+                <div class="checkout-schedule-preview">
+                    <strong>Jadwal sisa pembayaran</strong>
+                    <p class="small text-muted2 mb-1">Sisa setelah pembayaran awal dibagi rata ke termin H-90, H-60, dan H-30.</p>
+                    <div id="checkoutScheduleRows" class="checkout-schedule-rows"></div>
+                </div>
             </div>
         </details>
 
@@ -591,6 +683,33 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         min-height: 46px;
         border-radius: 12px;
         font-size: 16px;
+    }
+
+    .secure-checkout {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        padding: 14px;
+        border: 1px solid rgba(75, 107, 82, .10);
+        border-radius: 12px;
+        background: rgba(75, 107, 82, .035);
+    }
+
+    .secure-icon {
+        display: grid;
+        place-items: center;
+        flex: 0 0 34px;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: rgba(75, 107, 82, .08);
+        color: #4b6b52;
+    }
+
+    .secure-checkout .text-muted {
+        color: #858d83 !important;
+        font-size: 11px;
+        line-height: 1.5;
     }
 
     /* =========================================================
@@ -1035,6 +1154,139 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         border-top: 1px solid rgba(75, 107, 82, .08);
     }
 
+    .checkout-calendar {
+        padding: 14px;
+        border: 1px solid rgba(75, 107, 82, .12);
+        border-radius: 12px;
+        background: rgba(75, 107, 82, .025);
+    }
+
+    .checkout-calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .checkout-calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 4px;
+        text-align: center;
+    }
+
+    .checkout-calendar-weekdays {
+        margin-bottom: 5px;
+        color: #858d83;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .checkout-calendar-day,
+    .checkout-calendar-empty {
+        display: grid;
+        place-items: center;
+        min-width: 0;
+        aspect-ratio: 1;
+    }
+
+    .checkout-calendar-day {
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: var(--fg, #31392f);
+        font-size: 12px;
+    }
+
+    .checkout-calendar-day:hover:not(:disabled) {
+        background: rgba(75, 107, 82, .12);
+    }
+
+    .checkout-calendar-day.is-selected {
+        background: #4b6b52;
+        color: #fff;
+    }
+
+    .checkout-calendar-day:disabled {
+        color: #a4aaa2;
+        cursor: not-allowed;
+        text-decoration: line-through;
+    }
+
+    .checkout-calendar-day.is-blackout:disabled {
+        color: #bd715d;
+        background: rgba(189, 113, 93, .08);
+    }
+
+    .checkout-calendar-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 10px;
+        color: #858d83;
+        font-size: 11px;
+    }
+
+    .checkout-calendar-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .checkout-calendar-legend i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4b6b52;
+    }
+
+    .checkout-calendar-legend .unavailable-dot {
+        background: #bd715d;
+    }
+
+    .checkout-schedule-preview {
+        display: grid;
+        gap: 6px;
+        margin-top: 4px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(75, 107, 82, .10);
+    }
+
+    .checkout-schedule-preview > strong {
+        color: #39483a;
+        font-size: 13px;
+    }
+
+    .checkout-schedule-preview > p {
+        margin-bottom: 0 !important;
+        line-height: 1.45;
+    }
+
+    .checkout-schedule-rows {
+        display: grid;
+        gap: 7px;
+    }
+
+    .checkout-schedule-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 12px;
+    }
+
+    .checkout-schedule-row span {
+        min-width: 0;
+        color: #737d70;
+    }
+
+    .checkout-schedule-row strong {
+        flex: 0 0 auto;
+        color: #4b6b52;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+    }
+
     .checkout-mobile-action {
         position: sticky;
         bottom: 0;
@@ -1310,8 +1562,16 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         const summaryTotal =
             document.getElementById('summaryTotal');
 
+        const eventDateInput =
+            document.getElementById('event_date');
+
+        const checkoutScheduleRows =
+            document.getElementById('checkoutScheduleRows');
+
         const promos = @json($promos);
         const BOOKING_FEE = @json((int) $bookingFeeAmount);
+        const CHECKOUT_DRAFT_KEY = 'package-checkout-draft:' + @json($package->uuid);
+        const CHECKOUT_DRAFT_TTL = 30 * 24 * 60 * 60 * 1000;
 
 
         function formatRupiah(value) {
@@ -1369,6 +1629,219 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 dueNow,
                 remainingAmount: Math.max(0, safeTotal - dueNow),
             };
+        }
+
+        function parseLocalDate(value) {
+            const [year, month, day] = value.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function formatDateInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function updateSchedulePreview(remainingAmount) {
+            if (!checkoutScheduleRows) {
+                return;
+            }
+
+            checkoutScheduleRows.textContent = '';
+            if (remainingAmount <= 0) {
+                const paidInFull = document.createElement('span');
+                paidInFull.className = 'small text-success';
+                paidInFull.textContent = 'Tidak ada sisa termin; lunas saat checkout.';
+                checkoutScheduleRows.appendChild(paidInFull);
+                return;
+            }
+
+            if (!eventDateInput?.value) {
+                return;
+            }
+
+            const today = parseLocalDate(@json(now()->toDateString()));
+            const baseAmount = Math.floor(remainingAmount / 3);
+            const remainder = remainingAmount % 3;
+            const grouped = new Map();
+
+            [90, 60, 30].forEach((days, index) => {
+                const dueDate = parseLocalDate(eventDateInput.value);
+                dueDate.setDate(dueDate.getDate() - days);
+                if (dueDate < today) {
+                    dueDate.setTime(today.getTime());
+                }
+
+                const dateValue = formatDateInput(dueDate);
+                const installment = grouped.get(dateValue) || {
+                    labels: [],
+                    amount: 0,
+                    date: dueDate,
+                };
+                installment.labels.push(`Termin ${index + 1}`);
+                installment.amount += baseAmount + (index < remainder ? 1 : 0);
+                grouped.set(dateValue, installment);
+            });
+
+            grouped.forEach(installment => {
+                const row = document.createElement('div');
+                row.className = 'checkout-schedule-row';
+                const label = document.createElement('span');
+                label.textContent = installment.labels.join(' & ') +
+                    ' · ' + installment.date.toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                    });
+                const amount = document.createElement('strong');
+                amount.textContent = formatRupiah(installment.amount);
+                row.append(label, amount);
+                checkoutScheduleRows.appendChild(row);
+            });
+        }
+
+        function saveCheckoutDraft() {
+            const option = selectedOption();
+            const draft = {
+                savedAt: Date.now(),
+                optionUuid: option?.dataset.optionUuid || '',
+                eventDate: eventDateInput?.value || '',
+                promoCode: promoInput?.value || '',
+                paymentScheme: selectedPaymentScheme().value,
+                addons: Array.from(addons).map(addon => ({
+                    uuid: addon.value,
+                    selected: addon.checked,
+                    quantity: document.querySelector(
+                        '[name="addon_quantities[' + addon.value + ']"]'
+                    )?.value || '',
+                })),
+            };
+            localStorage.setItem(CHECKOUT_DRAFT_KEY, JSON.stringify(draft));
+        }
+
+        function restoreCheckoutDraft() {
+            const saved = localStorage.getItem(CHECKOUT_DRAFT_KEY);
+            if (!saved) {
+                return null;
+            }
+
+            let draft;
+            try {
+                draft = JSON.parse(saved);
+            } catch (error) {
+                if (!(error instanceof SyntaxError)) {
+                    throw error;
+                }
+                localStorage.removeItem(CHECKOUT_DRAFT_KEY);
+                return null;
+            }
+
+            if (!draft || Date.now() - Number(draft.savedAt) > CHECKOUT_DRAFT_TTL) {
+                localStorage.removeItem(CHECKOUT_DRAFT_KEY);
+                return null;
+            }
+
+            const option = Array.from(options).find(item => item.dataset.optionUuid === draft.optionUuid);
+            const blackoutDates = @json($blackoutDateStrings);
+            if (draft.eventDate && draft.eventDate >= (eventDateInput?.min || '') &&
+                !blackoutDates.includes(draft.eventDate)) {
+                eventDateInput.value = draft.eventDate;
+            }
+            if (promoInput && typeof draft.promoCode === 'string') {
+                promoInput.value = draft.promoCode;
+            }
+            if (Array.isArray(draft.addons)) {
+                draft.addons.forEach(savedAddon => {
+                    const addon = Array.from(addons).find(item => item.value === savedAddon.uuid);
+                    if (!addon) {
+                        return;
+                    }
+                    addon.checked = Boolean(savedAddon.selected);
+                    const quantity = document.querySelector(
+                        '[name="addon_quantities[' + savedAddon.uuid + ']"]'
+                    );
+                    if (quantity && savedAddon.quantity !== '') {
+                        quantity.value = savedAddon.quantity;
+                    }
+                });
+            }
+            if (draft.paymentScheme) {
+                const schemeInput = Array.from(paymentSchemeInputs)
+                    .find(input => input.value === draft.paymentScheme);
+                if (schemeInput) {
+                    schemeInput.checked = true;
+                }
+            }
+
+            return option || null;
+        }
+
+        function initializeAvailabilityCalendar() {
+            document.querySelectorAll('[data-checkout-calendar]').forEach(calendar => {
+                const input = document.getElementById(calendar.dataset.dateInput);
+                const monthLabel = calendar.querySelector('[data-calendar-month]');
+                const grid = calendar.querySelector('[data-calendar-grid]');
+                const blackoutDates = JSON.parse(calendar.dataset.blackoutDates || '[]');
+                if (!input || !grid || !monthLabel) {
+                    return;
+                }
+
+                let visibleMonth = parseLocalDate(input.value || input.min);
+                const render = () => {
+                    const firstDay = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+                    const daysInMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate();
+                    monthLabel.textContent = visibleMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                    grid.textContent = '';
+                    for (let blank = 0; blank < (firstDay.getDay() + 6) % 7; blank++) {
+                        const spacer = document.createElement('span');
+                        spacer.className = 'checkout-calendar-empty';
+                        grid.appendChild(spacer);
+                    }
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day);
+                        const dateValue = formatDateInput(date);
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'checkout-calendar-day';
+                        button.textContent = String(day);
+                        button.disabled = dateValue < input.min || blackoutDates.includes(dateValue);
+                        button.classList.toggle('is-selected', dateValue === input.value);
+                        if (blackoutDates.includes(dateValue)) {
+                            button.classList.add('is-blackout');
+                            button.setAttribute('aria-label', `${day}, tanggal blackout`);
+                        } else {
+                            button.setAttribute('aria-label', date.toLocaleDateString('id-ID', {
+                                weekday: 'long',
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                            }));
+                        }
+                        button.addEventListener('click', () => {
+                            input.value = dateValue;
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                            render();
+                        });
+                        grid.appendChild(button);
+                    }
+                };
+                calendar.querySelector('[data-calendar-prev]')?.addEventListener('click', () => {
+                    visibleMonth.setMonth(visibleMonth.getMonth() - 1);
+                    render();
+                });
+                calendar.querySelector('[data-calendar-next]')?.addEventListener('click', () => {
+                    visibleMonth.setMonth(visibleMonth.getMonth() + 1);
+                    render();
+                });
+                input.addEventListener('change', () => {
+                    if (input.value) {
+                        visibleMonth = parseLocalDate(input.value);
+                    }
+                    render();
+                });
+                render();
+            });
         }
 
 
@@ -1494,6 +1967,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 summaryRemainingAmount.textContent =
                     formatRupiah(breakdown.remainingAmount);
             }
+            updateSchedulePreview(breakdown.remainingAmount);
 
             packageOptionUuid.value =
                 selected.dataset.optionUuid;
@@ -1554,6 +2028,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 });
 
             }
+
+            saveCheckoutDraft();
 
         }
 
@@ -1617,10 +2093,18 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         }
 
+        eventDateInput?.addEventListener('change', function() {
+            updateSummary();
+        });
+
+        const restoredOption = restoreCheckoutDraft();
+        initializeAvailabilityCalendar();
+
 
         if (options.length) {
 
             selectOption(
+                restoredOption ||
                 document.querySelector('.package-option.selected') ||
                 options[0]
             );

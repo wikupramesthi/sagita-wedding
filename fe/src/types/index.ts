@@ -84,7 +84,6 @@ export interface Article {
 export interface SiteStats {
   members: number | null;
   vendors: number | null;
-  classes: number | null;
 }
 
 /** Kelas yoga dari backend. */

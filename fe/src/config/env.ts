@@ -58,7 +58,7 @@ export const env = {
 	// Nama cookie session Laravel. Hanya dipakai sebagai petunjuk cepat untuk
 	// deciding apakah perlu memanggil backend; seluruh header Cookie tetap
 	// diteruskan apa adanya supaya tidak perlu tahu nama ini di FE.
-	SESSION_COOKIE: optional("SESSION_COOKIE_NAME", "laravel_session"),
+	SESSION_COOKIE: optional("SESSION_COOKIE_NAME", "sagita_session"),
 	API_KEY: required("API_KEY"),
 	SITE_URL: rawSiteUrl.replace(/\/+$/, ""),
 

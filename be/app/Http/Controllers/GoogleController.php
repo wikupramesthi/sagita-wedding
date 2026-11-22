@@ -104,15 +104,38 @@ class GoogleController extends Controller
      */
     private function isSafeRedirect(string $url): bool
     {
+        if ($url === '' || preg_match('/[\x00-\x1F\x7F\\\\]/', $url)) {
+            return false;
+        }
+
         if (str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
             return true;
         }
 
-        $frontend = rtrim((string) env('FRONTEND_URL', ''), '/');
-        if ($frontend !== '' && str_starts_with($url, $frontend)) {
-            return true;
+        $base = parse_url((string) config('frontend.url', ''));
+        $target = parse_url($url);
+
+        if (! is_array($base) || empty($base['host']) || ! is_array($target)) {
+            return false;
         }
 
-        return false;
+        $baseScheme = strtolower((string) ($base['scheme'] ?? ''));
+        $scheme = strtolower((string) ($target['scheme'] ?? ''));
+
+        if (! in_array($scheme, ['http', 'https'], true) || $scheme !== $baseScheme) {
+            return false;
+        }
+
+        $baseHost = strtolower(rtrim((string) $base['host'], '.'));
+        $targetHost = strtolower(rtrim((string) ($target['host'] ?? ''), '.'));
+
+        if ($targetHost === '' || $targetHost !== $baseHost) {
+            return false;
+        }
+
+        $basePort = (int) ($base['port'] ?? ($baseScheme === 'https' ? 443 : 80));
+        $targetPort = (int) ($target['port'] ?? ($scheme === 'https' ? 443 : 80));
+
+        return $basePort === $targetPort;
     }
 }

@@ -14,9 +14,8 @@ export async function getSiteStats(): Promise<SiteStats | null> {
 			Number.isInteger(v) && (v as number) >= 0 ? (v as number) : null;
 		const members = num(data.members);
 		const vendors = num(data.vendors);
-		const classes = num(data.classes);
-		if (members === null && vendors === null && classes === null) return null;
-		return { members, vendors, classes };
+		if (members === null && vendors === null) return null;
+		return { members, vendors };
 	} catch {
 		return null;
 	}

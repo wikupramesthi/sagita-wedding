@@ -24,7 +24,7 @@ vi.mock("../src/services/siteIdentityService.js", () => ({
 
 const CAPTCHA = {
   captcha_id: "cf4e35eb-36da-4de1-b0d9-4f36d3a618d8",
-  question: "Enter the 4-digit code shown.",
+  question: "Masukkan 4 angka berikut.",
   image: "data:image/svg+xml;base64,PHN2Zy8+",
 };
 
@@ -78,7 +78,7 @@ const getPageBatch = vi.fn(
           },
         };
       case "contact":
-        return { captcha: CAPTCHA, faqs: [] };
+        return { faqs: [] };
       case "faq":
         return { faqs: [], categories: [] };
       case "vendors":
@@ -131,7 +131,9 @@ vi.mock("../src/services/batchService.js", () => ({
 
 vi.mock("../src/services/contactService.js", () => ({
   getContactCaptcha: async () => CAPTCHA,
-  sendContact: async () => ({ message: "Message sent successfully." }),
+  sendContact: async () => ({
+    message: "Pesan berhasil dikirim. Kami akan segera menghubungi Anda.",
+  }),
 }));
 
 vi.mock("../src/services/siteStatsService.js", () => ({
@@ -731,12 +733,24 @@ describe("not found", () => {
     expect(res.text).toContain("Mulai konsultasi");
     expect(res.text).toContain('href="/formulir-konsultasi"');
     expect(res.text).toContain("Wedding Planner — Deskripsi uji.");
-    expect(res.text).not.toContain("Sagita Wedding");
+    expect(res.text).toContain("Sagita Wedding");
     expect(res.text).not.toContain("Serene Yoga");
   });
 
   it("API tak dikenal membalas JSON 404", async () => {
     const res = await request(app).get("/api/entah");
     expect(res.status).toBe(404);
+  });
+
+  it("endpoint class/schedule lama membalas 410, bukan 404 atau 502", async () => {
+    for (const path of [
+      "/api/classes",
+      "/api/class-schedules",
+      "/api/batch/schedules",
+    ]) {
+      const res = await request(app).get(path);
+      expect(res.status, path).toBe(410);
+      expect(res.body.success).toBe(false);
+    }
   });
 });

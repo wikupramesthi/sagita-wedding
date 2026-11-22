@@ -1,15 +1,10 @@
 import { Router } from "express";
 import { clearSessionCache } from "../middleware/locals.js";
 import { getSessionUser, logoutSession } from "../services/authService.js";
-import { getPageBatch } from "../services/batchService.js";
-import { getClasses } from "../services/classService.js";
 import { getContactCaptcha, sendContact } from "../services/contactService.js";
-import type { NextFunction, Request, Response } from "../types/index.js";
+import type { Request, Response } from "../types/index.js";
 import { toApiError } from "../utils/errors.js";
 import {
-	cleanDate,
-	cleanText,
-	UUID_RE,
 	validateBooking,
 	validateContact,
 	validateNewsletter,
@@ -17,68 +12,18 @@ import {
 
 const router = Router();
 
-/** Validasi + normalisasi filter jadwal yang boleh diteruskan ke backend. */
-function scheduleParams(req: Request): Record<string, string | number> {
-	const str = (v: unknown): string => (typeof v === "string" ? v : "");
-	const params: Record<string, string | number> = {};
-	const date = cleanDate(str(req.query.date));
-	if (date) params.date = date;
-	const level = cleanText(str(req.query.level), {
-		max: 30,
-		label: "level",
-	});
-	if (level) params.level = level;
-	const time = cleanText(str(req.query.time), { max: 30, label: "time" });
-	if (time) params.time = time;
-	const venue = str(req.query.venue_uuid).trim();
-	if (UUID_RE.test(venue)) params.venue_uuid = venue;
-	const perPage = Number.parseInt(str(req.query.per_page), 10) || 50;
-	params.per_page = Math.min(Math.max(perPage, 1), 50);
-	return params;
-}
-
-// Class list (clean proxy to backend)
-router.get(
-	"/classes",
-	async (_req: Request, res: Response, next: NextFunction) => {
-		try {
-			const data = await getClasses({ per_page: 50 });
-			res.json(data?.data || data || []);
-		} catch (err) {
-			next(err);
-		}
-	},
-);
-
-// Class schedules (clean proxy: forwards date/level/time/venue filters)
-router.get(
-	"/class-schedules",
-	async (req: Request, res: Response, next: NextFunction) => {
-		try {
-			const data = await getClassSchedules(scheduleParams(req));
-			res.json(Array.isArray(data) ? data : data?.data || []);
-		} catch (err) {
-			next(err);
-		}
-	},
-);
-
-// Satu request untuk jadwal + daftar venue (dipakai browser halaman /schedules).
-router.get(
-	"/batch/schedules",
-	async (req: Request, res: Response, next: NextFunction) => {
-		try {
-			const data = await getPageBatch("schedules", scheduleParams(req));
-			res.set("Cache-Control", "no-store");
-			res.json({
-				date: data?.date || "",
-				schedules: Array.isArray(data?.schedules) ? data.schedules : [],
-				venues: Array.isArray(data?.venues) ? data.venues : [],
-				meta: data?.meta || {},
-			});
-		} catch (err) {
-			next(err);
-		}
+/**
+ * Modul class/schedules sudah dihapus di backend. Endpoint lama sengaja
+ * membalas 410 supaya klien lama tidak menerima 404/502 yang menyesatkan.
+ */
+router.all(
+	["/classes", "/class-schedules", "/batch/schedules"],
+	(_req: Request, res: Response) => {
+		res.set("Cache-Control", "no-store");
+		res.status(410).json({
+			success: false,
+			message: "Class and schedule endpoints are no longer available.",
+		});
 	},
 );
 

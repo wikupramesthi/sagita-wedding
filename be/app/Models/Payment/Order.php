@@ -36,6 +36,8 @@ class Order extends Model
         'amount_paid',
         'remaining_amount',
         'balance_due_at',
+        'installment_schedule',
+        'installment_reminders_sent',
         'balance_reminder_sent_at',
         'status',
         'expired_at',
@@ -59,6 +61,8 @@ class Order extends Model
         'amount_paid' => 'decimal:2',
         'remaining_amount' => 'decimal:2',
         'balance_due_at' => 'datetime',
+        'installment_schedule' => 'array',
+        'installment_reminders_sent' => 'array',
         'balance_reminder_sent_at' => 'datetime',
         'event_date' => 'date',
         'expired_at' => 'datetime',
@@ -165,7 +169,7 @@ class Order extends Model
     {
         $scheme = $value ?: (string) data_get($this->promo_snapshot, 'payment_scheme', 'full');
 
-        return in_array($scheme, ['booking_fee', 'dp30', 'dp50', 'full'], true) ? $scheme : 'full';
+        return in_array($scheme, ['no_dp', 'booking_fee', 'dp30', 'dp50', 'full'], true) ? $scheme : 'full';
     }
 
     public function getSchemeLabelAttribute(): string

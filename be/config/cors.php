@@ -28,7 +28,7 @@ return [
     ))),
 
     'allowed_origins_patterns' => [],
-    'allowed_headers' => ['Accept', 'Content-Type', 'X-Requested-With'],
+    'allowed_headers' => ['Accept', 'Content-Type', 'X-Requested-With', 'X-Api-Key', 'X-XSRF-TOKEN'],
     'exposed_headers' => [],
     'max_age' => 3600,
     'supports_credentials' => false,

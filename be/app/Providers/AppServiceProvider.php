@@ -53,6 +53,13 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        RateLimiter::for('api-analytics', function (Request $request) {
+            return [
+                Limit::perMinute(30)->by('ip:'.$request->ip()),
+                Limit::perMinute(10)->by('visitor:'.(string) $request->input('visitor_hash')),
+            ];
+        });
+
         // Security module (DBMSDA-style): record successful/failed logins.
         Event::listen(Login::class, RecordLoginActivity::class);
         Event::listen(Failed::class, RecordFailedLogin::class);

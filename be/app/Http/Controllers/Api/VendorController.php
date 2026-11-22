@@ -12,14 +12,14 @@ class VendorController extends Controller
 {
     public function index(Request $request)
     {
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        $perPage = (int) ($validated['per_page'] ?? 20);
+
         try {
-            $request->validate([
-                'page' => ['nullable', 'integer', 'min:1'],
-                'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
-            ]);
-
-            $perPage = $request->input('per_page', 20);
-
             $vendors = User::role('vendor')
                 ->with('vendors_categories')
                 ->orderBy('name')
@@ -29,7 +29,6 @@ class VendorController extends Controller
 
             return response()->json([
                 'status' => 'success',
-
                 'message' => $vendors->isEmpty()
                     ? 'No vendors available'
                     : 'Vendor data retrieved successfully',
@@ -47,7 +46,6 @@ class VendorController extends Controller
                 ],
             ], 200);
         } catch (Throwable $e) {
-
             \Log::error('Vendor API error', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -55,6 +53,7 @@ class VendorController extends Controller
 
             return response()->json([
                 'status' => 'error',
+                'success' => false,
                 'message' => 'Failed to fetch vendor data',
                 'data' => [],
                 'vendors' => [],

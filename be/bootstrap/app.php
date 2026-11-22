@@ -41,4 +41,62 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             return redirect()->route('login')->withErrors(['session_expired' => 'Sesi Anda telah berakhir. Silakan login kembali.']);
         });
+
+        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, \Illuminate\Http\Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Validasi gagal.',
+                'errors' => $e->errors(),
+            ], 422);
+        });
+
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e, \Illuminate\Http\Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            $status = $e->getStatusCode();
+            $messages = [
+                401 => 'Unauthorized.',
+                403 => 'Akses ditolak.',
+                404 => 'Endpoint tidak ditemukan.',
+                405 => 'Metode tidak diizinkan.',
+                419 => 'Sesi berakhir. Silakan login kembali.',
+                429 => 'Terlalu banyak permintaan. Silakan coba lagi.',
+            ];
+
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => $messages[$status] ?? ($status >= 500
+                    ? 'Terjadi kesalahan pada server.'
+                    : ($e->getMessage() ?: 'Permintaan tidak dapat diproses.')),
+            ], $status);
+        });
+
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            \Illuminate\Support\Facades\Log::error('API exception', [
+                'method' => $request->method(),
+                'path' => $request->path(),
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => app()->environment('local', 'testing')
+                    ? $e->getMessage()
+                    : 'Terjadi kesalahan pada server.',
+            ], 500);
+        });
     })->create();

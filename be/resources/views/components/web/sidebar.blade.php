@@ -72,7 +72,7 @@
 
 
                 @role('user')
-                <li class="sidebar-title">Others</li>
+                <li class="sidebar-title">Menu Lainnya</li>
                 <li class="sidebar-item has-sub">
                     <a href="#" class="sidebar-link nav-link">
                         <div class="icon icon-shape icon-sm">

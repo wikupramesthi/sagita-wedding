@@ -44,10 +44,23 @@ vi.mock("../src/services/articleService.js", () => ({
 vi.mock("../src/services/bannerService.js", () => ({
   getBanners: async () => [],
 }));
-vi.mock("../src/services/classService.js", () => ({
-  getClasses: async () => [],
-  getClass: async () => null,
-}));
+const { env } = await import("../src/config/env.js");
+const { clearSessionCache } = await import("../src/middleware/locals.js");
+
+const { createApp } = await import("../src/app.js");
+const app = createApp();
+const SESSION = `${env.SESSION_COOKIE}=test-session`;
+
+function setSession(user: typeof USER | null): void {
+  clearSessionCache();
+  getSessionUser.mockResolvedValue(user);
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  setSession(USER);
+});
+
 /* ============================ anonim ============================ */
 
 describe("state anonim (belum login)", () => {

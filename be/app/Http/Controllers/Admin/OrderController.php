@@ -2174,6 +2174,12 @@ class OrderController extends Controller
         }
         $schemeLabel = $paymentSchemes[$paymentScheme]['label'];
         $amount = max(0, min($netAmount, (int) $paymentSchemes[$paymentScheme]['due_now']));
+        $initialDueAmount = min((int) $fullAmount, (int) $bookingFee + (int) $amount);
+        $installmentSchedule = $this->buildInstallmentSchedule(
+            $eventDate,
+            $initialDueAmount,
+            (int) $fullAmount
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -2220,7 +2226,8 @@ class OrderController extends Controller
                 $schemeLabel,
                 $fullAmount,
                 $bookingFee,
-                $netAmount
+                $netAmount,
+                $installmentSchedule
             ) {
                 if ($promo) {
                     $claimed = PackagePromo::where('uuid', $promo->uuid)
@@ -2254,6 +2261,8 @@ class OrderController extends Controller
                     'amount_paid' => $amountPaid,
                     'remaining_amount' => $remainingAmount,
                     'balance_due_at' => $remainingAmount > 0 ? $eventDate->copy()->subDays(30)->startOfDay() : null,
+                    'installment_schedule' => $installmentSchedule,
+                    'installment_reminders_sent' => [],
                     'status' => $status,
                     'expired_at' => now()->addHours(24),
                     'paid_at' => null,
@@ -2308,6 +2317,53 @@ class OrderController extends Controller
                 'success',
                 __('flash.order_created')
             );
+    }
+
+    private function buildInstallmentSchedule(Carbon $eventDate, int $initialDueAmount, int $fullAmount): array
+    {
+        $scheduledBalance = max(0, $fullAmount - $initialDueAmount);
+        if ($scheduledBalance === 0) {
+            return [
+                'policy' => 'equal_remaining_h90_h60_h30',
+                'initial_due' => $initialDueAmount,
+                'installments' => [],
+            ];
+        }
+
+        $today = now()->startOfDay();
+        $baseAmount = intdiv($scheduledBalance, 3);
+        $remainder = $scheduledBalance % 3;
+        $installmentsByDate = [];
+
+        foreach ([90, 60, 30] as $index => $daysBeforeEvent) {
+            $dueAt = $eventDate->copy()->subDays($daysBeforeEvent)->startOfDay();
+            if ($dueAt->lt($today)) {
+                $dueAt = $today->copy();
+            }
+
+            $dateKey = $dueAt->toDateString();
+            $installmentsByDate[$dateKey] ??= [
+                'labels' => [],
+                'due_at' => $dateKey,
+                'amount' => 0,
+            ];
+            $installmentsByDate[$dateKey]['labels'][] = 'Termin '.($index + 1);
+            $installmentsByDate[$dateKey]['amount'] += $baseAmount + ($index < $remainder ? 1 : 0);
+        }
+
+        $installments = array_map(function (array $installment): array {
+            return [
+                'label' => implode(' & ', $installment['labels']),
+                'due_at' => $installment['due_at'],
+                'amount' => $installment['amount'],
+            ];
+        }, array_values($installmentsByDate));
+
+        return [
+            'policy' => 'equal_remaining_h90_h60_h30',
+            'initial_due' => $initialDueAmount,
+            'installments' => $installments,
+        ];
     }
 
     /**

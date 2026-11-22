@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Consultation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -90,6 +91,7 @@ class ContactController extends Controller
             'isi' => 'required|string|max:5000',
             'captcha_id' => 'required|uuid',
             'captcha_answer' => ['required', 'string', 'regex:/^\d{4}$/'],
+            'website' => ['nullable', 'string', 'max:0'],
         ]);
 
         if ($validator->fails()) {
@@ -100,8 +102,10 @@ class ContactController extends Controller
             ], 422);
         }
 
-        $cacheKey = 'contact_captcha_'.$request->input('captcha_id');
-        $challengeLock = Cache::lock('contact_captcha_lock_'.$request->input('captcha_id'), 60);
+        $data = $validator->validated();
+        $cacheKey = 'contact_captcha_'.$data['captcha_id'];
+        $challengeLock = Cache::lock('contact_captcha_lock_'.$data['captcha_id'], 60);
+
         if (! $challengeLock->get()) {
             return response()->json([
                 'success' => false,
@@ -111,40 +115,56 @@ class ContactController extends Controller
 
         try {
             $captcha = Cache::pull($cacheKey);
-            if (! is_array($captcha) || ! array_key_exists('answer', $captcha)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Verifikasi sudah kedaluwarsa atau telah digunakan. Silakan muat ulang.',
-                ], 422);
-            }
+        } finally {
+            $challengeLock->release();
+        }
 
-            if (! hash_equals((string) $captcha['answer'], (string) $request->input('captcha_answer'))) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Jawaban verifikasi salah. Silakan muat ulang.',
-                ], 422);
-            }
+        if (! is_array($captcha) || ! array_key_exists('answer', $captcha)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Verifikasi sudah kedaluwarsa atau telah digunakan. Silakan muat ulang.',
+            ], 422);
+        }
 
-            $fullName = strip_tags((string) $request->input('nama'));
-            $whatsapp = (string) $request->input('no_telp');
-            $concept = strip_tags((string) $request->input('isi'));
+        if (! hash_equals((string) $captcha['answer'], (string) $data['captcha_answer'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jawaban verifikasi salah. Silakan muat ulang.',
+            ], 422);
+        }
+
+        $fullName = strip_tags(trim($data['nama']));
+        $email = strtolower(trim($data['email']));
+        $whatsapp = trim($data['no_telp']);
+        $concept = strip_tags(trim($data['isi']));
+
+        $isDuplicate = DB::transaction(function () use ($fullName, $email, $whatsapp, $concept) {
+            if (Consultation::findDuplicates(null, [
+                'email' => $email,
+                'whatsapp' => $whatsapp,
+            ], true)->isNotEmpty()) {
+                return true;
+            }
 
             Consultation::create([
                 'full_name' => $fullName,
-                'email' => strtolower((string) $request->input('email')),
+                'email' => $email,
                 'whatsapp' => $whatsapp,
                 'wedding_concept' => $concept,
                 'consultation_status' => 'Pending',
                 'lead_status' => 'New',
                 'source' => 'website',
             ]);
-        } finally {
-            $challengeLock->release();
-        }
+
+            return false;
+        });
 
         return response()->json([
             'success' => true,
-            'message' => 'Pesan berhasil dikirim. Kami akan segera menghubungi Anda.',
+            'message' => $isDuplicate
+                ? 'Permintaan Anda sebelumnya sudah kami terima. Tim kami akan segera menghubungi Anda.'
+                : 'Pesan berhasil dikirim. Kami akan segera menghubungi Anda.',
+            'duplicate' => $isDuplicate,
         ], 201);
     }
 }

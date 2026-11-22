@@ -18,6 +18,28 @@
     $amountPaid = (float) ($order->amount_paid_value ?? ($order->status === 'paid' ? $fullAmount : 0));
     $remainingAmount = (float) ($order->remaining_amount_value ?? max(0, $fullAmount - $amountPaid));
     $isDp = in_array($order->payment_scheme, ['dp30','dp50'], true);
+    $orderTimeline = collect();
+    if ($order->created_at) {
+        $orderTimeline->push(['label' => 'Pesanan dibuat', 'at' => $order->created_at]);
+    }
+    if ($order->proof_uploaded_at) {
+        $orderTimeline->push(['label' => 'Bukti pembayaran dikirim', 'at' => $order->proof_uploaded_at]);
+    }
+    foreach ($order->payments as $payment) {
+        if (($payment->verification_status === 'verified' || $payment->status === 'paid') && ($payment->paid_at || $payment->updated_at)) {
+            $orderTimeline->push([
+                'label' => 'Pembayaran diverifikasi',
+                'at' => $payment->paid_at ?: $payment->updated_at,
+            ]);
+        }
+    }
+    if ($order->status === 'paid' && $order->paid_at) {
+        $orderTimeline->push(['label' => 'Pesanan lunas', 'at' => $order->paid_at]);
+    } elseif (in_array($order->status, ['failed', 'expired', 'cancelled'], true)) {
+        $statusLabel = ['failed' => 'Pesanan gagal', 'expired' => 'Pesanan kedaluwarsa', 'cancelled' => 'Pesanan dibatalkan'][$order->status];
+        $orderTimeline->push(['label' => $statusLabel, 'at' => $order->updated_at]);
+    }
+    $orderTimeline = $orderTimeline->sortBy('at')->values();
     $auditLabels = [
         'payment_recorded' => 'Pembayaran dicatat',
         'payment_submitted' => 'Pembayaran dikirim',
@@ -242,6 +264,37 @@
                     <div class="col-md-4"><div class="p-3 rounded-3 bg-light"><div class="small text-muted">Total Paket</div><div class="fw-bold">Rp {{ number_format($fullAmount,0,',','.') }}</div></div></div>
                     <div class="col-md-4"><div class="p-3 rounded-3 bg-light"><div class="small text-muted">Sudah Dibayar</div><div class="fw-bold text-success">Rp {{ number_format($amountPaid,0,',','.') }}</div></div></div>
                     <div class="col-md-4"><div class="p-3 rounded-3 bg-light"><div class="small text-muted">Sisa</div><div class="fw-bold {{ $remainingAmount>0?'text-danger':'text-success' }}">Rp {{ number_format($remainingAmount,0,',','.') }}</div>@if($order->balance_due_at)<div class="small text-muted">Batas pelunasan: {{ $order->balance_due_at->translatedFormat('d M Y') }}</div>@endif</div></div>
+                </div>
+
+                @if (! empty(data_get($order->installment_schedule, 'installments', [])))
+                    <div class="border rounded-3 p-3 mb-3">
+                        <h3 class="h6 fw-semibold mb-2">Jadwal sisa pembayaran</h3>
+                        <div class="d-grid gap-2">
+                            @foreach (data_get($order->installment_schedule, 'installments', []) as $installment)
+                                <div class="d-flex justify-content-between gap-3">
+                                    <span class="small text-muted">{{ $installment['label'] ?? 'Termin' }} · {{ \Carbon\Carbon::parse($installment['due_at'])->translatedFormat('d M Y') }}</span>
+                                    <strong class="small text-nowrap">Rp {{ number_format((int) ($installment['amount'] ?? 0), 0, ',', '.') }}</strong>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div class="border rounded-3 p-3 mb-3">
+                    <h3 class="h6 fw-semibold mb-2">Progres Pesanan</h3>
+                    <div class="d-grid gap-2">
+                        @forelse ($orderTimeline as $timelineEvent)
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill text-success mt-1" aria-hidden="true"></i>
+                                <div>
+                                    <div class="small fw-semibold">{{ $timelineEvent['label'] }}</div>
+                                    <div class="small text-muted">{{ $timelineEvent['at']?->translatedFormat('d M Y H:i') }}</div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="small text-muted">Belum ada aktivitas pesanan.</div>
+                        @endforelse
+                    </div>
                 </div>
 
                 @if(in_array($order->status, ['pending','partially_paid'], true) && ($isOwner || $isAdmin))

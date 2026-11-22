@@ -2,33 +2,29 @@ import type { BackendPayload } from "../types/index.js";
 import { sanitizeRichHtml } from "../utils/sanitize.js";
 import apiRequest, { buildQuery } from "./apiClient.js";
 
-export type BatchPage =
-	| "home"
-	| "venues"
-	| "about"
-	| "classes"
-	| "class-detail"
-	| "blog"
-	| "blog-detail"
-	| "packages"
-	| "package-detail"
-	| "vendors"
-	| "events"
-	| "gallery"
-	| "contact"
-	| "faq"
-	| "page-detail"
-	| "schedules";
+export const SUPPORTED_BATCH_PAGES = [
+	"home",
+	"venues",
+	"about",
+	"blog",
+	"blog-detail",
+	"packages",
+	"package-detail",
+	"vendors",
+	"events",
+	"gallery",
+	"contact",
+	"faq",
+	"page-detail",
+] as const;
+
+export type BatchPage = (typeof SUPPORTED_BATCH_PAGES)[number];
 
 const ALLOWED_KEYS = [
 	"slug",
 	"search",
 	"filter",
 	"sort",
-	"date",
-	"level",
-	"time",
-	"venue_uuid",
 	"date_from",
 	"date_to",
 	"page",
