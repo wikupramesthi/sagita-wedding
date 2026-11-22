@@ -57,6 +57,16 @@ class Package extends Model
             });
     }
 
+    public function scopeWedding($query)
+    {
+        return $query->where(function ($query) {
+            $query->whereNotNull('guest_capacity')
+                ->orWhereNotNull('event_duration_hours')
+                ->orWhereNotNull('venue_note')
+                ->orWhereNotNull('cover_url');
+        });
+    }
+
     public function options(): HasMany
     {
         return $this->hasMany(

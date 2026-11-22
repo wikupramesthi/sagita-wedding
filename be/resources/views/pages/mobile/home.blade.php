@@ -224,6 +224,28 @@
                     </div>
                 @endif
 
+            </div>
+
+            <div class="app-card p-3 mt-3">
+                <h3 class="h6 fw-semibold mb-1">Rekap pembayaran</h3>
+                <p class="small text-muted2 mb-3">Pembayaran yang disetujui mengurangi kekurangan tagihan.</p>
+                <div class="progress mb-3" style="height:6px">
+                    <div class="progress-bar bg-success" role="progressbar" style="width:{{ $paymentProgress }}%" aria-valuenow="{{ $paymentProgress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="row g-2 text-center">
+                    <div class="col-4">
+                        <div class="small text-muted2">Total</div>
+                        <div class="small fw-semibold">Rp {{ number_format($paymentOrderTotal, 0, ',', '.') }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="small text-muted2">Disetujui</div>
+                        <div class="small fw-semibold text-success">Rp {{ number_format($paymentPaidTotal, 0, ',', '.') }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="small text-muted2">Kekurangan</div>
+                        <div class="small fw-semibold text-danger">Rp {{ number_format($paymentRemainingTotal, 0, ',', '.') }}</div>
+                    </div>
+                </div>
                 @if ($recentPaymentProofs->isNotEmpty())
                     @php
                         $mobileProofLabels = ['accepted' => 'Diterima', 'pending' => 'Pending', 'rejected' => 'Ditolak'];
@@ -249,7 +271,10 @@
                             @endforeach
                         </div>
                     </div>
+                @else
+                    <div class="small text-muted2 mt-3">Belum ada bukti pembayaran yang diunggah.</div>
                 @endif
+                <a href="{{ route('orders.index') }}" class="btn btn-sm btn-outline-primary w-100 mt-3">Riwayat pesanan & pembayaran</a>
             </div>
 
             <div class="app-card p-3 mt-3">

@@ -581,19 +581,19 @@
                         <div class="col-md-4">
                             <div class="planning-budget-summary h-100">
                                 <div class="small text-muted">Total pesanan aktif</div>
-                                <div class="fw-bold">Rp {{ number_format($planningOrderTotal, 0, ',', '.') }}</div>
+                                <div class="fw-bold">Rp {{ number_format($paymentOrderTotal, 0, ',', '.') }}</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="planning-budget-summary h-100">
                                 <div class="small text-muted">Pembayaran disetujui</div>
-                                <div class="fw-bold text-success">Rp {{ number_format($planningPaidTotal, 0, ',', '.') }}</div>
+                                <div class="fw-bold text-success">Rp {{ number_format($paymentPaidTotal, 0, ',', '.') }}</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="planning-budget-summary h-100">
                                 <div class="small text-muted">Kekurangan</div>
-                                <div class="fw-bold text-danger">Rp {{ number_format($planningRemainingTotal, 0, ',', '.') }}</div>
+                                <div class="fw-bold text-danger">Rp {{ number_format($paymentRemainingTotal, 0, ',', '.') }}</div>
                             </div>
                         </div>
                     </div>

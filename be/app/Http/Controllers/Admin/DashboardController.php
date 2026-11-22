@@ -136,6 +136,7 @@ class DashboardController extends Controller
             if ($isAdmin) {
                 $adminViewData['upcomingWeddingOrders'] = Order::packageOnly()
                     ->whereIn('status', ['pending', 'partially_paid', 'paid'])
+                    ->whereHas('package', fn ($query) => $query->wedding())
                     ->whereNotNull('event_date')
                     ->whereDate('event_date', '>=', now()->toDateString())
                     ->with(['user:uuid,name,email', 'package:uuid,name', 'packageOption:uuid,name'])
@@ -192,12 +193,17 @@ class DashboardController extends Controller
             $planningOrders = (clone $myOrders)
                 ->where('type', 'package')
                 ->whereIn('status', ['pending', 'partially_paid', 'paid'])
+                ->whereHas('package', fn ($query) => $query->wedding())
                 ->with([
                     'package:uuid,name',
                     'packageOption:uuid,name',
                     'payments' => fn ($query) => $query->latest(),
                 ])
                 ->orderBy('event_date')
+                ->get();
+            $paymentOrders = (clone $myOrders)
+                ->where('type', 'package')
+                ->whereIn('status', ['pending', 'partially_paid', 'paid'])
                 ->get();
             $data['banner'] = Banner::where('status', 'active')->where('posisi', 'slider')->first();
             $data['courses'] = [];
@@ -217,6 +223,12 @@ class DashboardController extends Controller
                 ->sortByDesc(fn (array $proof) => $proof['payment']->proof_uploaded_at ?? $proof['payment']->created_at)
                 ->take(5)
                 ->values();
+            $data['paymentOrderTotal'] = $paymentOrders->sum(fn (Order $order) => (float) $order->full_amount);
+            $data['paymentPaidTotal'] = $paymentOrders->sum(fn (Order $order) => (float) $order->amount_paid_value);
+            $data['paymentRemainingTotal'] = max(0, $data['paymentOrderTotal'] - $data['paymentPaidTotal']);
+            $data['paymentProgress'] = $data['paymentOrderTotal'] > 0
+                ? (int) min(100, round($data['paymentPaidTotal'] / $data['paymentOrderTotal'] * 100))
+                : 0;
             $planningEventOrder = $planningOrders->first(
                 fn (Order $order) => $order->event_date?->greaterThanOrEqualTo(today())
             ) ?? $planningOrders->first(fn (Order $order) => $order->event_date !== null);
@@ -354,6 +366,7 @@ class DashboardController extends Controller
         );
 
         return Package::published()
+            ->wedding()
             ->with(['options' => fn ($query) => $query
                 ->where('is_active', true)
                 ->orderBy('sort_order')])

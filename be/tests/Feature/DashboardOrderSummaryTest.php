@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
-use App\Models\Payment\Payment;
 use App\Models\Payment\Order;
+use App\Models\Payment\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -35,10 +35,15 @@ class DashboardOrderSummaryTest extends TestCase
 
     private function packageOrder(User $member): Order
     {
+        $package = $this->publishedPackage('Paket Wedding', 120000000);
+        $packageOption = $package->options()->firstOrFail();
+
         return Order::create([
             'user_uuid' => $member->uuid,
             'order_number' => 'ORD-'.Str::upper(Str::random(10)),
             'type' => 'package',
+            'package_uuid' => $package->uuid,
+            'package_option_uuid' => $packageOption->uuid,
             'event_date' => '2027-08-21',
             'amount' => 120000000,
             'total_amount' => 120000000,
@@ -68,6 +73,32 @@ class DashboardOrderSummaryTest extends TestCase
             'quota' => 1,
             'price' => $price,
             'discount_price' => $discountPrice,
+            'duration' => 1,
+            'duration_unit' => 'month',
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        return $package;
+    }
+
+    private function publishedMembershipPackage(string $name, int $price): Package
+    {
+        $package = Package::create([
+            'name' => $name,
+            'slug' => Str::slug($name).'-'.Str::lower(Str::random(5)),
+            'description' => 'Paket kelas membership.',
+            'price' => $price,
+            'is_active' => 'active',
+            'is_published' => true,
+            'published_at' => now(),
+        ]);
+
+        PackageOption::create([
+            'package_uuid' => $package->uuid,
+            'name' => 'Kelas',
+            'quota' => 10,
+            'price' => $price,
             'duration' => 1,
             'duration_unit' => 'month',
             'sort_order' => 0,
@@ -120,6 +151,7 @@ class DashboardOrderSummaryTest extends TestCase
         $member = $this->userWithRole('user');
         $recommendedPackage = $this->publishedPackage('Paket Anggrek', 7000000, 5500000);
         $this->publishedPackage('Paket Mewah', 9000000);
+        $this->publishedMembershipPackage('Studio Class Membership', 250000);
 
         $this->actingAs($member)
             ->withHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36')
@@ -129,6 +161,7 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertSee('Paket Anggrek')
             ->assertSee('Rp 5.500.000')
             ->assertDontSee('Paket Mewah')
+            ->assertDontSee('Studio Class Membership')
             ->assertSee(route('checkout.package', $recommendedPackage->uuid), false);
     }
 
@@ -137,6 +170,7 @@ class DashboardOrderSummaryTest extends TestCase
         $member = $this->userWithRole('user');
         $recommendedPackage = $this->publishedPackage('Paket Anggrek', 7000000, 5500000);
         $this->publishedPackage('Paket Mewah', 9000000);
+        $this->publishedMembershipPackage('Studio Class Membership', 250000);
 
         $this->actingAs($member)
             ->getJson(route('dashboard.recommendations', ['budget_max' => 6000000]))
@@ -145,6 +179,7 @@ class DashboardOrderSummaryTest extends TestCase
             ->assertJsonCount(1, 'recommendations')
             ->assertJsonPath('recommendations.0.name', 'Paket Anggrek')
             ->assertJsonPath('recommendations.0.formatted_price', '5.500.000')
+            ->assertJsonMissing(['name' => 'Studio Class Membership'])
             ->assertJsonPath('recommendations.0.checkout_url', route('checkout.package', $recommendedPackage->uuid));
     }
 
