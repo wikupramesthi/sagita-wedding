@@ -458,6 +458,7 @@ class PackageAdminTest extends TestCase
             ->assertViewIs('pages.package.member')
             ->assertViewHas('previewMode', true)
             ->assertSee('Pratinjau paket')
+            ->assertSee('Harga belum tersedia')
             ->assertSee('Paket Kelola');
 
         $export = $this->actingAs($this->admin)

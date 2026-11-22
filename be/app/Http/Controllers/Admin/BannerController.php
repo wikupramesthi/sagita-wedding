@@ -330,10 +330,7 @@ class BannerController extends Controller
         DB::beginTransaction();
         try {
             $banner = Banner::findOrFail($uuid);
-
-            if ($banner->gambar && Storage::disk('public')->exists($banner->gambar)) {
-                Storage::disk('public')->delete($banner->gambar);
-            }
+            $gambar = $banner->gambar;
 
             DB::table('album_foto')->where('banner_uuid', $banner->uuid)->delete();
             DB::table('albums')->where('cover', $banner->uuid)->update(['cover' => null]);
@@ -341,6 +338,10 @@ class BannerController extends Controller
             $banner->delete();
 
             DB::commit();
+
+            if ($gambar && Storage::disk('public')->exists($gambar)) {
+                Storage::disk('public')->delete($gambar);
+            }
 
             return redirect()->back()->with('success', 'Media berhasil dihapus.');
         } catch (\Throwable $th) {

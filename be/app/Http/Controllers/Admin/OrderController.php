@@ -1058,12 +1058,24 @@ class OrderController extends Controller
         abort_unless($this->canRejectOrders(), 403);
         $validated = $request->validate(['admin_note' => ['required', 'string', 'max:1000']]);
         $record = Order::packageOnly()->where('uuid', $order)->firstOrFail();
-        $paymentModel = Payment::where('uuid', $payment)->where('order_uuid', $order)->lockForUpdate()->firstOrFail();
-        if (! in_array($paymentModel->verification_status ?: $paymentModel->status, ['pending'], true)) {
+        $alreadyProcessed = false;
+
+        $paymentModel = DB::transaction(function () use (&$alreadyProcessed, $order, $payment, $validated, $record) {
+            $locked = Payment::where('uuid', $payment)->where('order_uuid', $order)->lockForUpdate()->firstOrFail();
+            if (! in_array($locked->verification_status ?: $locked->status, ['pending'], true)) {
+                $alreadyProcessed = true;
+
+                return $locked;
+            }
+            $locked->update(['status' => 'failed', 'verification_status' => 'rejected', 'note' => $validated['admin_note'], 'verified_by' => Auth::user()->uuid, 'verified_at' => now()]);
+            $this->logOrderAction($record, 'payment_rejected', ['payment_uuid' => $locked->uuid, 'admin_note' => $validated['admin_note']]);
+
+            return $locked;
+        });
+
+        if ($alreadyProcessed) {
             return back()->with('error', 'Pembayaran ini sudah diproses.');
         }
-        $paymentModel->update(['status' => 'failed', 'verification_status' => 'rejected', 'note' => $validated['admin_note'], 'verified_by' => Auth::user()->uuid, 'verified_at' => now()]);
-        $this->logOrderAction($record, 'payment_rejected', ['payment_uuid' => $paymentModel->uuid, 'admin_note' => $validated['admin_note']]);
         try {
             $record->user?->notify(new OrderRejectedNotification($record->uuid, $record->order_number, 'Pembayaran ditolak: '.$validated['admin_note']));
         } catch (Throwable $e) {
@@ -1127,16 +1139,36 @@ class OrderController extends Controller
 
         foreach ($orderIds as $orderUuid) {
             try {
-                $before = Order::packageOnly()->where('uuid', $orderUuid)->first()?->getAttributes() ?? [];
+                $beforeOrderModel = Order::packageOnly()->where('uuid', $orderUuid)->first();
+                $before = $beforeOrderModel?->only([
+                    'status',
+                    'paid_at',
+                    'admin_note',
+                    'assigned_admin_uuid',
+                    'pending_key',
+                    'amount_paid',
+                    'remaining_amount',
+                    'balance_due_at',
+                    'approval_snapshot',
+                ]) ?? [];
 
                 if ($validated['action'] === 'approve') {
-                    $record = Order::packageOnly()->where('uuid', $orderUuid)->firstOrFail();
+                    $record = $beforeOrderModel ?: Order::packageOnly()->where('uuid', $orderUuid)->firstOrFail();
                     $beforeApproval = $record->approval_snapshot;
                     $pendingPayment = Payment::where('order_uuid', $record->uuid)
                         ->where(function ($q) {
                             $q->where('verification_status', 'pending')->orWhere('status', 'pending');
                         })
                         ->oldest()->first();
+                    $paymentCreated = $pendingPayment === null;
+                    $paymentBeforeApproval = $pendingPayment?->only([
+                        'uuid',
+                        'status',
+                        'verification_status',
+                        'note',
+                        'verified_by',
+                        'verified_at',
+                    ]);
                     if ($pendingPayment) {
                         $payment = $pendingPayment;
                         [$order] = $this->verifyPendingPayment($record, $pendingPayment, $validated['admin_note'] ?? null);
@@ -1163,18 +1195,20 @@ class OrderController extends Controller
                         });
                         [$order] = $this->verifyPendingPayment($record->fresh(), $payment, $validated['admin_note'] ?? null);
                     }
+                    $snapshot = $order->approval_snapshot ?: $beforeApproval;
                     $undoSnapshot[] = [
                         'type' => 'approve',
                         'uuid' => $order->uuid,
-                        'snapshot' => array_merge(
-                            $order->approval_snapshot ?: $beforeApproval,
-                            ['payment_uuid' => $payment->uuid ?? null]
-                        ),
+                        'before_order' => $before,
+                        'payment_created' => $paymentCreated,
+                        'payment_uuid' => $payment->uuid ?? null,
+                        'payment_before' => $paymentBeforeApproval,
+                        'snapshot' => array_merge($snapshot, ['payment_uuid' => $payment->uuid ?? null]),
                     ];
                 } else {
                     $paymentBefore = Payment::where('order_uuid', $orderUuid)
-                        ->first(['uuid', 'status'])
-                        ?->toArray();
+                        ->first()
+                        ?->only(['uuid', 'status', 'verification_status', 'note', 'verified_by', 'verified_at']);
 
                     $rejected = $this->rejectPendingOrder($orderUuid, $validated['admin_note']);
 
@@ -1197,7 +1231,7 @@ class OrderController extends Controller
                         'assigned_admin_uuid' => $before['assigned_admin_uuid'] ?? null,
                         'pending_key' => $before['pending_key'] ?? null,
                         'payment_uuid' => $paymentBefore['uuid'] ?? null,
-                        'payment_status' => $paymentBefore['status'] ?? null,
+                        'payment_before' => $paymentBefore,
                     ];
                 }
 
@@ -1267,15 +1301,18 @@ class OrderController extends Controller
                             'pending_key' => $item['pending_key'] ?? null,
                         ]);
 
-                        $paymentStatus = $item['payment_status'] ?? 'pending';
-
-                        if (! empty($item['payment_uuid'])) {
-                            Payment::where('uuid', $item['payment_uuid'])
-                                ->update(['status' => $paymentStatus]);
-                        } else {
-                            Payment::where('order_uuid', $order->uuid)
-                                ->update(['status' => $paymentStatus]);
-                        }
+                        $paymentBefore = $item['payment_before'] ?? [];
+                        $paymentRestore = [
+                            'status' => $paymentBefore['status'] ?? $item['payment_status'] ?? 'pending',
+                            'verification_status' => $paymentBefore['verification_status'] ?? 'pending',
+                            'note' => $paymentBefore['note'] ?? null,
+                            'verified_by' => $paymentBefore['verified_by'] ?? null,
+                            'verified_at' => $paymentBefore['verified_at'] ?? null,
+                        ];
+                        $paymentQuery = ! empty($item['payment_uuid'])
+                            ? Payment::where('uuid', $item['payment_uuid'])
+                            : Payment::where('order_uuid', $order->uuid);
+                        $paymentQuery->update($paymentRestore);
 
                         $this->logOrderAction($order, 'rejection_reverted');
 
@@ -1283,7 +1320,7 @@ class OrderController extends Controller
                     }
 
                     $approval = $item['snapshot'] ?? [];
-                    $beforeOrder = $approval['order'] ?? [];
+                    $beforeOrder = $item['before_order'] ?? ($approval['order'] ?? []);
                     $userPackageBefore = $approval['user_package'] ?? [];
 
                     $order->update([
@@ -1295,11 +1332,26 @@ class OrderController extends Controller
                         'amount_paid' => $beforeOrder['amount_paid'] ?? 0,
                         'remaining_amount' => $beforeOrder['remaining_amount'] ?? 0,
                         'balance_due_at' => $beforeOrder['balance_due_at'] ?? null,
-                        'approval_snapshot' => null,
+                        'approval_snapshot' => $beforeOrder['approval_snapshot'] ?? null,
                     ]);
 
-                    if (! empty($approval['payment_uuid'])) {
-                        Payment::where('uuid', $approval['payment_uuid'])->delete();
+                    $paymentQuery = ! empty($approval['payment_uuid'])
+                        ? Payment::where('uuid', $approval['payment_uuid'])
+                        : Payment::where('order_uuid', $order->uuid);
+
+                    if (! empty($item['payment_created'])) {
+                        $paymentQuery->delete();
+                    } elseif (! empty($item['payment_before'])) {
+                        $paymentBefore = $item['payment_before'];
+                        $paymentQuery->update([
+                            'status' => $paymentBefore['status'] ?? 'pending',
+                            'verification_status' => $paymentBefore['verification_status'] ?? 'pending',
+                            'note' => $paymentBefore['note'] ?? null,
+                            'verified_by' => $paymentBefore['verified_by'] ?? null,
+                            'verified_at' => $paymentBefore['verified_at'] ?? null,
+                        ]);
+                    } else {
+                        $paymentQuery->delete();
                     }
 
                     if (! empty($userPackageBefore['created'])) {

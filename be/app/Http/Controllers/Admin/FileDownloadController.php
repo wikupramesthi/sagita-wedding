@@ -156,12 +156,15 @@ class FileDownloadController extends Controller
         DB::beginTransaction();
         try {
             $item = FileDownload::findOrFail($id);
-            if ($item->file) {
-                Storage::disk('local')->delete($item->file);
-                Storage::disk('public')->delete($item->file);
-            }
+            $file = $item->file;
+
             $item->delete();
             DB::commit();
+
+            if ($file) {
+                Storage::disk('local')->delete($file);
+                Storage::disk('public')->delete($file);
+            }
 
             return redirect()->route('filedownload.index')->with('success', 'Dokumen sekolah berhasil dihapus.');
         } catch (\Throwable $th) {

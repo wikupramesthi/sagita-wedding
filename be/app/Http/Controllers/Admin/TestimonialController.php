@@ -152,13 +152,24 @@ class TestimonialController extends Controller
      */
     public function destroy($uuid)
     {
-        $item = Testimonial::where('uuid', $uuid)->firstOrFail();
+        DB::beginTransaction();
 
-        if ($item->foto && Storage::disk('public')->exists($item->foto)) {
-            Storage::disk('public')->delete($item->foto);
+        try {
+            $item = Testimonial::where('uuid', $uuid)->firstOrFail();
+            $foto = $item->foto;
+
+            $item->delete();
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', $this->safeErrorMessage($th));
         }
 
-        $item->delete();
+        if ($foto && Storage::disk('public')->exists($foto)) {
+            Storage::disk('public')->delete($foto);
+        }
 
         return redirect()->back()->with('success', 'Testimoni berhasil dihapus.');
     }

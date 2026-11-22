@@ -210,35 +210,25 @@ class VenueController extends Controller
      */
     public function destroy(Venue $venue)
     {
-        try {
-
-            // Venue tidak boleh dihapus jika masih
-            // digunakan oleh class schedule.
-            if ($venue->schedules()->exists()) {
-                return redirect()
-                    ->route('venues.index')
-                    ->with(
-                        'error',
-                        'Venue ini tidak dapat dihapus karena masih digunakan oleh jadwal kelas.'
-                    );
-            }
-
-            if (
-                $venue->image &&
-                Storage::disk('public')->exists($venue->image)
-            ) {
-                Storage::disk('public')->delete($venue->image);
-            }
-
-            $venue->delete();
-
+        if ($venue->schedules()->exists()) {
             return redirect()
                 ->route('venues.index')
                 ->with(
-                    'success',
-                    'Data venue berhasil dihapus.'
+                    'error',
+                    'Venue ini tidak dapat dihapus karena masih digunakan oleh jadwal kelas.'
                 );
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $image = $venue->image;
+
+            $venue->delete();
+
+            DB::commit();
         } catch (\Throwable $th) {
+            DB::rollBack();
 
             return redirect()
                 ->route('venues.index')
@@ -247,6 +237,17 @@ class VenueController extends Controller
                     $this->safeErrorMessage($th)
                 );
         }
+
+        if ($image && Storage::disk('public')->exists($image)) {
+            Storage::disk('public')->delete($image);
+        }
+
+        return redirect()
+            ->route('venues.index')
+            ->with(
+                'success',
+                'Data venue berhasil dihapus.'
+            );
     }
 
     private function validationMessages(): array

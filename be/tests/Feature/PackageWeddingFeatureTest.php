@@ -227,6 +227,27 @@ class PackageWeddingFeatureTest extends TestCase
             ->assertDontSee('Paket Grand');
     }
 
+    public function test_desktop_catalog_does_not_offer_checkout_for_packages_without_active_options(): void
+    {
+        Package::create([
+            'name' => 'Paket Tanpa Opsi',
+            'slug' => 'paket-tanpa-opsi',
+            'description' => 'Paket yang belum memiliki pilihan harga aktif.',
+            'price' => 100000,
+            'guest_capacity' => 100,
+            'is_active' => 'active',
+            'is_published' => true,
+        ]);
+
+        $this->actingAs($this->member)
+            ->get(route('packages.member', ['view' => 'desktop']))
+            ->assertOk()
+            ->assertSee('Paket Tanpa Opsi')
+            ->assertSee('Harga belum tersedia')
+            ->assertSee('Paket belum tersedia')
+            ->assertDontSee('Rp 0');
+    }
+
     public function test_mobile_catalog_has_filter_form_and_applies_filters(): void
     {
         $this->createPackage('Paket Intimate', 'paket-intimate', 5000000, 4500000, 100, true);

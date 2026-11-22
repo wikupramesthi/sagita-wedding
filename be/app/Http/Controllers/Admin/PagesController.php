@@ -161,12 +161,14 @@ class PagesController extends Controller
         DB::beginTransaction();
         try {
             $page = Page::where('uuid', $uuid)->firstOrFail();
+            $featuredImage = $page->featured_image;
 
-            if ($page->featured_image && Storage::disk('public')->exists($page->featured_image)) {
-                Storage::disk('public')->delete($page->featured_image);
-            }
             $page->delete();
             DB::commit();
+
+            if ($featuredImage && Storage::disk('public')->exists($featuredImage)) {
+                Storage::disk('public')->delete($featuredImage);
+            }
 
             return redirect()->back()->with('success', 'Halaman berhasil dihapus.');
         } catch (\Throwable $th) {

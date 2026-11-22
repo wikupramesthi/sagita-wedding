@@ -252,15 +252,15 @@ class EventsController extends Controller
         DB::beginTransaction();
 
         try {
-            // Delete the image
-            if ($item->gambar && Storage::disk('public')->exists($item->gambar)) {
-                Storage::disk('public')->delete($item->gambar);
-            }
+            $gambar = $item->gambar;
 
-            // Delete the event record
             $item->delete();
 
             DB::commit();
+
+            if ($gambar && Storage::disk('public')->exists($gambar)) {
+                Storage::disk('public')->delete($gambar);
+            }
 
             return redirect()
                 ->back()

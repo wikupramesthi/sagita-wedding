@@ -73,6 +73,7 @@
 /* Button */
 .choose-package { display: inline-flex; align-items: center; justify-content: center; width: 100%; border-radius: 12px; padding: 12px 20px; font-size: 14px; font-weight: 700; border: 1.5px solid #4b6b52; background: transparent; color: #4b6b52; text-decoration: none; transition: all .25s ease; }
 .choose-package:hover { background: #4b6b52; color: #fff; }
+.choose-package:disabled { opacity: .62; cursor: not-allowed; }
 .popular .choose-package { background: #4b6b52; border-color: #4b6b52; color: #fff; }
 .popular .choose-package:hover { background: #6b8f6f; border-color: #6b8f6f; }
 .saving-text { text-align: center; margin-top: 17px; color: #4b6b52; font-size: 13px; font-weight: 700; }
@@ -305,17 +306,22 @@
                     @endphp
 
                     <div class="package-price-box">
-                        <div class="package-price-label">Mulai dari</div>
-                        <div class="package-price-range {{ $hasDiscount ? 'discounted' : '' }}">
-                            Rp {{ number_format($minFinal, 0, ',', '.') }}
-                            @if ($minFinal != $maxFinal)
-                            <span>-</span> Rp {{ number_format($maxFinal, 0, ',', '.') }}
+                        @if ($finalPrices->isNotEmpty())
+                            <div class="package-price-label">Mulai dari</div>
+                            <div class="package-price-range {{ $hasDiscount ? 'discounted' : '' }}">
+                                Rp {{ number_format($minFinal, 0, ',', '.') }}
+                                @if ($minFinal != $maxFinal)
+                                <span>-</span> Rp {{ number_format($maxFinal, 0, ',', '.') }}
+                                @endif
+                            </div>
+                            @if ($hasDiscount)
+                            <div class="package-price-original">
+                                dari <span>Rp {{ number_format($minRegular, 0, ',', '.') }}@if ($minRegular != $maxRegular) - Rp {{ number_format($maxRegular, 0, ',', '.') }}@endif</span>
+                            </div>
                             @endif
-                        </div>
-                        @if ($hasDiscount)
-                        <div class="package-price-original">
-                            dari <span>Rp {{ number_format($minRegular, 0, ',', '.') }}@if ($minRegular != $maxRegular) - Rp {{ number_format($maxRegular, 0, ',', '.') }}@endif</span>
-                        </div>
+                        @else
+                            <div class="package-price-label">Informasi harga</div>
+                            <div class="package-price-range">Harga belum tersedia</div>
                         @endif
                     </div>
 
@@ -359,10 +365,14 @@
                         <button type="button" class="choose-package w-100" disabled>
                             Pilih Paket <i class="bi bi-arrow-right ms-1"></i>
                         </button>
-                        @else
+                        @elseif ($package->options->isNotEmpty())
                         <a href="{{ route('checkout.package', $package->uuid) }}" class="choose-package w-100">
                             Pilih Paket <i class="bi bi-arrow-right ms-1"></i>
                         </a>
+                        @else
+                        <button type="button" class="choose-package w-100" disabled>
+                            Paket belum tersedia
+                        </button>
                         @endif
 
                         <div class="saving-text"><i class="bi bi-heart-fill me-1"></i>Wujudkan pernikahan impian Anda</div>
@@ -408,13 +418,20 @@
                             $comparePrices = $packages->values()->map(function ($item) {
                                 $finals = $item->options->map(fn ($option) => $option->discount_price !== null && $option->discount_price < $option->price ? $option->discount_price : $option->price);
 
-                                return $finals->count() ? $finals->min() : 0;
+                                return $finals->count() ? $finals->min() : null;
                             });
                         @endphp
                         <tr>
                             <th scope="row">Harga mulai</th>
                             @foreach ($packages as $package)
-                            <td class="text-center">Rp {{ number_format($comparePrices[$loop->index] ?? 0, 0, ',', '.') }}</td>
+                            @php($comparePrice = $comparePrices[$loop->index] ?? null)
+                            <td class="text-center">
+                                @if ($comparePrice !== null)
+                                Rp {{ number_format($comparePrice, 0, ',', '.') }}
+                                @else
+                                Harga belum tersedia
+                                @endif
+                            </td>
                             @endforeach
                         </tr>
                         <tr>
@@ -453,10 +470,12 @@
                             <td class="text-center">
                                 @if (!empty($previewMode))
                                 <button type="button" class="btn btn-sm btn-outline-primary" disabled>Pilih</button>
-                                @else
+                                @elseif ($package->options->isNotEmpty())
                                 <a href="{{ route('checkout.package', $package->uuid) }}" class="btn btn-sm btn-outline-primary">
                                     Pilih
                                 </a>
+                                @else
+                                <span class="text-muted">Paket belum tersedia</span>
                                 @endif
                             </td>
                             @endforeach
