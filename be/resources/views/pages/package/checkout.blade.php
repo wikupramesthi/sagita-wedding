@@ -6,6 +6,16 @@
 $leadTimeDays = (int) ($package->lead_time_days ?? 0);
 $minEventDate = now()->addDays($leadTimeDays)->toDateString();
 $blackoutDates = $package->blackoutDates ?? collect();
+$initialOption = $package->options->first();
+$firstFinalPrice = $initialOption
+    ? (int) ($initialOption->discount_price !== null && $initialOption->discount_price < $initialOption->price
+        ? $initialOption->discount_price
+        : $initialOption->price)
+    : 0;
+$initialBookingFee = min((int) $bookingFeeAmount, $firstFinalPrice);
+$initialNetAmount = max(0, $firstFinalPrice - $initialBookingFee);
+$initialDueNow = $initialBookingFee;
+$initialRemainingAmount = max(0, $firstFinalPrice - $initialDueNow);
 $promos = ($package->promos ?? collect())->map(function ($promo) {
     return [
         'code' => strtoupper($promo->code),
@@ -607,25 +617,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                                 <div
                                     id="summaryPrice"
                                     class="summary-price">
-                                    @if ($package->options->first())
-
-                                    @php
-                                    $firstOption = $package->options->first();
-
-                                    $firstHasDiscount =
-                                    $firstOption->discount_price !== null &&
-                                    $firstOption->discount_price < $firstOption->price;
-
-                                        $firstFinalPrice = $firstHasDiscount
-                                        ? $firstOption->discount_price
-                                        : $firstOption->price;
-                                        @endphp
-
-                                        Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}
-
-                                        @else
-                                        Rp 0
-                                        @endif
+                                    Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}
                                 </div>
 
                             </div>
@@ -665,30 +657,36 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
                         <div class="summary-divider"></div>
 
-                        <div class="d-flex justify-content-between align-items-end">
-                            <span class="text-muted small">Total Paket</span>
-                            <strong id="summaryTotal" class="summary-total">
-                                @if ($package->options->first())
-                                Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}
-                                @else
-                                Rp 0
-                                @endif
-                            </strong>
-                        </div>
+                        <div class="checkout-price-breakdown">
+                            <div class="checkout-summary-row">
+                                <span class="text-muted small">Total Paket</span>
+                                <strong id="summaryTotal" class="summary-total">Rp {{ number_format($firstFinalPrice, 0, ',', '.') }}</strong>
+                            </div>
 
-                        <div class="d-flex justify-content-between align-items-end mt-2">
-                            <span class="text-muted small">Booking Fee (wajib)</span>
-                            <div id="summaryBookingFee" class="summary-price">Rp 2.000.000</div>
-                        </div>
+                            <div class="checkout-summary-row">
+                                <span class="text-muted small">Booking Fee (wajib)</span>
+                                <strong id="summaryBookingFee" class="summary-price">Rp {{ number_format($initialBookingFee, 0, ',', '.') }}</strong>
+                            </div>
 
-                        <div class="d-flex justify-content-between align-items-end mt-2">
-                            <span class="text-muted small">Sisa setelah booking fee</span>
-                            <div id="summaryNetAmount" class="summary-price">Rp 0</div>
-                        </div>
+                            <div class="checkout-summary-row">
+                                <span class="text-muted small">Sisa setelah booking fee</span>
+                                <strong id="summaryNetAmount" class="summary-price">Rp {{ number_format($initialNetAmount, 0, ',', '.') }}</strong>
+                            </div>
 
-                        <div class="d-flex justify-content-between align-items-end checkout-due-row">
-                            <span class="fw-semibold">Dibayar sekarang</span>
-                            <strong id="summaryDue" class="summary-total">Rp 2.000.000</strong>
+                            <div id="summarySchemeRow" class="checkout-summary-row d-none">
+                                <span id="summarySchemeLabel" class="text-muted small">DP dari sisa</span>
+                                <strong id="summarySchemeDue" class="summary-price">Rp 0</strong>
+                            </div>
+
+                            <div class="checkout-due-row">
+                                <span class="fw-semibold">Dibayar sekarang</span>
+                                <strong id="summaryDue" class="summary-total">Rp {{ number_format($initialDueNow, 0, ',', '.') }}</strong>
+                            </div>
+
+                            <div class="checkout-remaining-row">
+                                <span class="text-muted small">Sisa pembayaran</span>
+                                <strong id="summaryRemainingAmount" class="summary-price">Rp {{ number_format($initialRemainingAmount, 0, ',', '.') }}</strong>
+                            </div>
                         </div>
 
                     </div>
@@ -833,6 +831,10 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 <div class="checkout-confirm-row checkout-confirm-due">
                     <span>Dibayar sekarang</span>
                     <strong id="confirmDue">Rp 0</strong>
+                </div>
+                <div class="checkout-confirm-row">
+                    <span>Sisa pembayaran</span>
+                    <strong id="confirmRemaining">Rp 0</strong>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1354,6 +1356,48 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         font-weight: 800;
     }
 
+    .checkout-price-breakdown {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 12px;
+        background: var(--bs-tertiary-bg);
+    }
+
+    .checkout-summary-row,
+    .checkout-due-row,
+    .checkout-remaining-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) max-content;
+        align-items: center;
+        column-gap: 8px;
+    }
+
+    .checkout-summary-row > span,
+    .checkout-due-row > span,
+    .checkout-remaining-row > span {
+        min-width: 0;
+        white-space: nowrap;
+    }
+
+    .checkout-summary-row > :last-child,
+    .checkout-remaining-row > :last-child {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .checkout-summary-row .summary-price,
+    .checkout-remaining-row .summary-price {
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .checkout-summary-row .summary-total {
+        font-size: 22px;
+        font-variant-numeric: tabular-nums;
+    }
+
 
     .continue-payment {
         min-height: 48px;
@@ -1455,9 +1499,52 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
     }
 
     .checkout-due-row {
-        margin-top: 12px;
+        margin-top: 2px;
         padding-top: 12px;
         border-top: 1px dashed var(--bs-border-color);
+    }
+
+    .checkout-due-row .summary-total {
+        font-size: clamp(18px, 2vw, 22px);
+        line-height: 1.2;
+        text-align: right;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .checkout-remaining-row {
+        margin-top: 0;
+        padding-top: 10px;
+        border-top: 1px solid var(--bs-border-color);
+    }
+
+    @media (max-width: 575.98px) {
+        .checkout-summary .card-body {
+            padding: 1rem !important;
+        }
+
+        .checkout-price-breakdown {
+            gap: 8px;
+            padding: 12px;
+        }
+
+        .checkout-summary-row > span,
+        .checkout-remaining-row > span {
+            font-size: 13px !important;
+        }
+
+        .checkout-summary-row .summary-price,
+        .checkout-remaining-row .summary-price {
+            font-size: 16px;
+        }
+
+        .checkout-summary-row .summary-total {
+            font-size: 19px;
+        }
+
+        .checkout-due-row .summary-total {
+            font-size: 18px;
+        }
     }
 
     .checkout-confirm-modal .modal-body {
@@ -1587,6 +1674,18 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         const summaryDue =
             document.getElementById('summaryDue');
 
+        const summarySchemeRow =
+            document.getElementById('summarySchemeRow');
+
+        const summarySchemeLabel =
+            document.getElementById('summarySchemeLabel');
+
+        const summarySchemeDue =
+            document.getElementById('summarySchemeDue');
+
+        const summaryRemainingAmount =
+            document.getElementById('summaryRemainingAmount');
+
         const paymentSchemeInputs =
             document.querySelectorAll('.payment-scheme-input');
 
@@ -1597,6 +1696,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             document.getElementById('checkoutConfirmModal');
 
         const promos = @json($promos);
+        const BOOKING_FEE = @json((int) $bookingFeeAmount);
 
 
         /*
@@ -1652,8 +1752,28 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
             return {
                 value,
-                label: value === 'dp30' ? 'DP 30%' : value === 'dp50' ? 'DP 50%' : 'Bayar Lunas',
-                factor: value === 'dp30' ? 0.30 : value === 'dp50' ? 0.50 : 1,
+                label: value === 'no_dp' ? 'Tanpa DP' : value === 'dp30' ? 'DP 30%' : value === 'dp50' ? 'DP 50%' : 'Bayar Lunas',
+                factor: value === 'dp30' ? 0.30 : value === 'dp50' ? 0.50 : value === 'full' ? 1 : 0,
+            };
+        }
+
+        function calculatePaymentBreakdown(total, scheme) {
+            const safeTotal = Math.max(0, Math.round(Number(total) || 0));
+            const bookingFee = Math.min(BOOKING_FEE, safeTotal);
+            const netAmount = Math.max(0, safeTotal - bookingFee);
+            const schemeDue = Math.min(
+                netAmount,
+                Math.max(0, Math.round(netAmount * scheme.factor))
+            );
+            const dueNow = Math.min(safeTotal, bookingFee + schemeDue);
+
+            return {
+                total: safeTotal,
+                bookingFee,
+                netAmount,
+                schemeDue,
+                dueNow,
+                remainingAmount: Math.max(0, safeTotal - dueNow),
             };
         }
 
@@ -1877,19 +1997,56 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
             }
 
 
-                const total = Math.max(0, price + addonTotal - discount);
-    const bookingFee = Math.min(BOOKING_FEE, total);
-    const netAmount = Math.max(0, total - bookingFee);
-    const scheme = selectedPaymentScheme();
-    const schemeDue = Math.max(0, Math.round(netAmount * scheme.factor));
-    const dueNow = Math.max(0, Math.min(total, bookingFee + schemeDue));
+            const scheme = selectedPaymentScheme();
+            const breakdown = calculatePaymentBreakdown(
+                price + addonTotal - discount,
+                scheme
+            );
 
-    summaryTotal.textContent = formatRupiah(total);
-    const summaryBookingFee = document.getElementById('summaryBookingFee');
-    const summaryNetAmount = document.getElementById('summaryNetAmount');
-    if (summaryBookingFee) summaryBookingFee.textContent = formatRupiah(bookingFee);
-    if (summaryNetAmount) summaryNetAmount.textContent = formatRupiah(netAmount);
-    if (summaryDue) summaryDue.textContent = formatRupiah(dueNow);
+            summaryTotal.textContent = formatRupiah(breakdown.total);
+
+            const summaryBookingFee =
+                document.getElementById('summaryBookingFee');
+
+            const summaryNetAmount =
+                document.getElementById('summaryNetAmount');
+
+            if (summaryBookingFee) {
+                summaryBookingFee.textContent =
+                    formatRupiah(breakdown.bookingFee);
+            }
+
+            if (summaryNetAmount) {
+                summaryNetAmount.textContent =
+                    formatRupiah(breakdown.netAmount);
+            }
+
+            if (summarySchemeRow) {
+                summarySchemeRow.classList.toggle(
+                    'd-none',
+                    breakdown.schemeDue === 0
+                );
+            }
+
+            if (summarySchemeLabel) {
+                summarySchemeLabel.textContent =
+                    scheme.value === 'full' ? 'Pelunasan sisa' : 'DP dari sisa';
+            }
+
+            if (summarySchemeDue) {
+                summarySchemeDue.textContent =
+                    formatRupiah(breakdown.schemeDue);
+            }
+
+            if (summaryDue) {
+                summaryDue.textContent =
+                    formatRupiah(breakdown.dueNow);
+            }
+
+            if (summaryRemainingAmount) {
+                summaryRemainingAmount.textContent =
+                    formatRupiah(breakdown.remainingAmount);
+            }
 
 
             if (addonUuidInputs) {
@@ -2036,7 +2193,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                     (summaryTotal.textContent || '').replace(/\D/g, '')
                 ) || 0;
                 const scheme = selectedPaymentScheme();
-                const due = Math.round(total * scheme.factor);
+                const breakdown = calculatePaymentBreakdown(total, scheme);
 
                 document.getElementById('confirmOption').textContent =
                     selected.dataset.optionName || '-';
@@ -2047,7 +2204,9 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                 document.getElementById('confirmTotal').textContent =
                     formatRupiah(total);
                 document.getElementById('confirmDue').textContent =
-                    formatRupiah(due);
+                    formatRupiah(breakdown.dueNow);
+                document.getElementById('confirmRemaining').textContent =
+                    formatRupiah(breakdown.remainingAmount);
 
                 bootstrap.Modal.getOrCreateInstance(confirmModalElement).show();
             });

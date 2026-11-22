@@ -380,7 +380,8 @@ class PackageWeddingFeatureTest extends TestCase
 
         $response->assertRedirect(route('orders.show', $order->uuid));
 
-        $this->assertSame(5350000, (int) $order->amount);
+        $this->assertSame(2000000, (int) $order->amount);
+        $this->assertSame(5350000, (int) $order->total_amount);
         $this->assertSame([
             [
                 'uuid' => $decoration->uuid,
@@ -399,7 +400,8 @@ class PackageWeddingFeatureTest extends TestCase
         ], $order->addons);
         $this->assertDatabaseHas('orders', [
             'uuid' => $order->uuid,
-            'amount' => 5350000,
+            'amount' => 2000000,
+            'total_amount' => 5350000,
         ]);
 
         $this->actingAs($this->admin)
@@ -415,12 +417,16 @@ class PackageWeddingFeatureTest extends TestCase
         $package = $this->createPackage('Paket DP', 'paket-dp', 5000000, 4500000, 150, true);
         $option = $package->options()->firstOrFail();
 
-        $this->actingAs($this->member)
+        $checkoutResponse = $this->actingAs($this->member)
             ->get(route('checkout.package', $package->uuid))
-            ->assertOk()
+            ->assertOk();
+
+        $checkoutResponse
             ->assertSee('DP 30%')
             ->assertSee('DP 50%')
-            ->assertSee('Bayar Lunas');
+            ->assertSee('Bayar Lunas')
+            ->assertSee('id="summaryRemainingAmount"', false)
+            ->assertSee('const BOOKING_FEE = 2000000;', false);
 
         $this->actingAs($this->member)
             ->post(route('orders.store'), [
@@ -428,6 +434,8 @@ class PackageWeddingFeatureTest extends TestCase
                 'package_option_uuid' => $option->uuid,
                 'event_date' => $this->eventDate(),
                 'payment_scheme' => 'dp30',
+                'amount' => 1,
+                'total_amount' => 1,
             ])
             ->assertSessionHasNoErrors();
 
@@ -435,11 +443,12 @@ class PackageWeddingFeatureTest extends TestCase
             ->where('package_option_uuid', $option->uuid)
             ->firstOrFail();
 
-        $this->assertSame(1350000, (int) $order->amount);
+        $this->assertSame(2750000, (int) $order->amount);
+        $this->assertSame(4500000, (int) $order->total_amount);
         $this->assertSame('dp30', $order->promo_snapshot['payment_scheme']);
         $this->assertSame('DP 30%', $order->promo_snapshot['scheme_label']);
         $this->assertSame(4500000, (int) $order->promo_snapshot['full_amount']);
-        $this->assertSame(1350000, (int) $order->promo_snapshot['due_amount']);
+        $this->assertSame(2750000, (int) $order->promo_snapshot['due_now']);
 
         $this->actingAs($this->admin)
             ->get(route('orders.show', $order->uuid))
@@ -563,10 +572,12 @@ class PackageWeddingFeatureTest extends TestCase
 
         $order = Order::where('user_uuid', $this->member->uuid)->firstOrFail();
 
-        $this->assertSame(4200000, (int) $order->amount);
+        $this->assertSame(2000000, (int) $order->amount);
+        $this->assertSame(4200000, (int) $order->total_amount);
         $this->assertSame('HEMAT', $order->promo_code);
         $this->assertSame(500000, (int) $order->promo_discount);
         $this->assertSame(500000, (int) $order->promo_snapshot['discount']);
+        $this->assertSame(2000000, (int) $order->promo_snapshot['due_now']);
         $this->assertSame(2, $order->addons[0]['quantity']);
         $this->assertSame(200000, $order->addons[0]['line_total']);
         $this->assertDatabaseHas('package_promos', [

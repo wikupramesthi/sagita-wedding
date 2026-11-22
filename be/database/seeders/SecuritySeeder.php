@@ -4,20 +4,15 @@ namespace Database\Seeders;
 
 use App\Models\ManagementAccess\MenuGroup;
 use App\Models\ManagementAccess\MenuItem;
-use App\Models\ManagementAccess\Route;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class SecuritySeeder extends Seeder
 {
-    /**
-     * Seed permissions, menu, and route guard for the Security module.
-     * Idempotent: safe to re-run.
-     */
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
             'menu.keamanan',
@@ -30,10 +25,6 @@ class SecuritySeeder extends Seeder
             'failed-login.index',
             'failed-login.destroy',
         ];
-
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
-        }
 
         $menuGroup = MenuGroup::firstOrCreate(
             ['permission_name' => 'menu.keamanan'],
@@ -54,10 +45,7 @@ class SecuritySeeder extends Seeder
 
         foreach ($items as $item) {
             MenuItem::firstOrCreate(
-                [
-                    'route' => $item['route'],
-                    'menu_group_id' => $menuGroup->id,
-                ],
+                ['route' => $item['route'], 'menu_group_id' => $menuGroup->id],
                 [
                     'name' => $item['name'],
                     'status' => true,
@@ -67,34 +55,7 @@ class SecuritySeeder extends Seeder
             );
         }
 
-        $routes = [
-            'security.login-activity.index' => 'login-activity.index',
-            'security.login-activity.bulkDestroy' => 'login-activity.destroy',
-            'security.login-activity.clear' => 'login-activity.destroy',
-            'security.login-activity.destroy' => 'login-activity.destroy',
-            'security.login-lockout.index' => 'login-lockout.index',
-            'security.login-lockout.bulkDestroy' => 'login-lockout.destroy',
-            'security.login-lockout.destroy' => 'login-lockout.destroy',
-            'security.audit-log.index' => 'audit-log.index',
-            'security.audit-log.exportPdf' => 'audit-log.index',
-            'security.audit-log.bulkDestroy' => 'audit-log.destroy',
-            'security.audit-log.clear' => 'audit-log.destroy',
-            'security.audit-log.destroy' => 'audit-log.destroy',
-            'security.failed-login.index' => 'failed-login.index',
-            'security.failed-login.bulkDestroy' => 'failed-login.destroy',
-            'security.failed-login.clear' => 'failed-login.destroy',
-            'security.failed-login.destroy' => 'failed-login.destroy',
-        ];
-
-        foreach ($routes as $route => $permission) {
-            Route::firstOrCreate(
-                ['route' => $route],
-                ['permission_name' => $permission, 'status' => true]
-            );
-        }
-
-        $roles = Role::whereIn('name', ['super-admin', 'admin'])->get();
-        foreach ($roles as $role) {
+        foreach (Role::whereIn('name', ['super-admin', 'admin'])->get() as $role) {
             $role->givePermissionTo($permissions);
         }
     }

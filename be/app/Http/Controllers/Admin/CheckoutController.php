@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Package\Package;
+use App\Models\Payment\Order;
 use App\Support\MemberView;
 use Illuminate\Http\Request;
 
@@ -48,9 +49,9 @@ class CheckoutController extends Controller
         | Website / Desktop
         |--------------------------------------------------------------------------
         */
-        return view(
-            'pages.package.checkout',
-            compact('package')
-        );
+        return view('pages.package.checkout', [
+            'package' => $package,
+            'bookingFeeAmount' => (int) Order::BOOKING_FEE_AMOUNT,
+        ]);
     }
 }

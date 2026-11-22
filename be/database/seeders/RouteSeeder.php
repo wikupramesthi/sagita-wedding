@@ -3,40 +3,45 @@
 namespace Database\Seeders;
 
 use App\Models\ManagementAccess\Route;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class RouteSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        Model::unguard();
+        $staleRoutes = [
+            'banner.storeVideo',
+            'company.index',
+            'company.create',
+            'company.store',
+            'company.update',
+            'company.destroy',
+            'portofolio.index',
+            'portofolio.create',
+            'portofolio.store',
+            'portofolio.update',
+            'portofolio.destroy',
+            'poll.index',
+            'poll.create',
+            'poll.store',
+            'poll.update',
+            'poll.destroy',
+            'polls.index',
+            'package.member',
+        ];
 
-        // Dashboard
+        Route::whereIn('route', $staleRoutes)->delete();
+
         $this->upsertRoutes([
             ['route' => 'dashboard.index', 'permission_name' => 'dashboard.index'],
             ['route' => 'dashboard.refresh', 'permission_name' => 'dashboard.index'],
             ['route' => 'dashboard.export', 'permission_name' => 'dashboard.index'],
             ['route' => 'dashboard.export-pdf', 'permission_name' => 'dashboard.index'],
-        ]);
+            ['route' => 'dashboard.recommendations', 'permission_name' => 'dashboard.index'],
+            ['route' => 'search', 'permission_name' => 'dashboard.index'],
+            ['route' => 'dashboard.submitSumber', 'permission_name' => 'dashboard.submitSumber'],
 
-        // General Setting
-        // $this->upsertRoutes([
-        //     [
-        //         'route' => 'setting.index',
-        //         'permission_name' => 'setting_index',
-        //     ],
-        //     [
-        //         'route' => 'setting.update',
-        //         'permission_name' => 'setting_update',
-        //     ],
-        // ]);
-
-        // Konsultasi
-        $this->upsertRoutes([
             ['route' => 'konsultasi.index', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.create', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.store', 'permission_name' => 'konsultasi.index'],
@@ -68,151 +73,226 @@ class RouteSeeder extends Seeder
             ['route' => 'konsultasi.saved-filters.destroy', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.whatsapp', 'permission_name' => 'konsultasi.index'],
             ['route' => 'konsultasi.calendar-ics', 'permission_name' => 'konsultasi.index'],
+
+            ['route' => 'user.index', 'permission_name' => 'user.index'],
+            ['route' => 'user.store', 'permission_name' => 'user.store'],
+            ['route' => 'user.update', 'permission_name' => 'user.update'],
+            ['route' => 'user.destroy', 'permission_name' => 'user.destroy'],
+
+            ['route' => 'account.index', 'permission_name' => 'account.index'],
+            ['route' => 'account.create', 'permission_name' => 'account.index'],
+            ['route' => 'account.store', 'permission_name' => 'account.index'],
+            ['route' => 'account.edit', 'permission_name' => 'account.index'],
+            ['route' => 'account.show', 'permission_name' => 'account.index'],
+            ['route' => 'account.update', 'permission_name' => 'account.update'],
+            ['route' => 'account.destroy', 'permission_name' => 'account.index'],
+
+            ['route' => 'menu.index', 'permission_name' => 'menu-group.index'],
+            ['route' => 'menu.store', 'permission_name' => 'menu-group.store'],
+            ['route' => 'menu.update', 'permission_name' => 'menu-group.update'],
+            ['route' => 'menu.destroy', 'permission_name' => 'menu-group.destroy'],
+            ['route' => 'menu.item.index', 'permission_name' => 'menu-item.index'],
+            ['route' => 'menu.item.store', 'permission_name' => 'menu-item.store'],
+            ['route' => 'menu.item.update', 'permission_name' => 'menu-item.update'],
+            ['route' => 'menu.item.destroy', 'permission_name' => 'menu-item.destroy'],
+
+            ['route' => 'route.index', 'permission_name' => 'route.index'],
+            ['route' => 'route.store', 'permission_name' => 'route.store'],
+            ['route' => 'route.update', 'permission_name' => 'route.update'],
+            ['route' => 'route.destroy', 'permission_name' => 'route.destroy'],
+
+            ['route' => 'role.index', 'permission_name' => 'role.index'],
+            ['route' => 'role.store', 'permission_name' => 'role.store'],
+            ['route' => 'role.update', 'permission_name' => 'role.update'],
+            ['route' => 'role.destroy', 'permission_name' => 'role.destroy'],
+
+            ['route' => 'permission.index', 'permission_name' => 'permission.index'],
+            ['route' => 'permission.store', 'permission_name' => 'permission.store'],
+            ['route' => 'permission.update', 'permission_name' => 'permission.update'],
+            ['route' => 'permission.destroy', 'permission_name' => 'permission.destroy'],
+
+            ['route' => 'faq.index', 'permission_name' => 'faq.index'],
+            ['route' => 'faq.create', 'permission_name' => 'faq.store'],
+            ['route' => 'faq.store', 'permission_name' => 'faq.store'],
+            ['route' => 'faq.show', 'permission_name' => 'faq.index'],
+            ['route' => 'faq.edit', 'permission_name' => 'faq.update'],
+            ['route' => 'faq.update', 'permission_name' => 'faq.update'],
+            ['route' => 'faq.destroy', 'permission_name' => 'faq.destroy'],
+
+            ['route' => 'categories.index', 'permission_name' => 'categories.index'],
+            ['route' => 'categories.create', 'permission_name' => 'categories.store'],
+            ['route' => 'categories.store', 'permission_name' => 'categories.store'],
+            ['route' => 'categories.show', 'permission_name' => 'categories.index'],
+            ['route' => 'categories.edit', 'permission_name' => 'categories.update'],
+            ['route' => 'categories.update', 'permission_name' => 'categories.update'],
+            ['route' => 'categories.destroy', 'permission_name' => 'categories.destroy'],
+
+            ['route' => 'banner.index', 'permission_name' => 'banner.index'],
+            ['route' => 'banner.create', 'permission_name' => 'banner.store'],
+            ['route' => 'banner.store', 'permission_name' => 'banner.store'],
+            ['route' => 'banner.show', 'permission_name' => 'banner.index'],
+            ['route' => 'banner.edit', 'permission_name' => 'banner.update'],
+            ['route' => 'banner.update', 'permission_name' => 'banner.update'],
+            ['route' => 'banner.destroy', 'permission_name' => 'banner.destroy'],
+            ['route' => 'banner.loadMore', 'permission_name' => 'banner.index'],
+            ['route' => 'banner.fotoPicker', 'permission_name' => 'banner.index'],
+            ['route' => 'banner.albumFotos', 'permission_name' => 'banner.index'],
+            ['route' => 'banner.modal', 'permission_name' => 'banner.index'],
+            ['route' => 'banner.storeAlbum', 'permission_name' => 'banner.store'],
+            ['route' => 'banner.updateAlbum', 'permission_name' => 'banner.update'],
+            ['route' => 'banner.destroyAlbum', 'permission_name' => 'banner.destroy'],
+
+            ['route' => 'articles.index', 'permission_name' => 'articles.index'],
+            ['route' => 'articles.create', 'permission_name' => 'articles.create'],
+            ['route' => 'articles.store', 'permission_name' => 'articles.store'],
+            ['route' => 'articles.edit', 'permission_name' => 'articles.update'],
+            ['route' => 'articles.update', 'permission_name' => 'articles.update'],
+            ['route' => 'articles.destroy', 'permission_name' => 'articles.destroy'],
+            ['route' => 'articles.bulkDestroy', 'permission_name' => 'articles.destroy'],
+
+            ['route' => 'filedownload.index', 'permission_name' => 'filedownload.index'],
+            ['route' => 'filedownload.store', 'permission_name' => 'filedownload.store'],
+            ['route' => 'filedownload.update', 'permission_name' => 'filedownload.update'],
+            ['route' => 'filedownload.destroy', 'permission_name' => 'filedownload.destroy'],
+            ['route' => 'filedownload.download', 'permission_name' => 'filedownload.index'],
+
+            ['route' => 'vendors_categories.index', 'permission_name' => 'vendors_categories.index'],
+            ['route' => 'vendors_categories.store', 'permission_name' => 'vendors_categories.store'],
+            ['route' => 'vendors_categories.update', 'permission_name' => 'vendors_categories.update'],
+            ['route' => 'vendors_categories.destroy', 'permission_name' => 'vendors_categories.destroy'],
+
+            ['route' => 'packages.index', 'permission_name' => 'package.index'],
+            ['route' => 'packages.create', 'permission_name' => 'package.store'],
+            ['route' => 'packages.store', 'permission_name' => 'package.store'],
+            ['route' => 'packages.edit', 'permission_name' => 'package.update'],
+            ['route' => 'packages.update', 'permission_name' => 'package.update'],
+            ['route' => 'packages.show', 'permission_name' => 'package.index'],
+            ['route' => 'packages.destroy', 'permission_name' => 'package.destroy'],
+            ['route' => 'packages.duplicate', 'permission_name' => 'package.store'],
+            ['route' => 'packages.bulk', 'permission_name' => 'package.update'],
+            ['route' => 'packages.export', 'permission_name' => 'package.index'],
+            ['route' => 'packages.preview', 'permission_name' => 'package.index'],
+            ['route' => 'packages.reorder', 'permission_name' => 'package.update'],
+            ['route' => 'packages.toggle-status', 'permission_name' => 'package.update'],
+            ['route' => 'packages.member', 'permission_name' => 'package.member'],
+            ['route' => 'packages.quotation', 'permission_name' => 'package.member'],
+            ['route' => 'packages.quotation.download', 'permission_name' => 'package.member'],
+            ['route' => 'packages.compare.index', 'permission_name' => 'package.member'],
+            ['route' => 'packages.compare.add', 'permission_name' => 'package.member'],
+            ['route' => 'packages.compare.remove', 'permission_name' => 'package.member'],
+            ['route' => 'packages.compare.clear', 'permission_name' => 'package.member'],
+            ['route' => 'packages.wishlist.index', 'permission_name' => 'package.member'],
+            ['route' => 'packages.wishlist.toggle', 'permission_name' => 'package.member'],
+            ['route' => 'package-promos.index', 'permission_name' => 'package.promo.index'],
+            ['route' => 'package-promos.store', 'permission_name' => 'package.promo.store'],
+            ['route' => 'package-promos.update', 'permission_name' => 'package.promo.update'],
+            ['route' => 'package-promos.destroy', 'permission_name' => 'package.promo.destroy'],
+
+            ['route' => 'pages.index', 'permission_name' => 'pages.index'],
+            ['route' => 'pages.create', 'permission_name' => 'pages.create'],
+            ['route' => 'pages.store', 'permission_name' => 'pages.store'],
+            ['route' => 'pages.show', 'permission_name' => 'pages.index'],
+            ['route' => 'pages.edit', 'permission_name' => 'pages.update'],
+            ['route' => 'pages.update', 'permission_name' => 'pages.update'],
+            ['route' => 'pages.updateSidebar', 'permission_name' => 'pages.update'],
+            ['route' => 'pages.destroy', 'permission_name' => 'pages.destroy'],
+
+            ['route' => 'testimonial.index', 'permission_name' => 'testimonial.index'],
+            ['route' => 'testimonial.create', 'permission_name' => 'testimonial.store'],
+            ['route' => 'testimonial.store', 'permission_name' => 'testimonial.store'],
+            ['route' => 'testimonial.show', 'permission_name' => 'testimonial.index'],
+            ['route' => 'testimonial.edit', 'permission_name' => 'testimonial.update'],
+            ['route' => 'testimonial.update', 'permission_name' => 'testimonial.update'],
+            ['route' => 'testimonial.destroy', 'permission_name' => 'testimonial.destroy'],
+
+            ['route' => 'events.index', 'permission_name' => 'events.index'],
+            ['route' => 'events.create', 'permission_name' => 'events.store'],
+            ['route' => 'events.store', 'permission_name' => 'events.store'],
+            ['route' => 'events.show', 'permission_name' => 'events.index'],
+            ['route' => 'events.edit', 'permission_name' => 'events.update'],
+            ['route' => 'events.update', 'permission_name' => 'events.update'],
+            ['route' => 'events.destroy', 'permission_name' => 'events.destroy'],
+
+            ['route' => 'venues.index', 'permission_name' => 'venues.index'],
+            ['route' => 'venues.create', 'permission_name' => 'venues.create'],
+            ['route' => 'venues.store', 'permission_name' => 'venues.store'],
+            ['route' => 'venues.edit', 'permission_name' => 'venues.update'],
+            ['route' => 'venues.update', 'permission_name' => 'venues.update'],
+            ['route' => 'venues.destroy', 'permission_name' => 'venues.destroy'],
+
+            ['route' => 'vendor.index', 'permission_name' => 'vendor.index'],
+            ['route' => 'vendor.create', 'permission_name' => 'vendor.store'],
+            ['route' => 'vendor.store', 'permission_name' => 'vendor.store'],
+            ['route' => 'vendor.show', 'permission_name' => 'vendor.index'],
+            ['route' => 'vendor.edit', 'permission_name' => 'vendor.update'],
+            ['route' => 'vendor.update', 'permission_name' => 'vendor.update'],
+            ['route' => 'vendor.destroy', 'permission_name' => 'vendor.destroy'],
+            ['route' => 'vendor.archive', 'permission_name' => 'vendor.index'],
+            ['route' => 'vendor.restore', 'permission_name' => 'vendor.update'],
+            ['route' => 'vendor.mobile', 'permission_name' => 'vendor.mobile'],
+
+            ['route' => 'checkout.package', 'permission_name' => 'checkout.package'],
+            ['route' => 'pengguna.index', 'permission_name' => 'pengguna.index'],
+            ['route' => 'pengguna.export', 'permission_name' => 'pengguna.export'],
+            ['route' => 'pengguna.update-status', 'permission_name' => 'pengguna.index'],
+
+            ['route' => 'memberships.index', 'permission_name' => 'memberships.index'],
+            ['route' => 'memberships.show', 'permission_name' => 'memberships.show'],
+            ['route' => 'memberships.export', 'permission_name' => 'memberships.index'],
+
+            ['route' => 'orders.index', 'permission_name' => 'orders.index'],
+            ['route' => 'orders.store', 'permission_name' => 'orders.store'],
+            ['route' => 'orders.show', 'permission_name' => 'orders.show'],
+            ['route' => 'orders.approve', 'permission_name' => 'orders.approve'],
+            ['route' => 'orders.reject', 'permission_name' => 'orders.reject'],
+            ['route' => 'orders.proof', 'permission_name' => 'orders.proof'],
+            ['route' => 'orders.proof.show', 'permission_name' => 'orders.proof'],
+            ['route' => 'orders.bulk', 'permission_name' => 'orders.bulk'],
+            ['route' => 'orders.bulk-undo', 'permission_name' => 'orders.bulkUndo'],
+            ['route' => 'orders.claim', 'permission_name' => 'orders.assign'],
+            ['route' => 'orders.quick-view', 'permission_name' => 'orders.quickView'],
+            ['route' => 'orders.exportCsv', 'permission_name' => 'orders.exportCsv'],
+            ['route' => 'orders.exportPdf', 'permission_name' => 'orders.exportCsv'],
+            ['route' => 'orders.report', 'permission_name' => 'orders.exportCsv'],
+            ['route' => 'orders.audit', 'permission_name' => 'orders.audit'],
+            ['route' => 'orders.whatsapp', 'permission_name' => 'orders.whatsapp'],
+            ['route' => 'orders.saved-filters', 'permission_name' => 'orders.savedFilters'],
+            ['route' => 'orders.saved-filters.store', 'permission_name' => 'orders.savedFilters'],
+            ['route' => 'orders.saved-filters.apply', 'permission_name' => 'orders.savedFilters'],
+            ['route' => 'orders.saved-filters.default', 'permission_name' => 'orders.savedFilters'],
+            ['route' => 'orders.saved-filters.destroy', 'permission_name' => 'orders.savedFilters'],
+            ['route' => 'orders.saved-filters.pin', 'permission_name' => 'orders.savedFilters'],
+            ['route' => 'orders.saved-filters.move', 'permission_name' => 'orders.savedFilters'],
+            ['route' => 'orders.remind-sla', 'permission_name' => 'orders.audit'],
+            ['route' => 'orders.activity', 'permission_name' => 'orders.audit'],
+            ['route' => 'orders.reorder', 'permission_name' => 'orders.index'],
+            ['route' => 'orders.payments.store', 'permission_name' => 'orders.store'],
+            ['route' => 'orders.payments.approve', 'permission_name' => 'orders.approve'],
+            ['route' => 'orders.payments.reject', 'permission_name' => 'orders.reject'],
+            ['route' => 'orders.payments.proof', 'permission_name' => 'orders.proof'],
+
+            ['route' => 'security.login-activity.index', 'permission_name' => 'login-activity.index'],
+            ['route' => 'security.login-activity.bulkDestroy', 'permission_name' => 'login-activity.destroy'],
+            ['route' => 'security.login-activity.clear', 'permission_name' => 'login-activity.destroy'],
+            ['route' => 'security.login-activity.destroy', 'permission_name' => 'login-activity.destroy'],
+            ['route' => 'security.login-lockout.index', 'permission_name' => 'login-lockout.index'],
+            ['route' => 'security.login-lockout.bulkDestroy', 'permission_name' => 'login-lockout.destroy'],
+            ['route' => 'security.login-lockout.destroy', 'permission_name' => 'login-lockout.destroy'],
+            ['route' => 'security.audit-log.index', 'permission_name' => 'audit-log.index'],
+            ['route' => 'security.audit-log.exportPdf', 'permission_name' => 'audit-log.index'],
+            ['route' => 'security.audit-log.bulkDestroy', 'permission_name' => 'audit-log.destroy'],
+            ['route' => 'security.audit-log.clear', 'permission_name' => 'audit-log.destroy'],
+            ['route' => 'security.audit-log.destroy', 'permission_name' => 'audit-log.destroy'],
+            ['route' => 'security.failed-login.index', 'permission_name' => 'failed-login.index'],
+            ['route' => 'security.failed-login.bulkDestroy', 'permission_name' => 'failed-login.destroy'],
+            ['route' => 'security.failed-login.clear', 'permission_name' => 'failed-login.destroy'],
+            ['route' => 'security.failed-login.destroy', 'permission_name' => 'failed-login.destroy'],
+
+            ['route' => 'website-identity.index', 'permission_name' => 'website-identity.index'],
+            ['route' => 'website-identity.update', 'permission_name' => 'website-identity.update'],
         ]);
 
-        // User Management
-        $this->upsertRoutes([
-            [
-                'route' => 'user.index',
-                'permission_name' => 'user.index',
-            ],
-            [
-                'route' => 'user.store',
-                'permission_name' => 'user.store',
-            ],
-            [
-                'route' => 'user.update',
-                'permission_name' => 'user.update',
-            ],
-            [
-                'route' => 'user.destroy',
-                'permission_name' => 'user.destroy',
-            ],
-        ]);
-
-        // User Profile
-        // $this->upsertRoutes([
-        //     [
-        //         'route' => 'profile.edit',
-        //         'permission_name' => 'profile.edit',
-        //     ],
-        // ]);
-
-        // Menu Group Management
-        $this->upsertRoutes([
-            [
-                'route' => 'menu.index',
-                'permission_name' => 'menu-group.index',
-            ],
-            [
-                'route' => 'menu.store',
-                'permission_name' => 'menu-group.store',
-            ],
-            [
-                'route' => 'menu.update',
-                'permission_name' => 'menu-group.update',
-            ],
-            [
-                'route' => 'menu.destroy',
-                'permission_name' => 'menu-group.destroy',
-            ],
-        ]);
-
-        // Menu Item Management
-        $this->upsertRoutes([
-            [
-                'route' => 'menu.item.index',
-                'permission_name' => 'menu-item.index',
-            ],
-            [
-                'route' => 'menu.item.store',
-                'permission_name' => 'menu-item.store',
-            ],
-            [
-                'route' => 'menu.item.update',
-                'permission_name' => 'menu-item.update',
-            ],
-            [
-                'route' => 'menu.item.destroy',
-                'permission_name' => 'menu-item.destroy',
-            ],
-        ]);
-
-        // Route Management
-        $this->upsertRoutes([
-            [
-                'route' => 'route.index',
-                'permission_name' => 'route.index',
-            ],
-            [
-                'route' => 'route.store',
-                'permission_name' => 'route.store',
-            ],
-            [
-                'route' => 'route.update',
-                'permission_name' => 'route.update',
-            ],
-            [
-                'route' => 'route.destroy',
-                'permission_name' => 'route.destroy',
-            ],
-        ]);
-
-        // Role Management
-        $this->upsertRoutes([
-            [
-                'route' => 'role.index',
-                'permission_name' => 'role.index',
-            ],
-            [
-                'route' => 'role.store',
-                'permission_name' => 'role.store',
-            ],
-            [
-                'route' => 'role.update',
-                'permission_name' => 'role.update',
-            ],
-            [
-                'route' => 'role.destroy',
-                'permission_name' => 'role.destroy',
-            ],
-        ]);
-
-        // Permission Management
-        $this->upsertRoutes([
-            [
-                'route' => 'permission.index',
-                'permission_name' => 'permission.index',
-            ],
-            [
-                'route' => 'permission.store',
-                'permission_name' => 'permission.store',
-            ],
-            [
-                'route' => 'permission.update',
-                'permission_name' => 'permission.update',
-            ],
-            [
-                'route' => 'permission.destroy',
-                'permission_name' => 'permission.destroy',
-            ],
-        ]);
-
-        // Email Setting
-        $this->upsertRoutes([
-            [
-                'route' => 'email-setting.index',
-                'permission_name' => 'email-setting.index',
-            ],
-            [
-                'route' => 'email-setting.update',
-                'permission_name' => 'email-setting.update',
-            ],
-            [
-                'route' => 'email-setting.test',
-                'permission_name' => 'email-setting.test',
-            ],
-        ]);
+        $this->deduplicateRoutes();
     }
 
     private function upsertRoutes(array $routes): void
@@ -227,6 +307,21 @@ class RouteSeeder extends Seeder
                     'updated_at' => now(),
                 ]
             );
+        }
+    }
+
+    private function deduplicateRoutes(): void
+    {
+        $seen = [];
+
+        foreach (DB::table('routes')->select('id', 'route')->orderBy('id')->get() as $route) {
+            if (isset($seen[$route->route])) {
+                DB::table('routes')->where('id', $route->id)->delete();
+
+                continue;
+            }
+
+            $seen[$route->route] = true;
         }
     }
 }

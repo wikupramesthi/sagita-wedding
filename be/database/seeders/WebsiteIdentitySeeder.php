@@ -4,32 +4,42 @@ namespace Database\Seeders;
 
 use App\Models\ManagementAccess\MenuGroup;
 use App\Models\ManagementAccess\MenuItem;
-use App\Models\ManagementAccess\Route;
+use App\Models\WebsiteIdentity;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class WebsiteIdentitySeeder extends Seeder
 {
-    /**
-     * Seed permissions, menu, and route guard for the
-     * Website Identity module. Idempotent: safe to re-run.
-     */
     public function run(): void
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $permissions = [
-            'website-identity.index',
-            'website-identity.update',
-        ];
+        WebsiteIdentity::updateOrCreate(
+            ['uuid' => '39860859-6a83-4cae-aa27-659334baff1c'],
+            [
+                'site_name' => 'Sagita Wedding',
+                'site_title' => 'Sagita Wedding',
+                'tagline' => 'Wedding Planner',
+                'short_description' => 'Wedding planning, concept, and celebration services designed with elegance and care.',
+                'email' => null,
+                'phone' => null,
+                'address' => null,
+                'facebook_url' => null,
+                'instagram_url' => null,
+                'youtube_url' => null,
+                'tiktok_url' => null,
+                'meta_title' => null,
+                'meta_description' => null,
+                'meta_keywords' => null,
+                'google_analytics_id' => null,
+                'google_site_verification' => null,
+                'logo' => null,
+                'favicon' => null,
+                'og_image' => null,
+            ]
+        );
 
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
-        }
-
-        // Attach to "Pengaturan Sistem" group if it exists, otherwise create it.
         $menuGroup = MenuGroup::where('name', 'Pengaturan Sistem')->first()
             ?? MenuGroup::firstOrCreate(
                 ['permission_name' => 'menu.pengaturan'],
@@ -42,33 +52,19 @@ class WebsiteIdentitySeeder extends Seeder
             );
 
         MenuItem::updateOrCreate(
+            ['route' => 'website-identity.index', 'menu_group_id' => $menuGroup->id],
             [
-                'route' => 'website-identity.index',
-                'menu_group_id' => $menuGroup->id,
-            ],
-            [
-                'name' => 'Identitas Website',
+                'name' => 'Website Identity',
                 'status' => true,
                 'permission_name' => 'website-identity.index',
-                'position' => 2,
+                'position' => 99,
             ]
         );
 
-        $routes = [
-            'website-identity.index' => 'website-identity.index',
-            'website-identity.update' => 'website-identity.update',
-        ];
-
-        foreach ($routes as $route => $permission) {
-            Route::firstOrCreate(
-                ['route' => $route],
-                ['permission_name' => $permission, 'status' => true]
-            );
+        foreach (Role::whereIn('name', ['super-admin', 'admin'])->get() as $role) {
+            $role->givePermissionTo(['website-identity.index', 'website-identity.update']);
         }
 
-        $roles = Role::whereIn('name', ['super-admin', 'admin'])->get();
-        foreach ($roles as $role) {
-            $role->givePermissionTo($permissions);
-        }
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }
