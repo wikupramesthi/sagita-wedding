@@ -578,6 +578,123 @@ class Consultation extends Model
         return $this->follow_up_at?->translatedFormat('d M Y H:i') ?? '—';
     }
 
+    public function getLeadJourneyAttribute(): array
+    {
+        $isConverted = $this->lead_status === 'Converted' || $this->converted_to_booking_at !== null;
+        $isLost = $this->lead_status === 'Lost';
+        $hasContact = $this->lead_status !== 'New' || $this->follow_up_at !== null;
+        $hasSchedule = $this->consultation_date !== null;
+
+        return [
+            [
+                'icon' => 'bx-user-plus',
+                'title' => 'Lead masuk',
+                'description' => 'Formulir diterima dari '.$this->source_label,
+                'time' => $this->created_at?->translatedFormat('d M Y H:i') ?? '—',
+                'state' => 'done',
+            ],
+            [
+                'icon' => 'bx-phone-call',
+                'title' => 'Kontak awal',
+                'description' => $hasContact
+                    ? 'Status '.$this->lead_status_label.'. '.$this->follow_up_label
+                    : 'Belum ada kontak atau tindak lanjut tercatat',
+                'time' => $hasContact
+                    ? ($this->follow_up_at?->translatedFormat('d M Y H:i') ?? $this->updated_at?->translatedFormat('d M Y H:i') ?? '—')
+                    : 'Menunggu',
+                'state' => $hasContact ? 'done' : 'current',
+            ],
+            [
+                'icon' => 'bx-calendar-check',
+                'title' => 'Konsultasi dijadwalkan',
+                'description' => $hasSchedule
+                    ? $this->method_label.' · '.$this->status_label
+                    : 'Jadwal konsultasi belum ditentukan',
+                'time' => $hasSchedule
+                    ? $this->consultation_date->translatedFormat('d M Y').($this->consultation_time ? ' · '.$this->consultation_time : '')
+                    : 'Menunggu',
+                'state' => $hasSchedule ? 'done' : ($hasContact ? 'current' : 'pending'),
+            ],
+            [
+                'icon' => $isLost ? 'bx-x-circle' : 'bx-check-double',
+                'title' => $isLost ? 'Lead ditutup' : 'Konversi booking',
+                'description' => $isConverted
+                    ? 'Pesanan berhasil dibuat'
+                    : ($isLost ? 'Lead tidak dilanjutkan' : 'Menunggu keputusan pelanggan'),
+                'time' => $isConverted
+                    ? ($this->converted_to_booking_at?->translatedFormat('d M Y H:i') ?? $this->updated_at?->translatedFormat('d M Y H:i') ?? '—')
+                    : ($isLost ? ($this->updated_at?->translatedFormat('d M Y H:i') ?? '—') : 'Menunggu'),
+                'state' => $isConverted ? 'done' : ($isLost ? 'failed' : 'pending'),
+            ],
+        ];
+    }
+
+    public function getLeadJourneyProgressAttribute(): int
+    {
+        $steps = $this->lead_journey;
+        $done = count(array_filter($steps, static fn (array $step): bool => $step['state'] === 'done'));
+
+        return (int) round($done / count($steps) * 100);
+    }
+
+    public function getLeadJourneyDoneAttribute(): int
+    {
+        return count(array_filter(
+            $this->lead_journey,
+            static fn (array $step): bool => $step['state'] === 'done'
+        ));
+    }
+
+    public function getLeadJourneyNextActionAttribute(): array
+    {
+        if ($this->lead_status === 'Converted' || $this->converted_to_booking_at !== null) {
+            return [
+                'tone' => 'success',
+                'message' => 'Lead sudah dikonversi menjadi pesanan. Lanjutkan penyiapan layanan dari halaman pesanan.',
+            ];
+        }
+
+        if ($this->lead_status === 'Lost') {
+            return [
+                'tone' => 'danger',
+                'message' => 'Lead ditutup. Tidak ada tindak lanjut aktif untuk calon pelanggan ini.',
+            ];
+        }
+
+        if ($this->follow_up_state === 'overdue') {
+            return [
+                'tone' => 'danger',
+                'message' => 'Tindak lanjut terlewat. Hubungi pelanggan sekarang untuk menjaga respons.',
+            ];
+        }
+
+        if ($this->follow_up_state === 'today') {
+            return [
+                'tone' => 'warning',
+                'message' => 'Tindak lanjut dijadwalkan hari ini. Pastikan pelanggan dihubungi sesuai jadwal.',
+            ];
+        }
+
+        if ($this->lead_status === 'New' && $this->follow_up_at === null) {
+            return [
+                'tone' => 'primary',
+                'message' => 'Hubungi pelanggan untuk mengonfirmasi rencana dan kebutuhan acara.',
+            ];
+        }
+
+        if ($this->consultation_date === null) {
+            return [
+                'tone' => 'primary',
+                'message' => 'Tentukan jadwal konsultasi agar pelanggan masuk ke tahap berikutnya.',
+            ];
+        }
+
+        return [
+            'tone' => 'primary',
+            'message' => 'Pantau tindak lanjut dan pastikan jadwal konsultasi tetap sesuai rencana.',
+        ];
+    }
+
     public function getWhatsappLinkAttribute(): string
     {
         $number = self::normalizeWhatsapp($this->whatsapp);

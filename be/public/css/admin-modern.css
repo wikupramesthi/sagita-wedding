@@ -5764,46 +5764,266 @@ html[data-bs-theme="dark"] .lead-avatar {
     font-size: 0.85rem;
 }
 
-.lead-timeline {
+.lead-journey-card {
+    overflow: hidden;
+    border: 1px solid var(--bs-border-color, #e9ecef);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(33, 52, 38, 0.05);
+}
+
+.lead-journey-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, var(--modern-primary-soft, #f5f0ea), #fff 70%);
+    border-bottom: 1px solid var(--bs-border-color, #e9ecef);
+}
+
+.lead-journey-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.lead-journey-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    background: var(--modern-primary, #6e5b42);
+    color: #fff;
+    font-size: 20px;
+}
+
+.lead-journey-heading h5 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.lead-journey-heading small {
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.lead-journey-progress-summary {
+    text-align: right;
+    flex: 0 0 auto;
+}
+
+.lead-journey-progress-value {
+    color: var(--modern-primary, #6e5b42);
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.lead-journey-progress-label {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
+}
+
+.lead-journey-bar {
+    height: 5px;
+    background: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.05));
+}
+
+.lead-journey-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 0 999px 999px 0;
+    background: linear-gradient(90deg, var(--modern-primary, #6e5b42), #c9a961);
+    transition: width 0.35s ease;
+}
+
+.lead-journey-body {
+    padding: 1.25rem;
+}
+
+.lead-journey-steps {
     list-style: none;
     margin: 0;
     padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.lead-timeline li {
+.lead-journey-step {
     position: relative;
-    display: flex;
-    gap: 12px;
-    padding-bottom: 1.25rem;
+    padding-right: 0.75rem;
 }
 
-.lead-timeline li:last-child {
-    padding-bottom: 0;
-}
-
-.lead-timeline li:not(:last-child)::before {
+.lead-journey-step:not(:last-child)::after {
     content: "";
     position: absolute;
-    left: 17px;
-    top: 36px;
-    bottom: 0;
-    width: 2px;
+    top: 18px;
+    left: 38px;
+    right: 0;
+    height: 2px;
     background: var(--bs-border-color, #dee2e6);
+    z-index: 0;
 }
 
-.lead-timeline-icon {
+.lead-journey-step.is-done:not(:last-child)::after {
+    background: var(--modern-primary, #6e5b42);
+}
+
+.lead-journey-step-icon {
+    position: relative;
+    z-index: 1;
     width: 36px;
     height: 36px;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    flex: 0 0 auto;
+    margin-bottom: 0.75rem;
+    background: #fff;
+    border: 2px solid var(--bs-border-color, #dee2e6);
+    color: var(--bs-secondary-color, #6c757d);
     font-size: 17px;
-    z-index: 1;
 }
 
-.lead-timeline strong {
-    font-size: 0.9rem;
+.lead-journey-step.is-done .lead-journey-step-icon {
+    background: var(--modern-primary, #6e5b42);
+    border-color: var(--modern-primary, #6e5b42);
+    color: #fff;
+    box-shadow: 0 0 0 4px var(--modern-primary-soft, #f5f0ea);
+}
+
+.lead-journey-step.is-current .lead-journey-step-icon {
+    background: #fff8ec;
+    border-color: #d99b2b;
+    color: #a86a00;
+    box-shadow: 0 0 0 4px #fffaf0;
+}
+
+.lead-journey-step.is-failed .lead-journey-step-icon {
+    background: #fff1f1;
+    border-color: #dc3545;
+    color: #c62828;
+}
+
+.lead-journey-step-body strong {
+    display: block;
+    font-size: 0.85rem;
+    line-height: 1.35;
+}
+
+.lead-journey-step-body time {
+    display: block;
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.72rem;
+    margin-top: 0.15rem;
+}
+
+.lead-journey-step-body p {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    margin: 0.4rem 0 0;
+}
+
+.lead-journey-next {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    background: var(--modern-primary-soft, #f5f0ea);
+    border: 1px solid var(--bs-border-color, #e9ecef);
+}
+
+.lead-journey-next-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    background: #fff;
+    color: var(--modern-primary, #6e5b42);
+    font-size: 17px;
+}
+
+.lead-journey-next strong {
+    display: block;
+    font-size: 0.8rem;
+}
+
+.lead-journey-next div div {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.78rem;
+    margin-top: 0.15rem;
+}
+
+.lead-journey-next.is-danger {
+    background: #fff5f5;
+    border-color: #f5c2c7;
+}
+
+.lead-journey-next.is-danger .lead-journey-next-icon {
+    color: #c62828;
+}
+
+.lead-journey-next.is-warning {
+    background: #fffaf0;
+    border-color: #ffe0a3;
+}
+
+.lead-journey-next.is-warning .lead-journey-next-icon {
+    color: #a86a00;
+}
+
+.lead-journey-next.is-success {
+    background: #f1f8f2;
+    border-color: #c9e6cf;
+}
+
+.lead-journey-next.is-success .lead-journey-next-icon {
+    color: #24653a;
+}
+
+@media (max-width: 767.98px) {
+    .lead-journey-head {
+        align-items: flex-start;
+    }
+
+    .lead-journey-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .lead-journey-step {
+        display: flex;
+        gap: 0.85rem;
+        padding: 0 0 1.25rem;
+    }
+
+    .lead-journey-step:last-child {
+        padding-bottom: 0;
+    }
+
+    .lead-journey-step:not(:last-child)::after {
+        top: 38px;
+        bottom: 0;
+        left: 17px;
+        right: auto;
+        width: 2px;
+        height: auto;
+    }
+
+    .lead-journey-step-icon {
+        margin-bottom: 0;
+    }
+
+    .lead-journey-step-body {
+        padding-top: 0.1rem;
+    }
 }
 
 .pdf-preview-frame {

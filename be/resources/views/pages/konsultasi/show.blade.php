@@ -308,39 +308,43 @@
                 </div>
             </div>
 
-            <div class="card lead-section-card">
-                <div class="card-header lead-section-header">
-                    <span class="lead-section-icon"><i class="bi bi-diagram-2"></i></span>
-                    <div>
-                        <h5>Riwayat Lead</h5>
-                        <small>Perjalanan calon pelanggan</small>
+            <div class="card lead-journey-card">
+                <div class="lead-journey-head">
+                    <div class="lead-journey-heading">
+                        <span class="lead-journey-icon"><i class="bi bi-signpost-split"></i></span>
+                        <div>
+                            <h5>Riwayat Lead</h5>
+                            <small>Perjalanan calon pelanggan dari masuk hingga konversi</small>
+                        </div>
+                    </div>
+                    <div class="lead-journey-progress-summary">
+                        <div class="lead-journey-progress-value">{{ $consultation->lead_journey_progress }}%</div>
+                        <div class="lead-journey-progress-label">{{ $consultation->lead_journey_done }} dari {{ count($consultation->lead_journey) }} tahap</div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <ul class="lead-timeline">
-                        <li>
-                            <span class="lead-timeline-icon bg-primary"><i class="bx bx-user-plus"></i></span>
-                            <div><strong>Formulir diterima</strong><div class="small text-muted">{{ $consultation->created_at->translatedFormat('d M Y H:i') }}</div></div>
-                        </li>
-                        <li>
-                            <span class="lead-timeline-icon {{ $consultation->follow_up_state === 'overdue' ? 'bg-danger' : 'bg-info text-dark' }}"><i class="bx bx-phone-call"></i></span>
-                            <div>
-                                <strong>Tindak lanjut: {{ $consultation->follow_up_label }}</strong>
-                                <div class="small text-muted">{{ $consultation->follow_up_date_label }}</div>
-                            </div>
-                        </li>
-                        <li>
-                            <span class="lead-timeline-icon {{ $consultation->converted_to_booking_at ? 'bg-success' : 'bg-secondary' }}"><i class="bx bx-check-double"></i></span>
-                            <div>
-                                <strong>Konversi booking</strong>
-                                <div class="small text-muted">{{ $consultation->converted_to_booking_at?->translatedFormat('d M Y H:i') ?? 'Belum dikonversi' }}</div>
-                            </div>
-                        </li>
-                        <li>
-                            <span class="lead-timeline-icon bg-light text-dark"><i class="bx bx-refresh"></i></span>
-                            <div><strong>Terakhir diperbarui</strong><div class="small text-muted">{{ $consultation->updated_at->translatedFormat('d M Y H:i') }}</div></div>
-                        </li>
-                    </ul>
+                <div class="lead-journey-bar" role="progressbar" aria-label="Progres perjalanan lead" aria-valuenow="{{ $consultation->lead_journey_progress }}" aria-valuemin="0" aria-valuemax="100">
+                    <span style="width: {{ $consultation->lead_journey_progress }}%"></span>
+                </div>
+                <div class="card-body lead-journey-body">
+                    <ol class="lead-journey-steps">
+                        @foreach ($consultation->lead_journey as $step)
+                            <li class="lead-journey-step is-{{ $step['state'] }}">
+                                <span class="lead-journey-step-icon"><i class="bx {{ $step['icon'] }}"></i></span>
+                                <div class="lead-journey-step-body">
+                                    <strong>{{ $step['title'] }}</strong>
+                                    <time>{{ $step['time'] }}</time>
+                                    <p>{{ $step['description'] }}</p>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ol>
+                    <div class="lead-journey-next is-{{ $consultation->lead_journey_next_action['tone'] }}">
+                        <span class="lead-journey-next-icon"><i class="bx bx-bolt-circle"></i></span>
+                        <div>
+                            <strong>Langkah berikutnya</strong>
+                            <div>{{ $consultation->lead_journey_next_action['message'] }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

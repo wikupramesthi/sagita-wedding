@@ -338,22 +338,30 @@
     }
 
     .mobile-package-card.featured {
-        border-color: #8b6fa8;
-        box-shadow: 0 10px 28px rgba(91, 67, 112, .12);
+        border: 0;
+        background: #2f5f5a;
+        color: #fff;
+        box-shadow: 0 14px 32px rgba(36, 78, 73, .24);
+        padding-top: 56px;
     }
 
     .featured-label {
         position: absolute;
-        top: 0;
-        right: 0;
+        top: -1px;
+        left: 50%;
         z-index: 1;
+        transform: translateX(-50%);
         padding: 7px 13px;
-        border-radius: 0 0 0 13px;
-        background: #74558e;
+        border-radius: 0 0 10px 10px;
+        background: #fff;
+        color: #2f5f5a;
         color: #fff;
+        background: #3d756f;
         font-size: 9px;
         font-weight: 800;
         letter-spacing: .04em;
+        white-space: nowrap;
+        box-shadow: 0 5px 12px rgba(25, 69, 64, .12);
     }
 
     .package-cover {
@@ -375,7 +383,7 @@
 
     .mobile-package-card.featured .package-card-header {
         padding-right: 0;
-        padding-top: 14px;
+        padding-top: 0;
     }
 
     .package-name {
@@ -391,6 +399,20 @@
         font-size: 12px;
         line-height: 1.6;
         color: var(--muted);
+    }
+
+    .mobile-package-card.featured .package-name,
+    .mobile-package-card.featured .package-description,
+    .mobile-package-card.featured .options-heading span,
+    .mobile-package-card.featured .features-heading,
+    .mobile-package-card.featured .package-features li,
+    .mobile-package-card.featured .option-name,
+    .mobile-package-card.featured .option-info span,
+    .mobile-package-card.featured .package-price-label,
+    .mobile-package-card.featured .package-price,
+    .mobile-package-card.featured .package-price span,
+    .mobile-package-card.featured .package-old-price {
+        color: #fff;
     }
 
     .package-meta {

@@ -106,6 +106,9 @@ class KonsultasiPipelineTest extends TestCase
             ->get(route('konsultasi.show', $primary))
             ->assertOk()
             ->assertSee('Riwayat Perubahan')
+            ->assertSee('Riwayat Lead')
+            ->assertSee('Perjalanan calon pelanggan')
+            ->assertSee('Langkah berikutnya')
             ->assertSee('Status Calon Pelanggan');
 
         $this->actingAs($this->user)
