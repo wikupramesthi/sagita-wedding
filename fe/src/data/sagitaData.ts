@@ -22,7 +22,6 @@ export const sagitaData = {
 		{ key: "portfolio", label: "Portfolio", href: "#" },
 		{ key: "vendors", label: "Vendors", href: "/vendors" },
 		{ key: "venues", label: "Venues", href: "/venues" },
-		{ key: "faq", label: "FAQs", href: "/faq" },
 	],
 	contact: {
 		mapEmbed:

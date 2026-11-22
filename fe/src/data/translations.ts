@@ -372,20 +372,20 @@ const rawTranslations = {
 
 		// Approach section
 		ourApproach: "Our approach",
-		moreThanJust: "More than just",
-		moreThanJustItalic: "yoga",
+		moreThanJust: "Thoughtful wedding",
+		moreThanJustItalic: "planning",
 		approachCards: [
 			{
-				title: "Therapeutic Approach",
-				desc: "Every class is designed with your mind and body's needs in mind.",
+				title: "A Clear Plan",
+				desc: "We help shape a considered plan around your priorities and celebration.",
 			},
 			{
-				title: "Wide Variety of Classes",
-				desc: "Explore over 50 different classes with various levels and intensity.",
+				title: "Coordinated Vendors",
+				desc: "We coordinate the details with your chosen wedding vendors.",
 			},
 			{
-				title: "Inclusive Community",
-				desc: "All levels welcome. Your practice, your pace, your journey.",
+				title: "Wedding-Day Support",
+				desc: "Our team helps keep the celebration running smoothly so you can enjoy the day.",
 			},
 		],
 
@@ -778,20 +778,20 @@ const rawTranslations = {
 
 		// Approach section
 		ourApproach: "Pendekatan kami",
-		moreThanJust: "Lebih dari sekadar",
-		moreThanJustItalic: "yoga",
+		moreThanJust: "Pernikahan yang",
+		moreThanJustItalic: "terencana",
 		approachCards: [
 			{
-				title: "Pendekatan Terapeutik",
-				desc: "Setiap kelas dirancang dengan memperhatikan kebutuhan pikiran dan tubuh Anda.",
+				title: "Rencana yang Terarah",
+				desc: "Kami membantu menyusun rencana sesuai prioritas dan perayaan yang Anda inginkan.",
 			},
 			{
-				title: "Beragam Pilihan Kelas",
-				desc: "Jelajahi lebih dari 50 kelas berbeda dengan berbagai tingkat dan intensitas.",
+				title: "Koordinasi Vendor",
+				desc: "Kami membantu mengoordinasikan detail bersama vendor pilihan Anda.",
 			},
 			{
-				title: "Komunitas Inklusif",
-				desc: "Semua level dipersilakan. Praktik Anda, ritme Anda, perjalanan Anda.",
+				title: "Pendampingan Hari Pernikahan",
+				desc: "Tim kami membantu menjaga rangkaian acara berjalan lancar agar Anda bisa menikmati hari istimewa.",
 			},
 		],
 

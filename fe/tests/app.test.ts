@@ -49,6 +49,7 @@ const PACKAGES_PAGE = {
 
 let homeSliderBanners: unknown[] = [];
 let homeTestimonials: unknown = [];
+let homeEvents: unknown[] = [];
 let homeVenues: unknown = [
 	{
 		uuid: "v1",
@@ -58,6 +59,7 @@ let homeVenues: unknown = [
 		excerpt: "Tempat untuk perayaan istimewa.",
 	},
 ];
+let homeWeddingContentReady = true;
 
 const getPageBatch = vi.fn(
 	async (page: string, params: Record<string, unknown> = {}) => {
@@ -101,10 +103,11 @@ const getPageBatch = vi.fn(
 				return { stats: null, articles: [] };
 			case "home":
 				return {
+					weddingContentReady: homeWeddingContentReady,
 					sliderBanners: homeSliderBanners,
 					venues: homeVenues,
 					packages: [],
-					events: [],
+					events: homeEvents,
 					testimonials: homeTestimonials,
 				};
 			case "venues":
@@ -151,6 +154,8 @@ beforeEach(() => {
 	});
 	homeSliderBanners = [];
 	homeTestimonials = [];
+	homeEvents = [];
+	homeWeddingContentReady = true;
 	homeVenues = [
 		{
 			uuid: "v1",
@@ -481,7 +486,7 @@ describe("pageScript wiring", () => {
 
 	it("beranda menampilkan venue dari data batch", async () => {
 		const res = await request(app).get("/").set("Cookie", "locale=id");
-		expect(res.text).toContain('href="#home-venues"');
+		expect(res.text).toContain('href="#home-approach"');
 		expect(res.text).toContain('id="home-venues"');
 		expect(res.text).toContain("VENUE PILIHAN UNTUK PERAYAAN ANDA");
 		expect(res.text).toContain("untuk hari istimewa Anda");
@@ -496,6 +501,33 @@ describe("pageScript wiring", () => {
 		expect(res.text).not.toContain('href="/classes"');
 		expect(res.text).toContain('id="accessibilityWidget"');
 		expect(res.text).toContain('aria-controls="accessibilityPanel"');
+	});
+
+	it("beranda menyembunyikan konten CMS sebelum konten wedding disetujui", async () => {
+		homeWeddingContentReady = false;
+		homeSliderBanners = [
+			{ posisi: "slider", gambar: "https://example.test/yoga-banner.webp" },
+		];
+		homeVenues = [{ name: "Yoga Roots Studio", slug: "yoga-roots" }];
+		homeEvents = [{ judul: "Yoga Night at the Museum" }];
+		homeTestimonials = [
+			{ nama: "Yoga Guest", isi_testimoni: "A peaceful yoga class." },
+		];
+
+		const res = await request(app).get("/").set("Cookie", "locale=id");
+
+		expect(res.status).toBe(200);
+		expect(res.text).not.toContain("Yoga Roots Studio");
+		expect(res.text).not.toContain("Yoga Night at the Museum");
+		expect(res.text).not.toContain("yoga-banner.webp");
+		expect(res.text).not.toContain("Yoga Guest");
+		expect(res.text).not.toContain("Art of Living");
+		expect(res.text).not.toContain('id="home-venues"');
+		expect(res.text).not.toContain('id="eventsData"');
+		expect(res.text).not.toContain('class="home-testimonials-section');
+		expect(res.text).toContain('id="home-approach"');
+		expect(res.text).toContain('href="#home-approach" class="scroll-indicator');
+		expect(res.text).toContain("Pendampingan Hari Pernikahan");
 	});
 
 	it("beranda menampilkan maksimal empat venue", async () => {
@@ -562,7 +594,7 @@ describe("pageScript wiring", () => {
 		expect(res.status).toBe(200);
 		expect(
 			res.text.indexOf('class="home-testimonials-section'),
-		).toBeGreaterThan(res.text.indexOf("Acara &amp; Pengumuman"));
+		).toBeGreaterThan(res.text.indexOf('id="home-approach"'));
 		expect(res.text).toContain("CERITA PERNIKAHAN");
 		expect(res.text).toContain("Dengarkan kisah");
 		expect(res.text).toContain("pasangan ini");
@@ -596,11 +628,17 @@ describe("pageScript wiring", () => {
 	it("beranda menampilkan FAQ ringkas setelah testimoni", async () => {
 		const res = await request(app).get("/").set("Cookie", "locale=id");
 		expect(res.status).toBe(200);
+		const navbar =
+			res.text.match(/<header id="navbar"[\s\S]*?<\/header>/)?.[0] || "";
+		expect(navbar).not.toContain('href="/faq"');
+		expect(res.text).toContain('id="home-faq"');
 		expect(res.text.indexOf('id="home-faq"')).toBeGreaterThan(
 			res.text.indexOf('class="home-testimonials-section'),
 		);
-		expect(res.text).toContain("INFORMASI UNTUK ANDA");
-		expect(res.text).toContain("Ada yang ingin");
+		expect(res.text).not.toContain(
+			'<p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3">INFORMASI UNTUK ANDA</p>',
+		);
+		expect(res.text).not.toContain("Ada yang ingin");
 		expect(res.text).toContain('data-home-faq-tab="start"');
 		expect(res.text).toContain('data-home-faq-tab="packages"');
 		expect(res.text).toContain('class="reveal self-start lg:sticky lg:top-24"');
@@ -637,7 +675,7 @@ describe("pageScript wiring", () => {
 		expect(slideUrls).not.toContain("slide-6.webp");
 		expect(res.text).toContain('fetchpriority="high"');
 		expect(res.text).toContain("data-home-slide-image");
-		expect(res.text).toContain('href="#home-venues" class="scroll-indicator');
+		expect(res.text).toContain('href="#home-approach" class="scroll-indicator');
 		expect(res.text).toContain("text-sm font-semibold tracking-[0.18em]");
 		expect(res.text).not.toContain("bg-white/90 px-4 py-2");
 		expect(res.text).toMatch(

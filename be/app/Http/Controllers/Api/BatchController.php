@@ -97,6 +97,7 @@ class BatchController extends Controller
     private function home(): array
     {
         return [
+            'weddingContentReady' => config('frontend.home_wedding_content_ready'),
             'sliderBanners' => $this->sliderBanners(),
             'testimonials' => array_slice($this->data(
                 app(TestimonialController::class)->index(),

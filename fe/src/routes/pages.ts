@@ -48,7 +48,10 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 	try {
 		const data = await getPageBatch("home").catch(() => null);
 		const isID = res.locals.lang === "id";
-		const sliderBanners = getHomeSliderBanners(data?.sliderBanners);
+		const weddingContentReady = data?.weddingContentReady === true;
+		const sliderBanners = weddingContentReady
+			? getHomeSliderBanners(data?.sliderBanners)
+			: [];
 
 		res.render("pages/home", {
 			title: isID
@@ -59,15 +62,24 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 				: "Plan your wedding with Sagita Wedding Planner. Explore venues, coordinate trusted vendors, and get thoughtful support on your wedding day.",
 			heroNav: sliderBanners.length > 0,
 			pageScript: "home",
-			assetV: `${res.locals.assetV}-home-slider23`,
+			assetV: `${res.locals.assetV}-home-slider24`,
+			weddingContentReady,
 			sliderBanners,
-			venueDataLoaded: Array.isArray(data?.venues),
-			venues: Array.isArray(data?.venues) ? data.venues.slice(0, 4) : [],
-			packages: data?.packages || [],
-			events: data?.events || [],
-			testimonials: Array.isArray(data?.testimonials)
-				? data.testimonials.slice(0, 10)
-				: [],
+			venueDataLoaded: weddingContentReady && Array.isArray(data?.venues),
+			venues:
+				weddingContentReady && Array.isArray(data?.venues)
+					? data.venues.slice(0, 4)
+					: [],
+			packages:
+				weddingContentReady && Array.isArray(data?.packages)
+					? data.packages
+					: [],
+			events:
+				weddingContentReady && Array.isArray(data?.events) ? data.events : [],
+			testimonials:
+				weddingContentReady && Array.isArray(data?.testimonials)
+					? data.testimonials.slice(0, 10)
+					: [],
 			homeFaqs: getHomeFaqs(isID ? "id" : "en"),
 		});
 	} catch (err) {

@@ -64,12 +64,13 @@
     <% } %>
 
     <!-- scroll indicator -->
-    <a href="#home-venues" class="scroll-indicator absolute bottom-0 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 pt-2 pb-1 text-sand-900 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand-800 anim-fade-in cursor-pointer" style="animation-delay:.9s" aria-label="<%= t.scroll %>">
+    <a href="#home-approach" class="scroll-indicator absolute bottom-0 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 pt-2 pb-1 text-sand-900 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand-800 anim-fade-in cursor-pointer" style="animation-delay:.9s" aria-label="<%= t.scroll %>">
       <span class="text-sm font-semibold tracking-[0.18em] uppercase"><%= t.scroll %></span>
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-down" class="lucide lucide-chevron-down scroll-chevron h-5 w-5"><path d="m6 9 6 6 6-6"></path></svg>
     </a>
   </section>
 
+  <% if (weddingContentReady) { %>
   <% const homeVenues = (venues || []).slice(0, 4); %>
   <!-- ======================= WEDDING VENUES ======================= -->
   <section id="home-venues" class="home-venues-section py-20">
@@ -123,13 +124,14 @@
       </a>
     </div>
   </section>
+  <% } %>
 
   <!-- ======================= OUR APPROACH ======================= -->
   <%
     const imgPool = ['/img/Sagita Wedding_about1.jpg', '/img/Sagita Wedding_about2.jpg', '/img/sita-manwani.jpg'];
     const approachCards = (t.approachCards || []).map((a, i) => ({ ...a, img: imgPool[i % imgPool.length] }));
   %>
-  <section class="py-16 bg-sand-100/50 relative">
+  <section id="home-approach" class="py-16 bg-sand-100/50 relative">
     <div class="site-container">
       <div class="reveal text-center mb-16">
           <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.ourApproach %></p>
@@ -152,6 +154,7 @@
   </section>
 
   <!-- ======================= UPCOMING / EVENTS ======================= -->
+  <% if (weddingContentReady && Array.isArray(events) && events.length > 0) { %>
   <section class="py-16 bg-clay-50/30">
     <div class="site-container">
       <div class="reveal flex items-end justify-between mb-12">
@@ -218,9 +221,10 @@
       </div>
     </div>
   </section>
+  <% } %>
 
   <% const homeTestimonials = (testimonials || []).slice(0, 10); %>
-  <% if (homeTestimonials.length) { %>
+  <% if (weddingContentReady && homeTestimonials.length) { %>
     <section class="home-testimonials-section py-20 sm:py-24">
       <div class="site-container">
         <div class="home-testimonials-heading reveal">
@@ -283,10 +287,7 @@
       <div class="site-container">
         <div class="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
           <div class="reveal self-start lg:sticky lg:top-24">
-            <p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3"><%= t.homeFaqEyebrow %></p>
-            <h2 class="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-sage-900"><%= t.homeFaqTitleA %> <span class="italic"><%= t.homeFaqTitleItalic %></span></h2>
-            <p class="mt-5 max-w-md text-sm leading-relaxed text-stone-warm sm:text-base"><%= t.homeFaqDesc %></p>
-            <div class="mt-8 border-t border-sand-200" role="group" aria-label="<%= t.homeFaqEyebrow %>">
+            <div class="border-t border-sand-200" role="group" aria-label="<%= t.homeFaqEyebrow %>">
               <% homeFaqGroups.forEach((group, i) => { %>
                 <button type="button" class="home-faq-tab group flex w-full items-center justify-between border-b border-sand-200 py-3.5 text-left text-sm font-medium text-sage-900 transition-colors duration-200 hover:text-terracotta-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage-500/30 sm:text-base" data-home-faq-tab="<%= group.id %>" aria-controls="home-faq-group-<%= group.id %>" aria-pressed="<%= i === 0 ? 'true' : 'false' %>">
                   <span><%= group.kategori %></span>

@@ -17,7 +17,10 @@ class BatchApiTest extends TestCase
     {
         parent::setUp();
 
-        config(['services.frontend_api.key' => self::API_KEY]);
+        config([
+            'services.frontend_api.key' => self::API_KEY,
+            'frontend.home_wedding_content_ready' => false,
+        ]);
     }
 
     private function api()
@@ -49,18 +52,30 @@ class BatchApiTest extends TestCase
             ->assertJsonPath('page', 'home')
             ->assertJsonStructure([
                 'data' => [
+                    'weddingContentReady',
                     'testimonials',
                     'venues',
                     'packages',
                     'events',
                 ],
-            ]);
+            ])
+            ->assertJsonPath('data.weddingContentReady', false);
 
         $this->assertStringContainsString(
             'no-cache',
             (string) $response->headers->get('Cache-Control'),
         );
         $this->assertNotEmpty($response->headers->get('ETag'));
+    }
+
+    public function test_home_batch_reports_wedding_content_readiness(): void
+    {
+        config(['frontend.home_wedding_content_ready' => true]);
+
+        $this->api()
+            ->getJson('/api/batch/home')
+            ->assertOk()
+            ->assertJsonPath('data.weddingContentReady', true);
     }
 
     public function test_home_batch_limits_testimonials_to_ten_items(): void
