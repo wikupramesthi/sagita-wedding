@@ -247,7 +247,7 @@
     <div class="site-container">
       <div class="grid items-center gap-8 rounded-[2rem] bg-white p-5 shadow-sm sm:p-8 min-[800px]:grid-cols-[1.05fr_0.95fr] min-[1200px]:grid-cols-[1.2fr_0.8fr] lg:gap-12 lg:p-12">
         <div class="py-2 sm:py-4">
-          <p class="mb-4 inline-flex rounded-full bg-[#fce7ef] px-4 py-2 text-xs font-semibold text-[#c63d71]"><%= t.homePreparationEyebrow %></p>
+          <p class="mb-4 inline-flex rounded-full bg-[#fce7ef] px-4 py-2 text-xs font-semibold text-[#b83060]"><%= t.homePreparationEyebrow %></p>
           <h2 class="home-preparation-title max-w-xl text-3xl font-bold leading-[1.12] tracking-tight text-sage-900 sm:text-4xl"><%= t.homePreparationTitle %></h2>
           <p class="mt-5 max-w-xl text-base leading-relaxed text-stone-warm sm:text-lg"><%= t.homePreparationDescription %></p>
           <ul class="mt-6 space-y-3.5">
@@ -271,9 +271,9 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg>
                   <% } %>
                 </span>
-                <span class="min-w-0 flex-1 text-sm leading-snug <%= step.done ? 'text-slate-400 line-through' : 'font-medium text-sage-900' %>"><%= step.title %></span>
+                <span class="min-w-0 flex-1 text-sm leading-snug <%= step.done ? 'text-slate-500 line-through' : 'font-medium text-sage-900' %>"><%= step.title %></span>
                 <span class="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-600 sm:px-2.5 sm:text-xs"><%= step.phase %></span>
-                <span class="hidden shrink-0 text-[10px] text-slate-400 min-[1200px]:inline min-[1200px]:text-xs"><%= step.timing %></span>
+                <span class="hidden shrink-0 text-[10px] text-slate-500 min-[1200px]:inline min-[1200px]:text-xs"><%= step.timing %></span>
               </li>
             <% }) %>
           </ol>
