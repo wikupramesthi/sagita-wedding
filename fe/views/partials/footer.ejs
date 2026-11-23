@@ -9,7 +9,7 @@
         <div class="mb-4">
           <img src="<%= site.logoUrl || site.logoWhiteUrl || "/img/logo.WebP" %>" alt="<%= site.name %>" width="160" height="40" class="footer-logo object-contain" loading="lazy" decoding="async">
         </div>
-        <p class="break-words text-sm leading-relaxed text-sand-400"><%= site.tagline %><%= site.description ? ` — ${site.description}` : "" %></p>
+        <p class="break-words text-sm leading-relaxed text-sand-400"><%= site.description ? site.description : "" %></p>
         <% if (site.instagramHref || site.facebookHref || site.youtubeHref || site.tiktokHref) { %>
         <div class="mt-5 flex flex-wrap items-center gap-2.5">
           <% if (site.instagramHref) { %>

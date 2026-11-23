@@ -607,6 +607,11 @@ describe("pageScript wiring", () => {
 
 	it("beranda menampilkan venue dari data batch", async () => {
 		const res = await request(app).get("/").set("Cookie", "locale=id");
+		expect(res.text).toContain("Hari istimewa,");
+		expect(res.text).toContain("dirancang dengan penuh makna.");
+		expect(res.text).toContain(
+			"Dari konsep hingga pelaksanaan, setiap detail kami persiapkan untuk mencerminkan cerita dan impian Anda.",
+		);
 		expect(res.text).toContain('href="#home-planning-summary"');
 		expect(res.text).toContain('id="home-planning-summary"');
 		expect(res.text).toContain(
@@ -617,7 +622,8 @@ describe("pageScript wiring", () => {
 		);
 		expect(res.text).toContain('id="home-venues"');
 		expect(res.text).toContain("VENUE PILIHAN UNTUK PERAYAAN ANDA");
-		expect(res.text).toContain("untuk hari istimewa Anda");
+		expect(res.text).toContain("Pilihan Venue");
+		expect(res.text).toContain("untuk Anda");
 		expect(res.text).toContain(
 			"home-venues-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4",
 		);
@@ -678,6 +684,12 @@ describe("pageScript wiring", () => {
 		const res = await request(app).get("/").set("Cookie", "locale=id");
 
 		expect(res.status).toBe(200);
+		const preparationPosition = res.text.indexOf('id="home-preparation"');
+		const articlesPosition = res.text.indexOf('id="home-articles"');
+		expect(preparationPosition).toBeGreaterThan(-1);
+		expect(preparationPosition).toBeLessThan(articlesPosition);
+		expect(res.text).toContain("Rencanakan pernikahan dengan lebih tenang");
+		expect(res.text).toContain("Koordinasi vendor");
 		expect(res.text).toContain("BACAAN SEPUTAR PERNIKAHAN");
 		expect(res.text).toContain("Artikel &amp;");
 		expect(res.text).toContain("Inspirasi Pernikahan");
@@ -718,6 +730,7 @@ describe("pageScript wiring", () => {
 
 		expect(res.status).toBe(200);
 		expect(res.text).toContain("Paket Pernikahan");
+		expect(res.text).toContain("untuk Setiap Impian");
 		expect(res.text).toContain("Lihat semua paket");
 		expect(res.text).toContain('href="/packages"');
 		expect(res.text).toContain("sm:justify-between");

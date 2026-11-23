@@ -292,10 +292,10 @@ const rawTranslations = {
 		bookClassBtn: "Book a Class →",
 
 		// Hero
-		heroLine1: "A celebration,",
-		heroLine2: "thoughtfully yours.",
+		heroLine1: "A meaningful day,",
+		heroLine2: "thoughtfully brought to life.",
 		heroSub:
-			"Wedding planning shaped around your story, your priorities, and the people you love.",
+			"From concept to celebration, we prepare every detail to reflect your story and dreams.",
 		heroBookClass: "Book Your First Class",
 		heroSliderControls: "Hero image controls",
 		heroSlidePrevious: "Previous slide",
@@ -391,6 +391,49 @@ const rawTranslations = {
 		homePackageStartingAt: "Starting at",
 		homePackageViewDetails: "View package details",
 		viewAllPackages: "View all packages",
+
+		// Homepage planning checklist
+		homePreparationEyebrow: "PLANNING WITH SAGITA",
+		homePreparationTitle: "A calmer, more considered wedding plan",
+		homePreparationDescription:
+			"From your concept and budget to packages, vendors, and the wedding-day flow, our team helps bring every detail together around your needs.",
+		homePreparationHighlights: [
+			"Start with your needs and priorities",
+			"Choose packages, venues, and vendors that fit",
+			"Coordinate the details through your wedding day",
+		],
+		homePreparationSteps: [
+			{
+				title: "Discuss needs and ideas",
+				phase: "Consult",
+				timing: "Start",
+				done: true,
+			},
+			{
+				title: "Shape concept and budget",
+				phase: "Budget",
+				timing: "Planning",
+				done: true,
+			},
+			{
+				title: "Choose package and venue",
+				phase: "Venue",
+				timing: "Selection",
+				done: false,
+			},
+			{
+				title: "Coordinate vendors",
+				phase: "Vendors",
+				timing: "Coordination",
+				done: false,
+			},
+			{
+				title: "Plan the wedding-day flow",
+				phase: "Schedule",
+				timing: "Wedding day",
+				done: false,
+			},
+		],
 
 		// Homepage articles
 		homeArticlesEyebrow: "WEDDING PLANNING READS",
@@ -708,10 +751,10 @@ const rawTranslations = {
 		bookClassBtn: "Daftar Kelas →",
 
 		// Hero
-		heroLine1: "Perayaan yang",
-		heroLine2: "dirancang untuk Anda.",
+		heroLine1: "Hari istimewa,",
+		heroLine2: "dirancang dengan penuh makna.",
 		heroSub:
-			"Perencanaan pernikahan yang berangkat dari kisah, prioritas, dan orang-orang terkasih Anda.",
+			"Dari konsep hingga pelaksanaan, setiap detail kami persiapkan untuk mencerminkan cerita dan impian Anda.",
 		heroBookClass: "Pesan Kelas Pertamamu",
 		heroSliderControls: "Kontrol gambar utama",
 		heroSlidePrevious: "Slide sebelumnya",
@@ -732,8 +775,8 @@ const rawTranslations = {
 			"Prioritas dan kebutuhan dibahas sejak awal agar keputusan tetap sesuai anggaran.",
 
 		venuesEyebrow: "VENUE PILIHAN UNTUK PERAYAAN ANDA",
-		venuesTitle: "Temukan venue",
-		venuesTitleItalic: "untuk hari istimewa Anda",
+		venuesTitle: "Pilihan Venue",
+		venuesTitleItalic: "untuk Anda",
 		venuesDescription:
 			"Jelajahi pilihan venue pernikahan yang dapat menjadikan perayaan Anda terasa istimewa.",
 		venuesLoading: "Memuat venue pilihan...",
@@ -802,12 +845,55 @@ const rawTranslations = {
 
 		// Homepage packages
 		homePackagesEyebrow: "LAYANAN UNTUK HARI ISTIMEWA",
-		homePackagesTitle: "Paket",
-		homePackagesTitleItalic: "Pernikahan",
+		homePackagesTitle: "Paket Pernikahan",
+		homePackagesTitleItalic: "untuk Setiap Impian",
 		homePackagePopular: "PALING DIMINATI",
 		homePackageStartingAt: "Mulai dari",
 		homePackageViewDetails: "Lihat detail paket",
 		viewAllPackages: "Lihat semua paket",
+
+		// Homepage planning checklist
+		homePreparationEyebrow: "PERENCANAAN BERSAMA SAGITA",
+		homePreparationTitle: "Rencanakan pernikahan dengan lebih tenang",
+		homePreparationDescription:
+			"Tim Sagita membantu menyusun konsep, anggaran, paket, dan vendor—serta menyelaraskan setiap detail hingga hari pernikahan.",
+		homePreparationHighlights: [
+			"Mulai dari kebutuhan dan prioritas Anda",
+			"Pilih paket, venue, dan vendor yang sesuai",
+			"Koordinasikan detail hingga hari pernikahan",
+		],
+		homePreparationSteps: [
+			{
+				title: "Bahas kebutuhan dan konsep",
+				phase: "Konsultasi",
+				timing: "Awal",
+				done: true,
+			},
+			{
+				title: "Susun konsep dan anggaran",
+				phase: "Anggaran",
+				timing: "Perencanaan",
+				done: true,
+			},
+			{
+				title: "Pilih paket dan venue",
+				phase: "Venue",
+				timing: "Pemilihan",
+				done: false,
+			},
+			{
+				title: "Koordinasi vendor",
+				phase: "Vendor",
+				timing: "Koordinasi",
+				done: false,
+			},
+			{
+				title: "Susun alur acara hari-H",
+				phase: "Rundown",
+				timing: "Hari-H",
+				done: false,
+			},
+		],
 
 		// Homepage articles
 		homeArticlesEyebrow: "BACAAN SEPUTAR PERNIKAHAN",

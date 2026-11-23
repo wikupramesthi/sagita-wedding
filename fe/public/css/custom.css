@@ -978,7 +978,7 @@ textarea:focus {
 
 .consultation-intro h1 {
 	margin-top: 1.25rem;
-	font-family: "Playfair Display", Georgia, serif;
+	font-family: var(--font-body, system-ui, sans-serif);
 	font-size: var(--site-title-size);
 	font-weight: 500;
 	line-height: 1.12;
@@ -1009,7 +1009,7 @@ textarea:focus {
 
 .consultation-seo h2 {
 	color: #e8d8bc;
-	font-family: "Playfair Display", Georgia, serif;
+	font-family: var(--font-body, system-ui, sans-serif);
 	font-size: 1rem;
 	font-weight: 600;
 	line-height: 1.5;
@@ -1065,7 +1065,7 @@ textarea:focus {
 	position: relative;
 	z-index: 1;
 	margin-top: 1.5rem;
-	font-family: "Playfair Display", Georgia, serif;
+	font-family: var(--font-body, system-ui, sans-serif);
 	font-size: 0.83rem;
 	font-style: italic;
 }
@@ -1143,7 +1143,7 @@ textarea:focus {
 }
 
 .consultation-section-label h2 {
-	font-family: "Playfair Display", Georgia, serif;
+	font-family: var(--font-body, system-ui, sans-serif);
 	font-size: 1.15rem;
 	font-weight: 600;
 	color: #403a34;
@@ -1539,7 +1539,7 @@ textarea:focus {
 
 .consultation-success-content h2 {
 	margin-top: 1.25rem;
-	font-family: "Playfair Display", Georgia, serif;
+	font-family: var(--font-body, system-ui, sans-serif);
 	font-size: 1.8rem;
 	color: #403a34;
 }
@@ -3343,6 +3343,7 @@ header[data-home] .mobile-drawer {
 		box-shadow 0.35s ease;
 }
 
+.home-preparation-title,
 .home-planning-summary__title,
 .home-planning-summary__card-title {
 	font-family: var(--font-body, system-ui, sans-serif);
