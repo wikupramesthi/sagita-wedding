@@ -406,8 +406,13 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
                     <div class="row g-3">
 
-                        @foreach ($package->features as $feature)
-
+                        @foreach ($package->features->groupBy(fn ($feature) => trim((string) $feature->category)) as $category => $features)
+                        @if ($category !== '')
+                        <div class="col-12">
+                            <h6 class="fw-semibold mb-0">{{ $category }}</h6>
+                        </div>
+                        @endif
+                        @foreach ($features as $feature)
                         <div class="col-md-6">
 
                             <div class="feature-item">
@@ -423,7 +428,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                             </div>
 
                         </div>
-
+                        @endforeach
                         @endforeach
 
                     </div>

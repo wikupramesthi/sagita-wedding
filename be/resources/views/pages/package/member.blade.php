@@ -328,19 +328,26 @@
                     </div>
 
                     <div class="features-title">Yang Termasuk</div>
+                    @forelse ($package->features->groupBy(fn ($feature) => trim((string) $feature->category)) as $category => $features)
+                    @if ($category !== '')
+                    <h6 class="fw-semibold mt-3 mb-2">{{ $category }}</h6>
+                    @endif
                     <ul class="package-features">
-                        @forelse ($package->features as $feature)
+                        @foreach ($features as $feature)
                         <li>
                             <i class="bi bi-check-circle-fill"></i>
                             <span>{{ $feature->feature }}</span>
                         </li>
-                        @empty
+                        @endforeach
+                    </ul>
+                    @empty
+                    <ul class="package-features">
                         <li>
                             <i class="bi bi-check-circle-fill"></i>
                             <span>Akses ke layanan Sagita Wedding Organizer</span>
                         </li>
-                        @endforelse
                     </ul>
+                    @endforelse
 
                     @if (\Illuminate\Support\Facades\Route::has('packages.wishlist.toggle') && \Illuminate\Support\Facades\Route::has('packages.compare.add') && \Illuminate\Support\Facades\Route::has('packages.quotation'))
                     <div class="package-card-tools">

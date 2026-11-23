@@ -18,6 +18,7 @@ class PackageFeature extends Model
 
     protected $fillable = [
         'package_uuid',
+        'category',
         'feature',
         'sort_order',
     ];

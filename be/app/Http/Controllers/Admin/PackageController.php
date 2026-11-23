@@ -295,6 +295,29 @@ class PackageController extends Controller
 
             'features.*' => [
                 'nullable',
+                function ($attribute, $value, $fail) {
+                    if (is_string($value)) {
+                        if (mb_strlen($value) > 255) {
+                            $fail('Manfaat paket maksimal 255 karakter.');
+                        }
+
+                        return;
+                    }
+
+                    if (! is_array($value)) {
+                        $fail('Format manfaat paket tidak valid.');
+                    }
+                },
+            ],
+
+            'features.*.category' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'features.*.feature' => [
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -418,32 +441,7 @@ class PackageController extends Controller
 
             $this->savePackageAddons($package, $validated);
 
-            /*
-         |--------------------------------------------------------------------------
-         | Create Package Features
-         |--------------------------------------------------------------------------
-         */
-
-            foreach (
-                $validated['features'] ?? [] as $index => $feature
-            ) {
-
-                if (blank($feature)) {
-                    continue;
-                }
-
-                PackageFeature::create([
-
-                    'uuid' => (string) Str::uuid(),
-
-                    'package_uuid' => $package->uuid,
-
-                    'feature' => $feature,
-
-                    'sort_order' => $index,
-
-                ]);
-            }
+            $this->savePackageFeatures($package, $validated);
 
             $this->saveBlackoutDates($package, $validated);
             $this->savePackagePromos($package, $validated);
@@ -725,6 +723,29 @@ class PackageController extends Controller
 
             'features.*' => [
                 'nullable',
+                function ($attribute, $value, $fail) {
+                    if (is_string($value)) {
+                        if (mb_strlen($value) > 255) {
+                            $fail('Manfaat paket maksimal 255 karakter.');
+                        }
+
+                        return;
+                    }
+
+                    if (! is_array($value)) {
+                        $fail('Format manfaat paket tidak valid.');
+                    }
+                },
+            ],
+
+            'features.*.category' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'features.*.feature' => [
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -854,34 +875,7 @@ class PackageController extends Controller
 
             $this->savePackageAddons($package, $validated);
 
-            /*
-         |--------------------------------------------------------------------------
-         | Replace Package Features
-         |--------------------------------------------------------------------------
-         */
-
-            $package->features()->delete();
-
-            foreach (
-                $validated['features'] ?? [] as $index => $feature
-            ) {
-
-                if (blank($feature)) {
-                    continue;
-                }
-
-                PackageFeature::create([
-
-                    'uuid' => (string) Str::uuid(),
-
-                    'package_uuid' => $package->uuid,
-
-                    'feature' => $feature,
-
-                    'sort_order' => $index,
-
-                ]);
-            }
+            $this->savePackageFeatures($package, $validated);
 
             $this->saveBlackoutDates($package, $validated);
             $this->savePackagePromos($package, $validated);
@@ -1202,6 +1196,7 @@ class PackageController extends Controller
             foreach ($source->features as $feature) {
                 PackageFeature::create([
                     'package_uuid' => $created->uuid,
+                    'category' => $feature->category,
                     'feature' => $feature->feature,
                     'sort_order' => $feature->sort_order,
                 ]);
@@ -1781,6 +1776,34 @@ class PackageController extends Controller
                 ->update([
                     'requires_addon_uuid' => $addonUuids[$requiresIndex],
                 ]);
+        }
+    }
+
+    private function savePackageFeatures(Package $package, array $validated): void
+    {
+        $package->features()->delete();
+        $sortOrder = 0;
+
+        foreach ($validated['features'] ?? [] as $item) {
+            $feature = is_array($item)
+                ? trim((string) ($item['feature'] ?? ''))
+                : trim((string) $item);
+
+            if ($feature === '') {
+                continue;
+            }
+
+            $category = is_array($item)
+                ? trim((string) ($item['category'] ?? ''))
+                : '';
+
+            PackageFeature::create([
+                'uuid' => (string) Str::uuid(),
+                'package_uuid' => $package->uuid,
+                'category' => $category !== '' ? $category : null,
+                'feature' => $feature,
+                'sort_order' => $sortOrder++,
+            ]);
         }
     }
 

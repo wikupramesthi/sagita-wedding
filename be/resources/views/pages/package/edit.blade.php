@@ -845,10 +845,10 @@
 
                                 <div>
                                     <h5 class="fw-semibold mb-1">
-                                        Manfaat Paket
+                                        Isi Paket
                                     </h5>
                                     <p class="text-muted small mb-0">
-                                        Tampilkan layanan yang termasuk dalam paket ini.
+                                        Kelompokkan layanan yang sudah termasuk, misalnya Dekorasi atau Katering.
                                     </p>
                                 </div>
                             </div>
@@ -857,7 +857,7 @@
                                 id="btn-add-package-feature"
                                 class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-plus-lg me-1"></i>
-                                Tambah Manfaat
+                                Tambah Isi Paket
                             </button>
                         </div>
                     </div>
@@ -866,45 +866,88 @@
                         <div id="package-features-container">
 
                             @forelse ($package->features as $index => $feature)
-                            <div class="input-group mb-2 package-feature-item" draggable="true" data-uuid="{{ $feature->uuid }}">
-                                <span class="input-group-text bg-transparent package-sortable-handle" title="Geser untuk mengubah urutan">
-                                    <i class="bi bi-grip-vertical"></i>
-                                </span>
-
-                                <input type="text"
-                                    name="features[]"
-                                    class="form-control"
-                                    value="{{ old("features.$index", $feature->feature) }}"
-                                    placeholder="Contoh: Dokumentasi foto dan video">
-
-                                <button type="button"
-                                    class="btn btn-outline-danger btn-remove-package-feature">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
+                            <div class="row g-2 align-items-end mb-3 package-feature-item" draggable="true" data-uuid="{{ $feature->uuid }}">
+                                <div class="col-md-1 d-grid">
+                                    <span class="btn btn-light border package-sortable-handle" title="Geser untuk mengubah urutan" aria-label="Geser isi paket">
+                                        <i class="bi bi-grip-vertical"></i>
+                                    </span>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold" for="feature-category-{{ $index }}">Kategori</label>
+                                    <input type="text"
+                                        id="feature-category-{{ $index }}"
+                                        name="features[{{ $index }}][category]"
+                                        class="form-control package-feature-category"
+                                        value="{{ old("features.$index.category", $feature->category) }}"
+                                        maxlength="100"
+                                        placeholder="Contoh: Dekorasi">
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label small fw-semibold" for="feature-text-{{ $index }}">Rincian yang termasuk</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-transparent"><i class="bi bi-check2"></i></span>
+                                        <input type="text"
+                                            id="feature-text-{{ $index }}"
+                                            name="features[{{ $index }}][feature]"
+                                            class="form-control package-feature-text"
+                                            value="{{ old("features.$index.feature", $feature->feature) }}"
+                                            maxlength="255"
+                                            placeholder="Contoh: Dokumentasi foto dan video">
+                                    </div>
+                                </div>
+                                <div class="col-md-1 d-grid">
+                                    <button type="button"
+                                        class="btn btn-outline-danger btn-remove-package-feature"
+                                        aria-label="Hapus isi paket">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             @empty
-                            <div class="input-group mb-2 package-feature-item" draggable="true">
-                                <span class="input-group-text bg-transparent package-sortable-handle" title="Geser untuk mengubah urutan">
-                                    <i class="bi bi-grip-vertical"></i>
-                                </span>
-
-                                <input type="text"
-                                    name="features[]"
-                                    class="form-control"
-                                    placeholder="Contoh: Dokumentasi foto dan video">
-
-                                <button type="button"
-                                    class="btn btn-outline-danger btn-remove-package-feature">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
+                            <div class="row g-2 align-items-end mb-3 package-feature-item" draggable="true">
+                                <div class="col-md-1 d-grid">
+                                    <span class="btn btn-light border package-sortable-handle" title="Geser untuk mengubah urutan" aria-label="Geser isi paket">
+                                        <i class="bi bi-grip-vertical"></i>
+                                    </span>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold" for="feature-category-0">Kategori</label>
+                                    <input type="text"
+                                        id="feature-category-0"
+                                        name="features[0][category]"
+                                        class="form-control package-feature-category"
+                                        value="{{ old('features.0.category') }}"
+                                        maxlength="100"
+                                        placeholder="Contoh: Dekorasi">
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label small fw-semibold" for="feature-text-0">Rincian yang termasuk</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-transparent"><i class="bi bi-check2"></i></span>
+                                        <input type="text"
+                                            id="feature-text-0"
+                                            name="features[0][feature]"
+                                            class="form-control package-feature-text"
+                                            value="{{ old('features.0.feature') }}"
+                                            maxlength="255"
+                                            placeholder="Contoh: Dokumentasi foto dan video">
+                                    </div>
+                                </div>
+                                <div class="col-md-1 d-grid">
+                                    <button type="button"
+                                        class="btn btn-outline-danger btn-remove-package-feature"
+                                        aria-label="Hapus isi paket">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
                             </div>
                             @endforelse
 
                         </div>
 
                         <small class="text-muted d-block mt-2">
-                            Contoh: Rias pengantin
+                            Ulangi nama kategori untuk beberapa rincian; layanan dengan kategori sama akan ditampilkan berkelompok. Biarkan kategori kosong untuk rincian tanpa kelompok.
                         </small>
                     </div>
                 </div>
@@ -1900,35 +1943,56 @@
             document.getElementById('btn-add-package-feature');
 
 
-        function createFeature() {
+        function renumberFeatureInputs() {
+            if (!featureContainer) return;
+
+            featureContainer.querySelectorAll('.package-feature-item').forEach(function (item, index) {
+                const category = item.querySelector('.package-feature-category');
+                const feature = item.querySelector('.package-feature-text');
+                const categoryLabel = item.querySelector('label[for^="feature-category-"]');
+                const featureLabel = item.querySelector('label[for^="feature-text-"]');
+
+                if (category) {
+                    category.name = `features[${index}][category]`;
+                    category.id = `feature-category-${index}`;
+                }
+                if (feature) {
+                    feature.name = `features[${index}][feature]`;
+                    feature.id = `feature-text-${index}`;
+                }
+                if (categoryLabel) categoryLabel.htmlFor = `feature-category-${index}`;
+                if (featureLabel) featureLabel.htmlFor = `feature-text-${index}`;
+            });
+        }
+
+        function createFeature(index) {
 
             return `
-            <div class="package-feature-item mb-2" draggable="true">
-
-                <div class="input-group">
-
-                    <span class="input-group-text bg-transparent package-sortable-handle" title="Geser untuk mengubah urutan">
+            <div class="row g-2 align-items-end mb-3 package-feature-item" draggable="true">
+                <div class="col-md-1 d-grid">
+                    <span class="btn btn-light border package-sortable-handle" title="Geser untuk mengubah urutan" aria-label="Geser isi paket">
                         <i class="bi bi-grip-vertical"></i>
                     </span>
-
-                    <input type="text"
-                           name="features[]"
-                           class="form-control"
-                           placeholder="Contoh: MC dan sound system">
-
-                    <button type="button"
-                            class="btn btn-outline-danger btn-remove-package-feature">
-
-                        <i class="bi bi-x-lg"></i>
-
-                    </button>
-
                 </div>
-
-                <small class="text-muted d-block mt-1">
-                    Contoh: Dekorasi pelaminan
-                </small>
-
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold" for="feature-category-${index}">Kategori</label>
+                    <input type="text" id="feature-category-${index}" name="features[${index}][category]"
+                        class="form-control package-feature-category" maxlength="100" placeholder="Contoh: Dekorasi">
+                </div>
+                <div class="col-md-7">
+                    <label class="form-label small fw-semibold" for="feature-text-${index}">Rincian yang termasuk</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent"><i class="bi bi-check2"></i></span>
+                        <input type="text" id="feature-text-${index}" name="features[${index}][feature]"
+                            class="form-control package-feature-text" maxlength="255" placeholder="Contoh: MC dan sound system">
+                    </div>
+                </div>
+                <div class="col-md-1 d-grid">
+                    <button type="button" class="btn btn-outline-danger btn-remove-package-feature"
+                        aria-label="Hapus isi paket">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
             </div>
         `;
 
@@ -1941,7 +2005,7 @@
 
                 featureContainer.insertAdjacentHTML(
                     'beforeend',
-                    createFeature()
+                    createFeature(featureContainer.querySelectorAll('.package-feature-item').length)
                 );
 
             });
@@ -1972,19 +2036,14 @@
 
 
                 if (items.length <= 1) {
-
-                    const input =
-                        item.querySelector('input');
-
-                    if (input) {
+                    item.querySelectorAll('input').forEach(function (input) {
                         input.value = '';
-                    }
-
+                    });
                     return;
                 }
 
-
                 item.remove();
+                renumberFeatureInputs();
 
             });
 
@@ -2264,7 +2323,7 @@
             renumberIndexedItems(addonContainer, '.package-addon-item', 'addons');
             updateAddonTitles();
         });
-        initSortable(featureContainer, '.package-feature-item', 'features');
+        initSortable(featureContainer, '.package-feature-item', 'features', renumberFeatureInputs);
 
         optionContainer?.addEventListener('click', function (event) {
             if (event.target.closest('.btn-remove-package-option')) {

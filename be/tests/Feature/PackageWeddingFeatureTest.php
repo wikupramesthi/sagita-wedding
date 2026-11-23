@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Package\Package;
 use App\Models\Package\PackageAddon;
 use App\Models\Package\PackageBlackoutDate;
+use App\Models\Package\PackageFeature;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
 use App\Models\Payment\Order;
@@ -298,6 +299,13 @@ class PackageWeddingFeatureTest extends TestCase
     {
         $package = $this->createPackage('Paket API', 'paket-api', 5000000, 4500000, 200, true);
 
+        PackageFeature::create([
+            'package_uuid' => $package->uuid,
+            'category' => 'Dekorasi',
+            'feature' => 'Tenda 80 meter',
+            'sort_order' => 0,
+        ]);
+
         $addon = PackageAddon::create([
             'package_uuid' => $package->uuid,
             'name' => 'Fotografer tambahan',
@@ -322,6 +330,7 @@ class PackageWeddingFeatureTest extends TestCase
                         'event_duration_hours',
                         'venue_note',
                         'cover_url',
+                        'features' => ['*' => ['category', 'feature']],
                         'addons' => ['*' => ['name']],
                     ],
                 ],
@@ -330,6 +339,8 @@ class PackageWeddingFeatureTest extends TestCase
             ->assertJsonPath('data.0.event_duration_hours', 6)
             ->assertJsonPath('data.0.venue_note', 'Jakarta Selatan dan sekitarnya')
             ->assertJsonPath('data.0.cover_url', 'https://example.com/images/paket-api.jpg')
+            ->assertJsonPath('data.0.features.0.category', 'Dekorasi')
+            ->assertJsonPath('data.0.features.0.feature', 'Tenda 80 meter')
             ->assertJsonPath('data.0.addons.0.name', 'Fotografer tambahan');
 
         $this->api()
@@ -345,6 +356,7 @@ class PackageWeddingFeatureTest extends TestCase
                     'event_duration_hours',
                     'venue_note',
                     'cover_url',
+                    'features' => ['*' => ['category', 'feature']],
                     'addons' => ['*' => ['name']],
                 ],
             ])
@@ -353,6 +365,8 @@ class PackageWeddingFeatureTest extends TestCase
             ->assertJsonPath('data.event_duration_hours', 6)
             ->assertJsonPath('data.venue_note', 'Jakarta Selatan dan sekitarnya')
             ->assertJsonPath('data.cover_url', 'https://example.com/images/paket-api.jpg')
+            ->assertJsonPath('data.features.0.category', 'Dekorasi')
+            ->assertJsonPath('data.features.0.feature', 'Tenda 80 meter')
             ->assertJsonPath('data.addons.0.uuid', $addon->uuid)
             ->assertJsonPath('data.addons.0.name', 'Fotografer tambahan');
     }

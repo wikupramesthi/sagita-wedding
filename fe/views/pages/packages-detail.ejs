@@ -10,6 +10,25 @@
     const features = Array.isArray(pkg.features)
         ? pkg.features
         : [];
+    const featureGroups = [];
+    const featureGroupMap = new Map();
+    features.forEach(function(feature) {
+        const text = feature && typeof (feature.feature || feature.name) === 'string'
+            ? (feature.feature || feature.name).trim()
+            : '';
+        if (!text) return;
+
+        const category = typeof feature.category === 'string'
+            ? feature.category.trim()
+            : '';
+        let group = featureGroupMap.get(category);
+        if (!group) {
+            group = { category, items: [] };
+            featureGroupMap.set(category, group);
+            featureGroups.push(group);
+        }
+        group.items.push(text);
+    });
 
     const isPopular = pkg.is_popular;
 
@@ -265,49 +284,36 @@
                             <%= t.whatsIncluded %>
                         </h2>
 
-                        <div
-                            class="grid
-                                   grid-cols-1
-                                   sm:grid-cols-2
-                                   gap-x-8
-                                   gap-y-4
-                                   mt-6"
-                        >
-
-                            <% features.forEach(function(feature) { %>
-
-                                <div
-                                    class="flex
-                                           items-start
-                                           gap-3
-                                           text-sm
-                                           text-stone-warm"
-                                >
-                                    <span
-                                        class="text-sage-700
-                                               shrink-0
-                                               mt-0.5"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                             width="18"
-                                             height="18"
-                                             viewBox="0 0 24 24"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             stroke-width="2.5"
-                                             stroke-linecap="round"
-                                             stroke-linejoin="round">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                    </span>
-
-                                    <span>
-                                        <%= feature.feature %>
-                                    </span>
-                                </div>
-
+                        <div class="mt-6 space-y-6">
+                            <% featureGroups.forEach(function(group) { %>
+                                <section>
+                                    <% if (group.category) { %>
+                                        <h3 class="mb-3 text-sm font-bold uppercase tracking-wide text-sage-800">
+                                            <%= group.category %>
+                                        </h3>
+                                    <% } %>
+                                    <div class="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+                                        <% group.items.forEach(function(feature) { %>
+                                            <div class="flex items-start gap-3 text-sm text-stone-warm">
+                                                <span class="mt-0.5 shrink-0 text-sage-700">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         width="18"
+                                                         height="18"
+                                                         viewBox="0 0 24 24"
+                                                         fill="none"
+                                                         stroke="currentColor"
+                                                         stroke-width="2.5"
+                                                         stroke-linecap="round"
+                                                         stroke-linejoin="round">
+                                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                                    </svg>
+                                                </span>
+                                                <span><%= feature %></span>
+                                            </div>
+                                        <% }) %>
+                                    </div>
+                                </section>
                             <% }) %>
-
                         </div>
 
                     </div>

@@ -124,6 +124,8 @@ class PackageResource extends JsonResource
 
                     'uuid' => $feature->uuid,
 
+                    'category' => $feature->category,
+
                     'feature' => $feature->feature,
 
                     'sort_order' => $feature->sort_order,

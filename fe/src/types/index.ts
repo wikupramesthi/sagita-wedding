@@ -142,6 +142,8 @@ export interface PackageOption {
 
 /** Fitur yang termasuk dalam paket membership. */
 export interface PackageFeature {
+	category?: string;
+	feature?: string;
 	name?: string;
 	[key: string]: unknown;
 }

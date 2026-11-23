@@ -115,7 +115,9 @@ class PackageAdminTest extends TestCase
             ->assertSee('Lokasi Acara')
             ->assertSee('Foto Paket (URL)')
             ->assertSee('Pilihan Paket')
-            ->assertSee('Manfaat Paket')
+            ->assertSee('Isi Paket')
+            ->assertSee('Kategori')
+            ->assertSee('Rincian yang termasuk')
             ->assertSee('Layanan Tambahan (Opsional)')
             ->assertSee('Paling Dipilih')
             ->assertSee('Contoh: Paket Silver')
@@ -192,6 +194,10 @@ class PackageAdminTest extends TestCase
     public function test_package_flash_messages_are_indonesian(): void
     {
         $payload = $this->payload('Paket Gold', 5000000, 4500000);
+        $payload['features'] = [
+            ['category' => 'Dekorasi', 'feature' => 'Tenda dan pelaminan'],
+            ['category' => 'Katering', 'feature' => 'Buffet 500 porsi'],
+        ];
 
         $this->actingAs($this->admin)
             ->post(route('packages.store'), $payload)
@@ -199,6 +205,16 @@ class PackageAdminTest extends TestCase
             ->assertSessionHas('success', 'Paket berhasil dibuat.');
 
         $package = Package::where('slug', 'paket-gold')->firstOrFail();
+        $this->assertDatabaseHas('package_features', [
+            'package_uuid' => $package->uuid,
+            'category' => 'Dekorasi',
+            'feature' => 'Tenda dan pelaminan',
+        ]);
+        $this->assertDatabaseHas('package_features', [
+            'package_uuid' => $package->uuid,
+            'category' => 'Katering',
+            'feature' => 'Buffet 500 porsi',
+        ]);
 
         $this->actingAs($this->admin)
             ->put(route('packages.update', $package->uuid), $this->payload('Paket Platinum', 6000000))
@@ -362,6 +378,7 @@ class PackageAdminTest extends TestCase
 
         PackageFeature::create([
             'package_uuid' => $source->uuid,
+            'category' => 'Dekorasi',
             'feature' => 'Dekorasi pelaminan',
             'sort_order' => 0,
         ]);
@@ -413,6 +430,7 @@ class PackageAdminTest extends TestCase
         $this->assertNotSame($source->slug, $copy->slug);
         $this->assertCount(1, $copy->options);
         $this->assertCount(1, $copy->features);
+        $this->assertSame('Dekorasi', $copy->features->first()->category);
         $this->assertCount(2, $copy->addons);
         $this->assertCount(1, $copy->blackoutDates);
         $this->assertCount(1, $copy->promos);

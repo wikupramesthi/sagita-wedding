@@ -632,10 +632,10 @@
 
                 <div>
                   <h5 class="mb-1 fw-semibold">
-                    Manfaat Paket
+                    Isi Paket
                   </h5>
                   <p class="text-muted small mb-0">
-                    Tampilkan layanan yang termasuk dalam paket ini.
+                    Kelompokkan layanan yang sudah termasuk, misalnya Dekorasi atau Katering.
                   </p>
                 </div>
               </div>
@@ -645,35 +645,55 @@
                 class="btn btn-sm btn-outline-primary"
                 onclick="addPackageFeature()">
                 <i class="bi bi-plus-lg me-1"></i>
-                Tambah Manfaat
+                Tambah Isi Paket
               </button>
             </div>
           </div>
 
           <div class="card-body p-4 pt-2">
             <div id="package-features-container">
-              <div class="input-group mb-2 package-feature-item">
-                <span class="input-group-text bg-transparent">
-                  <i class="bi bi-check2"></i>
-                </span>
+              <div class="row g-2 align-items-end mb-3 package-feature-item">
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold" for="feature-category-0">Kategori</label>
+                  <input
+                    type="text"
+                    id="feature-category-0"
+                    name="features[0][category]"
+                    class="form-control package-feature-category"
+                    maxlength="100"
+                    placeholder="Contoh: Dekorasi">
+                </div>
 
-                <input
-                  type="text"
-                  name="features[]"
-                  class="form-control"
-                  placeholder="Contoh: Dekorasi pelaminan">
+                <div class="col-md-7">
+                  <label class="form-label small fw-semibold" for="feature-text-0">Rincian yang termasuk</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-transparent">
+                      <i class="bi bi-check2"></i>
+                    </span>
+                    <input
+                      type="text"
+                      id="feature-text-0"
+                      name="features[0][feature]"
+                      class="form-control package-feature-text"
+                      maxlength="255"
+                      placeholder="Contoh: Dekorasi pelaminan">
+                  </div>
+                </div>
 
-                <button
-                  type="button"
-                  class="btn btn-outline-danger"
-                  onclick="removePackageFeature(this)">
-                  <i class="bi bi-x-lg"></i>
-                </button>
+                <div class="col-md-1 d-grid">
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    onclick="removePackageFeature(this)"
+                    aria-label="Hapus isi paket">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </div>
               </div>
             </div>
 
             <small class="text-muted d-block mt-2">
-              Contoh: Dokumentasi foto dan video
+              Ulangi nama kategori untuk beberapa rincian; layanan dengan kategori sama akan ditampilkan berkelompok. Biarkan kategori kosong untuk rincian tanpa kelompok.
             </small>
 
             @error('features.*')
@@ -1605,37 +1625,29 @@
     const container = document.getElementById(
       'package-features-container'
     );
+    const index = container.querySelectorAll('.package-feature-item').length;
 
     const html = `
-            <div class="package-feature-item mb-2">
-
-                <div class="input-group">
-
-                    <span class="input-group-text bg-transparent">
-                        <i class="bi bi-check2"></i>
-                    </span>
-
-                    <input
-                        type="text"
-                        name="features[]"
-                        class="form-control"
-                        placeholder="Contoh: Rias pengantin">
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-danger"
-                        onclick="removePackageFeature(this)">
-
-                        <i class="bi bi-x-lg"></i>
-
-                    </button>
-
+            <div class="row g-2 align-items-end mb-3 package-feature-item">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold" for="feature-category-${index}">Kategori</label>
+                    <input type="text" id="feature-category-${index}" name="features[${index}][category]"
+                        class="form-control package-feature-category" maxlength="100" placeholder="Contoh: Dekorasi">
                 </div>
-
-                <small class="text-muted d-block mt-1">
-                    Contoh: Dekorasi pelaminan
-                </small>
-
+                <div class="col-md-7">
+                    <label class="form-label small fw-semibold" for="feature-text-${index}">Rincian yang termasuk</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent"><i class="bi bi-check2"></i></span>
+                        <input type="text" id="feature-text-${index}" name="features[${index}][feature]"
+                            class="form-control package-feature-text" maxlength="255" placeholder="Contoh: Rias pengantin">
+                    </div>
+                </div>
+                <div class="col-md-1 d-grid">
+                    <button type="button" class="btn btn-outline-danger" onclick="removePackageFeature(this)"
+                        aria-label="Hapus isi paket">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
             </div>
         `;
 
@@ -1651,20 +1663,25 @@
     const items = document.querySelectorAll(
       '#package-features-container .package-feature-item'
     );
+    const item = button.closest('.package-feature-item');
 
     if (items.length <= 1) {
-
-      button
-        .closest('.package-feature-item')
-        .querySelector('input')
-        .value = '';
+      item.querySelectorAll('input').forEach(function(input) {
+        input.value = '';
+      });
 
       return;
     }
 
-    button
-      .closest('.package-feature-item')
-      .remove();
+    item.remove();
+    document.querySelectorAll('#package-features-container .package-feature-item').forEach(function(row, index) {
+      row.querySelector('.package-feature-category').name = `features[${index}][category]`;
+      row.querySelector('.package-feature-category').id = `feature-category-${index}`;
+      row.querySelector('.package-feature-text').name = `features[${index}][feature]`;
+      row.querySelector('.package-feature-text').id = `feature-text-${index}`;
+      row.querySelector('label[for^="feature-category-"]').htmlFor = `feature-category-${index}`;
+      row.querySelector('label[for^="feature-text-"]').htmlFor = `feature-text-${index}`;
+    });
   }
 </script>
 
