@@ -15,6 +15,14 @@ type TelemetryPayload =
 			kind: "event";
 			name: "sita.no_match";
 			path: "/";
+	  }
+	| {
+			kind: "event";
+			name: "sita.feedback";
+			path: "/";
+			helpful: boolean;
+			turnId?: string;
+			topic?: string;
 	  };
 
 const ENDPOINT = "/api/telemetry";
@@ -78,6 +86,32 @@ function reportVital(name: string, value: number) {
 window.addEventListener("sita:no-match", () => {
 	if (!once("event:sita.no_match")) return;
 	send({ kind: "event", name: "sita.no_match", path: "/" });
+});
+
+window.addEventListener("sita:feedback", (event) => {
+	const detail = (
+		event as CustomEvent<{
+			helpful?: unknown;
+			turnId?: unknown;
+			topic?: unknown;
+		}>
+	).detail;
+	const helpful = detail?.helpful === true;
+	const turnId =
+		typeof detail?.turnId === "string" ? cleanName(detail.turnId) : undefined;
+	const topic =
+		typeof detail?.topic === "string" &&
+		["packages", "venues", "vendors"].includes(detail.topic)
+			? detail.topic
+			: undefined;
+	send({
+		kind: "event",
+		name: "sita.feedback",
+		path: "/",
+		helpful,
+		...(turnId ? { turnId } : {}),
+		...(topic ? { topic } : {}),
+	});
 });
 
 window.addEventListener("error", (event) => {

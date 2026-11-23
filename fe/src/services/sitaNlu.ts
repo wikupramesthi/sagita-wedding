@@ -1,7 +1,7 @@
 import type { SitaChatTopic } from "../utils/validate.js";
 
 /**
- * NLU lokal untuk Sita AI (tanpa LLM/API pihak ketiga):
+ * NLU lokal untuk Sita (tanpa LLM/API pihak ketiga):
  * 1. Normalisasi bahasa gaul + typo (levenshtein <= 1) + akhiran Indonesia.
  * 2. Deteksi topik bertingkat (skor strong/weak) untuk tahu maksud user.
  * 3. Klasifikasi small talk (sapaan/terima kasih) supaya tidak dianggap
@@ -18,11 +18,31 @@ const SLANG_TERMS: Record<string, string> = {
 	brapa: "berapa",
 	brp: "berapa",
 	catring: "catering",
+	cost: "biaya",
+	fotografer: "fotografi",
+	costs: "biaya",
 	hrg: "harga",
 	hrga: "harga",
+	pack: "paket",
+	package: "paket",
+	packages: "paket",
+	pkg: "paket",
+	photographer: "fotografi",
+	photography: "fotografi",
+	place: "venue",
+	places: "venue",
 	pket: "paket",
 	pkt: "paket",
+	price: "harga",
+	prices: "harga",
+	pricing: "harga",
+	thnkz: "thanks",
+	tq: "thanks",
+	ty: "thanks",
 	venu: "venue",
+	venuez: "venue",
+	venues: "venue",
+	vendors: "vendor",
 };
 
 /** Akhiran khas Indonesia: "paketnya" -> "paket", "harganya" -> "harga". */
@@ -36,6 +56,7 @@ const COMMON_SUFFIXES = [
 	"mu",
 	"an",
 	"i",
+	"s",
 ];
 
 const GREETING_START = new Set([
@@ -49,9 +70,21 @@ const GREETING_START = new Set([
 	"sore",
 	"malam",
 	"assalamualaikum",
+	"morning",
+	"afternoon",
+	"evening",
 ]);
 
-const THANKS_START = new Set(["makasih", "terima", "thanks", "thank", "thx"]);
+const THANKS_START = new Set([
+	"makasih",
+	"terima",
+	"thanks",
+	"thank",
+	"thx",
+	"ty",
+	"tq",
+	"thnkz",
+]);
 
 /**
  * Kata-kata sapaan/kelaziman yang boleh muncul di small talk.
@@ -87,6 +120,22 @@ const SMALL_TALK_VOCAB = new Set([
 	"tolong",
 	"ya",
 	"yah",
+	"a",
+	"lot",
+	"please",
+	"pls",
+	"plz",
+	"okay",
+	"ok",
+	"how",
+	"are",
+	"you",
+	"doing",
+	"good",
+	"morning",
+	"afternoon",
+	"evening",
+	"welcome",
 ]);
 
 interface TopicPattern {
@@ -123,6 +172,10 @@ const TOPIC_PATTERNS: Record<NluTopic, TopicPattern> = {
 			"kurang",
 			"price",
 			"pricing",
+			"cost",
+			"cheap",
+			"expensive",
+			"affordable",
 			"pernikahan",
 			"akad",
 			"wedding",
@@ -130,7 +183,7 @@ const TOPIC_PATTERNS: Record<NluTopic, TopicPattern> = {
 	},
 	venues: {
 		strong: ["venue", "gedung"],
-		weak: ["lokasi", "tempat"],
+		weak: ["lokasi", "tempat", "place", "location"],
 	},
 	vendors: {
 		strong: ["vendor"],
@@ -141,6 +194,8 @@ const TOPIC_PATTERNS: Record<NluTopic, TopicPattern> = {
 			"dekorasi",
 			"fotografi",
 			"fotografer",
+			"photographer",
+			"decorator",
 			"makeup",
 			"rias",
 			"mua",
@@ -248,6 +303,17 @@ export function matchesAnyTopicTerm(
 			tokenMatches(token, term),
 		);
 	});
+}
+
+/**
+ * Kategori vendor bersifat eksplisit: "photographer for the wedding" harus tetap
+ * dibaca sebagai vendor, bukan kena kata "wedding" dari topik paket.
+ */
+export function hasExplicitVendorCategory(raw: string): boolean {
+	const tokens = normalizeNluText(raw).split(" ").filter(Boolean);
+	return tokens.some((token) =>
+		TOPIC_PATTERNS.vendors.weak.some((term) => tokenMatches(token, term)),
+	);
 }
 
 export interface TopicSignal {

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { clearSessionCache } from "../middleware/locals.js";
 import { getSessionUser, logoutSession } from "../services/authService.js";
 import {
@@ -19,6 +20,28 @@ import {
 
 const router = Router();
 
+const sitaChatLimiter = rateLimit({
+	windowMs: 60 * 1000,
+	limit: 15,
+	standardHeaders: "draft-7",
+	legacyHeaders: false,
+	message: {
+		success: false,
+		message: "Too many chat messages, please try again shortly.",
+	},
+});
+
+const telemetryLimiter = rateLimit({
+	windowMs: 60 * 1000,
+	limit: 40,
+	standardHeaders: "draft-7",
+	legacyHeaders: false,
+	message: {
+		success: false,
+		message: "Too many telemetry events, please try again shortly.",
+	},
+});
+
 type TelemetryPayload =
 	| {
 			kind: "error";
@@ -36,15 +59,44 @@ type TelemetryPayload =
 			kind: "event";
 			name: "sita.no_match";
 			path: "/";
+	  }
+	| {
+			kind: "event";
+			name: "sita.feedback";
+			path: "/";
+			helpful: boolean;
+			turnId?: string;
+			topic?: "packages" | "venues" | "vendors";
 	  };
 
-function parseTelemetry(value: unknown): TelemetryPayload | null {
+export function parseTelemetry(value: unknown): TelemetryPayload | null {
 	if (!value || typeof value !== "object" || Array.isArray(value)) return null;
 	const item = value as Record<string, unknown>;
 	if (item.kind === "event") {
-		return item.name === "sita.no_match"
-			? { kind: "event", name: "sita.no_match", path: "/" }
-			: null;
+		if (item.name === "sita.no_match") {
+			return { kind: "event", name: "sita.no_match", path: "/" };
+		}
+		if (item.name === "sita.feedback" && typeof item.helpful === "boolean") {
+			const turnId =
+				typeof item.turnId === "string"
+					? item.turnId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80)
+					: undefined;
+			const topic =
+				item.topic === "packages" ||
+				item.topic === "venues" ||
+				item.topic === "vendors"
+					? item.topic
+					: undefined;
+			return {
+				kind: "event",
+				name: "sita.feedback",
+				path: "/",
+				helpful: item.helpful,
+				...(turnId ? { turnId } : {}),
+				...(topic ? { topic } : {}),
+			};
+		}
+		return null;
 	}
 	if (item.kind !== "error" && item.kind !== "vital") return null;
 
@@ -96,7 +148,7 @@ router.all(
 	},
 );
 
-router.post("/telemetry", (req: Request, res: Response) => {
+router.post("/telemetry", telemetryLimiter, (req: Request, res: Response) => {
 	const payload = parseTelemetry(req.body);
 	if (!payload) {
 		return res.status(400).json({
@@ -110,27 +162,36 @@ router.post("/telemetry", (req: Request, res: Response) => {
 	res.status(204).end();
 });
 
-router.post("/sita/chat", async (req: Request, res: Response) => {
-	try {
-		const { message, locale, context } = validateSitaChat(req.body);
-		const result = await answerSitaQuestion(message, locale, context);
-		res.set("Cache-Control", "no-store");
-		res.json({ success: true, ...result });
-	} catch (e) {
-		const err = toApiError(e);
-		const status = Number(err.status) || 503;
-		const isClientError = status >= 400 && status < 500;
-		if (!isClientError) {
-			logger.error("sita.chat.failed", { error: err.message.slice(0, 200) });
+router.post(
+	"/sita/chat",
+	sitaChatLimiter,
+	async (req: Request, res: Response) => {
+		try {
+			const { message, locale, context } = validateSitaChat(req.body);
+			const officeAddress = (
+				res.locals.site as { address?: string } | undefined
+			)?.address;
+			const result = await answerSitaQuestion(message, locale, context, {
+				officeAddress,
+			});
+			res.set("Cache-Control", "no-store");
+			res.json({ success: true, ...result });
+		} catch (e) {
+			const err = toApiError(e);
+			const status = Number(err.status) || 503;
+			const isClientError = status >= 400 && status < 500;
+			if (!isClientError) {
+				logger.error("sita.chat.failed", { error: err.message.slice(0, 200) });
+			}
+			res.status(status).json({
+				success: false,
+				message: isClientError
+					? err.message || "Invalid chat question."
+					: "Sagita data is temporarily unavailable. Please try again or contact the team.",
+			});
 		}
-		res.status(status).json({
-			success: false,
-			message: isClientError
-				? err.message || "Invalid chat question."
-				: "Sagita data is temporarily unavailable. Please try again or contact the team.",
-		});
-	}
-});
+	},
+);
 
 /**
  * Logout untuk user yang login via Google OAuth. Cookie session di-putuskan

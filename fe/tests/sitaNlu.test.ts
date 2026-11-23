@@ -65,4 +65,20 @@ describe("Sita local NLU", () => {
 		expect(withinEditDistance("jerapah", "paket", 1)).toBe(false);
 		expect(hasFuzzyToken("jumlah", ["hubungi", "booking"])).toBe(false);
 	});
+
+	it("understands English packages and venue wording", () => {
+		expect(detectTopics("how much for the packages?").primary).toBe("packages");
+		expect(detectTopics("venue price").primary).toBe("venues");
+		expect(detectTopics("wedding vendors").primary).toBe("vendors");
+		expect(detectTopics("photographer for the wedding").primary).toBe(
+			"vendors",
+		);
+	});
+
+	it("keeps English small talk out of no-match fallback", () => {
+		expect(smallTalkKind("hello")).toBe("greeting");
+		expect(smallTalkKind("how are you")).toBe("greeting");
+		expect(smallTalkKind("thanks a lot")).toBe("thanks");
+		expect(smallTalkKind("how much is the package")).toBeNull();
+	});
 });

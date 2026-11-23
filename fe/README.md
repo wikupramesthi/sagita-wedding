@@ -67,9 +67,9 @@ fe/
 Newsletter sengaja membalas 501, bukan sukses palsu, supaya klien tidak
 mengira aksi tersimpan.
 
-Widget Sita AI mencocokkan pertanyaan dengan FAQ, paket, venue, dan vendor dari database
-Sagita melalui service server-side yang sudah ada. Meski bernama AI, jawabannya
-berbasis aturan dan data, bukan model generatif atau API pihak ketiga.
+Widget Sita mencocokkan pertanyaan dengan FAQ, paket, venue, dan vendor dari database
+Sagita melalui service server-side yang sudah ada. Jawabannya berbasis aturan dan
+data, bukan model generatif atau API pihak ketiga.
 
 Pemahaman pesan memakai NLU lokal di `src/services/sitaNlu.ts` (dipakai bersama oleh
 server dan widget browser):
@@ -80,26 +80,48 @@ server dan widget browser):
   pertanyaan venue, dan pertanyaan campuran seperti "paket sama venue" memberi chip
   topik kedua;
 - sapaan/terima kasih singkat dijawab dengan menu topik, bukan fallback;
-- setiap jawaban menyertakan `confidence` (0.95 sapaan/kontak, 0.8-0.9 topik/FAQ,
-  0.15 fallback) sebagai penanda seberapa yakin pesan tertangkap.
+- setiap jawaban menyertakan `confidence` (0.95 sapaan/kontak, 0.9 intent eksplisit,
+  0.8-0.9 topik/FAQ, 0.85 clarify, 0.15 fallback) sebagai penanda seberapa yakin
+  pesan tertangkap;
+- intent eksplisit: promo/diskon, pembayaran/DP, ketersediaan tanggal, testimoni,
+  dan alamat kantor; anggaran atau tanggal yang belum jelas memicu opsi clarify,
+  bukan jawaban hasil tebakan;
+- kategori vendor eksplisit (fotografer, makeup, catering, dekorasi, dll.)
+  mengalahkan kata umum “wedding”, sehingga “wedding photographer” tetap dibaca
+  sebagai pertanyaan vendor;
+- opsi tanggal clarify dihitung relatif terhadap hari ini (+3 dan +6 bulan),
+  bukan tanggal statis.
 
 Kriteria sesi (anggaran, jumlah tamu, kota, tanggal, kategori vendor) diingat di
-browser selama percakapan dan dikirim sebagai `context` tanpa menyimpan teks chat.
-Pesan chat tidak disimpan; nama dan nomor WhatsApp tetap di browser dan hanya
-ditambahkan ke draf WhatsApp setelah pengguna menyetujui dan memilih lanjut.
+browser dan dikirim sebagai `context`, termasuk kriteria yang diketik sebagai jawaban
+clarify. Widget juga menyimpan maksimal 20 pesan terakhir di `sessionStorage`
+(`sita-chat-history-v1`) berupa `{sender, text}` agar percakapan tetap berkelanjutan
+saat halaman dimuat ulang dalam tab yang sama; kartu, suggestions, dan data pribadi
+tidak disimpan. Tombol **Reset** di header menghapus riwayat, kriteria, dan prefill
+konsultasi. Nama dan nomor WhatsApp tetap di browser, dan draf WhatsApp dengan
+ringkasan kriteria hanya dibuat setelah pengguna memilih lanjut.
+
+Kartu paket menampilkan promo dan kuota yang tercatat di database. Jawaban juga
+memiliki tautan “Lihat sumber” ke halaman paket/venue/vendor/FAQ yang dipakai.
+Tombol 👍/👎 hanya bisa dipilih sekali per jawaban dan memancarkan event browser
+`sita:feedback` ke telemetry tanpa mengirim teks pertanyaan.
 
 - `POST /api/sita/chat` `{message, locale, context?: {topic, criteria?}}` → jawaban dari
   data Sagita atau fallback yang mengarahkan pengguna ke admin, lengkap dengan
-  `confidence` dan `suggestions` (chip topik ber-`topic` untuk melanjutkan maksud).
-  Konteks browser
-  hanya memuat topik dan kriteria yang diizinkan (anggaran, jumlah tamu, kota,
-  tanggal, dan kategori vendor); konteks tidak disimpan sebagai riwayat chat.
-  Tautan konsultasi dapat mengisi kriteria terkait melalui `sessionStorage`
-  sekali pakai, tanpa menyertakan teks percakapan atau data pribadi.
+  `confidence`, `suggestions` (chip topik ber-`topic` untuk melanjutkan maksud),
+  opsional `clarify` berisi pertanyaan + pilihan balasan, dan opsional `source`.
+  Route ini dibatasi 15 request/menit per-IP (di samping limiter `/api` global 20/menit).
+  Saat kena 429, widget menampilkan pesan khusus dan menghitung mundur waktu
+  tunggu dari header `Retry-After`/`RateLimit-Reset`.
+  Konteks browser hanya memuat topik dan kriteria yang diizinkan (anggaran, jumlah
+  tamu, kota, tanggal, dan kategori vendor). Tautan konsultasi dapat mengisi kriteria
+  terkait melalui `sessionStorage` sekali pakai, tanpa data pribadi.
   Pilihan “Layanan WO” menampilkan tautan ke `/formulir-konsultasi`.
-- `POST /api/telemetry` menerima event allowlist `sita.no_match`. Event ini hanya
-  mencatat nama event dan path tetap `/` sekali per halaman, tanpa pertanyaan
-  atau data pribadi.
+- `POST /api/telemetry` menerima event allowlist `sita.no_match` dan `sita.feedback`
+  (`{helpful, turnId?, topic?}`). `turnId` acak dan `topic` hanya dipakai untuk
+  analitik; teks jawaban tidak pernah dikirim. Telemetry punya bucket limiter
+  tersendiri (40 event/menit) agar tidak memakan kuota chat. Event `sita.no_match`
+  hanya dicatat sekali per halaman.
 
 ## Testing
 

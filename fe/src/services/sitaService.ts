@@ -7,6 +7,7 @@ import {
 import { getPageBatch } from "./batchService.js";
 import {
 	detectTopics,
+	hasExplicitVendorCategory,
 	hasFuzzyToken,
 	matchesAnyTopicTerm,
 	smallTalkKind,
@@ -30,6 +31,20 @@ export interface SitaSuggestion {
 	topic?: SitaChatTopic;
 }
 
+export interface SitaClarify {
+	question: string;
+	options: string[];
+}
+
+export interface SitaSource {
+	label: string;
+	href: string;
+}
+
+interface SitaServiceOptions {
+	officeAddress?: string;
+}
+
 interface VenueRecord {
 	name: string;
 	slug: string;
@@ -45,6 +60,10 @@ export interface SitaAnswer {
 	offerContact: boolean;
 	unanswered?: true;
 	suggestions?: SitaSuggestion[];
+	/** Pertanyaan lanjutan saat satu slot kriteria belum jelas. */
+	clarify?: SitaClarify;
+	/** Tautan ke data sumber yang dipakai jawaban. */
+	source?: SitaSource;
 	/**
 	 * Seberapa yakin NLU memahami maksud pesan (0-1): 0.95 sapaan/kontak,
 	 * 0.8-0.9 jawaban topik/FAQ, 0.15 fallback belum tertangkap.
@@ -77,9 +96,23 @@ function venueRecords(payload: unknown): VenueRecord[] {
 type Locale = "id" | "en";
 
 interface PackageOption {
+	quota?: unknown;
 	final_price?: unknown;
 	price?: unknown;
 	discount_price?: unknown;
+}
+
+interface PackagePromo {
+	code: string;
+	type: string;
+	value: number;
+	minPurchase: number;
+	maxDiscount: number | null;
+}
+
+interface BlackoutDate {
+	date: string;
+	reason: string;
 }
 
 interface PackageRecord {
@@ -90,7 +123,17 @@ interface PackageRecord {
 	guestCapacity: string;
 	guestCapacityValue: number | null;
 	popular: boolean;
+	paymentTerms: string;
+	dpPercentage: number | null;
+	promos: PackagePromo[];
+	blackoutDates: BlackoutDate[];
 	options: PackageOption[];
+}
+
+interface TestimonialRecord {
+	name: string;
+	role: string;
+	content: string;
 }
 
 interface VendorRecord {
@@ -110,6 +153,7 @@ const STOP_WORDS = new Set([
 	"ada",
 	"adalah",
 	"akan",
+	"and",
 	"anda",
 	"apa",
 	"apakah",
@@ -131,6 +175,7 @@ const STOP_WORDS = new Set([
 	"i",
 	"ini",
 	"itu",
+	"is",
 	"ke",
 	"kami",
 	"mau",
@@ -177,7 +222,10 @@ const TOKEN_ALIASES: Record<string, string> = {
 	brp: "berapa",
 	budget: "biaya",
 	catring: "catering",
+	cost: "biaya",
+	costs: "biaya",
 	fee: "biaya",
+	fotografer: "fotografi",
 	gedung: "venue",
 	harga: "biaya",
 	hrg: "biaya",
@@ -185,12 +233,20 @@ const TOKEN_ALIASES: Record<string, string> = {
 	jasa: "layanan",
 	lokasi: "venue",
 	order: "booking",
+	pack: "paket",
+	package: "paket",
+	packages: "paket",
 	pemesanan: "booking",
 	pesan: "booking",
+	photographer: "fotografi",
+	photography: "fotografi",
 	pket: "paket",
 	pkt: "paket",
+	pkg: "paket",
 	place: "venue",
+	places: "venue",
 	price: "biaya",
+	prices: "biaya",
 	pricing: "biaya",
 	reservasi: "booking",
 	service: "layanan",
@@ -198,6 +254,8 @@ const TOKEN_ALIASES: Record<string, string> = {
 	tarif: "biaya",
 	tempat: "venue",
 	venu: "venue",
+	venuez: "venue",
+	venues: "venue",
 	vendors: "vendor",
 	wedding: "pernikahan",
 };
@@ -254,6 +312,35 @@ function packageRecords(payload: unknown): PackageRecord[] {
 					return record ? [record as PackageOption] : [];
 				})
 			: [];
+		const promos = Array.isArray(item.promos)
+			? item.promos.flatMap((promo) => {
+					const record = asRecord(promo);
+					const code = asText(record?.code);
+					const value = Number(record?.value);
+					if (!code || !Number.isFinite(value)) return [];
+					const minPurchase = Number(record?.min_purchase);
+					const maxDiscount = Number(record?.max_discount);
+					return [
+						{
+							code,
+							type: asText(record?.type).toLowerCase(),
+							value,
+							minPurchase: Number.isFinite(minPurchase) ? minPurchase : 0,
+							maxDiscount: Number.isFinite(maxDiscount) ? maxDiscount : null,
+						},
+					];
+				})
+			: [];
+		const blackoutDates = Array.isArray(item.blackout_dates)
+			? item.blackout_dates.flatMap((date) => {
+					const record = asRecord(date);
+					const value = asText(record?.date);
+					return /^\d{4}-\d{2}-\d{2}$/.test(value)
+						? [{ date: value, reason: plainText(record?.reason) }]
+						: [];
+				})
+			: [];
+		const dpPercentage = Number(item.dp_percentage);
 		return [
 			{
 				name: plainText(item.name),
@@ -268,9 +355,31 @@ function packageRecords(payload: unknown): PackageRecord[] {
 					item.is_popular === true ||
 					item.is_popular === 1 ||
 					item.is_popular === "1",
+				paymentTerms: plainText(item.payment_terms_note),
+				dpPercentage: Number.isFinite(dpPercentage) ? dpPercentage : null,
+				promos,
+				blackoutDates,
 				options,
 			},
 		].filter((record) => record.name.length > 0);
+	});
+}
+
+function testimonialRecords(payload: unknown): TestimonialRecord[] {
+	return readArray(payload, "testimonials").flatMap((value) => {
+		const item = asRecord(value);
+		if (!item) return [];
+		if (/\b(inactive|pending)\b/i.test(asText(item.status))) return [];
+		const name = plainText(item.nama);
+		const content = plainText(item.isi_testimoni);
+		if (!name || !content || UNRELATED_CONTENT.test(content)) return [];
+		return [
+			{
+				name,
+				role: plainText(item.jabatan),
+				content,
+			},
+		];
 	});
 }
 
@@ -434,6 +543,20 @@ function hasAmbiguousBudget(message: string): boolean {
 	return amount !== null && amount < 100_000;
 }
 
+function normalizeEventDate(value: string): string {
+	const iso = value.match(/^(20\d{2})-(\d{1,2})-(\d{1,2})$/);
+	const local = value.match(/^(\d{1,2})\/(\d{1,2})\/(20\d{2})$/);
+	if (!iso && !local) return value;
+	const date = iso
+		? `${iso[1]}-${iso[2].padStart(2, "0")}-${iso[3].padStart(2, "0")}`
+		: `${local?.[3]}-${local?.[2].padStart(2, "0")}-${local?.[1].padStart(2, "0")}`;
+	const parsed = new Date(`${date}T00:00:00Z`);
+	return !Number.isNaN(parsed.getTime()) &&
+		parsed.toISOString().slice(0, 10) === date
+		? date
+		: value;
+}
+
 function requestedGuestCount(message: string): number | null {
 	const match = message.match(/\b(\d{1,6})\s*(?:tamu|orang|pax|guests?)\b/i);
 	if (!match) return null;
@@ -462,6 +585,8 @@ const PACKAGE_QUERY_NOISE = new Set([
 	"kurang",
 	"lowest",
 	"mahal",
+	"many",
+	"much",
 	"maksimal",
 	"max",
 	"million",
@@ -489,7 +614,11 @@ const PACKAGE_QUERY_NOISE = new Set([
 	"sama",
 	"serta",
 	"atau",
+	"any",
 	"plus",
+	"please",
+	"pls",
+	"some",
 	"termurah",
 	"termahal",
 	"tamu",
@@ -509,7 +638,8 @@ function packageQueryTokens(message: string): string[] {
 		(token) =>
 			!PACKAGE_QUERY_NOISE.has(token) &&
 			!matchesAnyTopicTerm(token, ["packages", "venues", "vendors"]) &&
-			!/^\d+$/.test(token),
+			!/^\d+$/.test(token) &&
+			!/^(?:rp|idr)\d+$/.test(token),
 	);
 }
 
@@ -554,8 +684,8 @@ function smallTalkAnswer(
 					? "Sama-sama, Kak! Ada lagi yang bisa aku bantu soal paket, venue, vendor, atau booking?"
 					: "You're welcome! Anything else I can help with about packages, venues, vendors, or booking?"
 				: locale === "id"
-					? "Halo Kak! Aku Sita AI, asisten digital Sagita Wedding. Mau tanya soal paket, venue, vendor, atau cara booking?"
-					: "Hi! I'm Sita AI, the Sagita Wedding digital assistant. Want to ask about packages, venues, vendors, or booking?",
+					? "Halo Kak! Aku Sita, asisten digital Sagita Wedding. Mau tanya soal paket, venue, vendor, atau cara booking?"
+					: "Hi! I'm Sita, the Sagita Wedding digital assistant. Want to ask about packages, venues, vendors, or booking?",
 		cards: [],
 		offerContact: false,
 		suggestions: topicMenuSuggestions(locale),
@@ -571,6 +701,44 @@ function clarifyPackageBudget(locale: Locale): SitaAnswer {
 				: "Could you include a currency or unit for the budget, such as IDR 50,000,000 or 50 million?",
 		cards: [],
 		offerContact: false,
+		clarify: {
+			question:
+				locale === "id"
+					? "Batas anggaran berapa, Kak?"
+					: "What is your budget limit?",
+			options:
+				locale === "id"
+					? ["Rp50.000.000", "50 juta", "Hubungi admin"]
+					: ["IDR 50,000,000", "50 million", "Contact the team"],
+		},
+	};
+}
+
+function futureEventDate(monthsAhead: number): string {
+	const now = new Date();
+	const date = new Date(
+		Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + monthsAhead, 15),
+	);
+	return date.toISOString().slice(0, 10);
+}
+
+function clarifyEventDate(locale: Locale): SitaAnswer {
+	return {
+		answer:
+			locale === "id"
+				? "Tanggal acara yang ingin dicek kapan, Kak? Ketersediaan perlu dikonfirmasi tim Sagita."
+				: "Which event date should we check? The Sagita team needs to confirm availability.",
+		cards: [],
+		offerContact: false,
+		confidence: 0.85,
+		clarify: {
+			question: locale === "id" ? "Tanggal berapa?" : "Which date?",
+			options: [
+				futureEventDate(3),
+				futureEventDate(6),
+				locale === "id" ? "Hubungi admin" : "Contact the team",
+			],
+		},
 	};
 }
 
@@ -749,6 +917,9 @@ async function answerPackages(
 					? "Berikut beberapa paket yang tercatat di katalog Sagita. Harga mengikuti opsi paket yang tersedia. Sebutkan anggaran maksimum atau jumlah tamu jika ingin hasilnya disaring lebih lanjut:"
 					: "Here are some packages listed in Sagita's catalog. Prices reflect the available package options. Share a maximum budget or guest count to narrow the results:"),
 		cards: ranked.map(({ record, price }) => {
+			const quotaValues = record.options
+				.map((option) => Number(option.quota))
+				.filter((quota) => Number.isFinite(quota) && quota >= 0);
 			const details = [
 				record.description,
 				record.guestCapacity
@@ -756,6 +927,12 @@ async function answerPackages(
 					: "",
 				price !== null
 					? `${locale === "id" ? "Mulai dari" : "Starting at"} ${formatPrice(price, locale)}`
+					: "",
+				record.promos.length
+					? `Promo: ${record.promos.map((promo) => formatPromo(promo, locale)).join(", ")}`
+					: "",
+				quotaValues.length
+					? `${locale === "id" ? "Kuota tercatat" : "Recorded quota"}: ${new Intl.NumberFormat(locale === "id" ? "id-ID" : "en-US").format(Math.max(...quotaValues))}`
 					: "",
 			].filter(Boolean);
 			const slug = cleanSlugLoose(record.slug);
@@ -807,7 +984,8 @@ async function answerVendors(
 			token !== "vendor" &&
 			token !== "vendors" &&
 			!PACKAGE_QUERY_NOISE.has(token) &&
-			!matchesAnyTopicTerm(token, ["packages", "venues"]),
+			!matchesAnyTopicTerm(token, ["packages", "venues"]) &&
+			!/^\d+$/.test(token),
 	);
 	const generic = queryTokens.length === 0;
 	const ranked = records
@@ -883,7 +1061,8 @@ async function answerVenues(
 	const queryTokens = tokenize(`${message} ${criteria?.city ?? ""}`).filter(
 		(token) =>
 			!PACKAGE_QUERY_NOISE.has(token) &&
-			!matchesAnyTopicTerm(token, ["packages", "venues", "vendors"]),
+			!matchesAnyTopicTerm(token, ["packages", "venues", "vendors"]) &&
+			!/^\d+$/.test(token),
 	);
 	const generic = queryTokens.length === 0;
 	const ranked = records
@@ -1019,6 +1198,254 @@ function weddingServiceGuidance(locale: Locale): SitaAnswer {
 	};
 }
 
+function formatPromo(promo: PackagePromo, locale: Locale): string {
+	const discount =
+		promo.type === "percent"
+			? `${promo.value}%`
+			: formatPrice(promo.value, locale);
+	const minimum = promo.minPurchase
+		? `, min. ${formatPrice(promo.minPurchase, locale)}`
+		: "";
+	return `${promo.code} (${discount}${minimum})`;
+}
+
+async function answerPromotions(locale: Locale): Promise<SitaAnswer> {
+	const payload = await getPageBatch("packages", { per_page: 50 });
+	const records = packageRecords(payload).filter(
+		(record) => record.promos.length > 0,
+	);
+	if (!records.length) {
+		return {
+			answer:
+				locale === "id"
+					? "Saat ini belum ada promo aktif yang tercatat di katalog Sagita. Cek katalog lagi nanti atau hubungi admin untuk info terbaru."
+					: "There are no active promotions recorded in Sagita's catalog right now. Check back later or contact the team for the latest offers.",
+			cards: [],
+			offerContact: true,
+			confidence: 0.9,
+			suggestions: [packageContactSuggestion(locale)],
+		};
+	}
+	const promos = records
+		.flatMap((record) =>
+			record.promos.map((promo) => `${promo.code}: ${record.name}`),
+		)
+		.slice(0, 5);
+	return {
+		answer:
+			locale === "id"
+				? `Promo aktif yang tercatat di katalog Sagita: ${promos.join(", ")}. Syarat dan ketentuan mengikuti detail paket.`
+				: `Active promotions recorded in Sagita's catalog: ${promos.join(", ")}. Terms follow each package detail.`,
+		cards: records.slice(0, 4).map((record) => {
+			const slug = cleanSlugLoose(record.slug);
+			return {
+				title: record.name,
+				description: record.promos
+					.map((promo) => formatPromo(promo, locale))
+					.join(" · "),
+				...(record.image ? { image: record.image } : {}),
+				actions: [
+					...(slug
+						? [
+								{
+									label: locale === "id" ? "Lihat paket" : "View package",
+									href: `/packages/${slug}`,
+								},
+							]
+						: []),
+				],
+			};
+		}),
+		offerContact: true,
+		confidence: 0.9,
+		suggestions: [packageContactSuggestion(locale)],
+	};
+}
+
+async function answerPayment(locale: Locale): Promise<SitaAnswer> {
+	const payload = await getPageBatch("packages", { per_page: 50 });
+	const records = packageRecords(payload).filter(
+		(record) => record.paymentTerms || record.dpPercentage !== null,
+	);
+	if (!records.length) {
+		const faqAnswer = await answerFaq("pembayaran dp", locale);
+		return faqAnswer
+			? {
+					...faqAnswer,
+					confidence: 0.85,
+					suggestions: [packageContactSuggestion(locale)],
+				}
+			: {
+					answer:
+						locale === "id"
+							? "Ketentuan pembayaran belum tercatat rinci di katalog Sagita. Hubungi admin untuk info DP dan termin yang tersedia."
+							: "Detailed payment terms are not recorded in Sagita's catalog. Contact the team for available deposits and installments.",
+					cards: [],
+					offerContact: true,
+					confidence: 0.85,
+					suggestions: [packageContactSuggestion(locale)],
+				};
+	}
+	const dp = records.find(
+		(record) => record.dpPercentage !== null,
+	)?.dpPercentage;
+	const terms = records.find((record) => record.paymentTerms)?.paymentTerms;
+	const dpText =
+		dp !== null && dp !== undefined
+			? locale === "id"
+				? `DP yang tercatat ${dp}%. `
+				: `Recorded deposit is ${dp}%. `
+			: "";
+	const answer = `${dpText}${terms}`.trim();
+	return {
+		answer:
+			locale === "id"
+				? `${answer} Detail skema pembayaran bisa dikonfirmasi langsung dengan admin.`
+				: `${answer} Payment scheme details can be confirmed directly with the team.`,
+		cards: [
+			{
+				title:
+					locale === "id" ? "Konsultasi pembayaran" : "Payment consultation",
+				description:
+					locale === "id"
+						? "Diskusikan DP, termin, dan metode pembayaran dengan tim Sagita."
+						: "Discuss deposits, installments, and payment methods with the Sagita team.",
+				actions: [
+					{
+						label:
+							locale === "id" ? "Formulir konsultasi" : "Consultation form",
+						href: "/formulir-konsultasi",
+					},
+				],
+			},
+		],
+		offerContact: true,
+		confidence: 0.9,
+		suggestions: [packageContactSuggestion(locale)],
+	};
+}
+
+async function answerAvailability(
+	message: string,
+	locale: Locale,
+	criteria?: SitaChatCriteria,
+): Promise<SitaAnswer> {
+	const dateFromMessage = message.match(
+		/\b(20\d{2}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/20\d{2})\b/,
+	)?.[1];
+	const date =
+		criteria?.eventDate ??
+		(dateFromMessage ? normalizeEventDate(dateFromMessage) : undefined);
+	if (!date) return clarifyEventDate(locale);
+
+	const payload = await getPageBatch("packages", { per_page: 50 });
+	const blocked = packageRecords(payload)
+		.flatMap((record) => record.blackoutDates)
+		.find((entry) => entry.date === date);
+	const prefix = locale === "id" ? `Untuk tanggal ${date}, ` : `For ${date}, `;
+	const answer = blocked
+		? `${prefix}${locale === "id" ? "tanggal itu tercatat sebagai tanggal libur paket" : "that date is recorded as a package blackout date"}${blocked.reason ? ` (${blocked.reason})` : ""}. ${locale === "id" ? "Hubungi admin untuk alternatif tanggal." : "Contact the team for alternative dates."}`
+		: `${prefix}${locale === "id" ? "data Sagita belum menyimpan status ketersediaan otomatis. Tim perlu mengonfirmasi ketersediaan venue, vendor, dan paket." : "Sagita data does not include automatic availability status. The team needs to confirm venue, vendor, and package availability."}`;
+	return {
+		answer,
+		cards: [
+			{
+				title: locale === "id" ? "Cek ketersediaan" : "Check availability",
+				description:
+					locale === "id"
+						? "Kirim tanggal dan detail acara untuk konfirmasi tim Sagita."
+						: "Send the date and event details for Sagita team confirmation.",
+				actions: [
+					{
+						label:
+							locale === "id" ? "Formulir konsultasi" : "Consultation form",
+						href: "/formulir-konsultasi",
+					},
+				],
+			},
+		],
+		offerContact: true,
+		confidence: 0.9,
+		suggestions: [packageContactSuggestion(locale)],
+	};
+}
+
+async function answerTestimonials(locale: Locale): Promise<SitaAnswer> {
+	const payload = await getPageBatch("home");
+	const records = testimonialRecords(payload);
+	if (!records.length) {
+		return {
+			answer:
+				locale === "id"
+					? "Belum ada testimoni pernikahan yang bisa ditampilkan dari data Sagita saat ini. Untuk referensi pengalaman klien, silakan hubungi admin."
+					: "There are no wedding testimonials available in Sagita's data right now. Contact the team for client references.",
+			cards: [],
+			offerContact: true,
+			confidence: 0.9,
+			suggestions: [packageContactSuggestion(locale)],
+		};
+	}
+	return {
+		answer:
+			locale === "id"
+				? "Berikut testimoni yang tercatat di data Sagita:"
+				: "Here are testimonials recorded in Sagita's data:",
+		cards: records.slice(0, 3).map((record) => ({
+			title: record.name,
+			description:
+				[record.role, record.content.slice(0, 180)]
+					.filter(Boolean)
+					.join(" · ") || record.name,
+			actions: [
+				{
+					label: locale === "id" ? "Lihat paket" : "View packages",
+					href: "/packages",
+				},
+			],
+		})),
+		offerContact: true,
+		confidence: 0.9,
+		suggestions: [packageContactSuggestion(locale)],
+	};
+}
+
+function answerOfficeAddress(
+	locale: Locale,
+	options?: SitaServiceOptions,
+): SitaAnswer {
+	const address = asText(options?.officeAddress);
+	const base: SitaAnswer = {
+		answer: address
+			? locale === "id"
+				? `Alamat kantor Sagita: ${address}. Untuk petunjuk arah, silakan hubungi admin.`
+				: `Sagita office address: ${address}. Contact the team for directions.`
+			: locale === "id"
+				? "Alamat kantor belum tercatat di data situs Sagita. Silakan hubungi admin untuk alamat dan petunjuk arah."
+				: "The office address is not listed in Sagita's site data. Contact the team for the address and directions.",
+		cards: [],
+		offerContact: true,
+		confidence: 0.9,
+		suggestions: [packageContactSuggestion(locale)],
+	};
+	if (!address) return base;
+	const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+	return {
+		...base,
+		cards: [
+			{
+				title: locale === "id" ? "Peta lokasi" : "Location map",
+				description: address,
+				actions: [
+					{
+						label: locale === "id" ? "Buka peta" : "Open map",
+						href: mapUrl,
+					},
+				],
+			},
+		],
+	};
+}
+
 async function answerFaq(
 	message: string,
 	locale: Locale,
@@ -1052,6 +1479,10 @@ async function answerFaq(
 		cards: [],
 		offerContact,
 		confidence: 0.8,
+		source: {
+			label: locale === "id" ? "Lihat sumber FAQ" : "View FAQ source",
+			href: "/faq",
+		},
 		...(offerContact
 			? {
 					suggestions: [
@@ -1075,6 +1506,30 @@ function secondaryChipLabel(topic: SitaChatTopic, locale: Locale): string {
 	return locale === "id" ? "Lihat paket & harga" : "View packages";
 }
 
+function sourceFor(
+	analysis: TopicAnalysis,
+	locale: Locale,
+): SitaSource | undefined {
+	const topic = analysis.primary ?? analysis.secondary;
+	if (!topic) return undefined;
+	if (topic === "packages") {
+		return {
+			label: locale === "id" ? "Lihat sumber paket" : "View package data",
+			href: "/packages",
+		};
+	}
+	if (topic === "venues") {
+		return {
+			label: locale === "id" ? "Lihat sumber venue" : "View venue data",
+			href: "/venues",
+		};
+	}
+	return {
+		label: locale === "id" ? "Lihat sumber vendor" : "View vendor data",
+		href: "/vendors",
+	};
+}
+
 /**
  * Lengkapi jawaban dengan confidence (bila belum ada) dan chip topik kedua
  * ketika pesan memuat dua maksud kuat sekaligus (mis. "paket sama venue").
@@ -1092,17 +1547,33 @@ function finalizeAnswer(
 			suggestions = [...suggestions, { label, topic: analysis.secondary }];
 		}
 	}
+	const source = answer.source ?? sourceFor(analysis, locale);
 	return {
 		...answer,
 		confidence: answer.confidence ?? routeConfidence,
 		...(suggestions.length ? { suggestions } : {}),
+		...(source ? { source } : {}),
 	};
 }
+
+const PROMO_INTENT =
+	/\b(promo|promosi|diskon|discounts?|potongan|deals?|voucher|kode\s+promo)\b/i;
+const PAYMENT_INTENT =
+	/\b(pembayaran|bayar|dp\b|down\s*payment|cicilan|installments?|termin|pelunasan|payment)\b/i;
+const AVAILABILITY_INTENT =
+	/\b(tersedia\w*|ketersediaan|available|availability|kosong|jadwal|schedule)\b/i;
+const DATE_INTENT =
+	/\b(tanggal\w*|date|20\d{2}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/20\d{2})\b/i;
+const TESTIMONIAL_INTENT =
+	/\b(testimoni|testimonials?|review|ulasan|pengalaman\s+(?:klien|pelanggan)|kata\s+klien)\b/i;
+const OFFICE_INTENT =
+	/\b(alamat\s+(?:kantor|kami|sagita)|kantor\s+(?:sagita|kami|di\s+mana)|lokasi\s+kantor|office(?:\s+address|\s+location)?|where\s+(?:are\s+you|(?:is|are)\s+(?:your|the)\s+office)|dimana\s+kantor)\b/i;
 
 export async function answerSitaQuestion(
 	message: string,
 	locale: Locale,
 	context?: SitaChatContext,
+	options?: SitaServiceOptions,
 ): Promise<SitaAnswer> {
 	if (CONTACT_TERMS.test(message)) {
 		return {
@@ -1136,9 +1607,57 @@ export async function answerSitaQuestion(
 		return weddingServiceGuidance(locale);
 	}
 
-	const explicitTopic: SitaChatTopic | null = analysis.primary ?? null;
+	if (PROMO_INTENT.test(message)) {
+		return finalizeAnswer(
+			await answerPromotions(locale),
+			0.9,
+			analysis,
+			locale,
+		);
+	}
+	if (PAYMENT_INTENT.test(message)) {
+		return finalizeAnswer(await answerPayment(locale), 0.9, analysis, locale);
+	}
+	if (
+		AVAILABILITY_INTENT.test(message) &&
+		(DATE_INTENT.test(message) || Boolean(context?.criteria?.eventDate))
+	) {
+		return finalizeAnswer(
+			await answerAvailability(message, locale, context?.criteria),
+			0.9,
+			analysis,
+			locale,
+		);
+	}
+	if (TESTIMONIAL_INTENT.test(message)) {
+		return finalizeAnswer(
+			await answerTestimonials(locale),
+			0.9,
+			analysis,
+			locale,
+		);
+	}
+	if (OFFICE_INTENT.test(message) && !VENUE_TERMS.test(message)) {
+		return finalizeAnswer(
+			answerOfficeAddress(locale, options),
+			0.9,
+			analysis,
+			locale,
+		);
+	}
+
+	const forcedVendor =
+		hasExplicitVendorCategory(message) &&
+		!PACKAGE_NAME_TERMS.test(message) &&
+		!VENUE_TERMS.test(message);
+	const explicitTopic: SitaChatTopic | null = forcedVendor
+		? "vendors"
+		: (analysis.primary ?? null);
 	const topic = explicitTopic ?? context?.topic;
 	const routeConfidence = explicitTopic ? 0.9 : topic ? 0.85 : 0.5;
+	const routedAnalysis: TopicAnalysis = forcedVendor
+		? { ...analysis, secondary: undefined }
+		: analysis;
 
 	let answer: SitaAnswer;
 	if (topic === "packages") {
@@ -1157,5 +1676,5 @@ export async function answerSitaQuestion(
 	} else {
 		answer = (await answerFaq(message, locale)) ?? fallback(locale);
 	}
-	return finalizeAnswer(answer, routeConfidence, analysis, locale);
+	return finalizeAnswer(answer, routeConfidence, routedAnalysis, locale);
 }

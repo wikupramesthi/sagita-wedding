@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { parseTelemetry } from "../src/routes/api.js";
 import {
 	assertBatchPagesMatchContract,
 	BATCH_CONTRACT,
@@ -84,5 +85,58 @@ describe("API contract", () => {
 		expect(
 			missingItemKeys([{ ...faq, answer: undefined }], FAQ_ITEM_CONTRACT),
 		).toEqual(["answer"]);
+	});
+});
+
+describe("Sita telemetry allowlist", () => {
+	it("keeps no-match events", () => {
+		expect(parseTelemetry({ kind: "event", name: "sita.no_match" })).toEqual({
+			kind: "event",
+			name: "sita.no_match",
+			path: "/",
+		});
+	});
+
+	it("accepts feedback events with a boolean rating and opaque metadata", () => {
+		expect(
+			parseTelemetry({
+				kind: "event",
+				name: "sita.feedback",
+				helpful: true,
+				turnId: "turn-123",
+				topic: "vendors",
+				answer: "rahasia",
+			}),
+		).toEqual({
+			kind: "event",
+			name: "sita.feedback",
+			path: "/",
+			helpful: true,
+			turnId: "turn-123",
+			topic: "vendors",
+		});
+		expect(
+			parseTelemetry({
+				kind: "event",
+				name: "sita.feedback",
+				helpful: "yes",
+			}),
+		).toBeNull();
+		expect(
+			parseTelemetry({
+				kind: "event",
+				name: "sita.feedback",
+				helpful: false,
+				topic: "unknown",
+			}),
+		).toEqual({
+			kind: "event",
+			name: "sita.feedback",
+			path: "/",
+			helpful: false,
+		});
+		expect(
+			parseTelemetry({ kind: "event", name: "sita.secret", helpful: true }),
+		).toBeNull();
 	});
 });

@@ -71,6 +71,8 @@ export function writeLimiter() {
 		max: 20,
 		standardHeaders: "draft-7",
 		legacyHeaders: false,
+		keyGenerator: (req) =>
+			`${req.ip ?? "unknown"}:${req.path === "/telemetry" ? "telemetry" : "api"}`,
 		message: {
 			success: false,
 			message: "Too many requests, please try again shortly.",
