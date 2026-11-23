@@ -5,6 +5,7 @@ import {
 	type SitaChatTopic,
 } from "../utils/validate.js";
 import { getPageBatch } from "./batchService.js";
+import { getDynamicAliases } from "./sitaKnowledge.js";
 import {
 	detectTopics,
 	hasExplicitVendorCategory,
@@ -13,6 +14,7 @@ import {
 	smallTalkKind,
 	type TopicAnalysis,
 } from "./sitaNlu.js";
+import { SEMANTIC_MATCH_THRESHOLD, semanticScore } from "./sitaSemantic.js";
 
 export interface SitaCard {
 	title: string;
@@ -96,6 +98,9 @@ function venueRecords(payload: unknown): VenueRecord[] {
 }
 
 type Locale = "id" | "en";
+type AliasLookup = ReadonlyMap<string, string>;
+
+const FAQ_WEAK_SCORE = 2;
 
 interface PackageOption {
 	quota?: unknown;
@@ -262,6 +267,19 @@ const TOKEN_ALIASES: Record<string, string> = {
 	wedding: "pernikahan",
 };
 
+function buildAliasLookup(aliases: Record<string, string[]>): AliasLookup {
+	const lookup = new Map<string, string>();
+	for (const [key, values] of Object.entries(aliases)) {
+		const canonical = TOKEN_ALIASES[key] ?? key;
+		if (!lookup.has(canonical)) lookup.set(canonical, canonical);
+		for (const value of values) {
+			const alias = TOKEN_ALIASES[value] ?? value;
+			if (!lookup.has(alias)) lookup.set(alias, canonical);
+		}
+	}
+	return lookup;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
 	if (!value || typeof value !== "object" || Array.isArray(value)) return null;
 	return value as Record<string, unknown>;
@@ -423,7 +441,7 @@ function faqRecords(payload: unknown): FaqRecord[] {
 	});
 }
 
-function tokenize(value: string): string[] {
+function tokenize(value: string, aliases?: AliasLookup): string[] {
 	return [
 		...new Set(
 			value
@@ -431,15 +449,22 @@ function tokenize(value: string): string[] {
 				.replace(/[\u0300-\u036f]/g, "")
 				.toLocaleLowerCase()
 				.match(/[a-z0-9]+/g)
-				?.map((word) => TOKEN_ALIASES[word] ?? word)
+				?.map((word) => {
+					const canonical = aliases?.get(word) ?? word;
+					return TOKEN_ALIASES[canonical] ?? canonical;
+				})
 				.filter((word) => word.length > 1 && !STOP_WORDS.has(word)) ?? [],
 		),
 	];
 }
 
-function matchScore(queryTokens: string[], text: string): number {
+function matchScore(
+	queryTokens: string[],
+	text: string,
+	aliases?: AliasLookup,
+): number {
 	if (queryTokens.length === 0) return 0;
-	const content = tokenize(text);
+	const content = tokenize(text, aliases);
 	const exact = new Set(content);
 	return queryTokens.filter(
 		(token) => exact.has(token) || hasFuzzyToken(token, content),
@@ -588,6 +613,7 @@ const PACKAGE_QUERY_NOISE = new Set([
 	"lowest",
 	"mahal",
 	"many",
+	"mulai",
 	"much",
 	"maksimal",
 	"max",
@@ -635,8 +661,8 @@ const PACKAGE_QUERY_NOISE = new Set([
 	"wedding",
 ]);
 
-function packageQueryTokens(message: string): string[] {
-	return tokenize(message).filter(
+function packageQueryTokens(message: string, aliases?: AliasLookup): string[] {
+	return tokenize(message, aliases).filter(
 		(token) =>
 			!PACKAGE_QUERY_NOISE.has(token) &&
 			!matchesAnyTopicTerm(token, ["packages", "venues", "vendors"]) &&
@@ -808,6 +834,7 @@ async function answerPackages(
 	message: string,
 	locale: Locale,
 	criteria?: SitaChatCriteria,
+	aliases?: AliasLookup,
 ): Promise<SitaAnswer> {
 	const budget = packageBudgetLimit(message) ?? criteria?.budgetLimit ?? null;
 	const guestCount =
@@ -825,7 +852,7 @@ async function answerPackages(
 		sort: "lowest_price",
 	});
 	const records = packageRecords(payload);
-	const queryTokens = packageQueryTokens(message);
+	const queryTokens = packageQueryTokens(message, aliases);
 	const generic = queryTokens.length === 0;
 	const wantsCheapest = /\b(murah|termurah|cheapest|lowest)\b/i.test(message);
 	const wantsMostExpensive = /\b(mahal|termahal|most expensive)\b/i.test(
@@ -838,6 +865,7 @@ async function answerPackages(
 			score: matchScore(
 				queryTokens,
 				`${record.name} ${record.description} ${record.guestCapacity}`,
+				aliases,
 			),
 			price: minimumPrice(record),
 		}))
@@ -870,7 +898,7 @@ async function answerPackages(
 
 	if (ranked.length === 0) {
 		if (budget !== null || guestCount !== null) return noPackageMatch(locale);
-		const faqAnswer = await answerFaq(message, locale);
+		const faqAnswer = await answerFaq(message, locale, aliases);
 		return faqAnswer
 			? {
 					...faqAnswer,
@@ -977,10 +1005,14 @@ async function answerVendors(
 	message: string,
 	locale: Locale,
 	criteria?: SitaChatCriteria,
+	aliases?: AliasLookup,
 ): Promise<SitaAnswer> {
 	const payload = await getPageBatch("vendors");
 	const records = vendorRecords(payload);
-	const allTokens = tokenize(`${message} ${criteria?.vendorCategory ?? ""}`);
+	const allTokens = tokenize(
+		`${message} ${criteria?.vendorCategory ?? ""}`,
+		aliases,
+	);
 	const queryTokens = allTokens.filter(
 		(token) =>
 			token !== "vendor" &&
@@ -996,6 +1028,7 @@ async function answerVendors(
 			score: matchScore(
 				queryTokens,
 				`${record.name} ${record.bio} ${record.categories.join(" ")}`,
+				aliases,
 			),
 		}))
 		.filter(({ score }) => generic || score > 0)
@@ -1003,7 +1036,7 @@ async function answerVendors(
 		.slice(0, 4);
 
 	if (ranked.length === 0) {
-		const faqAnswer = await answerFaq(message, locale);
+		const faqAnswer = await answerFaq(message, locale, aliases);
 		return faqAnswer
 			? {
 					...faqAnswer,
@@ -1057,10 +1090,14 @@ async function answerVenues(
 	message: string,
 	locale: Locale,
 	criteria?: SitaChatCriteria,
+	aliases?: AliasLookup,
 ): Promise<SitaAnswer> {
 	const payload = await getPageBatch("venues");
 	const records = venueRecords(payload);
-	const queryTokens = tokenize(`${message} ${criteria?.city ?? ""}`).filter(
+	const queryTokens = tokenize(
+		`${message} ${criteria?.city ?? ""}`,
+		aliases,
+	).filter(
 		(token) =>
 			!PACKAGE_QUERY_NOISE.has(token) &&
 			!matchesAnyTopicTerm(token, ["packages", "venues", "vendors"]) &&
@@ -1073,6 +1110,7 @@ async function answerVenues(
 			score: matchScore(
 				queryTokens,
 				`${record.name} ${record.address} ${record.excerpt}`,
+				aliases,
 			),
 		}))
 		.filter(({ score }) => generic || score > 0)
@@ -1080,7 +1118,7 @@ async function answerVenues(
 		.slice(0, 4);
 
 	if (ranked.length === 0) {
-		const faqAnswer = await answerFaq(message, locale);
+		const faqAnswer = await answerFaq(message, locale, aliases);
 		return faqAnswer
 			? {
 					...faqAnswer,
@@ -1451,17 +1489,25 @@ function answerOfficeAddress(
 async function answerFaq(
 	message: string,
 	locale: Locale,
+	aliases?: AliasLookup,
 ): Promise<SitaAnswer | null> {
+	const resolvedAliases =
+		aliases ?? buildAliasLookup(await getDynamicAliases(locale));
 	const payload = await getPageBatch("faq");
 	const records = faqRecords(payload);
-	const queryTokens = tokenize(message);
+	const queryTokens = tokenize(message, resolvedAliases);
 	const ranked = records
 		.map((record) => {
 			const questionScore = matchScore(
 				queryTokens,
 				`${record.question} ${record.category}`,
+				resolvedAliases,
 			);
-			const answerScore = matchScore(queryTokens, record.answer);
+			const answerScore = matchScore(
+				queryTokens,
+				record.answer,
+				resolvedAliases,
+			);
 			return {
 				record,
 				score: questionScore * 2 + answerScore,
@@ -1470,7 +1516,19 @@ async function answerFaq(
 		})
 		.filter(({ score, coverage }) => score > 0 && coverage >= 0.5)
 		.sort((a, b) => b.score - a.score);
-	const best = ranked[0];
+	let best = ranked[0];
+	let usedSemantic = false;
+	if ((!best || best.score < FAQ_WEAK_SCORE) && queryTokens.length > 0) {
+		const semantic = semanticScore(
+			message,
+			records.map((record) => `${record.question} ${record.answer}`),
+			resolvedAliases,
+		);
+		if (semantic && semantic.score >= SEMANTIC_MATCH_THRESHOLD) {
+			best = { record: records[semantic.index], score: 0, coverage: 1 };
+			usedSemantic = true;
+		}
+	}
 	if (!best || queryTokens.length === 0) {
 		return null;
 	}
@@ -1480,7 +1538,7 @@ async function answerFaq(
 		answer: best.record.answer,
 		cards: [],
 		offerContact,
-		confidence: 0.8,
+		confidence: usedSemantic ? 0.82 : 0.8,
 		source: {
 			label: locale === "id" ? "Lihat sumber FAQ" : "View FAQ source",
 			href: "/faq",
@@ -1658,6 +1716,7 @@ export async function answerSitaQuestion(
 		);
 	}
 
+	const aliases = buildAliasLookup(await getDynamicAliases(locale));
 	const forcedVendor =
 		hasExplicitVendorCategory(message) &&
 		!PACKAGE_NAME_TERMS.test(message) &&
@@ -1673,20 +1732,20 @@ export async function answerSitaQuestion(
 
 	let answer: SitaAnswer;
 	if (topic === "packages") {
-		answer = await answerPackages(message, locale, context?.criteria);
+		answer = await answerPackages(message, locale, context?.criteria, aliases);
 	} else if (topic === "venues") {
 		if (!VENUE_PRICE_TERMS.test(message)) {
-			answer = await answerVenues(message, locale, context?.criteria);
+			answer = await answerVenues(message, locale, context?.criteria, aliases);
 		} else {
-			const faqAnswer = await answerFaq(message, locale);
+			const faqAnswer = await answerFaq(message, locale, aliases);
 			answer = faqAnswer
 				? { ...faqAnswer, offerContact: true }
 				: venueGuidance(locale);
 		}
 	} else if (topic === "vendors") {
-		answer = await answerVendors(message, locale, context?.criteria);
+		answer = await answerVendors(message, locale, context?.criteria, aliases);
 	} else {
-		answer = (await answerFaq(message, locale)) ?? fallback(locale);
+		answer = (await answerFaq(message, locale, aliases)) ?? fallback(locale);
 	}
 	return finalizeAnswer(answer, routeConfidence, routedAnalysis, locale);
 }

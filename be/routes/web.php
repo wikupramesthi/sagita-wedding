@@ -30,6 +30,9 @@ use App\Http\Controllers\Admin\Security\AuditLogController;
 use App\Http\Controllers\Admin\Security\FailedLoginController;
 use App\Http\Controllers\Admin\Security\LoginActivityController;
 use App\Http\Controllers\Admin\Security\LoginLockoutController;
+use App\Http\Controllers\Admin\SitaAnalyticsController;
+use App\Http\Controllers\Admin\SitaLeadController;
+use App\Http\Controllers\Admin\SitaSynonymController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\VendorController;
 // payment
@@ -333,6 +336,20 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
     Route::resource('vendor', VendorController::class);
     Route::get('/mobile/vendor', [VendorController::class, 'mobile'])
         ->name('vendor.mobile');
+
+    Route::prefix('sita')->group(function () {
+        Route::get('analytics', [SitaAnalyticsController::class, 'index'])->name('sita.analytics.index');
+
+        Route::get('leads', [SitaLeadController::class, 'index'])->name('sita.leads.index');
+        Route::get('leads/{sitaLead}', [SitaLeadController::class, 'show'])->name('sita.leads.show');
+        Route::put('leads/{sitaLead}', [SitaLeadController::class, 'update'])->name('sita.leads.update');
+        Route::delete('leads/{sitaLead}', [SitaLeadController::class, 'destroy'])->name('sita.leads.destroy');
+
+        Route::get('synonyms', [SitaSynonymController::class, 'index'])->name('sita.synonyms.index');
+        Route::post('synonyms', [SitaSynonymController::class, 'store'])->name('sita.synonyms.store');
+        Route::put('synonyms/{sitaSynonym}', [SitaSynonymController::class, 'update'])->name('sita.synonyms.update');
+        Route::delete('synonyms/{sitaSynonym}', [SitaSynonymController::class, 'destroy'])->name('sita.synonyms.destroy');
+    });
     Route::patch('/pages/{uuid}/sidebar', [PagesController::class, 'updateSidebar'])->name('pages.updateSidebar');
 
     // Security (audit log, login activity, lockout)

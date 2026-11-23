@@ -16,6 +16,7 @@
 		"watch:js": "node scripts/build-js.mjs --watch",
 		"typecheck": "tsc --noEmit && tsc -p tsconfig.browser.json",
 		"test": "vitest run",
+		"test:golden": "vitest run tests/sitaGoldenQueries.test.ts",
 		"test:watch": "vitest",
 		"test:a11y": "vitest run tests/a11y.test.ts",
 		"test:lighthouse": "node -e \"require('node:fs').mkdirSync('.lighthouse',{recursive:true})\" && lighthouse http://127.0.0.1:3000 --quiet --chrome-flags=\"--headless --no-sandbox --disable-dev-shm-usage\" --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=.lighthouse/report.json --max-wait-for-load=20000 --threshold=performance=70 --threshold=accessibility=90 --threshold=best-practices=90 --threshold=seo=90",

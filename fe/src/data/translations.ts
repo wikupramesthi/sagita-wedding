@@ -313,6 +313,45 @@ const rawTranslations = {
 		homePlanningBudgetTitle: "A budget with direction",
 		homePlanningBudgetDescription:
 			"Discuss priorities and needs early to guide decisions within your agreed budget.",
+		homeChecklistEyebrow: "ORDER CHECKLIST",
+		homeChecklistTitle: "Keep wedding preparations on track",
+		homeChecklistDescription:
+			"Your order details include a preparation checklist from the Sagita team. Review task notes and target dates when available, mark completed tasks, and follow your progress.",
+		homeChecklistBenefits: [
+			"Checklist is attached to your order",
+			"See task notes and target dates when available",
+			"Mark tasks complete to track progress",
+		],
+		homeChecklistPreviewLabel: "ORDER CHECKLIST PREVIEW",
+		homeChecklistDoneLabel: "Complete",
+		homeChecklistPendingLabel: "To do",
+		homeChecklistRows: [
+			{
+				task: "Confirm event details",
+				description: "Check the venue, schedule, and event contacts.",
+				done: true,
+			},
+			{
+				task: "Finalize guest count",
+				description: "Update guest estimates and catering needs.",
+				done: false,
+			},
+			{
+				task: "Confirm event schedule",
+				description: "Review the event flow with your wedding team.",
+				done: false,
+			},
+			{
+				task: "Finalize vendor requirements",
+				description: "Confirm decor, documentation, and additional vendors.",
+				done: false,
+			},
+			{
+				task: "Final event confirmation",
+				description: "Review the final event details and schedule.",
+				done: false,
+			},
+		],
 
 		venuesEyebrow: "A PLACE FOR YOUR STORY",
 		venuesTitle: "Find a venue",
@@ -789,6 +828,45 @@ const rawTranslations = {
 		homePlanningBudgetTitle: "Anggaran lebih terarah",
 		homePlanningBudgetDescription:
 			"Prioritas dan kebutuhan dibahas sejak awal agar keputusan tetap sesuai anggaran.",
+		homeChecklistEyebrow: "CHECKLIST PESANAN",
+		homeChecklistTitle: "Persiapan pernikahan, satu langkah setiap waktu",
+		homeChecklistDescription:
+			"Di detail pesanan, kamu bisa melihat daftar tugas persiapan dari tim Sagita. Cek keterangan dan target tanggal jika tersedia, tandai tugas yang selesai, lalu pantau progresnya.",
+		homeChecklistBenefits: [
+			"Checklist terhubung langsung dengan pesananmu",
+			"Lihat keterangan dan target tanggal jika tersedia",
+			"Tandai tugas selesai untuk memantau progres",
+		],
+		homeChecklistPreviewLabel: "CONTOH CHECKLIST PESANAN",
+		homeChecklistDoneLabel: "Selesai",
+		homeChecklistPendingLabel: "Belum selesai",
+		homeChecklistRows: [
+			{
+				task: "Konfirmasi detail acara",
+				description: "Pastikan lokasi, waktu, dan kontak acara sudah benar.",
+				done: true,
+			},
+			{
+				task: "Finalisasi jumlah tamu",
+				description: "Perbarui perkiraan jumlah tamu dan kebutuhan konsumsi.",
+				done: false,
+			},
+			{
+				task: "Konfirmasi susunan acara",
+				description: "Tinjau susunan acara bersama tim wedding organizer.",
+				done: false,
+			},
+			{
+				task: "Finalisasi kebutuhan vendor",
+				description: "Pastikan kebutuhan dekorasi, dokumentasi, dan vendor.",
+				done: false,
+			},
+			{
+				task: "Konfirmasi akhir acara",
+				description: "Periksa kembali detail dan jadwal acara.",
+				done: false,
+			},
+		],
 
 		venuesEyebrow: "VENUE PILIHAN UNTUK PERAYAAN ANDA",
 		venuesTitle: "Pilihan Venue",

@@ -804,8 +804,24 @@ describe("pageScript wiring", () => {
 			'class="home-testimonials-section',
 		);
 		const dashboardPosition = res.text.indexOf('id="home-preparation"');
+		const checklistPosition = res.text.indexOf('id="home-checklist"');
 		expect(testimonialsPosition).toBeGreaterThan(articlesPosition);
 		expect(dashboardPosition).toBeGreaterThan(testimonialsPosition);
+		expect(checklistPosition).toBeLessThan(articlesPosition);
+		expect(res.text).toContain(
+			"Persiapan pernikahan, satu langkah setiap waktu",
+		);
+		expect(res.text).toContain(
+			"Di detail pesanan, kamu bisa melihat daftar tugas persiapan dari tim Sagita.",
+		);
+		expect(res.text).not.toContain("81 tugas");
+		expect(res.text).not.toContain("Unduh PDF checklist");
+		expect(res.text).not.toContain("Filter berdasarkan kategori");
+		expect(
+			res.text.match(
+				/class="flex items-start gap-3 rounded-2xl bg-white px-4 py-3\.5"/g,
+			),
+		).toHaveLength(5);
 		expect(res.text).toContain("Pantau semuanya dari");
 		expect(res.text).toContain("satu</span>");
 		expect(res.text).toContain("dashboard");

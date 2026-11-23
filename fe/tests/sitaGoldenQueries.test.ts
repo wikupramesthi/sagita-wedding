@@ -130,6 +130,12 @@ const goldenQueries: GoldenQuery[] = [
 	{ message: "Paket wedding", minConfidence: 0.9, cards: 3 },
 	{ message: "brp hrga pket", minConfidence: 0.9, cards: 3 },
 	{ message: "pketnya brapa?", minConfidence: 0.9, cards: 3 },
+	{ message: "harga paket mulai berapa", minConfidence: 0.9, cards: 3 },
+	{
+		message: "Berapa biaya paket pernikahan?",
+		minConfidence: 0.9,
+		cards: 3,
+	},
 	{ message: "Paket termurah", minConfidence: 0.9, cards: 3 },
 	{ message: "Paket untuk 200 tamu", minConfidence: 0.9, cards: 3 },
 	{ message: "Paket budget 50 juta", minConfidence: 0.9, cards: 2 },
@@ -163,6 +169,7 @@ const goldenQueries: GoldenQuery[] = [
 		minConfidence: 0.8,
 		contains: "Pemesanan",
 	},
+	{ message: "cara daftar", minConfidence: 0.8, contains: "Pemesanan" },
 	{ message: "halo cara booking", minConfidence: 0.8, contains: "Pemesanan" },
 	{
 		message: "bisa custom paket?",

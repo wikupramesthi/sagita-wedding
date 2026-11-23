@@ -242,6 +242,72 @@
   </section>
   <% } %>
 
+  <!-- ======================= WEDDING CHECKLIST ======================= -->
+  <% const checklistRows = t.homeChecklistRows; %>
+  <% const completedChecklistTasks = checklistRows.filter((row) => row.done).length; %>
+  <section id="home-checklist" class="py-14 sm:py-16 lg:py-20">
+    <div class="site-container">
+      <div class="grid items-center gap-8 rounded-[2rem] bg-white p-6 shadow-[0_12px_42px_rgba(66,48,44,0.08)] ring-1 ring-sand-900/5 sm:p-10 lg:grid-cols-3 lg:gap-12 lg:p-12">
+        <div class="lg:col-span-2">
+          <p class="inline-flex rounded-full bg-pink-100 px-4 py-2 text-xs font-bold tracking-wide text-pink-700">
+            <%= t.homeChecklistEyebrow %>
+          </p>
+          <h2 class="mt-4 max-w-2xl font-display text-3xl font-bold leading-tight text-sage-900 sm:text-4xl">
+            <%= t.homeChecklistTitle %>
+          </h2>
+          <p class="mt-4 max-w-2xl text-base leading-relaxed text-stone-warm sm:text-lg">
+            <%= t.homeChecklistDescription %>
+          </p>
+          <ul class="mt-6 space-y-3">
+            <% t.homeChecklistBenefits.forEach((benefit) => { %>
+              <li class="flex items-start gap-3 text-sm text-sage-900 sm:text-base">
+                <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m5 12 4 4L19 6"></path>
+                </svg>
+                <span><%= benefit %></span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+
+        <div class="rounded-[1.75rem] bg-stone-50 p-4 sm:p-5" role="group" aria-label="<%= t.homeChecklistPreviewLabel %>">
+          <div class="mb-3 flex items-center justify-between gap-3 px-1">
+            <p class="text-[11px] font-bold uppercase tracking-wide text-stone-500">
+              <%= t.homeChecklistPreviewLabel %>
+            </p>
+            <span class="whitespace-nowrap text-[11px] text-stone-400">
+              <%= completedChecklistTasks %>/<%= checklistRows.length %> <%= t.homeChecklistDoneLabel %>
+            </span>
+          </div>
+          <div class="space-y-3">
+            <% checklistRows.forEach((row) => { %>
+              <div class="flex items-start gap-3 rounded-2xl bg-white px-4 py-3.5">
+                <span class="grid h-6 w-6 shrink-0 place-items-center rounded-md border <%= row.done ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-white text-transparent' %>" aria-hidden="true">
+                  <% if (row.done) { %>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m5 12 4 4L19 6"></path>
+                    </svg>
+                  <% } %>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium <%= row.done ? 'text-stone-400 line-through' : 'text-sage-900' %>">
+                    <%= row.task %>
+                  </p>
+                  <p class="mt-1 text-xs leading-relaxed text-stone-500">
+                    <%= row.description %>
+                  </p>
+                </div>
+                <span class="whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-medium <%= row.done ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500' %>">
+                  <%= row.done ? t.homeChecklistDoneLabel : t.homeChecklistPendingLabel %>
+                </span>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ======================= FEATURED ARTICLES ======================= -->
   <% if (weddingContentReady && Array.isArray(articles) && articles.length > 0) { %>
   <section id="home-articles" class="py-16 bg-clay-50/30">
