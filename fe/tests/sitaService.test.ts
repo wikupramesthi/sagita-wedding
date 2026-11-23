@@ -885,6 +885,7 @@ describe("Sita explicit intents", () => {
 		const faq = await answerSitaQuestion("Cara booking", "id");
 
 		expect(packages.source?.href).toBe("/packages");
+		expect(packages.topic).toBe("packages");
 		expect(faq.source?.href).toBe("/faq");
 	});
 

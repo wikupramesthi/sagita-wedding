@@ -31,6 +31,12 @@
         <p class="sita-chat-message__text"><%= lang === 'en' ? 'Hi! I’m Sita, Sagita Wedding’s virtual assistant. Ask me about packages, venues, services, vendors, or booking.' : 'Halo Kak! Aku Sita, asisten virtual Sagita Wedding. Tanya seputar paket, venue, layanan, vendor, atau cara booking, ya.' %></p>
       </article>
     </div>
+    <div id="sitaChatOnboarding" class="sita-chat-onboarding" role="group" aria-label="<%= lang === 'en' ? 'Example questions' : 'Contoh pertanyaan' %>">
+      <p><%= lang === 'en' ? 'Try asking:' : 'Coba tanya:' %></p>
+      <button type="button" data-sita-example="<%= lang === 'en' ? 'What are the package prices?' : 'Paket pernikahan berapa harganya?' %>"><%= lang === 'en' ? 'Package prices' : 'Harga paket' %></button>
+      <button type="button" data-sita-example="<%= lang === 'en' ? 'Which venues are available?' : 'Venue apa yang tersedia?' %>"><%= lang === 'en' ? 'Available venues' : 'Venue tersedia' %></button>
+      <button type="button" data-sita-example="<%= lang === 'en' ? 'How do I book?' : 'Bagaimana cara booking?' %>"><%= lang === 'en' ? 'How to book' : 'Cara booking' %></button>
+    </div>
     <div id="sitaChatChoices" class="sita-chat-choices" role="group" aria-label="<%= lang === 'en' ? 'Choose a topic' : 'Pilih topik' %>">
       <button type="button" data-sita-topic="packages"><%= lang === 'en' ? 'Packages & pricing' : 'Paket & harga' %></button>
       <button type="button" data-sita-topic="venues"><%= lang === 'en' ? 'Wedding venues' : 'Venue' %></button>

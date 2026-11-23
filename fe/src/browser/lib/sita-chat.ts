@@ -1,4 +1,5 @@
 import { detectTopics } from "../../services/sitaNlu.js";
+import { hashSitaQuestion } from "../telemetry.js";
 
 (() => {
 	interface ChatCard {
@@ -61,6 +62,7 @@ import { detectTopics } from "../../services/sitaNlu.js";
 		suggestions?: ChatSuggestion[];
 		clarify?: ChatClarify;
 		source?: ChatSource;
+		topic?: ChatTopic;
 	}
 
 	function isChatTopic(value: unknown): value is ChatTopic {
@@ -104,6 +106,7 @@ import { detectTopics } from "../../services/sitaNlu.js";
 	const panel = document.getElementById("sitaChatPanel");
 	const closeButton = document.getElementById("sitaChatClose");
 	const resetButton = document.getElementById("sitaChatReset");
+	const onboarding = document.getElementById("sitaChatOnboarding");
 	const choices = document.getElementById("sitaChatChoices");
 	const leadForm = document.getElementById("sitaChatLead");
 	const composer = document.getElementById("sitaChatComposer");
@@ -167,6 +170,7 @@ import { detectTopics } from "../../services/sitaNlu.js";
 				`Bisa kirim lagi dalam ${seconds} detik.`,
 			skipped: "Baik, kamu bisa melanjutkan pertanyaan kapan saja.",
 			reset: "Riwayat dan kriteria sudah dihapus.",
+			retry: "Coba lagi",
 		},
 		en: {
 			you: "You",
@@ -189,11 +193,13 @@ import { detectTopics } from "../../services/sitaNlu.js";
 				`You can send again in ${seconds} seconds.`,
 			skipped: "No problem. You can continue asking questions anytime.",
 			reset: "History and criteria have been cleared.",
+			retry: "Try again",
 		},
 	}[locale];
 
 	let returnFocus: HTMLElement = chatToggle;
 	let selectedQuestion = "";
+	let lastFailedQuestion = "";
 	let activeTopic: ChatTopic | undefined;
 	const activeCriteria: ChatCriteria = {};
 	let isSending = false;
@@ -731,6 +737,7 @@ import { detectTopics } from "../../services/sitaNlu.js";
 			}
 		}
 		hideLeadForm();
+		onboarding?.classList.remove("hidden");
 		addMessage(copy.sita, copy.reset, [], undefined, [], false);
 		chatInput.focus();
 	}
@@ -769,6 +776,7 @@ import { detectTopics } from "../../services/sitaNlu.js";
 		activeCriteria.vendorCategory =
 			parseVendorCategory(question) ?? activeCriteria.vendorCategory;
 		hideLeadForm();
+		onboarding?.classList.add("hidden");
 		selectedQuestion = question;
 		addMessage(copy.you, question);
 		const loadingMessage = addMessage(
@@ -779,6 +787,7 @@ import { detectTopics } from "../../services/sitaNlu.js";
 			[],
 			true,
 		);
+		chatMessages.setAttribute("aria-busy", "true");
 		const sendButton = chatComposer.querySelector<HTMLButtonElement>(
 			"button[type='submit']",
 		);
@@ -876,7 +885,8 @@ import { detectTopics } from "../../services/sitaNlu.js";
 					(!Array.isArray(data.suggestions) ||
 						!data.suggestions.every(isChatSuggestion))) ||
 				(data.clarify !== undefined && !isChatClarify(data.clarify)) ||
-				(data.source !== undefined && !isChatSource(data.source))
+				(data.source !== undefined && !isChatSource(data.source)) ||
+				(data.topic !== undefined && !isChatTopic(data.topic))
 			) {
 				throw new Error("Invalid Sita response");
 			}
@@ -891,13 +901,20 @@ import { detectTopics } from "../../services/sitaNlu.js";
 
 			loadingMessage.remove();
 			if (data.unanswered) {
-				window.dispatchEvent(new Event("sita:no-match"));
+				window.dispatchEvent(
+					new CustomEvent("sita:no-match", {
+						detail: {
+							topic: data.topic ?? contextTopic,
+							queryHash: hashSitaQuestion(question),
+						},
+					}),
+				);
 			}
 			const suggestions = (data.suggestions || []).filter(
 				(suggestion) =>
 					!visibleChoiceLabels.has(suggestion.label.trim().toLocaleLowerCase()),
 			);
-			addMessage(
+			const answerBubble = addMessage(
 				copy.sita,
 				data.answer,
 				data.cards,
@@ -908,12 +925,32 @@ import { detectTopics } from "../../services/sitaNlu.js";
 				true,
 				data.source,
 			);
+			window.dispatchEvent(
+				new CustomEvent("sita:answer", {
+					detail: {
+						topic: data.topic ?? contextTopic,
+						confidence: data.confidence ?? 0,
+						fallback: Boolean(data.unanswered),
+						clarify: Boolean(data.clarify),
+						responseMs: Date.now() - requestStartedAt,
+						turnId: answerBubble.dataset.sitaTurnId,
+					},
+				}),
+			);
 		} catch {
 			loadingMessage.remove();
 			hideLeadForm();
 			chatChoices.classList.remove("hidden");
-			addMessage(copy.sita, copy.unavailable);
+			lastFailedQuestion = question;
+			const errorBubble = addMessage(copy.sita, copy.unavailable);
+			const retryButton = document.createElement("button");
+			retryButton.type = "button";
+			retryButton.className = "sita-chat-retry";
+			retryButton.dataset.sitaRetry = "true";
+			retryButton.textContent = copy.retry;
+			errorBubble.append(retryButton);
 		} finally {
+			chatMessages.setAttribute("aria-busy", "false");
 			const stillRateLimited = rateLimitedUntil > Date.now();
 			if (sendButton && !stillRateLimited) sendButton.disabled = false;
 			if (!stillRateLimited) chatInput.disabled = false;
@@ -933,6 +970,16 @@ import { detectTopics } from "../../services/sitaNlu.js";
 		}
 	});
 
+	onboarding?.addEventListener("click", (event) => {
+		const target = event.target;
+		if (!(target instanceof Element)) return;
+		const example = target.closest<HTMLButtonElement>("[data-sita-example]");
+		if (!example) return;
+		void askSita(
+			example.dataset.sitaExample || example.textContent?.trim() || "",
+		);
+	});
+
 	chatChoices.addEventListener("click", (event) => {
 		const target = event.target;
 		if (!(target instanceof Element)) return;
@@ -949,6 +996,11 @@ import { detectTopics } from "../../services/sitaNlu.js";
 	chatMessages.addEventListener("click", (event) => {
 		const target = event.target;
 		if (!(target instanceof Element)) return;
+		const retryButton = target.closest<HTMLButtonElement>("[data-sita-retry]");
+		if (retryButton) {
+			if (lastFailedQuestion) void askSita(lastFailedQuestion);
+			return;
+		}
 		const feedbackButton = target.closest<HTMLButtonElement>(
 			"[data-sita-feedback]",
 		);

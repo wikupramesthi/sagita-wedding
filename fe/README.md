@@ -103,25 +103,38 @@ ringkasan kriteria hanya dibuat setelah pengguna memilih lanjut.
 
 Kartu paket menampilkan promo dan kuota yang tercatat di database. Jawaban juga
 memiliki tautan “Lihat sumber” ke halaman paket/venue/vendor/FAQ yang dipakai.
+Saat pertama dibuka, widget menampilkan contoh pertanyaan yang bisa langsung diketuk;
+contoh ini hilang setelah pertanyaan pertama dan muncul lagi setelah **Reset**.
+Bila request gagal, widget menampilkan pesan error plus tombol **Coba lagi** yang
+mengirim ulang pertanyaan terakhir. Status permintaan diumumkan lewat `aria-busy`
+pada log percakapan, dan animasi dimatikan saat `prefers-reduced-motion`.
+
 Tombol 👍/👎 hanya bisa dipilih sekali per jawaban dan memancarkan event browser
 `sita:feedback` ke telemetry tanpa mengirim teks pertanyaan.
 
 - `POST /api/sita/chat` `{message, locale, context?: {topic, criteria?}}` → jawaban dari
   data Sagita atau fallback yang mengarahkan pengguna ke admin, lengkap dengan
-  `confidence`, `suggestions` (chip topik ber-`topic` untuk melanjutkan maksud),
-  opsional `clarify` berisi pertanyaan + pilihan balasan, dan opsional `source`.
-  Route ini dibatasi 15 request/menit per-IP (di samping limiter `/api` global 20/menit).
-  Saat kena 429, widget menampilkan pesan khusus dan menghitung mundur waktu
-  tunggu dari header `Retry-After`/`RateLimit-Reset`.
+  `confidence`, `topic`, `suggestions` (chip topik ber-`topic` untuk melanjutkan
+  maksud), opsional `clarify` berisi pertanyaan + pilihan balasan, dan opsional
+  `source`. Route ini dibatasi 15 request/menit per-IP (di samping limiter `/api`
+  global 20/menit). Saat kena 429, widget menampilkan pesan khusus dan menghitung
+  mundur waktu tunggu dari header `Retry-After`/`RateLimit-Reset`.
   Konteks browser hanya memuat topik dan kriteria yang diizinkan (anggaran, jumlah
   tamu, kota, tanggal, dan kategori vendor). Tautan konsultasi dapat mengisi kriteria
   terkait melalui `sessionStorage` sekali pakai, tanpa data pribadi.
   Pilihan “Layanan WO” menampilkan tautan ke `/formulir-konsultasi`.
-- `POST /api/telemetry` menerima event allowlist `sita.no_match` dan `sita.feedback`
-  (`{helpful, turnId?, topic?}`). `turnId` acak dan `topic` hanya dipakai untuk
-  analitik; teks jawaban tidak pernah dikirim. Telemetry punya bucket limiter
-  tersendiri (40 event/menit) agar tidak memakan kuota chat. Event `sita.no_match`
-  hanya dicatat sekali per halaman.
+- `POST /api/telemetry` menerima event allowlist `sita.no_match`, `sita.answer`, dan
+  `sita.feedback`. `sita.answer` membawa metrik `confidence`, `fallback`, `clarify`,
+  `responseMs`, dan `topic`; `sita.no_match` membawa `topic` plus `queryHash` (hash
+  pertanyaan yang sudah dinormalisasi). `turnId` acak dipakai untuk mencegah dobel
+  event. Teks pertanyaan/jawaban dan data pribadi **tidak pernah dikirim**. Telemetry
+  punya bucket limiter tersendiri (40 event/menit) agar tidak memakan kuota chat.
+- `GET /api/sita/analytics` (hanya role `admin`/`super-admin`) mengembalikan agregat
+  dalam jendela 500 event terakhir: total jawaban, feedback, fallback, clarify,
+  no-match, low-confidence, rata-rata latency, distribusi per topik, pola
+  `queryHash` berulang, dan 20 event terbaru. Event mentah juga tetap ditulis ke log
+  terstruktur `client.event` untuk analitik lintas instance. Agregat ini tidak
+  menyimpan teks pertanyaan.
 
 ## Testing
 

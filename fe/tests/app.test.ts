@@ -107,6 +107,40 @@ const getPageBatch = vi.fn(
 				};
 			case "about":
 				return { stats: null, articles: [] };
+			case "package-detail":
+				if (params.slug !== "silver-package-swp") return {};
+				return {
+					package: {
+						uuid: "silver-package-uuid",
+						slug: "silver-package-swp",
+						name: "Silver Package SWP",
+						description: "Paket pernikahan untuk acara di rumah.",
+						dp_percentage: 30,
+						payment_terms_note:
+							"Catatan termin pembayaran: DP 30% saat kontrak.",
+						options: [
+							{
+								name: "Paket Pernikahan Rumah",
+								quota: 5,
+								duration: 1,
+								duration_unit: "year",
+								price: 25000000,
+							},
+						],
+						features: [
+							{
+								category: "Dekorasi",
+								feature:
+									"Tenda 80 Meter, Kursi Futura + Cover 75, Pelaminan 6 Meter",
+							},
+							{
+								category: "Dokumentasi",
+								feature:
+									"Soft Copy Edited, Video Cinematic 3 Menit, 1 Album Kolase",
+							},
+						],
+					},
+				};
 			case "page-detail": {
 				if (!cmsPages) return {};
 				const slug = String(params.slug ?? "");
@@ -1092,6 +1126,52 @@ describe("pageScript wiring", () => {
 		expect(res.text).toMatch(
 			/<meta\s+name="robots"\s+content="noindex, nofollow"\s*\/?>/,
 		);
+	});
+
+	it("detail paket memakai copy wedding dan menyembunyikan metadata opsi umum", async () => {
+		const res = await request(app)
+			.get("/packages/silver-package-swp")
+			.set("Cookie", "locale=id");
+
+		expect(res.status).toBe(200);
+		expect(res.text).toContain("Pilih opsi yang sesuai dengan kebutuhan");
+		expect(res.text).toContain("Lanjutkan melalui akun Anda");
+		expect(res.text).toContain("Tenda 80 Meter");
+		expect(res.text).toContain("Kursi Futura + Cover 75");
+		expect(res.text).toContain("Pelaminan 6 Meter");
+		expect(res.text).toContain("Soft Copy Edited");
+		expect(res.text).toContain("Video Cinematic 3 Menit");
+		expect(res.text).toContain("1 Album Kolase");
+		expect(
+			res.text.match(
+				/<li class="flex items-start gap-3 text-sm text-stone-warm">/g,
+			),
+		).toHaveLength(6);
+		expect(res.text).not.toContain(
+			"Tenda 80 Meter, Kursi Futura + Cover 75, Pelaminan 6 Meter",
+		);
+		expect(res.text).not.toContain("Kuota: 5");
+		expect(res.text).not.toContain("Durasi:");
+		expect(res.text).not.toContain("1 tahun");
+		expect(res.text).not.toContain("Pembayaran awal");
+		expect(res.text).not.toContain("Catatan termin pembayaran");
+		expect(res.text).not.toContain("DP 30%");
+		expect(res.text).not.toContain("praktikmu");
+		expect(res.text).not.toContain("setiap sesi");
+
+		const english = await request(app).get(
+			"/packages/silver-package-swp?lang=en",
+		);
+		expect(english.status).toBe(200);
+		expect(english.text).toContain("Package Options");
+		expect(english.text).not.toContain("Quota: 5");
+		expect(english.text).not.toContain("Duration:");
+		expect(english.text).not.toContain("1 year");
+		expect(english.text).toContain("Rp 25,000,000");
+		expect(english.text).not.toContain("Initial payment");
+		expect(english.text).not.toContain("Payment instalment");
+		expect(english.text).not.toContain("DP 30%");
+		expect(english.text).not.toContain("every session at Sagita Wedding");
 	});
 
 	it("widget aksesibilitas dirender dengan label bahasa Indonesia", async () => {

@@ -97,6 +97,67 @@ describe("Sita telemetry allowlist", () => {
 		});
 	});
 
+	it("keeps privacy-safe no-match metadata", () => {
+		expect(
+			parseTelemetry({
+				kind: "event",
+				name: "sita.no_match",
+				topic: "packages",
+				queryHash: "abc123",
+				message: "rahasia",
+			}),
+		).toEqual({
+			kind: "event",
+			name: "sita.no_match",
+			path: "/",
+			topic: "packages",
+			queryHash: "abc123",
+		});
+		expect(
+			parseTelemetry({
+				kind: "event",
+				name: "sita.no_match",
+				queryHash: "bukan-hash",
+			}),
+		).toEqual({ kind: "event", name: "sita.no_match", path: "/" });
+	});
+
+	it("accepts answer metrics without question text", () => {
+		expect(
+			parseTelemetry({
+				kind: "event",
+				name: "sita.answer",
+				topic: "vendors",
+				confidence: 0.15,
+				fallback: true,
+				clarify: false,
+				responseMs: 342,
+				turnId: "turn-4",
+				answer: "rahasia",
+			}),
+		).toEqual({
+			kind: "event",
+			name: "sita.answer",
+			path: "/",
+			topic: "vendors",
+			confidence: 0.15,
+			fallback: true,
+			clarify: false,
+			responseMs: 342,
+			turnId: "turn-4",
+		});
+		expect(
+			parseTelemetry({
+				kind: "event",
+				name: "sita.answer",
+				confidence: 2,
+				fallback: false,
+				clarify: false,
+				responseMs: 10,
+			}),
+		).toBeNull();
+	});
+
 	it("accepts feedback events with a boolean rating and opaque metadata", () => {
 		expect(
 			parseTelemetry({

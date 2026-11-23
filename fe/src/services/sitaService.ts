@@ -64,6 +64,8 @@ export interface SitaAnswer {
 	clarify?: SitaClarify;
 	/** Tautan ke data sumber yang dipakai jawaban. */
 	source?: SitaSource;
+	/** Topik utama yang dipakai untuk merutekan jawaban. */
+	topic?: "packages" | "venues" | "vendors";
 	/**
 	 * Seberapa yakin NLU memahami maksud pesan (0-1): 0.95 sapaan/kontak,
 	 * 0.8-0.9 jawaban topik/FAQ, 0.15 fallback belum tertangkap.
@@ -1530,6 +1532,13 @@ function sourceFor(
 	};
 }
 
+function topicFromSource(href: string | undefined): SitaChatTopic | undefined {
+	if (href === "/packages") return "packages";
+	if (href === "/venues") return "venues";
+	if (href === "/vendors") return "vendors";
+	return undefined;
+}
+
 /**
  * Lengkapi jawaban dengan confidence (bila belum ada) dan chip topik kedua
  * ketika pesan memuat dua maksud kuat sekaligus (mis. "paket sama venue").
@@ -1548,9 +1557,12 @@ function finalizeAnswer(
 		}
 	}
 	const source = answer.source ?? sourceFor(analysis, locale);
+	const topic =
+		answer.topic ?? analysis.primary ?? topicFromSource(answer.source?.href);
 	return {
 		...answer,
 		confidence: answer.confidence ?? routeConfidence,
+		...(topic ? { topic } : {}),
 		...(suggestions.length ? { suggestions } : {}),
 		...(source ? { source } : {}),
 	};

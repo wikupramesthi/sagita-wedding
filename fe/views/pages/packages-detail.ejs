@@ -27,7 +27,9 @@
             featureGroupMap.set(category, group);
             featureGroups.push(group);
         }
-        group.items.push(text);
+        group.items.push(
+            ...text.split(',').map(function(item) { return item.trim(); }).filter(Boolean)
+        );
     });
 
     const addons = Array.isArray(pkg.addons) ? pkg.addons : [];
@@ -42,17 +44,7 @@
     );
     const isPopular = pkg.is_popular;
 
-    const finalPrices = options
-        .map(function(option) {
-            return Number(option.final_price ?? option.price);
-        })
-        .filter(function(value) { return Number.isFinite(value); });
-    const startingPrice = finalPrices.length > 0
-        ? Math.min.apply(null, finalPrices)
-        : 0;
-    const downPaymentAmount = startingPrice > 0 && Number(pkg.dp_percentage) > 0
-        ? Math.round(startingPrice * Number(pkg.dp_percentage) / 100)
-        : 0;
+    const numberLocale = lang === 'id' ? 'id-ID' : 'en-US';
 
     function formatDate(value) {
         if (!value) return '';
@@ -65,7 +57,7 @@
     }
 
     function promoLabel(promo) {
-        const value = new Intl.NumberFormat('id-ID').format(
+        const value = new Intl.NumberFormat(numberLocale).format(
             Number(promo && promo.value ? promo.value : 0)
         );
         return promo && promo.type === 'percent'
@@ -74,24 +66,11 @@
     }
 
     function formatPrice(price) {
-        return new Intl.NumberFormat('id-ID').format(
+        return new Intl.NumberFormat(numberLocale).format(
             Number(price || 0)
         );
     }
 
-    // Bentuk jamak mengikuti satuan + jumlah, diambil dari translations
-    function formatDuration(duration, unit) {
-        if (!duration) return '';
-
-        const units = {
-            day: duration == 1 ? t.durationDay : t.durationDays,
-            week: duration == 1 ? t.durationWeek : t.durationWeeks,
-            month: duration == 1 ? t.durationMonth : t.durationMonths,
-            year: duration == 1 ? t.durationYear : t.durationYears
-        };
-
-        return `${duration} ${units[unit] || unit || ''}`;
-    }
 %>
 
 <main class="bg-cream min-h-screen">
@@ -239,35 +218,6 @@
                                             <%= option.name %>
                                         </h3>
 
-                                        <div
-                                            class="flex
-                                                   flex-wrap
-                                                   items-center
-                                                   gap-3
-                                                   mt-2
-                                                   text-xs
-                                                   text-stone-400"
-                                        >
-
-                                            <% if (option.quota) { %>
-                                                <span class="inline-flex items-center gap-1">
-                                                    <i class="bi bi-check-circle"></i>
-                                                    <%= option.quota %> <%= t.quotaSlots %>
-                                                </span>
-                                            <% } %>
-
-                                            <% if (option.duration) { %>
-                                                <span class="inline-flex items-center gap-1">
-                                                    <i class="bi bi-calendar3"></i>
-                                                    <%= formatDuration(
-                                                        option.duration,
-                                                        option.duration_unit
-                                                    ) %>
-                                                </span>
-                                            <% } %>
-
-                                        </div>
-
                                     </div>
 
 
@@ -333,10 +283,10 @@
                                             <%= group.category %>
                                         </h3>
                                     <% } %>
-                                    <div class="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+                                    <ul class="grid list-none grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
                                         <% group.items.forEach(function(feature) { %>
-                                            <div class="flex items-start gap-3 text-sm text-stone-warm">
-                                                <span class="mt-0.5 shrink-0 text-sage-700">
+                                            <li class="flex items-start gap-3 text-sm text-stone-warm">
+                                                <span aria-hidden="true" class="mt-0.5 shrink-0 text-sage-700">
                                                     <svg xmlns="http://www.w3.org/2000/svg"
                                                          width="18"
                                                          height="18"
@@ -350,9 +300,9 @@
                                                     </svg>
                                                 </span>
                                                 <span><%= feature %></span>
-                                            </div>
+                                            </li>
                                         <% }) %>
-                                    </div>
+                                    </ul>
                                 </section>
                             <% }) %>
                         </div>
@@ -511,30 +461,6 @@
                     <p class="text-sm text-sage-200 leading-relaxed">
                         <%= t.chooseYourPackageDesc %>
                     </p>
-
-                    <% if ((pkg.dp_percentage !== null && pkg.dp_percentage !== undefined) || pkg.payment_terms_note) { %>
-                    <div class="mt-6 rounded-2xl bg-white/10 p-4 text-sm text-sage-100">
-                        <% if (pkg.dp_percentage !== null && pkg.dp_percentage !== undefined) { %>
-                        <div class="flex items-center justify-between gap-3">
-                            <span><%= t.dpInitial %></span>
-                            <strong><%= pkg.dp_percentage %>%</strong>
-                        </div>
-                        <% } %>
-
-                        <% if (downPaymentAmount > 0) { %>
-                        <div class="mt-2 flex items-center justify-between gap-3">
-                            <span><%= t.downPayment %></span>
-                            <strong>Rp <%= formatPrice(downPaymentAmount) %></strong>
-                        </div>
-                        <% } %>
-
-                        <% if (pkg.payment_terms_note) { %>
-                        <p class="mt-2 text-xs text-sage-200">
-                            <%= t.paymentTerms %>: <%= pkg.payment_terms_note %>
-                        </p>
-                        <% } %>
-                    </div>
-                    <% } %>
 
                      <button type="button" data-action="open-booking"
                          data-package-uuid="<%= pkg.uuid %>"

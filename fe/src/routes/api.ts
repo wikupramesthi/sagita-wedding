@@ -7,6 +7,10 @@ import {
 	sendBooking,
 	sendContact,
 } from "../services/contactService.js";
+import {
+	getSitaAnalytics,
+	recordSitaTelemetry,
+} from "../services/sitaAnalytics.js";
 import { answerSitaQuestion } from "../services/sitaService.js";
 import type { Request, Response } from "../types/index.js";
 import { toApiError } from "../utils/errors.js";
@@ -42,7 +46,16 @@ const telemetryLimiter = rateLimit({
 	},
 });
 
-type TelemetryPayload =
+const analyticsLimiter = rateLimit({
+	windowMs: 60 * 1000,
+	limit: 30,
+	standardHeaders: "draft-7",
+	legacyHeaders: false,
+});
+
+type SitaTopic = "packages" | "venues" | "vendors";
+
+export type TelemetryPayload =
 	| {
 			kind: "error";
 			name: string;
@@ -59,6 +72,19 @@ type TelemetryPayload =
 			kind: "event";
 			name: "sita.no_match";
 			path: "/";
+			topic?: SitaTopic;
+			queryHash?: string;
+	  }
+	| {
+			kind: "event";
+			name: "sita.answer";
+			path: "/";
+			topic?: SitaTopic;
+			confidence: number;
+			fallback: boolean;
+			clarify: boolean;
+			responseMs: number;
+			turnId?: string;
 	  }
 	| {
 			kind: "event";
@@ -66,27 +92,69 @@ type TelemetryPayload =
 			path: "/";
 			helpful: boolean;
 			turnId?: string;
-			topic?: "packages" | "venues" | "vendors";
+			topic?: SitaTopic;
 	  };
+
+function cleanSitaTopic(value: unknown): SitaTopic | undefined {
+	return value === "packages" || value === "venues" || value === "vendors"
+		? value
+		: undefined;
+}
+
+function cleanTurnId(value: unknown): string | undefined {
+	return typeof value === "string"
+		? value.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80) || undefined
+		: undefined;
+}
 
 export function parseTelemetry(value: unknown): TelemetryPayload | null {
 	if (!value || typeof value !== "object" || Array.isArray(value)) return null;
 	const item = value as Record<string, unknown>;
 	if (item.kind === "event") {
+		const topic = cleanSitaTopic(item.topic);
+		const turnId = cleanTurnId(item.turnId);
 		if (item.name === "sita.no_match") {
-			return { kind: "event", name: "sita.no_match", path: "/" };
+			const queryHash =
+				typeof item.queryHash === "string" &&
+				/^[a-z0-9]{1,32}$/.test(item.queryHash)
+					? item.queryHash
+					: undefined;
+			return {
+				kind: "event",
+				name: "sita.no_match",
+				path: "/",
+				...(topic ? { topic } : {}),
+				...(queryHash ? { queryHash } : {}),
+			};
+		}
+		if (item.name === "sita.answer") {
+			const confidence = Number(item.confidence);
+			const responseMs = Number(item.responseMs);
+			if (
+				!Number.isFinite(confidence) ||
+				confidence < 0 ||
+				confidence > 1 ||
+				!Number.isFinite(responseMs) ||
+				responseMs < 0 ||
+				responseMs > 600000 ||
+				typeof item.fallback !== "boolean" ||
+				typeof item.clarify !== "boolean"
+			) {
+				return null;
+			}
+			return {
+				kind: "event",
+				name: "sita.answer",
+				path: "/",
+				confidence,
+				fallback: item.fallback,
+				clarify: item.clarify,
+				responseMs,
+				...(topic ? { topic } : {}),
+				...(turnId ? { turnId } : {}),
+			};
 		}
 		if (item.name === "sita.feedback" && typeof item.helpful === "boolean") {
-			const turnId =
-				typeof item.turnId === "string"
-					? item.turnId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80)
-					: undefined;
-			const topic =
-				item.topic === "packages" ||
-				item.topic === "venues" ||
-				item.topic === "vendors"
-					? item.topic
-					: undefined;
 			return {
 				kind: "event",
 				name: "sita.feedback",
@@ -158,9 +226,30 @@ router.post("/telemetry", telemetryLimiter, (req: Request, res: Response) => {
 	}
 	if (payload.kind === "error") logger.error("client.error", payload);
 	else if (payload.kind === "vital") logger.info("client.vital", payload);
-	else logger.info("client.event", payload);
+	else {
+		recordSitaTelemetry(payload);
+		logger.info("client.event", payload);
+	}
 	res.status(204).end();
 });
+
+router.get(
+	"/sita/analytics",
+	analyticsLimiter,
+	async (req: Request, res: Response) => {
+		const user = await getSessionUser(req.headers?.cookie);
+		const roles = user?.roles ?? [];
+		if (!roles.some((role) => role === "admin" || role === "super-admin")) {
+			res.status(403).json({
+				success: false,
+				message: "Sita analytics is available for administrators only.",
+			});
+			return;
+		}
+		res.set("Cache-Control", "no-store");
+		res.json({ success: true, ...getSitaAnalytics() });
+	},
+);
 
 router.post(
 	"/sita/chat",

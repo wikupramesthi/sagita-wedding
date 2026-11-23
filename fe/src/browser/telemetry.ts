@@ -15,6 +15,19 @@ type TelemetryPayload =
 			kind: "event";
 			name: "sita.no_match";
 			path: "/";
+			topic?: string;
+			queryHash?: string;
+	  }
+	| {
+			kind: "event";
+			name: "sita.answer";
+			path: "/";
+			topic?: string;
+			confidence: number;
+			fallback: boolean;
+			clarify: boolean;
+			responseMs: number;
+			turnId?: string;
 	  }
 	| {
 			kind: "event";
@@ -30,6 +43,29 @@ const seen = new Set<string>();
 
 function cleanName(value: string): string {
 	return value.replace(/[^a-zA-Z0-9_.:-]/g, "").slice(0, 80) || "unknown";
+}
+
+function cleanTopic(value: unknown): string | undefined {
+	return value === "packages" || value === "venues" || value === "vendors"
+		? value
+		: undefined;
+}
+
+export function hashSitaQuestion(raw: string): string {
+	const normalized = raw
+		.normalize("NFKD")
+		.toLowerCase()
+		.replace(/[\u0300-\u036f]/g, "")
+		.replace(/[^a-z0-9\s]/g, "")
+		.replace(/\s+/g, " ")
+		.trim()
+		.slice(0, 200);
+	let hash = 2166136261;
+	for (let index = 0; index < normalized.length; index += 1) {
+		hash ^= normalized.charCodeAt(index);
+		hash = Math.imul(hash, 16777619);
+	}
+	return (hash >>> 0).toString(36);
 }
 
 function send(payload: TelemetryPayload) {
@@ -83,9 +119,61 @@ function reportVital(name: string, value: number) {
 	});
 }
 
-window.addEventListener("sita:no-match", () => {
-	if (!once("event:sita.no_match")) return;
-	send({ kind: "event", name: "sita.no_match", path: "/" });
+window.addEventListener("sita:no-match", (event) => {
+	const detail = (
+		event as CustomEvent<{
+			topic?: unknown;
+			queryHash?: unknown;
+		}>
+	).detail;
+	const topic = cleanTopic(detail?.topic);
+	const queryHash =
+		typeof detail?.queryHash === "string" &&
+		/^[a-z0-9]{1,32}$/.test(detail.queryHash)
+			? detail.queryHash
+			: undefined;
+	if (!once(`event:sita.no_match:${queryHash ?? "unknown"}`)) return;
+	send({
+		kind: "event",
+		name: "sita.no_match",
+		path: "/",
+		...(topic ? { topic } : {}),
+		...(queryHash ? { queryHash } : {}),
+	});
+});
+
+window.addEventListener("sita:answer", (event) => {
+	const detail = (
+		event as CustomEvent<{
+			topic?: unknown;
+			confidence?: unknown;
+			fallback?: unknown;
+			clarify?: unknown;
+			responseMs?: unknown;
+			turnId?: unknown;
+		}>
+	).detail;
+	if (
+		!detail ||
+		typeof detail.confidence !== "number" ||
+		typeof detail.responseMs !== "number"
+	) {
+		return;
+	}
+	const turnId =
+		typeof detail.turnId === "string" ? cleanName(detail.turnId) : undefined;
+	if (turnId && !once(`event:sita.answer:${turnId}`)) return;
+	send({
+		kind: "event",
+		name: "sita.answer",
+		path: "/",
+		topic: cleanTopic(detail.topic),
+		confidence: detail.confidence,
+		fallback: detail.fallback === true,
+		clarify: detail.clarify === true,
+		responseMs: detail.responseMs,
+		...(turnId ? { turnId } : {}),
+	});
 });
 
 window.addEventListener("sita:feedback", (event) => {

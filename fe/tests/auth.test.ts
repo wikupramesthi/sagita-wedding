@@ -1,5 +1,6 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetSitaAnalytics } from "../src/services/sitaAnalytics.js";
 
 /* ---------- mock service, backend tidak disentuh ---------- */
 
@@ -173,6 +174,38 @@ describe("GET /api/session", () => {
 		expect(res.status).toBe(200);
 		expect(res.body.authenticated).toBe(true);
 		expect(res.body.user.email).toBe("budi@example.com");
+	});
+});
+
+/* ============================ /api/sita/analytics ============================ */
+
+describe("GET /api/sita/analytics", () => {
+	beforeEach(() => {
+		resetSitaAnalytics();
+	});
+
+	it("403 untuk member dan anonim", async () => {
+		setSession(USER);
+		const member = await request(app)
+			.get("/api/sita/analytics")
+			.set("Cookie", SESSION);
+		expect(member.status).toBe(403);
+
+		setSession(null);
+		const anonymous = await request(app).get("/api/sita/analytics");
+		expect(anonymous.status).toBe(403);
+	});
+
+	it("200 untuk admin dengan ringkasan tanpa teks pertanyaan", async () => {
+		setSession({ ...USER, roles: ["admin"] });
+		const res = await request(app)
+			.get("/api/sita/analytics")
+			.set("Cookie", SESSION);
+		expect(res.status).toBe(200);
+		expect(res.body.success).toBe(true);
+		expect(res.body.totals.answers).toBe(0);
+		expect(res.body.rates.helpful).toBe(0);
+		expect(res.headers["cache-control"]).toBe("no-store");
 	});
 });
 
