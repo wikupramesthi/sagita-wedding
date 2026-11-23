@@ -13,10 +13,10 @@
         </svg>
       </div>
       <div class="sita-chat-heading">
-        <h2 id="sitaChatTitle">Sita</h2>
+        <h2 id="sitaChatTitle">Sita AI</h2>
         <p class="sita-chat-status">
           <span class="sita-chat-status__dot" aria-hidden="true"></span>
-          <%= lang === 'en' ? 'Sagita Wedding assistant · online 24 hours' : 'Asisten Sagita Wedding · online 24 jam' %>
+          <%= lang === 'en' ? 'Sagita Wedding AI assistant · online 24 hours' : 'Asisten AI Sagita Wedding · online 24 jam' %>
         </p>
       </div>
       <button id="sitaChatClose" class="sita-chat-close" type="button" aria-label="<%= lang === 'en' ? 'Close chat' : 'Tutup chat' %>">
@@ -26,8 +26,8 @@
 
     <div id="sitaChatMessages" class="sita-chat-messages" role="log" aria-live="polite" aria-relevant="additions text">
       <article class="sita-chat-message">
-        <span class="sita-chat-message__sender sr-only">Sita</span>
-        <p class="sita-chat-message__text"><%= lang === 'en' ? 'Hi! I’m Sita, Sagita Wedding’s virtual assistant. Ask me about packages, venues, services, vendors, or booking.' : 'Halo Kak! Aku Sita, asisten virtual Sagita Wedding. Tanya seputar paket, venue, layanan, vendor, atau cara booking, ya.' %></p>
+        <span class="sita-chat-message__sender sr-only">Sita AI</span>
+        <p class="sita-chat-message__text"><%= lang === 'en' ? 'Hi! I’m Sita AI, Sagita Wedding’s virtual assistant. Ask me about packages, venues, services, vendors, or booking.' : 'Halo Kak! Aku Sita AI, asisten virtual Sagita Wedding. Tanya seputar paket, venue, layanan, vendor, atau cara booking, ya.' %></p>
       </article>
     </div>
     <div id="sitaChatChoices" class="sita-chat-choices" role="group" aria-label="<%= lang === 'en' ? 'Choose a topic' : 'Pilih topik' %>">
@@ -57,12 +57,12 @@
       <button type="submit" aria-label="<%= lang === 'en' ? 'Send message' : 'Kirim pesan' %>"><%= lang === 'en' ? 'Send' : 'Kirim' %></button>
     </form>
     <p class="sita-chat-note">
-      <%= lang === 'en' ? 'Sita is Sagita Wedding’s virtual assistant. Unanswered questions can be sent to the team.' : 'Sita adalah asisten virtual Sagita Wedding. Pertanyaan yang belum terjawab bisa diteruskan ke admin.' %>
+      <%= lang === 'en' ? 'Sita AI is Sagita Wedding’s virtual assistant. Unanswered questions can be sent to the team.' : 'Sita AI adalah asisten virtual Sagita Wedding. Pertanyaan yang belum terjawab bisa diteruskan ke admin.' %>
       <a href="/pages/kebijakan-privasi"><%= lang === 'en' ? 'Privacy Policy' : 'Kebijakan Privasi' %></a>
     </p>
   </section>
 
-  <button id="sitaChatToggle" class="sita-chat-toggle" type="button" aria-label="<%= lang === 'en' ? 'Open chat with Sita' : 'Buka chat dengan Sita' %>" aria-expanded="false" aria-controls="sitaChatPanel">
+  <button id="sitaChatToggle" class="sita-chat-toggle" type="button" aria-label="<%= lang === 'en' ? 'Open chat with Sita AI' : 'Buka chat dengan Sita AI' %>" aria-expanded="false" aria-controls="sitaChatPanel">
     <svg class="sita-robot" viewBox="0 0 48 48" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <path d="M24 5v6" />
       <circle cx="24" cy="4" r="2" class="sita-robot-signal" />
@@ -72,6 +72,6 @@
       <circle cx="30" cy="25" r="2" class="sita-robot-eye" />
       <path d="M19 32h10" />
     </svg>
-    <span>Sita</span>
+    <span>Sita AI</span>
   </button>
 </div>

@@ -105,7 +105,7 @@
 	const copy = {
 		id: {
 			you: "Kamu",
-			sita: "Sita",
+			sita: "Sita AI",
 			contact:
 				"Silakan isi nama dan nomor WhatsApp untuk menyiapkan pesan ke admin Sagita.",
 			whatsapp: "Lanjut ke WhatsApp",
@@ -123,7 +123,7 @@
 		},
 		en: {
 			you: "You",
-			sita: "Sita",
+			sita: "Sita AI",
 			contact:
 				"Enter your name and WhatsApp number to prepare a message for the Sagita team.",
 			whatsapp: "Continue to WhatsApp",

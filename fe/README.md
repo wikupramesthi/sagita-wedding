@@ -67,9 +67,9 @@ fe/
 Newsletter sengaja membalas 501, bukan sukses palsu, supaya klien tidak
 mengira aksi tersimpan.
 
-Widget Sita mencocokkan pertanyaan dengan FAQ, paket, venue, dan vendor dari database
-Sagita melalui service server-side yang sudah ada. Jawabannya berbasis aturan
-dan data, bukan layanan AI atau API pihak ketiga. Pesan chat tidak disimpan;
+Widget Sita AI mencocokkan pertanyaan dengan FAQ, paket, venue, dan vendor dari database
+Sagita melalui service server-side yang sudah ada. Meski bernama AI, jawabannya
+berbasis aturan dan data, bukan model generatif atau API pihak ketiga. Pesan chat tidak disimpan;
 nama dan nomor WhatsApp tetap di browser dan hanya ditambahkan ke draf WhatsApp
 setelah pengguna menyetujui dan memilih lanjut.
 
