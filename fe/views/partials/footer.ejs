@@ -38,7 +38,7 @@
 
       <!-- Explore -->
       <nav aria-label="<%= t.footerExplore %>" class="min-w-0">
-        <h4 class="mb-4 font-sans text-xs uppercase tracking-[0.15em] text-sand-500"><%= t.footerExplore %></h4>
+        <h2 class="mb-4 font-sans text-xs uppercase tracking-[0.15em] text-sand-500"><%= t.footerExplore %></h2>
         <div class="flex flex-col gap-2.5">
           <a href="/about" class="text-sm leading-6 transition-colors hover:text-sand-100"><%= (t.nav && t.nav.about) || 'About' %></a>
           <a href="/venues" class="text-sm leading-6 transition-colors hover:text-sand-100"><%= (t.nav && t.nav.venues) || 'Venues' %></a>
@@ -51,7 +51,7 @@
 
       <!-- Get in Touch -->
       <address class="not-italic min-w-0">
-        <h4 class="mb-4 font-sans text-xs uppercase tracking-[0.15em] text-sand-500"><%= t.footerGetInTouch %></h4>
+        <h2 class="mb-4 font-sans text-xs uppercase tracking-[0.15em] text-sand-500"><%= t.footerGetInTouch %></h2>
         <div class="flex flex-col gap-3">
           <% if (site.address) { %>
           <span class="flex items-start gap-2.5 text-sm">
@@ -89,9 +89,11 @@
   </div>
 </footer>
 
+<aside aria-label="<%= t.footerWidgetsLabel || 'Kontak dan aksesibilitas' %>">
 <%- include('./whatsapp-float') %>
 <%- include('./accessibility-widget') %>
 <%- include('./booking-modal') %>
+</aside>
 <script src="/js/main.js?v=<%= assetV %>" defer></script>
 <script src="/js/accessibility.js?v=<%= assetV %>-a11y1" defer></script>
 <% if (typeof pageScript !== 'undefined' && pageScript) { %><script nonce="<%= nonce %>">import("/js/pages/<%= pageScript %>.js?v=<%= assetV %>");</script><% } %>

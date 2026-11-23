@@ -7,6 +7,7 @@ import {
 import { getPageBatch } from "../services/batchService.js";
 import type {
 	BannerItem,
+	CmsPage,
 	NextFunction,
 	Request,
 	Response,
@@ -64,6 +65,24 @@ function firstString(...values: unknown[]): string {
 		if (typeof value === "string" && value.trim()) return value.trim();
 	}
 	return "";
+}
+
+async function optionalCmsPage(slug: string): Promise<CmsPage | null> {
+	const data = await getPageBatch("page-detail", { slug });
+	const page = data?.page;
+	if (!page || typeof page !== "object") return null;
+
+	return {
+		...(page as CmsPage),
+		content: sanitizeRichHtml(String((page as CmsPage).content ?? "")),
+	};
+}
+
+function metaFrom(value: unknown, max = 160): string {
+	return firstString(String(value ?? "").replace(/<[^>]*>/g, " ")).slice(
+		0,
+		max,
+	);
 }
 
 function isoArticleDate(value: unknown): string {
@@ -304,6 +323,7 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 				? "Sagita Wedding Planner membantu merencanakan pernikahan, mengoordinasikan vendor, memilih venue, dan mendampingi hari perayaan Anda."
 				: "Plan your wedding with Sagita Wedding Planner. Explore venues, coordinate trusted vendors, and get thoughtful support on your wedding day.",
 			heroNav: sliderBanners.length > 0,
+			heroImage: sliderBanners[0]?.gambar ?? "",
 			pageScript: "home",
 			assetV: `${res.locals.assetV}-home-preparation1`,
 			weddingContentReady,
@@ -355,35 +375,67 @@ router.get(["/classes", "/schedules"], (_req: Request, res: Response) => {
 	res.redirect(301, "/venues");
 });
 
-router.get("/formulir-konsultasi", (_req: Request, res: Response) => {
-	const isID = res.locals.lang === "id";
-	res.render("pages/consultation-form", {
-		title: isID
-			? "Konsultasi Wedding Organizer & Wedding Planner | Sagita"
-			: "Wedding Planning Consultation | Sagita Wedding Planner",
-		metaDescription: isID
-			? "Konsultasikan rencana pernikahan dengan Sagita Wedding Planner. Bahas layanan Wedding Organizer, paket, koordinasi hari pernikahan, vendor, dan anggaran."
-			: "Plan your wedding with Sagita Wedding Planner. Discuss wedding planning, day-of coordination, vendor recommendations, packages, and budget.",
-		assetV: `${res.locals.assetV}-localcaptchaimage1`,
-		pageScript: "consultation-form",
-	});
-});
+router.get(
+	"/formulir-konsultasi",
+	async (_req: Request, res: Response, next: NextFunction) => {
+		try {
+			const isID = res.locals.lang === "id";
+			const page = await optionalCmsPage("formulir-konsultasi").catch(
+				() => null,
+			);
+			res.render("pages/consultation-form", {
+				title: firstString(
+					page?.title,
+					isID
+						? "Konsultasi Wedding Organizer & Wedding Planner | Sagita"
+						: "Wedding Planning Consultation | Sagita Wedding Planner",
+				),
+				metaDescription: firstString(
+					metaFrom(page?.excerpt),
+					isID
+						? "Konsultasikan rencana pernikahan dengan Sagita Wedding Planner. Bahas layanan Wedding Organizer, paket, koordinasi hari pernikahan, vendor, dan anggaran."
+						: "Plan your wedding with Sagita Wedding Planner. Discuss wedding planning, day-of coordination, vendor recommendations, packages, and budget.",
+				),
+				assetV: `${res.locals.assetV}-localcaptchaimage1`,
+				pageScript: "consultation-form",
+				cmsPage: page,
+			});
+		} catch (err) {
+			next(err);
+		}
+	},
+);
 
 // ---------- About ----------
-router.get("/about", (_req: Request, res: Response) => {
-	const isID = res.locals.lang === "id";
-	res.render("pages/about", {
-		title: isID
-			? "Tentang Sagita Wedding Planner | Wedding Organizer"
-			: "About Sagita Wedding Planner | Wedding Organizer",
-		metaDescription: isID
-			? "Kenali Sagita Wedding Planner, wedding organizer yang membantu menyusun konsep, anggaran, vendor, dan koordinasi hari pernikahan sesuai cerita Anda."
-			: "Meet Sagita Wedding Planner, a wedding organizer helping you plan your concept, budget, vendors, and wedding-day coordination around your story.",
-		assetV: `${res.locals.assetV}-about-wedding-icons1`,
-		pageSchemaType: "AboutPage",
-		heroNav: true,
-	});
-});
+router.get(
+	"/about",
+	async (_req: Request, res: Response, next: NextFunction) => {
+		try {
+			const isID = res.locals.lang === "id";
+			const page = await optionalCmsPage("about").catch(() => null);
+			res.render("pages/about", {
+				title: firstString(
+					page?.title,
+					isID
+						? "Tentang Sagita Wedding Planner | Wedding Organizer"
+						: "About Sagita Wedding Planner | Wedding Organizer",
+				),
+				metaDescription: firstString(
+					metaFrom(page?.excerpt),
+					isID
+						? "Kenali Sagita Wedding Planner, wedding organizer yang membantu menyusun konsep, anggaran, vendor, dan koordinasi hari pernikahan sesuai cerita Anda."
+						: "Meet Sagita Wedding Planner, a wedding organizer helping you plan your concept, budget, vendors, and wedding-day coordination around your story.",
+				),
+				assetV: `${res.locals.assetV}-about-wedding-icons1`,
+				pageSchemaType: "AboutPage",
+				heroNav: true,
+				cmsPage: page,
+			});
+		} catch (err) {
+			next(err);
+		}
+	},
+);
 
 router.get("/art-of-living", (_req: Request, res: Response) => {
 	res.redirect(301, "/about");

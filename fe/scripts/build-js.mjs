@@ -14,6 +14,7 @@ const options = {
 	entryPoints: [
 		"src/browser/main.ts",
 		"src/browser/accessibility.ts",
+		"src/browser/telemetry.ts",
 		...pageEntries,
 	],
 	outbase: "src/browser",

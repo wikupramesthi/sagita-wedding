@@ -1,6 +1,6 @@
 <%# Modal booking — diekstrak dari footer agar footer hanya berisi footer %>
 <%# `user` diisi appLocals dari backend GET /auth/me (null = anonim) %>
-<div id="bookingModal" class="fixed inset-0 z-[60] hidden">
+<div id="bookingModal" role="dialog" aria-modal="true" aria-label="Booking" class="fixed inset-0 z-[60] hidden">
   <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" data-action="close-booking"></div>
   <div class="relative max-w-md mx-auto mt-[10vh] bg-white rounded-[24px] p-6 shadow-2xl m-4">
     <button type="button" data-action="close-booking" class="absolute right-4 top-4 w-8 h-8 rounded-full bg-sage-50 grid place-items-center" aria-label="<%= t.closeModal || 'Close' %>">✕</button>
@@ -56,6 +56,6 @@
       </div>
     <% } %>
 
-    <p id="bookingMsg" class="text-sm mt-3 hidden p-3 rounded-xl" data-signout-error="<%= t.signOutFailed %>"></p>
+    <p id="bookingMsg" role="status" aria-live="polite" class="text-sm mt-3 hidden p-3 rounded-xl" data-signout-error="<%= t.signOutFailed %>"></p>
   </div>
 </div>

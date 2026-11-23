@@ -155,6 +155,9 @@ if (_articleMeta || _ogType === "article") {
 </script>
 <% } %>
 
+<% if (typeof heroImage !== "undefined" && heroImage) { %>
+  <link rel="preload" as="image" href="<%= heroImage %>" fetchpriority="high" />
+<% } %>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
@@ -176,3 +179,4 @@ if (_articleMeta || _ogType === "article") {
     } catch (e) {}
   })();
 </script>
+<script src="/js/telemetry.js?v=<%= assetV %>" defer></script>

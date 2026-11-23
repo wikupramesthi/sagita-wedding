@@ -12,8 +12,9 @@
     data-remove-on-error
     src="<%= img.gambar %>"
     alt="<%= img.nama || 'Our Gallery' %>"
-    <% if (i < 4) { %>decoding="async"<% } else { %>loading="lazy" decoding="async"<% } %>
-    <% if (i === 0) { %>fetchpriority="high"<% } %>
+    width="480"
+    height="200"
+    <% if (i === 0) { %>fetchpriority="high" decoding="async"<% } else { %>loading="lazy" decoding="async"<% } %>
     class="h-[200px] w-full object-cover rounded-[20px] cursor-pointer hover:opacity-90 transition"
   >
 

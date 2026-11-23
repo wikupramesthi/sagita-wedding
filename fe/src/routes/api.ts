@@ -8,6 +8,7 @@ import {
 } from "../services/contactService.js";
 import type { Request, Response } from "../types/index.js";
 import { toApiError } from "../utils/errors.js";
+import { logger } from "../utils/logger.js";
 import {
 	validateBooking,
 	validateContact,
@@ -15,6 +16,52 @@ import {
 } from "../utils/validate.js";
 
 const router = Router();
+
+type TelemetryPayload = {
+	kind: "error" | "vital";
+	name: string;
+	path: string;
+	value?: number;
+	message?: string;
+};
+
+function parseTelemetry(value: unknown): TelemetryPayload | null {
+	if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+	const item = value as Record<string, unknown>;
+	if (item.kind !== "error" && item.kind !== "vital") return null;
+
+	const name =
+		typeof item.name === "string"
+			? item.name.replace(/[^a-zA-Z0-9_.:-]/g, "").slice(0, 80)
+			: "";
+	const path =
+		typeof item.path === "string" && item.path.startsWith("/")
+			? item.path.slice(0, 200)
+			: "";
+	if (!name || !path) return null;
+
+	if (item.kind === "vital") {
+		const metric = Number(item.value);
+		if (!Number.isFinite(metric) || metric < 0 || metric > 600000) {
+			return null;
+		}
+		return {
+			kind: "vital",
+			name,
+			path,
+			value: Math.round(metric * 100) / 100,
+		};
+	}
+
+	const message =
+		typeof item.message === "string"
+			? item.message
+					.replace(/\S+@\S+/g, "[email]")
+					.replace(/[A-Za-z0-9_-]{32,}/g, "[token]")
+					.slice(0, 200)
+			: "";
+	return { kind: "error", name, path, message };
+}
 
 /**
  * Modul class/schedules sudah dihapus di backend. Endpoint lama sengaja
@@ -30,6 +77,19 @@ router.all(
 		});
 	},
 );
+
+router.post("/telemetry", (req: Request, res: Response) => {
+	const payload = parseTelemetry(req.body);
+	if (!payload) {
+		return res.status(400).json({
+			success: false,
+			message: "Invalid telemetry payload.",
+		});
+	}
+	if (payload.kind === "error") logger.error("client.error", payload);
+	else logger.info("client.vital", payload);
+	res.status(204).end();
+});
 
 /**
  * Logout untuk user yang login via Google OAuth. Cookie session di-putuskan

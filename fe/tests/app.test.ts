@@ -54,6 +54,7 @@ let blogPosts: unknown[] = [];
 let blogDetailPost: unknown = null;
 let homePackages: unknown[] = [];
 let homeFaqs: unknown[] = [];
+let cmsPages = false;
 let homeVenues: unknown = [
 	{
 		uuid: "v1",
@@ -105,6 +106,18 @@ const getPageBatch = vi.fn(
 				};
 			case "about":
 				return { stats: null, articles: [] };
+			case "page-detail": {
+				if (!cmsPages) return {};
+				const slug = String(params.slug ?? "");
+				return {
+					page: {
+						slug,
+						title: `CMS ${slug}`,
+						excerpt: `Ringkasan ${slug}`,
+						content: `<p>Konten CMS ${slug}</p>`,
+					},
+				};
+			}
 			case "home":
 				return {
 					weddingContentReady: homeWeddingContentReady,
@@ -179,6 +192,7 @@ beforeEach(() => {
 	blogPosts = [];
 	blogDetailPost = null;
 	homePackages = [];
+	cmsPages = false;
 	homeFaqs = [
 		{
 			uuid: "4b9411a3-ccc5-44fd-bc24-e8dc7065773c",
@@ -213,6 +227,26 @@ describe("health", () => {
 		expect(res.status).toBe(200);
 		expect(res.body.status).toBe("ok");
 		expect(res.headers["cache-control"]).toBe("no-store");
+	});
+});
+
+describe("telemetry", () => {
+	it("menerima metrik web vitals dari browser", async () => {
+		const res = await request(app).post("/api/telemetry").send({
+			kind: "vital",
+			name: "LCP",
+			value: 123.456,
+			path: "/",
+		});
+		expect(res.status).toBe(204);
+	});
+
+	it("menolak payload telemetry yang tidak dikenal", async () => {
+		const res = await request(app)
+			.post("/api/telemetry")
+			.send({ kind: "vital", name: "", value: 1, path: "/" });
+		expect(res.status).toBe(400);
+		expect(res.body.success).toBe(false);
 	});
 });
 
@@ -427,7 +461,7 @@ describe("pageScript wiring", () => {
 
 		expect(res.status).toBe(200);
 		expect(res.text).toContain('src="https://example.test/sagita-logo.webp"');
-		expect(res.text).toContain("Wedding Planner — Deskripsi uji.");
+		expect(res.text).toContain('"slogan":"Wedding Planner"');
 		expect(res.text).toContain('href="tel:+62812"');
 		expect(res.text).toContain('href="https://www.instagram.com/sagita.test/"');
 		expect(res.text).toContain('aria-label="Sagita Wedding on Instagram"');
@@ -603,6 +637,23 @@ describe("pageScript wiring", () => {
 		const res = await request(app).get("/about");
 		expect(res.status).toBe(200);
 		expect(res.text).not.toContain("/js/pages/");
+	});
+
+	it("halaman about dan konsultasi memakai konten CMS bila tersedia", async () => {
+		cmsPages = true;
+		const about = await request(app).get("/about");
+		expect(about.status).toBe(200);
+		expect(about.text).toContain("<title>CMS about</title>");
+		expect(about.text).toContain("<p>Konten CMS about</p>");
+
+		const consultation = await request(app).get("/formulir-konsultasi");
+		expect(consultation.status).toBe(200);
+		expect(consultation.text).toContain(
+			"<title>CMS formulir-konsultasi</title>",
+		);
+		expect(consultation.text).toContain(
+			"<p>Konten CMS formulir-konsultasi</p>",
+		);
 	});
 
 	it("beranda menampilkan venue dari data batch", async () => {
@@ -893,6 +944,9 @@ describe("pageScript wiring", () => {
 		expect(slideUrls?.match(/slide-\d\.webp/g)).toHaveLength(5);
 		expect(slideUrls).not.toContain("slide-6.webp");
 		expect(res.text).toContain('fetchpriority="high"');
+		expect(res.text).toContain(
+			'rel="preload" as="image" href="https://example.test/slide-1.webp"',
+		);
 		expect(res.text).toContain("data-home-slide-image");
 		expect(res.text).toContain(
 			'href="#home-planning-summary" class="scroll-indicator',
@@ -1074,7 +1128,7 @@ describe("not found", () => {
 		expect(res.text).toContain("Mencari halaman yang tepat?");
 		expect(res.text).toContain("Mulai konsultasi");
 		expect(res.text).toContain('href="/formulir-konsultasi"');
-		expect(res.text).toContain("Wedding Planner — Deskripsi uji.");
+		expect(res.text).toContain("Deskripsi uji.");
 		expect(res.text).toContain("Sagita Wedding");
 		expect(res.text).not.toContain("Serene Yoga");
 	});

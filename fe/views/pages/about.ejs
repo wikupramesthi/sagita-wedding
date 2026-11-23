@@ -6,6 +6,7 @@
 
 <%
   const isID = lang === 'id';
+  const pageCopy = typeof cmsPage !== 'undefined' && cmsPage ? cmsPage : null;
   const copy = isID ? {
     badge: 'Tentang Sagita Wedding Planner',
     titleA: 'Hari istimewa,',
@@ -207,8 +208,12 @@
       <div class="order-1 reveal lg:order-2">
         <p class="mb-4 text-xs uppercase tracking-[0.2em] text-terracotta-600"><%= copy.aboutEyebrow %></p>
         <h2 class="font-display text-3xl leading-tight text-sage-900 sm:text-4xl"><%= copy.aboutTitle %></h2>
-        <p class="mt-6 leading-relaxed text-stone-warm"><%= copy.aboutP1 %></p>
-        <p class="mt-4 leading-relaxed text-stone-warm"><%= copy.aboutP2 %></p>
+        <% if (pageCopy && pageCopy.content) { %>
+          <div class="prose prose-stone mt-6 max-w-none text-stone-warm"><%- pageCopy.content %></div>
+        <% } else { %>
+          <p class="mt-6 leading-relaxed text-stone-warm"><%= copy.aboutP1 %></p>
+          <p class="mt-4 leading-relaxed text-stone-warm"><%= copy.aboutP2 %></p>
+        <% } %>
         <div class="mt-8 h-px w-20 bg-gold"></div>
       </div>
     </div>

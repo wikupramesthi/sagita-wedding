@@ -74,6 +74,7 @@
 
                         <select
                             name="filter"
+                            aria-label="<%= lang === 'id' ? 'Filter paket' : 'Filter packages' %>"
                             class="w-full h-11 rounded-xl
                             border border-stone-200
                             bg-sand-50
@@ -111,6 +112,7 @@
 
                         <select
                             name="sort"
+                            aria-label="<%= lang === 'id' ? 'Urutkan paket' : 'Sort packages' %>"
                             class="w-full h-11 rounded-xl
                             border border-stone-200
                             bg-sand-50
@@ -614,9 +616,9 @@
                         🕊️
                     </div>
 
-                    <h3 class="mt-5 text-lg font-bold text-sage-900">
+                    <h2 class="mt-5 text-lg font-bold text-sage-900">
                         <%= lang === 'id' ? 'Belum ada paket tersedia' : 'No packages available' %>
-                    </h3>
+                    </h2>
 
                     <p class="mt-2 text-sm text-stone-500">
                         <%= lang === 'id' ? 'Coba ubah pencarian atau filter Anda.' : 'Try changing your search or filter.' %>

@@ -29,8 +29,10 @@ describe("kualitas frontend", () => {
 		expect(head).toContain('name="viewport"');
 		expect(head).toContain('rel="preload" href="/css/output.css');
 		expect(head).toContain('rel="preload" href="/css/custom.css');
+		expect(head).toContain('rel="preload" as="image" href="<%= heroImage %>"');
 		expect(head).toContain("?v=<%= assetV %>");
 		expect(head).toContain("display=swap");
+		expect(head).toContain("/js/telemetry.js");
 		expect(footer).toContain("defer");
 	});
 

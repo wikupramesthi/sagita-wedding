@@ -292,6 +292,9 @@
         src="<%= event.gambar || '/img/Sagita Wedding_about1.jpg' %>"
         data-fallback="/img/Sagita Wedding_about1.jpg"
         alt="<%= event.judul %>"
+        width="640"
+        height="360"
+        <% if (index === 0) { %>fetchpriority="high" decoding="async"<% } else { %>loading="lazy" decoding="async"<% } %>
         class="w-full h-full object-cover
                transition-transform duration-500
                group-hover:scale-105"

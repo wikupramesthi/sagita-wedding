@@ -14,9 +14,26 @@ import { $, lockScroll, onAction, unlockScroll } from "./lib/dom";
 /* ---------- 1. navbar ---------- */
 
 (() => {
-	$("mobileBtn")?.addEventListener("click", () =>
-		$("mobileNav")?.classList.toggle("hidden"),
-	);
+	const mobileBtn = $("mobileBtn");
+	const mobileNav = $("mobileNav");
+	if (mobileBtn && mobileNav) {
+		const setMobileOpen = (open: boolean) => {
+			mobileNav.classList.toggle("hidden", !open);
+			mobileBtn.setAttribute("aria-expanded", String(open));
+			if (open) {
+				mobileNav.querySelector<HTMLElement>("a, button")?.focus();
+			}
+		};
+		mobileBtn.addEventListener("click", () =>
+			setMobileOpen(mobileNav.classList.contains("hidden")),
+		);
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "Escape" && !mobileNav.classList.contains("hidden")) {
+				setMobileOpen(false);
+				mobileBtn.focus();
+			}
+		});
+	}
 
 	const navbar = $("navbar");
 	if (navbar) {
@@ -62,16 +79,27 @@ import { $, lockScroll, onAction, unlockScroll } from "./lib/dom";
 	const toggle = $("langToggle");
 	const menu = $("langDropdown");
 	if (toggle && menu) {
+		const setLangOpen = (open: boolean) => {
+			menu.classList.toggle("hidden", !open);
+			toggle.setAttribute("aria-expanded", String(open));
+			if (open) menu.querySelector<HTMLElement>("a, button")?.focus();
+		};
 		toggle.addEventListener("click", (e) => {
 			e.stopPropagation();
-			menu.classList.toggle("hidden");
+			setLangOpen(menu.classList.contains("hidden"));
 		});
 		document.addEventListener("click", (e) => {
 			if (
 				!menu.classList.contains("hidden") &&
 				!toggle.contains(e.target as Node)
 			) {
-				menu.classList.add("hidden");
+				setLangOpen(false);
+			}
+		});
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "Escape" && !menu.classList.contains("hidden")) {
+				setLangOpen(false);
+				toggle.focus();
 			}
 		});
 	}
@@ -95,9 +123,10 @@ import { $, lockScroll, onAction, unlockScroll } from "./lib/dom";
 			}
 		});
 		document.addEventListener("keydown", (e) => {
-			if (e.key === "Escape") {
+			if (e.key === "Escape" && !userMenu.classList.contains("hidden")) {
 				userMenu.classList.add("hidden");
 				userToggle.setAttribute("aria-expanded", "false");
+				userToggle.focus();
 			}
 		});
 	}
@@ -105,16 +134,27 @@ import { $, lockScroll, onAction, unlockScroll } from "./lib/dom";
 
 /* ---------- 2. modal booking ---------- */
 
-function openBooking() {
+const BOOKING_FOCUSABLE =
+	'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+let bookingTrigger: HTMLElement | null = null;
+
+function openBooking(trigger: HTMLElement) {
 	const m = $("bookingModal");
 	if (!m) return;
+	bookingTrigger = trigger;
 	m.classList.remove("hidden");
 	lockScroll();
+	m.querySelector<HTMLElement>(BOOKING_FOCUSABLE)?.focus();
 }
 
 function closeBooking() {
-	$("bookingModal")?.classList.add("hidden");
+	const m = $("bookingModal");
+	if (!m || m.classList.contains("hidden")) return;
+	m.classList.add("hidden");
 	unlockScroll();
+	bookingTrigger?.focus();
+	bookingTrigger = null;
 }
 
 onAction({
@@ -147,7 +187,26 @@ async function logout() {
 }
 
 document.addEventListener("keydown", (ev) => {
-	if (ev.key === "Escape") closeBooking();
+	const m = $("bookingModal");
+	if (!m || m.classList.contains("hidden")) return;
+	if (ev.key === "Escape") {
+		closeBooking();
+		return;
+	}
+	if (ev.key !== "Tab") return;
+
+	const focusables = [...m.querySelectorAll<HTMLElement>(BOOKING_FOCUSABLE)];
+	if (!focusables.length) return;
+	const first = focusables[0];
+	const last = focusables[focusables.length - 1];
+
+	if (ev.shiftKey && document.activeElement === first) {
+		ev.preventDefault();
+		last.focus();
+	} else if (!ev.shiftKey && document.activeElement === last) {
+		ev.preventDefault();
+		first.focus();
+	}
 });
 
 /* ---------- 3. reveal on scroll ---------- */

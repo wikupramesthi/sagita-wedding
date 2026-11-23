@@ -32,7 +32,7 @@
       <div class="hidden lg:flex items-center gap-3">
         <!-- Language switcher -->
         <div class="relative hidden lg:block">
-          <button id="langToggle" class="nav-text flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm transition-all duration-200 <%= isHeroPage ? '' : 'text-sand-600 hover:text-sand-900 hover:bg-sand-100' %>">
+          <button id="langToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="langDropdown" class="nav-text flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm transition-all duration-200 <%= isHeroPage ? '' : 'text-sand-600 hover:text-sand-900 hover:bg-sand-100' %>">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
             <span><%= _currentLang.short %></span>
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
@@ -74,7 +74,7 @@
       <div class="lg:hidden flex items-center gap-2">
         <%# Sama seperti desktop: modal yang discerning status, cukup satu tombol %>
         <button type="button" data-action="open-booking" class="nav-login inline-flex items-center rounded-full border px-4 py-1.5 text-sm transition-colors"><%= t.login %></button>
-        <button id="mobileBtn" class="nav-hamburger p-2 rounded-lg transition-colors <%= isHeroPage ? '' : 'text-sand-800 hover:bg-sand-100' %>" aria-label="Menu">
+        <button id="mobileBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobileNav" class="nav-hamburger p-2 rounded-lg transition-colors <%= isHeroPage ? '' : 'text-sand-800 hover:bg-sand-100' %>">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
         </button>
       </div>

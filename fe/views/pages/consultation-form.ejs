@@ -6,6 +6,7 @@
 
   <body class="consultation-page min-h-screen antialiased">
     <%
+      const pageCopy = typeof cmsPage !== 'undefined' && cmsPage ? cmsPage : null;
       const copy = lang === "en" ? {
         eyebrow: "A thoughtful beginning",
         title: "Let’s plan a day",
@@ -112,13 +113,19 @@
           <div class="consultation-intro-copy">
             <span class="consultation-eyebrow"><span></span><%= copy.eyebrow %></span>
             <h1><%= copy.title %> <em><%= copy.titleAccent %></em></h1>
-            <p><%= copy.intro %></p>
+            <% if (pageCopy && pageCopy.content) { %>
+              <div class="consultation-cms prose prose-stone max-w-none"><%- pageCopy.content %></div>
+            <% } else { %>
+              <p><%= copy.intro %></p>
+            <% } %>
           </div>
 
-          <section class="consultation-seo" aria-labelledby="consultation-seo-heading">
-            <h2 id="consultation-seo-heading"><%= copy.detailsTitle %></h2>
-            <p><%= copy.detailsText %></p>
-          </section>
+          <% if (!pageCopy || !pageCopy.content) { %>
+            <section class="consultation-seo" aria-labelledby="consultation-seo-heading">
+              <h2 id="consultation-seo-heading"><%= copy.detailsTitle %></h2>
+              <p><%= copy.detailsText %></p>
+            </section>
+          <% } %>
 
           <div class="consultation-trust">
             <span class="consultation-trust-icon" aria-hidden="true">

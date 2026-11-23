@@ -25,6 +25,10 @@
                         src="<%= cls.image %>"
                         alt="<%= cls.name %>"
                         data-img-error="parent-remove"
+                        width="960"
+                        height="420"
+                        loading="lazy"
+                        decoding="async"
                         class="w-full h-[420px] object-cover rounded-[24px]"
                     >
             </div>
@@ -83,6 +87,10 @@
                                         alt="<%= cls.vendor.name || t.vendorLabel %>"
                                         data-fallback="/img/logo.WebP"
                                         data-img-error="remove"
+                                        width="40"
+                                        height="40"
+                                        loading="lazy"
+                                        decoding="async"
                                         class="absolute inset-0 w-10 h-10 rounded-full object-cover bg-sage-50"
                                     >
                                 <% } %>

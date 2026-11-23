@@ -27,71 +27,74 @@ vi.mock("../src/services/siteStatsService.js", () => ({
 	formatStatCount: (value: unknown) => String(value ?? 0),
 }));
 
-const getPageBatch = vi.fn(async (page: string) => {
-	switch (page) {
-		case "home":
-			return {
-				weddingContentReady: false,
-				sliderBanners: [],
-				venues: [],
-				packages: [],
-				articles: [],
-				testimonials: [],
-			};
-		case "venues":
-			return { venues: [] };
-		case "packages":
-			return { packages: [], meta: {} };
-		case "package-detail":
-			return {
-				package: {
-					name: "Paket Uji",
-					slug: "paket-uji",
-					description: "Paket pernikahan untuk uji SEO.",
-					options: [],
-				},
-			};
-		case "events":
-			return { events: [], meta: {} };
-		case "gallery":
-			return { gallery: [] };
-		case "vendors":
-			return { vendors: [] };
-		case "blog":
-			return { articles: [], total: 0 };
-		case "blog-detail":
-			return {
-				post: {
-					slug: "panduan-venue",
-					title: "Panduan Memilih Venue",
-					featured_image: "https://example.test/cover.webp",
-					scheduled_at: "2026-11-22T08:00:00Z",
-					content: "<p>Isi artikel.</p>",
-					excerpt: "Ringkasan artikel.",
-					category: "Venue",
-				},
-				related: [],
-				popular: [],
-				venues: [],
-			};
-		case "page-detail":
-			return {
-				page: {
-					title: "Tentang Sagita",
-					slug: "tentang",
-					content: "<p>Halaman uji.</p>",
-				},
-			};
-		case "faq":
-			return { faqs: [], categories: [] };
-		case "about":
-			return { stats: null, articles: [] };
-		case "contact":
-			return { faqs: [] };
-		default:
-			return {};
-	}
-});
+const getPageBatch = vi.fn(
+	async (page: string, params?: Record<string, unknown>) => {
+		switch (page) {
+			case "home":
+				return {
+					weddingContentReady: false,
+					sliderBanners: [],
+					venues: [],
+					packages: [],
+					articles: [],
+					testimonials: [],
+				};
+			case "venues":
+				return { venues: [] };
+			case "packages":
+				return { packages: [], meta: {} };
+			case "package-detail":
+				return {
+					package: {
+						name: "Paket Uji",
+						slug: "paket-uji",
+						description: "Paket pernikahan untuk uji SEO.",
+						options: [],
+					},
+				};
+			case "events":
+				return { events: [], meta: {} };
+			case "gallery":
+				return { gallery: [] };
+			case "vendors":
+				return { vendors: [] };
+			case "blog":
+				return { articles: [], total: 0 };
+			case "blog-detail":
+				return {
+					post: {
+						slug: "panduan-venue",
+						title: "Panduan Memilih Venue",
+						featured_image: "https://example.test/cover.webp",
+						scheduled_at: "2026-11-22T08:00:00Z",
+						content: "<p>Isi artikel.</p>",
+						excerpt: "Ringkasan artikel.",
+						category: "Venue",
+					},
+					related: [],
+					popular: [],
+					venues: [],
+				};
+			case "page-detail":
+				if (params?.slug !== "tentang") return {};
+				return {
+					page: {
+						title: "Tentang Sagita",
+						slug: "tentang",
+						content: "<p>Halaman uji.</p>",
+					},
+				};
+			case "faq":
+				return { faqs: [], categories: [] };
+			case "about":
+				return { stats: null, articles: [] };
+			case "contact":
+				return { faqs: [] };
+			default:
+				return {};
+		}
+	},
+);
 
 vi.mock("../src/services/batchService.js", () => ({
 	getPageBatch: (page: string, params?: Record<string, unknown>) =>
