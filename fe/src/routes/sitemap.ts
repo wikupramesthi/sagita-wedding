@@ -50,9 +50,6 @@ const DYNAMIC_SOURCES = [
 	},
 ];
 
-const TTL_MS = 60 * 60 * 1000; // 1 jam
-let cache: { xml: string; expiresAt: number } = { xml: "", expiresAt: 0 };
-
 /** Escape untuk isi XML (loc). */
 function escapeXml(value: unknown): string {
 	return String(value ?? "")
@@ -119,10 +116,7 @@ async function buildSitemap() {
 
 router.get("/sitemap.xml", async (_req: Request, res: Response) => {
 	try {
-		if (!cache.xml || Date.now() > cache.expiresAt) {
-			cache = { xml: await buildSitemap(), expiresAt: Date.now() + TTL_MS };
-		}
-		res.type("application/xml").send(cache.xml);
+		res.type("application/xml").send(await buildSitemap());
 	} catch {
 		// Terakhir: minimal URL statis, tanpa slug dinamis.
 		try {

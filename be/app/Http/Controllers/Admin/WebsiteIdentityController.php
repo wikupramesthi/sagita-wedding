@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\EmailSetting;
 use App\Models\WebsiteIdentity;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -101,9 +100,6 @@ class WebsiteIdentityController extends Controller
             EmailSetting::syncFromWebsiteIdentity($identitas, $previousEmail, $previousName);
 
             DB::commit();
-
-            // Segarkan cache API publik agar frontend langsung membaca data baru.
-            Cache::forget('website-identity:public');
 
             return redirect()->route('website-identity.index')->with('success', 'Identitas website berhasil disimpan.');
         } catch (\Throwable $th) {

@@ -365,8 +365,7 @@ class DashboardController extends Controller
         $newMembershipCount = $countBetween(UserPackage::where('status', 'active'), 'started_at', $startDate, $endDate);
         $revenueMonth = (float) Order::where('status', 'paid')
             ->whereBetween('paid_at', [$startDate.' 00:00:00', $endDate.' 23:59:59'])
-            ->get(['amount', 'total_amount'])
-            ->sum(fn ($o) => (float) ($o->total_amount ?: $o->amount));
+            ->sum(DB::raw('COALESCE(NULLIF(total_amount, 0), amount)'));
 
         $stats = [
             $makeStat('Member baru', User::role('user'), 'created_at', 'bi bi-people', 'purple', 'pengguna.index'),
@@ -436,7 +435,8 @@ class DashboardController extends Controller
             'newOrdersCount' => $newOrdersCount,
             'newMembershipCount' => $newMembershipCount,
             'revenueMonth' => $revenueMonth,
-            'revenueTotal' => (float) Order::whereIn('status', ['paid', 'partially_paid'])->get(['status', 'amount', 'total_amount', 'amount_paid'])->sum(fn ($o) => $o->status === 'paid' ? (float) ($o->total_amount ?: $o->amount) : (float) ($o->amount_paid ?? 0)),
+            'revenueTotal' => (float) Order::whereIn('status', ['paid', 'partially_paid'])
+                ->sum(DB::raw("CASE WHEN status = 'paid' THEN COALESCE(NULLIF(total_amount, 0), amount) ELSE COALESCE(amount_paid, 0) END")),
             'security' => [
                 'failedLogins' => (int) FailedLogin::where('created_at', '>=', now()->subDay())->count(),
                 'lockouts' => (int) LoginLockout::active()->count(),
@@ -548,16 +548,13 @@ class DashboardController extends Controller
         $rows = Order::where('status', 'paid')
             ->whereNotNull('paid_at')
             ->whereBetween('paid_at', [$from.' 00:00:00', $to.' 23:59:59'])
-            ->select('paid_at', 'amount', 'total_amount')
+            ->selectRaw("DATE(paid_at) as day, DATE_FORMAT(paid_at, '%Y-%m') as month, YEAR(paid_at) as year, SUM(COALESCE(NULLIF(total_amount, 0), amount)) as total")
+            ->groupByRaw("DATE(paid_at), DATE_FORMAT(paid_at, '%Y-%m'), YEAR(paid_at)")
             ->get();
 
-        $rowAmount = fn ($row) => (float) ($row->total_amount ?: $row->amount);
-        $dailyRows = $rows->groupBy(fn ($row) => $row->paid_at->toDateString())
-            ->map(fn ($group) => (float) $group->sum($rowAmount));
-        $monthlyRows = $rows->groupBy(fn ($row) => $row->paid_at->format('Y-m'))
-            ->map(fn ($group) => (float) $group->sum($rowAmount));
-        $yearlyRows = $rows->groupBy(fn ($row) => $row->paid_at->format('Y'))
-            ->map(fn ($group) => (float) $group->sum($rowAmount));
+        $dailyRows = $rows->mapWithKeys(fn ($row) => [$row->day => (float) $row->total]);
+        $monthlyRows = $rows->mapWithKeys(fn ($row) => [$row->month => (float) $row->total]);
+        $yearlyRows = $rows->mapWithKeys(fn ($row) => [(string) $row->year => (float) $row->total]);
 
         $start = Carbon::parse($from)->startOfDay();
         $end = Carbon::parse($to)->startOfDay();

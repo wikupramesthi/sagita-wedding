@@ -4,35 +4,49 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\BatchVersionService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Statistik publik untuk frontend (angka agregat saja, tanpa data personal).
- * GET /api/site-stats — tanpa auth, di-cache 1 jam.
+ * Query selalu fresh; ETag/no-cache membuat perubahan data langsung terlihat.
  */
 class SiteStatsController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $data = Cache::remember('site-stats:public', 3600, function () {
-                return [
-                    'members' => User::query()
-                        ->whereHas('roles', fn ($query) => $query->where('name', 'user'))
-                        ->count(),
-                    'vendors' => User::query()
-                        ->whereHas('roles', fn ($query) => $query->where('name', 'vendor'))
-                        ->count(),
-                ];
-            });
+            $etag = md5('site-stats|'.BatchVersionService::current());
 
-            return response()->json([
+            $preflight = response()->json([], 200);
+            $preflight->setEtag($etag);
+            $preflight->headers->set('Cache-Control', 'no-cache, must-revalidate');
+
+            if ($preflight->isNotModified($request)) {
+                return $preflight;
+            }
+
+            $data = [
+                'members' => User::query()
+                    ->whereHas('roles', fn ($query) => $query->where('name', 'user'))
+                    ->count(),
+                'vendors' => User::query()
+                    ->whereHas('roles', fn ($query) => $query->where('name', 'vendor'))
+                    ->count(),
+            ];
+
+            $response = response()->json([
                 'status' => 'success',
                 'message' => 'Site statistics retrieved successfully',
                 'data' => $data,
             ], 200);
+
+            $response->setEtag($etag);
+            $response->headers->set('Cache-Control', 'no-cache, must-revalidate');
+
+            return $response;
         } catch (\Exception $e) {
             Log::error('Site stats fetch error: '.$e->getMessage());
 

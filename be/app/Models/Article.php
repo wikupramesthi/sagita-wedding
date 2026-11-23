@@ -44,7 +44,7 @@ class Article extends Model
     
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_uuid', 'uuid');
     }
 
     public function category()
@@ -52,13 +52,6 @@ class Article extends Model
         return $this->belongsTo(Category::class, 'category_uuid', 'uuid');
     }
     
-
-    public function images()
-    {
-        return $this->hasMany(Image::class);
-    }
-
-
     public function scopePublished($query)
     {
         return $query->where(function ($q) {

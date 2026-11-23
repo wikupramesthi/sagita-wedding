@@ -282,6 +282,12 @@
 
         @endforelse
 
+        @if ($venues->hasPages())
+        <div class="d-flex justify-content-center mt-4">
+            {{ $venues->onEachSide(1)->links('pagination::bootstrap-5') }}
+        </div>
+        @endif
+
     </div>
 
 </div>

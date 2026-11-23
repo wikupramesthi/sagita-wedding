@@ -127,6 +127,7 @@ class BatchController extends Controller
             'venues' => array_slice($this->venueRecords(), 0, 4),
             'packages' => $this->packages(['per_page' => 3])['packages'] ?? [],
             'articles' => array_slice($this->articles(), 0, 3),
+            'faqs' => $this->faqPage()['faqs'] ?? [],
         ];
     }
 

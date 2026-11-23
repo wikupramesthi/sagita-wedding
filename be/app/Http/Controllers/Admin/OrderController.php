@@ -876,7 +876,7 @@ class OrderController extends Controller
 
         if (! $recordOnly) {
             try {
-                $admins = User::role(['admin', 'super-admin'])->where('is_active', true)->get();
+                $admins = User::role(['admin', 'super-admin'])->whereNotNull('is_active')->get();
                 $notif = new ProofUploadedNotification($record->uuid, $record->order_number, $user->name, $amount);
                 foreach ($admins as $admin) {
                     $admin->notify($notif);

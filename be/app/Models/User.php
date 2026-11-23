@@ -362,26 +362,10 @@ class User extends Authenticatable
         );
     }
 
-    public function classes()
-    {
-        return $this->hasMany(
-            'vendor_uuid',
-            'uuid'
-        );
-    }
-
     public function orders()
     {
         return $this->hasMany(
             Order::class,
-            'user_uuid',
-            'uuid'
-        );
-    }
-
-    public function bookings()
-    {
-        return $this->hasMany(
             'user_uuid',
             'uuid'
         );

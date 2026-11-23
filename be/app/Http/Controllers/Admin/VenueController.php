@@ -35,18 +35,27 @@ class VenueController extends Controller
             $query->where('status', $status);
         }
 
-        $venues = (clone $query)->latest()->get();
+        $perPage = (int) $request->query('per_page', 12);
+        $perPage = in_array($perPage, [12, 24, 48, 96], true) ? $perPage : 12;
 
-        // Stats follow the active filter so numbers stay in sync with the data.
+        $venues = (clone $query)
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $statsRow = (clone $query)
+            ->selectRaw("COUNT(*) as total, COALESCE(SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END), 0) as active, COALESCE(SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END), 0) as inactive")
+            ->first();
+
         $stats = [
-            'total' => (clone $query)->count(),
-            'active' => (clone $query)->where('status', 'active')->count(),
-            'inactive' => (clone $query)->where('status', 'inactive')->count(),
+            'total' => (int) ($statsRow->total ?? 0),
+            'active' => (int) ($statsRow->active ?? 0),
+            'inactive' => (int) ($statsRow->inactive ?? 0),
         ];
 
         return view(
             'pages.venues.index',
-            compact('venues', 'stats', 'q', 'status')
+            compact('venues', 'stats', 'q', 'status', 'perPage')
         );
     }
 

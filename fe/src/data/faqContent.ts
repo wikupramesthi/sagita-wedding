@@ -143,20 +143,44 @@ const categoryNames: Record<string, Record<Locale, string>> = {
 	},
 };
 
+function asText(value: unknown): string {
+	return String(value ?? "").trim();
+}
+
+function localizeField(
+	value: unknown,
+	seed: Record<Locale, FaqCopy> | undefined,
+	field: keyof FaqCopy,
+	locale: Locale,
+): string {
+	const text = asText(value);
+	if (!seed) return text;
+
+	return seed.id[field] === text || seed.en[field] === text
+		? seed[locale][field]
+		: text;
+}
+
+function localizeCategory(value: unknown, locale: Locale): string {
+	const text = asText(value);
+	return locale === "en" ? (categoryNames[text]?.en ?? text) : text;
+}
+
 export function localizeFaqs(value: unknown, locale: Locale): unknown[] {
 	if (!Array.isArray(value)) return [];
 
 	return value.map((item) => {
 		if (!item || typeof item !== "object") return item;
 		const faq = item as Record<string, unknown>;
-		const uuid = typeof faq.uuid === "string" ? faq.uuid : "";
-		const copy = faqCopyByUuid[uuid]?.[locale];
-		const category =
-			typeof faq.kategori === "string"
-				? (categoryNames[faq.kategori]?.[locale] ?? faq.kategori)
-				: faq.kategori;
+		const uuid = asText(faq.uuid);
+		const seed = faqCopyByUuid[uuid];
 
-		return copy ? { ...faq, ...copy } : { ...faq, kategori: category };
+		return {
+			...faq,
+			kategori: localizeCategory(faq.kategori, locale),
+			question: localizeField(faq.question, seed, "question", locale),
+			answer: localizeField(faq.answer, seed, "answer", locale),
+		};
 	});
 }
 
@@ -186,34 +210,66 @@ const homeFaqGroupCopy: Record<string, Record<Locale, string>> = {
 	support: { en: "Changes & support", id: "Perubahan & bantuan" },
 };
 
-const homeFaqItemsByGroup: Record<string, string[]> = {
-	start: [
-		"4b9411a3-ccc5-44fd-bc24-e8dc7065773c",
-		"a7c3f5e1-4b2d-4c68-9a1f-0d5e7b9c2a44",
-	],
-	packages: [
-		"fa2b17f9-f0d4-4849-8373-8d787b80113e",
-		"9f25d34e-2a60-42cf-8379-ed069dc50ac0",
-	],
-	vendors: [
-		"6bb623f8-916a-436b-85b3-a57035fe5ac5",
-		"fd90f57c-53aa-4b5d-8e11-faea4808686d",
-	],
-	support: [
-		"95b200f1-69c7-4f1b-a76b-172bcf5fcc55",
-		"b6e8d0a2-7c13-4f59-8d24-1a9c3e5f7b60",
-	],
+const categoryToHomeGroup: Record<string, string> = {
+	"Perencanaan Pernikahan": "start",
+	"Paket & Layanan": "packages",
+	"Pemesanan & Pembayaran": "packages",
+	"Vendor & Mitra": "vendors",
+	"Pelaksanaan Acara": "vendors",
+	"Perubahan & Pembatalan": "support",
 };
 
-export function getHomeFaqs(locale: Locale): HomeFaqGroup[] {
-	return Object.entries(homeFaqItemsByGroup).map(([id, uuids]) => ({
-		id,
-		kategori: homeFaqGroupCopy[id][locale],
-		items: uuids.flatMap((uuid) => {
-			const copy = faqCopyByUuid[uuid]?.[locale];
-			return copy
-				? [{ id: uuid, question: copy.question, answer: copy.answer }]
-				: [];
-		}),
-	}));
+const homeGroupOrder = ["start", "packages", "vendors", "support"];
+
+function homeGroupId(category: string): string {
+	if (categoryToHomeGroup[category]) return categoryToHomeGroup[category];
+	return (
+		category
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-|-$/g, "") || "faq"
+	);
+}
+
+export function getHomeFaqs(value: unknown, locale: Locale): HomeFaqGroup[] {
+	const localized = localizeFaqs(value, locale);
+	if (!Array.isArray(value) || !Array.isArray(localized)) return [];
+
+	const groups = new Map<string, HomeFaqGroup>();
+
+	value.forEach((item, index) => {
+		if (!item || typeof item !== "object") return;
+		const faq = item as Record<string, unknown>;
+		const localizedFaq = (localized[index] ?? {}) as Record<string, unknown>;
+		const category = asText(faq.kategori);
+		const id = homeGroupId(category);
+
+		if (!groups.has(id)) {
+			groups.set(id, {
+				id,
+				kategori:
+					homeFaqGroupCopy[id]?.[locale] ||
+					asText(localizedFaq.kategori) ||
+					category,
+				items: [],
+			});
+		}
+
+		groups.get(id)?.items.push({
+			id: asText(faq.uuid) || String(index),
+			question: asText(localizedFaq.question),
+			answer: asText(localizedFaq.answer),
+		});
+	});
+
+	const ordered = homeGroupOrder
+		.filter((id) => groups.has(id))
+		.map((id) => groups.get(id))
+		.filter((group): group is HomeFaqGroup => Boolean(group));
+
+	const extras = [...groups.entries()]
+		.filter(([id]) => !homeGroupOrder.includes(id))
+		.map(([, group]) => group);
+
+	return [...ordered, ...extras];
 }

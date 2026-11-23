@@ -1,15 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { localizeFaqCategories, localizeFaqs } from "../src/data/faqContent.js";
+import {
+	getHomeFaqs,
+	localizeFaqCategories,
+	localizeFaqs,
+} from "../src/data/faqContent.js";
 
 const faq = {
 	uuid: "4b9411a3-ccc5-44fd-bc24-e8dc7065773c",
 	kategori: "Perencanaan Pernikahan",
 	question: "When should we start planning our wedding?",
-	answer: "Ideally, start 6–12 months before the big day.",
+	answer:
+		"We recommend beginning 6–12 months before your wedding day. This gives you time to choose a date, venue, and concept, set a budget, and secure your preferred vendors at a comfortable pace.",
 };
 
 describe("FAQ localization", () => {
-	it("shows polished wedding FAQ copy in Indonesian", () => {
+	it("memakai copy seed lokal untuk bahasa Indonesia", () => {
 		expect(localizeFaqs([faq], "id")).toMatchObject([
 			{
 				kategori: "Perencanaan Pernikahan",
@@ -18,7 +23,7 @@ describe("FAQ localization", () => {
 		]);
 	});
 
-	it("uses English categories and copy for English visitors", () => {
+	it("memakai copy Inggris hanya untuk teks seed", () => {
 		expect(localizeFaqs([faq], "en")).toMatchObject([
 			{
 				kategori: "Wedding Planning",
@@ -31,7 +36,41 @@ describe("FAQ localization", () => {
 		).toEqual(["Packages & Services", "Custom category"]);
 	});
 
-	it("preserves FAQ entries not covered by the built-in translations", () => {
+	it("mengutamakan perubahan admin pada UUID yang punya copy seed", () => {
+		const edited = {
+			...faq,
+			kategori: "Kategori Admin",
+			question: "Pertanyaan baru dari admin?",
+			answer: "Jawaban baru dari admin.",
+		};
+		expect(localizeFaqs([edited], "id")).toEqual([edited]);
+		expect(localizeFaqs([edited], "en")).toEqual([edited]);
+	});
+
+	it("membangun FAQ beranda dari data API", () => {
+		const groups = getHomeFaqs(
+			[
+				faq,
+				{
+					uuid: "admin-1",
+					kategori: "Custom category",
+					question: "Pertanyaan admin?",
+					answer: "Jawaban admin.",
+				},
+			],
+			"en",
+		);
+		expect(groups.map((group) => group.id)).toEqual([
+			"start",
+			"custom-category",
+		]);
+		expect(groups[0].items[0].question).toBe(
+			"When should we start planning our wedding?",
+		);
+		expect(groups[1].items[0].answer).toBe("Jawaban admin.");
+	});
+
+	it("menjaga FAQ di luar daftar seed apa adanya", () => {
 		const customFaq = {
 			uuid: "custom",
 			kategori: "Custom category",

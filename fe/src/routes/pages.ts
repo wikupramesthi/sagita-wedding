@@ -262,10 +262,7 @@ function getHomePackages(value: unknown): HomePackage[] {
 		homePackages.splice(1, 0, popularPackage);
 	}
 
-	return homePackages.slice(0, 3).map((item, index) => ({
-		...item,
-		isPopular: index === 1 && popularIndex >= 0,
-	}));
+	return homePackages.slice(0, 3);
 }
 
 function getHomeSliderBanners(value: unknown): BannerItem[] {
@@ -324,7 +321,7 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 				weddingContentReady && Array.isArray(data?.testimonials)
 					? data.testimonials.slice(0, 10)
 					: [],
-			homeFaqs: getHomeFaqs(isID ? "id" : "en"),
+			homeFaqs: getHomeFaqs(data?.faqs, isID ? "id" : "en"),
 		});
 	} catch (err) {
 		next(err);

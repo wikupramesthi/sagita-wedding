@@ -53,6 +53,7 @@ let homeArticles: unknown[] = [];
 let blogPosts: unknown[] = [];
 let blogDetailPost: unknown = null;
 let homePackages: unknown[] = [];
+let homeFaqs: unknown[] = [];
 let homeVenues: unknown = [
 	{
 		uuid: "v1",
@@ -112,6 +113,7 @@ const getPageBatch = vi.fn(
 					packages: homePackages,
 					articles: homeArticles,
 					testimonials: homeTestimonials,
+					faqs: homeFaqs,
 				};
 			case "venues":
 				return {
@@ -177,6 +179,20 @@ beforeEach(() => {
 	blogPosts = [];
 	blogDetailPost = null;
 	homePackages = [];
+	homeFaqs = [
+		{
+			uuid: "4b9411a3-ccc5-44fd-bc24-e8dc7065773c",
+			kategori: "Perencanaan Pernikahan",
+			question: "When should we start planning our wedding?",
+			answer: "Ideally, start 6–12 months before the big day.",
+		},
+		{
+			uuid: "fa2b17f9-f0d4-4849-8373-8d787b80113e",
+			kategori: "Paket & Layanan",
+			question: "What is included in a wedding planning package?",
+			answer: "Packages cover planning and coordination.",
+		},
+	];
 	homeWeddingContentReady = true;
 	homeVenues = [
 		{

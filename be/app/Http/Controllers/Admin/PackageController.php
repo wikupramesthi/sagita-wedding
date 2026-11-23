@@ -32,13 +32,17 @@ class PackageController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        $statsRow = (clone $query)
+            ->selectRaw("COUNT(*) as total, COALESCE(SUM(CASE WHEN is_active = 'active' THEN 1 ELSE 0 END), 0) as active, COALESCE(SUM(CASE WHEN is_active = 'inactive' THEN 1 ELSE 0 END), 0) as inactive, COALESCE(SUM(CASE WHEN is_popular = 1 THEN 1 ELSE 0 END), 0) as popular, COALESCE(SUM(CASE WHEN is_published = 1 THEN 1 ELSE 0 END), 0) as published, COALESCE(SUM(CASE WHEN is_published = 0 THEN 1 ELSE 0 END), 0) as draft")
+            ->first();
+
         $stats = [
-            'total' => (clone $query)->count(),
-            'active' => (clone $query)->where('is_active', 'active')->count(),
-            'inactive' => (clone $query)->where('is_active', 'inactive')->count(),
-            'popular' => (clone $query)->where('is_popular', 1)->count(),
-            'published' => (clone $query)->where('is_published', true)->count(),
-            'draft' => (clone $query)->where('is_published', false)->count(),
+            'total' => (int) ($statsRow->total ?? 0),
+            'active' => (int) ($statsRow->active ?? 0),
+            'inactive' => (int) ($statsRow->inactive ?? 0),
+            'popular' => (int) ($statsRow->popular ?? 0),
+            'published' => (int) ($statsRow->published ?? 0),
+            'draft' => (int) ($statsRow->draft ?? 0),
         ];
 
         $lowQuotaOptions = $packages->getCollection()
@@ -149,6 +153,7 @@ class PackageController extends Controller
                 'required',
                 'array',
                 'min:1',
+                'max:50',
             ],
 
             'options.*.uuid' => [
@@ -194,6 +199,7 @@ class PackageController extends Controller
             'addons' => [
                 'nullable',
                 'array',
+                'max:50',
             ],
 
             'addons.*.uuid' => [
@@ -257,6 +263,7 @@ class PackageController extends Controller
             'promos' => [
                 'nullable',
                 'array',
+                'max:30',
             ],
 
             'promos.*.code' => [
@@ -312,6 +319,7 @@ class PackageController extends Controller
             'features' => [
                 'nullable',
                 'array',
+                'max:100',
             ],
 
             'features.*' => [
@@ -597,6 +605,7 @@ class PackageController extends Controller
                 'required',
                 'array',
                 'min:1',
+                'max:50',
             ],
 
             'options.*.uuid' => [
@@ -642,6 +651,7 @@ class PackageController extends Controller
             'addons' => [
                 'nullable',
                 'array',
+                'max:50',
             ],
 
             'addons.*.uuid' => [
@@ -705,6 +715,7 @@ class PackageController extends Controller
             'promos' => [
                 'nullable',
                 'array',
+                'max:30',
             ],
 
             'promos.*.code' => [
@@ -760,6 +771,7 @@ class PackageController extends Controller
             'features' => [
                 'nullable',
                 'array',
+                'max:100',
             ],
 
             'features.*' => [
@@ -892,12 +904,24 @@ class PackageController extends Controller
                 $submittedOptionUuids[] = $created->uuid;
             }
 
-            foreach ($existingOptions as $uuid => $option) {
-                if (in_array($uuid, $submittedOptionUuids, true)) {
-                    continue;
-                }
+            $removedOptionUuids = $existingOptions
+                ->keys()
+                ->reject(fn ($uuid) => in_array($uuid, $submittedOptionUuids, true))
+                ->values()
+                ->all();
 
-                if (Order::where('package_option_uuid', $uuid)->exists()) {
+            $usedOptionUuids = $removedOptionUuids !== []
+                ? Order::query()
+                    ->whereIn('package_option_uuid', $removedOptionUuids)
+                    ->pluck('package_option_uuid')
+                    ->flip()
+                    ->all()
+                : [];
+
+            foreach ($removedOptionUuids as $uuid) {
+                $option = $existingOptions->get($uuid);
+
+                if (isset($usedOptionUuids[$uuid])) {
                     $option->update(['is_active' => false]);
 
                     continue;
@@ -1636,6 +1660,31 @@ class PackageController extends Controller
         }
 
         $promoCodes = [];
+        $submittedPromoCodes = collect($validated['promos'] ?? [])
+            ->map(fn ($promo) => mb_strtoupper(trim((string) ($promo['code'] ?? ''))))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $existingPromoCodes = [];
+
+        if ($submittedPromoCodes !== []) {
+            $placeholders = implode(',', array_fill(0, count($submittedPromoCodes), '?'));
+
+            $existingPromoCodes = PackagePromo::query()
+                ->selectRaw('UPPER(code) as code_key')
+                ->whereRaw("UPPER(code) IN ($placeholders)", $submittedPromoCodes)
+                ->when($package !== null, function ($query) use ($package) {
+                    $query->where(function ($query) use ($package) {
+                        $query->whereNull('package_uuid')
+                            ->orWhere('package_uuid', '!=', $package->uuid);
+                    });
+                })
+                ->pluck('code_key')
+                ->mapWithKeys(fn ($code) => [$code => true])
+                ->all();
+        }
 
         foreach ($validated['promos'] ?? [] as $index => $promo) {
             if (blank($promo['code'] ?? null)) {
@@ -1651,17 +1700,7 @@ class PackageController extends Controller
 
             $promoCodes[$codeKey] = true;
 
-            $codeExists = PackagePromo::query()
-                ->whereRaw('LOWER(code) = ?', [mb_strtolower($code)])
-                ->when($package !== null, function ($query) use ($package) {
-                    $query->where(function ($query) use ($package) {
-                        $query->whereNull('package_uuid')
-                            ->orWhere('package_uuid', '!=', $package->uuid);
-                    });
-                })
-                ->exists();
-
-            if ($codeExists) {
+            if (isset($existingPromoCodes[$codeKey])) {
                 $errors["promos.$index.code"] = 'Kode promo sudah digunakan.';
             }
 
