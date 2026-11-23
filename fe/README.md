@@ -134,12 +134,32 @@ Tombol 👍/👎 hanya bisa dipilih sekali per jawaban dan memancarkan event bro
   no-match, low-confidence, rata-rata latency, distribusi per topik, pola
   `queryHash` berulang, dan 20 event terbaru. Event mentah juga tetap ditulis ke log
   terstruktur `client.event` untuk analitik lintas instance. Agregat ini tidak
-  menyimpan teks pertanyaan.
+  menyimpan teks pertanyaan. Event juga diteruskan ke Laravel
+  `/api/sita/events` dan agregatnya dibaca dari `/api/sita/analytics` dengan
+  fallback in-memory bila backend tidak tersedia. Dashboard admin Laravel ada
+  di `/backend/sita/analytics`, `/backend/sita/leads`, dan
+  `/backend/sita/synonyms`.
+- `GET /api/sita/knowledge` → sinonim aktif dari `/api/sita/synonyms`; widget
+  menggabungkannya dengan alias lokal agar typo/istilah baru tetap dikenali tanpa
+  LLM atau API pihak ketiga.
+- `POST /api/sita/leads`
+  `{name, phone, topic, criteria?, score, message?, website?}` → menyimpan lead
+  hasil handoff Sita ke Laravel `/api/sita/leads`. `score` dihitung dari
+  kelengkapan kriteria (tanggal, kota, anggaran, tamu, kategori vendor), dan
+  `website` adalah honeypot.
+
+Selain NLU berbasis aturan, `src/services/sitaSemantic.ts` melakukan retrieval
+lokal TF-IDF/cosine untuk mencocokkan FAQ dengan kalimat yang tidak persis sama.
+Widget juga punya alur booking terarah: **Cara booking** mengumpulkan tanggal,
+kota, anggaran, dan jumlah tamu satu per satu, menyusun ringkasan kriteria, lalu
+meminta rekomendasi paket dari data Sagita. Saat pengguna setuju dihubungi,
+lead beserta skornya dikirim ke backend sebelum draf WhatsApp dibuka.
 
 ## Testing
 
 ```bash
 npm test          # vitest run (unit and integration suite)
+npm run test:golden # vitest golden query eval
 npm run typecheck # tsc server + browser
 npm run lint      # biome
 npm run build     # build CSS + bundle browser

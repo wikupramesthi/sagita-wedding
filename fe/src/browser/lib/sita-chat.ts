@@ -140,6 +140,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 
 	const locale = chatWidget.dataset.locale === "en" ? "en" : "id";
 	type ChatTopic = "packages" | "venues" | "vendors";
+	type GuideStep = "date" | "city" | "budget" | "guests";
 	interface ChatCriteria {
 		budgetLimit?: number;
 		guestCount?: number;
@@ -171,6 +172,16 @@ import { hashSitaQuestion } from "../telemetry.js";
 			skipped: "Baik, kamu bisa melanjutkan pertanyaan kapan saja.",
 			reset: "Riwayat dan kriteria sudah dihapus.",
 			retry: "Coba lagi",
+			guideStart:
+				"Aku bantu isi kebutuhanmu dulu, ya. Ini pertanyaan pertamaku.",
+			guideDate: "Kapan rencana acaranya? Tulis tanggal seperti 2026-12-10.",
+			guideCity: "Di kota mana acaranya?",
+			guideBudget: "Berapa perkiraan anggaran maksimalmu? Contoh: 100 juta.",
+			guideGuests: "Berapa perkiraan jumlah tamu? Contoh: 150 tamu.",
+			guideDone:
+				"Siap, ini ringkasan kebutuhanmu. Aku carikan pilihan yang paling relevan.",
+			guideInvalid:
+				"Belum terbaca, ya. Coba jawab dengan contoh format yang aku berikan.",
 		},
 		en: {
 			you: "You",
@@ -194,6 +205,16 @@ import { hashSitaQuestion } from "../telemetry.js";
 			skipped: "No problem. You can continue asking questions anytime.",
 			reset: "History and criteria have been cleared.",
 			retry: "Try again",
+			guideStart:
+				"Let me collect a few details first. Here's my first question.",
+			guideDate: "When is the event? Please use a date like 2026-12-10.",
+			guideCity: "Which city will the event be in?",
+			guideBudget:
+				"What is your approximate maximum budget? For example: 100 million.",
+			guideGuests: "How many guests do you expect? For example: 150 guests.",
+			guideDone:
+				"Great, here's your requirements summary. I'll find the most relevant options.",
+			guideInvalid: "I couldn't read that. Please use the example format.",
 		},
 	}[locale];
 
@@ -201,6 +222,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 	let selectedQuestion = "";
 	let lastFailedQuestion = "";
 	let activeTopic: ChatTopic | undefined;
+	let guideStep: GuideStep | null = null;
 	const activeCriteria: ChatCriteria = {};
 	let isSending = false;
 	let rateLimitedUntil = 0;
@@ -450,6 +472,154 @@ import { hashSitaQuestion } from "../telemetry.js";
 			lines.push(`${labels.vendor}: ${activeCriteria.vendorCategory}`);
 		}
 		return lines.length > 1 ? lines : [];
+	}
+
+	function leadScore(): number {
+		let score = 10;
+		if (activeTopic) score += 5;
+		if (activeCriteria.eventDate) {
+			score += 20;
+			const eventDate = new Date(`${activeCriteria.eventDate}T00:00:00Z`);
+			const days = (eventDate.getTime() - Date.now()) / 86_400_000;
+			if (Number.isFinite(days) && days >= 0 && days <= 365) score += 10;
+		}
+		if (activeCriteria.budgetLimit !== undefined) score += 20;
+		if (activeCriteria.guestCount !== undefined) score += 15;
+		if (activeCriteria.city) score += 15;
+		if (activeCriteria.vendorCategory) score += 5;
+		return Math.min(score, 100);
+	}
+
+	function guidePrompt(step: GuideStep): string {
+		if (step === "date") return copy.guideDate;
+		if (step === "city") return copy.guideCity;
+		if (step === "budget") return copy.guideBudget;
+		return copy.guideGuests;
+	}
+
+	function isBookingIntent(value: string): boolean {
+		return /^(?:cara booking|bagaimana cara booking|booking|how to book|booking process)\??$/i.test(
+			value.trim(),
+		);
+	}
+
+	function startGuide(): void {
+		guideStep = "date";
+		activeTopic = "packages";
+		selectedQuestion =
+			locale === "id"
+				? "Saya ingin booking paket pernikahan"
+				: "I want to book a wedding package";
+		hideLeadForm();
+		onboarding?.classList.add("hidden");
+		addMessage(copy.you, selectedQuestion);
+		addMessage(copy.sita, `${copy.guideStart}\n${copy.guideDate}`);
+		chatInput.focus();
+	}
+
+	function finishGuide(): void {
+		guideStep = null;
+		const parts = [
+			locale === "id"
+				? "Rekomendasikan paket pernikahan"
+				: "Recommend wedding packages",
+		];
+		if (activeCriteria.eventDate) {
+			parts.push(
+				locale === "id"
+					? `untuk tanggal ${activeCriteria.eventDate}`
+					: `for ${activeCriteria.eventDate}`,
+			);
+		}
+		if (activeCriteria.city) {
+			parts.push(
+				locale === "id"
+					? `di ${activeCriteria.city}`
+					: `in ${activeCriteria.city}`,
+			);
+		}
+		if (activeCriteria.guestCount !== undefined) {
+			parts.push(
+				`${activeCriteria.guestCount} ${locale === "id" ? "tamu" : "guests"}`,
+			);
+		}
+		if (activeCriteria.budgetLimit !== undefined) {
+			const budget = new Intl.NumberFormat(
+				locale === "id" ? "id-ID" : "en-US",
+			).format(activeCriteria.budgetLimit);
+			parts.push(
+				locale === "id"
+					? `dengan budget maksimal ${budget}`
+					: `with a maximum budget of ${budget}`,
+			);
+		}
+		const summary = criteriaSummary();
+		addMessage(
+			copy.sita,
+			summary.length
+				? `${copy.guideDone}\n${summary.join("\n")}`
+				: copy.guideDone,
+		);
+		void askSita(parts.join(" "), "packages", false);
+	}
+
+	function handleGuideAnswer(answer: string): void {
+		if (!guideStep) return;
+		const value = answer.trim();
+		if (guideStep === "date") {
+			const date = parseEventDate(value);
+			if (!date) {
+				askAgain();
+				return;
+			}
+			activeCriteria.eventDate = date;
+			guideStep = "city";
+		} else if (guideStep === "city") {
+			const cityInput = /^(?:di|kota|in|at)\s+/i.test(value)
+				? value
+				: `di ${value}`;
+			const city = parseCity(cityInput);
+			if (!city) {
+				askAgain();
+				return;
+			}
+			activeCriteria.city = city;
+			guideStep = "budget";
+		} else if (guideStep === "budget") {
+			const budget =
+				parseBudgetLimit(value) ??
+				(/^\s*[\d.,]+\s*$/.test(value) ? parseAmount(value) : undefined);
+			if (
+				budget === undefined ||
+				!Number.isFinite(budget) ||
+				budget <= 0 ||
+				budget > 1_000_000_000_000
+			) {
+				askAgain();
+				return;
+			}
+			activeCriteria.budgetLimit = budget;
+			guideStep = "guests";
+		} else {
+			const guestInput =
+				/\d/.test(value) && !/\b(?:tamu|guests?|orang|pax)\b/i.test(value)
+					? `${value} tamu`
+					: value;
+			const guests = parseGuestCount(guestInput);
+			if (!guests) {
+				askAgain();
+				return;
+			}
+			activeCriteria.guestCount = guests;
+			finishGuide();
+			return;
+		}
+		addMessage(copy.sita, guidePrompt(guideStep));
+	}
+
+	function askAgain(): void {
+		if (!guideStep) return;
+		addMessage(copy.sita, `${copy.guideInvalid}\n${guidePrompt(guideStep)}`);
 	}
 
 	function isSafeCardUrl(value: string): boolean {
@@ -719,6 +889,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 			delete activeCriteria[key as keyof ChatCriteria];
 		}
 		activeTopic = undefined;
+		guideStep = null;
 		selectedQuestion = "";
 		try {
 			sessionStorage.removeItem(historyKey);
@@ -743,6 +914,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 	}
 
 	function showContactForm(label: string) {
+		guideStep = null;
 		addMessage(copy.you, label);
 		if (!selectedQuestion) selectedQuestion = label;
 		addMessage(copy.sita, copy.contact);
@@ -750,8 +922,13 @@ import { hashSitaQuestion } from "../telemetry.js";
 		chatLeadForm.querySelector<HTMLInputElement>("input[name='name']")?.focus();
 	}
 
-	async function askSita(question: string, topicHint?: string) {
+	async function askSita(
+		question: string,
+		topicHint?: string,
+		echoQuestion = true,
+	) {
 		if (isSending) return;
+		if (echoQuestion) guideStep = null;
 		isSending = true;
 		const requestStartedAt = Date.now();
 		const hintedTopic: ChatTopic | undefined =
@@ -778,7 +955,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 		hideLeadForm();
 		onboarding?.classList.add("hidden");
 		selectedQuestion = question;
-		addMessage(copy.you, question);
+		if (echoQuestion) addMessage(copy.you, question);
 		const loadingMessage = addMessage(
 			copy.sita,
 			copy.loading,
@@ -975,9 +1152,13 @@ import { hashSitaQuestion } from "../telemetry.js";
 		if (!(target instanceof Element)) return;
 		const example = target.closest<HTMLButtonElement>("[data-sita-example]");
 		if (!example) return;
-		void askSita(
-			example.dataset.sitaExample || example.textContent?.trim() || "",
-		);
+		const exampleQuestion =
+			example.dataset.sitaExample || example.textContent?.trim() || "";
+		if (isBookingIntent(exampleQuestion)) {
+			startGuide();
+			return;
+		}
+		void askSita(exampleQuestion);
 	});
 
 	chatChoices.addEventListener("click", (event) => {
@@ -988,6 +1169,10 @@ import { hashSitaQuestion } from "../telemetry.js";
 		const label = choice.textContent?.trim() || "";
 		if (choice.dataset.sitaTopic === "contact") {
 			showContactForm(label);
+			return;
+		}
+		if (choice.dataset.sitaTopic === "booking") {
+			startGuide();
 			return;
 		}
 		void askSita(label, choice.dataset.sitaTopic);
@@ -1065,15 +1250,52 @@ import { hashSitaQuestion } from "../telemetry.js";
 			return;
 		}
 		chatInput.value = "";
+		if (guideStep) {
+			addMessage(copy.you, question);
+			handleGuideAnswer(question);
+			return;
+		}
+		if (isBookingIntent(question)) {
+			startGuide();
+			return;
+		}
 		void askSita(question);
 	});
 
-	chatLeadForm.addEventListener("submit", (event) => {
+	async function submitSitaLead(
+		name: string,
+		phone: string,
+		message: string,
+		website: string,
+	): Promise<void> {
+		try {
+			await fetch("/api/sita/leads", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					name,
+					phone,
+					topic: activeTopic ?? "other",
+					...(Object.keys(activeCriteria).length
+						? { criteria: { ...activeCriteria } }
+						: {}),
+					score: leadScore(),
+					message: message.slice(0, 1000),
+					website,
+				}),
+			});
+		} catch {
+			return;
+		}
+	}
+
+	chatLeadForm.addEventListener("submit", async (event) => {
 		event.preventDefault();
 		const formData = new FormData(chatLeadForm);
 		const name = String(formData.get("name") || "").trim();
 		const phone = String(formData.get("phone") || "").trim();
 		const consent = formData.get("consent") === "on";
+		const website = String(formData.get("website") || "").trim();
 		const whatsappLink = chatWidget.dataset.whatsappLink;
 
 		if (!name || !phone || !consent) {
@@ -1093,6 +1315,8 @@ import { hashSitaQuestion } from "../telemetry.js";
 		const message = summary.length
 			? `${baseMessage}\n${summary.join("\n")}`
 			: baseMessage;
+
+		await submitSitaLead(name, phone, message, website);
 
 		try {
 			const destination = new URL(whatsappLink);

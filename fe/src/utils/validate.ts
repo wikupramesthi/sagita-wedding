@@ -136,6 +136,7 @@ export function validateNewsletter(body: Record<string, unknown> = {}): {
 }
 
 export type SitaChatTopic = "packages" | "venues" | "vendors";
+export type SitaLeadTopic = SitaChatTopic | "services" | "other";
 
 export interface SitaChatCriteria {
 	budgetLimit?: number;
@@ -148,6 +149,118 @@ export interface SitaChatCriteria {
 export interface SitaChatContext {
 	topic: SitaChatTopic;
 	criteria?: SitaChatCriteria;
+}
+
+export interface SitaLeadPayload {
+	name: string;
+	phone: string;
+	topic: SitaLeadTopic;
+	criteria?: SitaChatCriteria;
+	score: number;
+	message?: string;
+	website?: string;
+}
+
+const SITA_CRITERIA_KEYS = [
+	"budgetLimit",
+	"guestCount",
+	"city",
+	"eventDate",
+	"vendorCategory",
+];
+
+function cleanSitaCriteria(value: unknown): SitaChatCriteria | undefined {
+	if (value === undefined) return undefined;
+	if (!value || typeof value !== "object" || Array.isArray(value)) {
+		throw bad("Chat criteria must be an object");
+	}
+	const raw = value as Record<string, unknown>;
+	if (Object.keys(raw).some((key) => !SITA_CRITERIA_KEYS.includes(key))) {
+		throw bad("Unsupported chat criteria field");
+	}
+	const normalized: SitaChatCriteria = {};
+	if (raw.budgetLimit !== undefined) {
+		const amount = raw.budgetLimit;
+		if (
+			typeof amount !== "number" ||
+			!Number.isFinite(amount) ||
+			amount < 0 ||
+			amount > 1_000_000_000_000
+		) {
+			throw bad("Invalid budget limit");
+		}
+		normalized.budgetLimit = amount;
+	}
+	if (raw.guestCount !== undefined) {
+		const count = raw.guestCount;
+		if (
+			typeof count !== "number" ||
+			!Number.isSafeInteger(count) ||
+			count < 1 ||
+			count > 100_000
+		) {
+			throw bad("Invalid guest count");
+		}
+		normalized.guestCount = count;
+	}
+	if (raw.city !== undefined) {
+		const city = cleanText(raw.city, { max: 100, label: "City" });
+		if (city) normalized.city = city;
+	}
+	if (raw.eventDate !== undefined) {
+		if (typeof raw.eventDate !== "string") throw bad("Invalid event date");
+		const eventDate = cleanDate(raw.eventDate);
+		if (eventDate) {
+			const parsed = new Date(`${eventDate}T00:00:00Z`);
+			if (
+				Number.isNaN(parsed.getTime()) ||
+				parsed.toISOString().slice(0, 10) !== eventDate
+			) {
+				throw bad("Invalid event date");
+			}
+			normalized.eventDate = eventDate;
+		}
+	}
+	if (raw.vendorCategory !== undefined) {
+		const category = cleanText(raw.vendorCategory, {
+			max: 60,
+			label: "Vendor category",
+		});
+		if (category) normalized.vendorCategory = category;
+	}
+	return Object.keys(normalized).length ? normalized : undefined;
+}
+
+export function validateSitaLead(
+	body: Record<string, unknown> = {},
+): SitaLeadPayload {
+	const name = cleanText(body.name, { max: 150, label: "Name" });
+	const phone = String(body.phone ?? "")
+		.trim()
+		.slice(0, 30);
+	if (!name) throw bad("Name is required");
+	if (!/^[0-9+\-\s()]{6,30}$/.test(phone)) throw bad("Invalid phone number");
+	const topic = body.topic;
+	const allowedTopics = ["packages", "venues", "vendors", "services", "other"];
+	if (typeof topic !== "string" || !allowedTopics.includes(topic)) {
+		throw bad("Invalid chat topic");
+	}
+	const score = Number(body.score);
+	if (!Number.isInteger(score) || score < 0 || score > 100) {
+		throw bad("Invalid lead score");
+	}
+	const message = cleanText(body.message, { max: 1000, label: "Message" });
+	const criteria = cleanSitaCriteria(body.criteria);
+	const website = String(body.website ?? "").trim();
+	return {
+		name,
+		phone,
+		topic: topic as SitaLeadTopic,
+		...(criteria ? { criteria } : {}),
+		score,
+		...(message ? { message } : {}),
+		website,
+	};
 }
 
 export function validateSitaChat(body: Record<string, unknown> = {}): {
@@ -182,85 +295,7 @@ export function validateSitaChat(body: Record<string, unknown> = {}): {
 		if (topic !== "packages" && topic !== "venues" && topic !== "vendors") {
 			throw bad("Invalid chat topic");
 		}
-		let criteria: SitaChatCriteria | undefined;
-		if (rawContext.criteria !== undefined) {
-			if (
-				!rawContext.criteria ||
-				typeof rawContext.criteria !== "object" ||
-				Array.isArray(rawContext.criteria)
-			) {
-				throw bad("Chat criteria must be an object");
-			}
-			const rawCriteria = rawContext.criteria as Record<string, unknown>;
-			const allowedCriteria = [
-				"budgetLimit",
-				"guestCount",
-				"city",
-				"eventDate",
-				"vendorCategory",
-			];
-			if (
-				Object.keys(rawCriteria).some((key) => !allowedCriteria.includes(key))
-			) {
-				throw bad("Unsupported chat criteria field");
-			}
-			const normalized: SitaChatCriteria = {};
-			if (rawCriteria.budgetLimit !== undefined) {
-				const value = rawCriteria.budgetLimit;
-				if (
-					typeof value !== "number" ||
-					!Number.isFinite(value) ||
-					value < 0 ||
-					value > 1_000_000_000_000
-				) {
-					throw bad("Invalid budget limit");
-				}
-				normalized.budgetLimit = value;
-			}
-			if (rawCriteria.guestCount !== undefined) {
-				const value = rawCriteria.guestCount;
-				if (
-					typeof value !== "number" ||
-					!Number.isSafeInteger(value) ||
-					value < 1 ||
-					value > 100_000
-				) {
-					throw bad("Invalid guest count");
-				}
-				normalized.guestCount = value;
-			}
-			if (rawCriteria.city !== undefined) {
-				const city = cleanText(rawCriteria.city, {
-					max: 100,
-					label: "City",
-				});
-				if (city) normalized.city = city;
-			}
-			if (rawCriteria.eventDate !== undefined) {
-				if (typeof rawCriteria.eventDate !== "string") {
-					throw bad("Invalid event date");
-				}
-				const eventDate = cleanDate(rawCriteria.eventDate);
-				if (eventDate) {
-					const parsedDate = new Date(`${eventDate}T00:00:00Z`);
-					if (
-						Number.isNaN(parsedDate.getTime()) ||
-						parsedDate.toISOString().slice(0, 10) !== eventDate
-					) {
-						throw bad("Invalid event date");
-					}
-				}
-				if (eventDate) normalized.eventDate = eventDate;
-			}
-			if (rawCriteria.vendorCategory !== undefined) {
-				const category = cleanText(rawCriteria.vendorCategory, {
-					max: 60,
-					label: "Vendor category",
-				});
-				if (category) normalized.vendorCategory = category;
-			}
-			if (Object.keys(normalized).length) criteria = normalized;
-		}
+		const criteria = cleanSitaCriteria(rawContext.criteria);
 		context = { topic, ...(criteria ? { criteria } : {}) };
 	}
 	return {

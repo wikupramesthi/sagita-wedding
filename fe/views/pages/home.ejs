@@ -282,7 +282,7 @@
           <div class="space-y-3">
             <% checklistRows.forEach((row) => { %>
               <div class="flex items-start gap-3 rounded-2xl bg-white px-4 py-3.5">
-                <span class="grid h-6 w-6 shrink-0 place-items-center rounded-md border <%= row.done ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-white text-transparent' %>" aria-hidden="true">
+                <span class="home-checklist-checkbox <%= row.done ? 'home-checklist-checkbox--done' : '' %>" aria-hidden="true">
                   <% if (row.done) { %>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                       <path d="m5 12 4 4L19 6"></path>

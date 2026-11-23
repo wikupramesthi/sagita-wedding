@@ -334,7 +334,7 @@ const rawTranslations = {
 			{
 				task: "Finalize guest count",
 				description: "Update guest estimates and catering needs.",
-				done: false,
+				done: true,
 			},
 			{
 				task: "Confirm event schedule",
@@ -849,7 +849,7 @@ const rawTranslations = {
 			{
 				task: "Finalisasi jumlah tamu",
 				description: "Perbarui perkiraan jumlah tamu dan kebutuhan konsumsi.",
-				done: false,
+				done: true,
 			},
 			{
 				task: "Konfirmasi susunan acara",

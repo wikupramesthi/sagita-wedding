@@ -55,6 +55,7 @@
         <input name="consent" type="checkbox" required>
         <span><%= lang === 'en' ? 'I agree to open WhatsApp and contact the Sagita team.' : 'Saya setuju membuka WhatsApp untuk menghubungi admin Sagita.' %></span>
       </label>
+      <input name="website" type="text" tabindex="-1" autocomplete="off" hidden>
       <button type="submit"><%= lang === 'en' ? 'Continue to WhatsApp' : 'Lanjut ke WhatsApp' %></button>
       <button class="sita-chat-skip" type="button" data-sita-skip><%= lang === 'en' ? 'Skip for now' : 'Lewati dulu' %></button>
     </form>

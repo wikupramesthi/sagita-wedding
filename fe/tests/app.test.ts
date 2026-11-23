@@ -5,6 +5,24 @@ import { logger } from "../src/utils/logger.js";
 const { apiRequestMock } = vi.hoisted(() => ({ apiRequestMock: vi.fn() }));
 vi.mock("../src/services/apiClient.js", () => ({ default: apiRequestMock }));
 
+const { forwardSitaTelemetryMock } = vi.hoisted(() => ({
+	forwardSitaTelemetryMock: vi.fn<(payload: unknown) => Promise<void>>(),
+}));
+forwardSitaTelemetryMock.mockResolvedValue(undefined);
+
+vi.mock("../src/services/sitaAnalytics.js", async () => {
+	const actual = await vi.importActual<
+		typeof import("../src/services/sitaAnalytics.js")
+	>("../src/services/sitaAnalytics.js");
+	return {
+		...actual,
+		forwardSitaTelemetry: forwardSitaTelemetryMock,
+		fetchSitaAnalytics: vi.fn().mockResolvedValue(null),
+		fetchSitaSynonyms: vi.fn().mockResolvedValue([]),
+		createSitaLead: vi.fn().mockResolvedValue("lead-uuid"),
+	};
+});
+
 /* ---------- mock semua service agar test tidak menyentuh backend ---------- */
 
 vi.mock("../src/services/siteIdentityService.js", () => ({
@@ -287,6 +305,11 @@ describe("telemetry", () => {
 
 		expect(res.status).toBe(204);
 		expect(infoSpy).toHaveBeenCalledWith("client.event", {
+			kind: "event",
+			name: "sita.no_match",
+			path: "/",
+		});
+		expect(forwardSitaTelemetryMock).toHaveBeenCalledWith({
 			kind: "event",
 			name: "sita.no_match",
 			path: "/",
@@ -822,6 +845,18 @@ describe("pageScript wiring", () => {
 				/class="flex items-start gap-3 rounded-2xl bg-white px-4 py-3\.5"/g,
 			),
 		).toHaveLength(5);
+		expect(
+			res.text.match(
+				/class="home-checklist-checkbox home-checklist-checkbox--done"/g,
+			),
+		).toHaveLength(2);
+		const english = await request(app).get("/?lang=en");
+		expect(english.status).toBe(200);
+		expect(english.text).toContain("Keep wedding preparations on track");
+		expect(english.text).toContain(
+			"Your order details include a preparation checklist from the Sagita team.",
+		);
+		expect(english.text).not.toContain("download as PDF");
 		expect(res.text).toContain("Pantau semuanya dari");
 		expect(res.text).toContain("satu</span>");
 		expect(res.text).toContain("dashboard");

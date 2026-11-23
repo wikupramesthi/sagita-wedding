@@ -8,6 +8,10 @@ import {
 	sendContact,
 } from "../services/contactService.js";
 import {
+	createSitaLead,
+	fetchSitaAnalytics,
+	fetchSitaSynonyms,
+	forwardSitaTelemetry,
 	getSitaAnalytics,
 	recordSitaTelemetry,
 } from "../services/sitaAnalytics.js";
@@ -20,6 +24,7 @@ import {
 	validateContact,
 	validateNewsletter,
 	validateSitaChat,
+	validateSitaLead,
 } from "../utils/validate.js";
 
 const router = Router();
@@ -51,6 +56,24 @@ const analyticsLimiter = rateLimit({
 	limit: 30,
 	standardHeaders: "draft-7",
 	legacyHeaders: false,
+});
+
+const sitaKnowledgeLimiter = rateLimit({
+	windowMs: 60 * 1000,
+	limit: 30,
+	standardHeaders: "draft-7",
+	legacyHeaders: false,
+});
+
+const sitaLeadLimiter = rateLimit({
+	windowMs: 60 * 1000,
+	limit: 10,
+	standardHeaders: "draft-7",
+	legacyHeaders: false,
+	message: {
+		success: false,
+		message: "Too many contact requests, please try again shortly.",
+	},
 });
 
 type SitaTopic = "packages" | "venues" | "vendors";
@@ -228,6 +251,7 @@ router.post("/telemetry", telemetryLimiter, (req: Request, res: Response) => {
 	else if (payload.kind === "vital") logger.info("client.vital", payload);
 	else {
 		recordSitaTelemetry(payload);
+		void forwardSitaTelemetry(payload).catch(() => {});
 		logger.info("client.event", payload);
 	}
 	res.status(204).end();
@@ -247,7 +271,50 @@ router.get(
 			return;
 		}
 		res.set("Cache-Control", "no-store");
-		res.json({ success: true, ...getSitaAnalytics() });
+		const analytics = await fetchSitaAnalytics().catch(() => null);
+		res.json(analytics ?? { success: true, ...getSitaAnalytics() });
+	},
+);
+
+router.get(
+	"/sita/knowledge",
+	sitaKnowledgeLimiter,
+	async (_req: Request, res: Response) => {
+		const synonyms = await fetchSitaSynonyms().catch(() => []);
+		res.set("Cache-Control", "public, max-age=300");
+		res.json({ success: true, data: synonyms });
+	},
+);
+
+router.post(
+	"/sita/leads",
+	sitaLeadLimiter,
+	async (req: Request, res: Response) => {
+		try {
+			const lead = validateSitaLead(req.body);
+			if (lead.website) {
+				res.status(400).json({
+					success: false,
+					message: "Invalid lead payload.",
+				});
+				return;
+			}
+			const uuid = await createSitaLead(lead);
+			if (!uuid) {
+				res.status(502).json({
+					success: false,
+					message: "Could not save your contact request. Please try WhatsApp.",
+				});
+				return;
+			}
+			res.status(201).json({ success: true, uuid });
+		} catch (e) {
+			const err = toApiError(e);
+			res.status(err.status ?? 400).json({
+				success: false,
+				message: err.message || "Invalid lead payload.",
+			});
+		}
 	},
 );
 

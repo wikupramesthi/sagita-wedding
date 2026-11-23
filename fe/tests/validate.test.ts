@@ -11,6 +11,7 @@ import {
 	validateContact,
 	validateNewsletter,
 	validateSitaChat,
+	validateSitaLead,
 } from "../src/utils/validate.js";
 
 const statusOf = (fn: () => unknown) => {
@@ -281,6 +282,62 @@ describe("validateSitaChat", () => {
 						topic: "venues",
 						criteria: { guestCount: 250, message: "full chat history" },
 					},
+				}),
+			),
+		).toBe(400);
+	});
+});
+
+describe("validateSitaLead", () => {
+	it("accepts only the bounded Sita lead contract", () => {
+		expect(
+			validateSitaLead({
+				name: "  Rina  ",
+				phone: "+62 812-3456-7890",
+				topic: "packages",
+				criteria: { city: "Jakarta", guestCount: 150 },
+				score: 85,
+				message: "Butuh rekomendasi paket",
+				website: "",
+			}),
+		).toEqual({
+			name: "Rina",
+			phone: "+62 812-3456-7890",
+			topic: "packages",
+			criteria: { city: "Jakarta", guestCount: 150 },
+			score: 85,
+			message: "Butuh rekomendasi paket",
+			website: "",
+		});
+		expect(statusOf(() => validateSitaLead({ name: "Rina" }))).toBe(400);
+		expect(
+			statusOf(() =>
+				validateSitaLead({
+					name: "Rina",
+					phone: "081234567890",
+					topic: "secrets",
+					score: 50,
+				}),
+			),
+		).toBe(400);
+		expect(
+			statusOf(() =>
+				validateSitaLead({
+					name: "Rina",
+					phone: "081234567890",
+					topic: "packages",
+					score: 101,
+				}),
+			),
+		).toBe(400);
+		expect(
+			statusOf(() =>
+				validateSitaLead({
+					name: "Rina",
+					phone: "081234567890",
+					topic: "packages",
+					score: 50,
+					criteria: { score: 99 },
 				}),
 			),
 		).toBe(400);

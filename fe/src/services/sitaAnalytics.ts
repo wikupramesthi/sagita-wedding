@@ -1,6 +1,19 @@
+import { env } from "../config/env.js";
 import type { TelemetryPayload } from "../routes/api.js";
+import type { SitaChatCriteria } from "../utils/validate.js";
 
 type SitaTopic = "packages" | "venues" | "vendors";
+type SitaLeadTopic = SitaTopic | "services" | "other";
+
+export interface SitaLeadPayload {
+	name: string;
+	phone: string;
+	topic?: SitaLeadTopic;
+	criteria?: SitaChatCriteria;
+	score: number;
+	message?: string;
+	website?: string;
+}
 
 interface StoredSitaEvent {
 	at: string;
@@ -22,9 +35,78 @@ interface QueryHashStat {
 }
 
 const MAX_EVENTS = 500;
+const BACKEND_TIMEOUT_MS = 2500;
 const events: StoredSitaEvent[] = [];
 const queryHashes = new Map<string, QueryHashStat>();
 const TOPICS: SitaTopic[] = ["packages", "venues", "vendors"];
+
+async function backendFetch(
+	path: string,
+	init: RequestInit = {},
+): Promise<Response> {
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
+	try {
+		return await fetch(`${env.API_URL}${path}`, {
+			...init,
+			headers: {
+				Accept: "application/json",
+				"X-Api-Key": env.API_KEY,
+				...(init.body ? { "Content-Type": "application/json" } : {}),
+			},
+			signal: controller.signal,
+		});
+	} finally {
+		clearTimeout(timer);
+	}
+}
+
+export async function forwardSitaTelemetry(
+	payload: TelemetryPayload,
+): Promise<void> {
+	if (payload.kind !== "event") return;
+	await backendFetch("/sita/events", {
+		method: "POST",
+		body: JSON.stringify(payload),
+	});
+}
+
+export async function fetchSitaAnalytics(): Promise<Record<
+	string,
+	unknown
+> | null> {
+	const response = await backendFetch("/sita/analytics");
+	if (!response.ok) return null;
+	const body: unknown = await response.json();
+	if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+	const data = body as Record<string, unknown>;
+	return data.success === false ? null : data;
+}
+
+export async function fetchSitaSynonyms(): Promise<unknown[]> {
+	const response = await backendFetch("/sita/synonyms");
+	if (!response.ok) return [];
+	const body: unknown = await response.json();
+	if (!body || typeof body !== "object" || Array.isArray(body)) return [];
+	const data = (body as Record<string, unknown>).data;
+	return Array.isArray(data) ? data : [];
+}
+
+export async function createSitaLead(
+	payload: SitaLeadPayload,
+): Promise<string | null> {
+	const response = await backendFetch("/sita/leads", {
+		method: "POST",
+		body: JSON.stringify(payload),
+	});
+	if (!response.ok) return null;
+	const body: unknown = await response.json();
+	if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+	const data = (body as Record<string, unknown>).data;
+	if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+	const uuid = (data as Record<string, unknown>).uuid;
+	return typeof uuid === "string" ? uuid : null;
+}
 
 function isTopic(value: unknown): value is SitaTopic {
 	return TOPICS.includes(value as SitaTopic);

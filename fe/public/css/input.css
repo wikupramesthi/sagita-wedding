@@ -362,3 +362,21 @@ body {
 		transform: scale(1.12);
 	}
 }
+
+.home-checklist-checkbox {
+	display: grid;
+	width: 24px;
+	height: 24px;
+	flex: none;
+	place-items: center;
+	border: 2px solid #d1d5db;
+	border-radius: 6px;
+	background-color: #fff;
+	color: transparent;
+}
+
+.home-checklist-checkbox--done {
+	border-color: #16a34a;
+	background-color: #16a34a;
+	color: #fff;
+}

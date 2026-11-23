@@ -27,6 +27,37 @@ vi.mock("../src/services/authService.js", async () => {
 	};
 });
 
+const {
+	fetchSitaAnalyticsMock,
+	fetchSitaSynonymsMock,
+	createSitaLeadMock,
+	forwardSitaTelemetryMock,
+} = vi.hoisted(() => ({
+	fetchSitaAnalyticsMock:
+		vi.fn<() => Promise<Record<string, unknown> | null>>(),
+	fetchSitaSynonymsMock: vi.fn<() => Promise<unknown[]>>(),
+	createSitaLeadMock: vi.fn<(payload: unknown) => Promise<string | null>>(),
+	forwardSitaTelemetryMock: vi.fn<(payload: unknown) => Promise<void>>(),
+}));
+
+fetchSitaAnalyticsMock.mockResolvedValue(null);
+fetchSitaSynonymsMock.mockResolvedValue([]);
+createSitaLeadMock.mockResolvedValue("lead-uuid");
+forwardSitaTelemetryMock.mockResolvedValue(undefined);
+
+vi.mock("../src/services/sitaAnalytics.js", async () => {
+	const actual = await vi.importActual<
+		typeof import("../src/services/sitaAnalytics.js")
+	>("../src/services/sitaAnalytics.js");
+	return {
+		...actual,
+		forwardSitaTelemetry: forwardSitaTelemetryMock,
+		fetchSitaAnalytics: fetchSitaAnalyticsMock,
+		fetchSitaSynonyms: fetchSitaSynonymsMock,
+		createSitaLead: createSitaLeadMock,
+	};
+});
+
 vi.mock("../src/services/siteIdentityService.js", () => ({
 	resolveSite: () => ({
 		name: "Sagita Wedding",
@@ -206,6 +237,82 @@ describe("GET /api/sita/analytics", () => {
 		expect(res.body.totals.answers).toBe(0);
 		expect(res.body.rates.helpful).toBe(0);
 		expect(res.headers["cache-control"]).toBe("no-store");
+	});
+
+	it("memakai agregat backend bila tersedia", async () => {
+		fetchSitaAnalyticsMock.mockResolvedValueOnce({
+			success: true,
+			totals: { answers: 7 },
+			rates: { helpful: 42 },
+		});
+		setSession({ ...USER, roles: ["admin"] });
+		const res = await request(app)
+			.get("/api/sita/analytics")
+			.set("Cookie", SESSION);
+		expect(res.status).toBe(200);
+		expect(res.body.totals.answers).toBe(7);
+		expect(res.body.rates.helpful).toBe(42);
+	});
+});
+
+/* ============================ /api/sita/knowledge ============================ */
+
+describe("GET /api/sita/knowledge", () => {
+	it("mengembalikan sinonim aktif dari backend", async () => {
+		const synonyms = [
+			{ locale: "id", term: "venu", canonical: "venue", topic: "venues" },
+		];
+		fetchSitaSynonymsMock.mockResolvedValueOnce(synonyms);
+		const res = await request(app).get("/api/sita/knowledge");
+		expect(res.status).toBe(200);
+		expect(res.body).toEqual({ success: true, data: synonyms });
+		expect(res.headers["cache-control"]).toBe("public, max-age=300");
+	});
+});
+
+/* ============================ /api/sita/leads ============================ */
+
+describe("POST /api/sita/leads", () => {
+	const payload = {
+		name: "Rina",
+		phone: "+62 812-3456-7890",
+		topic: "packages",
+		criteria: { city: "Jakarta", guestCount: 150 },
+		score: 85,
+		message: "Butuh rekomendasi paket",
+		website: "",
+	};
+
+	it("menyimpan lead dan mengembalikan uuid", async () => {
+		const res = await request(app).post("/api/sita/leads").send(payload);
+		expect(res.status).toBe(201);
+		expect(res.body).toEqual({ success: true, uuid: "lead-uuid" });
+		expect(createSitaLeadMock).toHaveBeenCalledWith(
+			expect.objectContaining({
+				name: "Rina",
+				topic: "packages",
+				score: 85,
+			}),
+		);
+	});
+
+	it("menolak payload di luar kontrak dan honeypot", async () => {
+		const invalid = await request(app)
+			.post("/api/sita/leads")
+			.send({ ...payload, score: 101 });
+		expect(invalid.status).toBe(400);
+		const bot = await request(app)
+			.post("/api/sita/leads")
+			.send({ ...payload, website: "spam" });
+		expect(bot.status).toBe(400);
+		expect(createSitaLeadMock).not.toHaveBeenCalled();
+	});
+
+	it("502 bila backend gagal menyimpan", async () => {
+		createSitaLeadMock.mockResolvedValueOnce(null);
+		const res = await request(app).post("/api/sita/leads").send(payload);
+		expect(res.status).toBe(502);
+		expect(res.body.success).toBe(false);
 	});
 });
 
