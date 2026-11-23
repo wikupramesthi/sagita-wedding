@@ -65,19 +65,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-xl-3">
-            <div class="card shadow-sm">
-                <div class="card-body py-2 px-3">
-                    <div class="ml-stat">
-                        <div class="ml-stat-icon ic-violet"><i class="bx bx-calendar-event"></i></div>
-                        <div>
-                            <div class="ml-stat-value">{{ number_format($stats['schedules']) }}</div>
-                            <div class="ml-stat-label">Total Jadwal</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="card shadow-sm mb-4">
@@ -186,22 +173,6 @@
 
                     @endif
 
-
-                    {{-- Schedule Count --}}
-                    <div class="d-flex align-items-center justify-content-between border-top pt-3">
-
-                        <div class="d-flex align-items-center gap-2">
-
-                            <i class="bi bi-calendar3 text-secondary"></i>
-
-                            <span class="small text-muted">
-                                {{ $venue->schedules_count ?? 0 }}
-                                Jadwal
-                            </span>
-
-                        </div>
-
-                    </div>
 
                 </div>
 

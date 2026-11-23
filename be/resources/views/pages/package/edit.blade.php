@@ -37,10 +37,30 @@
     @endif
 
     @php
+        $optionRows = collect(old('options', $package->options->toArray()))
+            ->map(fn ($row) => (object) $row);
+
+        $addonRows = collect(old('addons', $package->addons->toArray()))
+            ->map(fn ($row) => (object) $row);
+
         $addonIndexByUuid = [];
-        foreach ($package->addons as $addonIndex => $addonItem) {
-            $addonIndexByUuid[$addonItem->uuid] = $addonIndex;
+        foreach ($addonRows as $addonIndex => $addonItem) {
+            $addonIndexByUuid[$addonItem->uuid ?? ''] = $addonIndex;
         }
+
+        $featureRows = old('features') !== null
+            ? collect(old('features'))
+                ->values()
+                ->map(fn ($row) => is_array($row) ? (object) $row : (object) ['feature' => $row])
+            : $package->features;
+
+        $promoRows = old('promos') !== null
+            ? collect(old('promos'))->values()->map(fn ($row) => (object) $row)
+            : $package->promos;
+
+        $promoDateValue = fn ($value) => $value instanceof \Carbon\CarbonInterface
+            ? $value->format('Y-m-d')
+            : ($value ?: '');
 
         $blackoutValue = old(
             'blackout_dates',
@@ -251,8 +271,12 @@
                     <div class="card-body p-4 pt-2">
                         <div id="package-options-container">
 
-                            @forelse ($package->options as $index => $option)
+                            @forelse ($optionRows as $index => $option)
                             <div class="package-option-item border rounded-3 p-3 mb-3" draggable="true" data-uuid="{{ $option->uuid }}">
+                                <input type="hidden"
+                                    name="options[{{ $index }}][uuid]"
+                                    value="{{ old("options.$index.uuid", $option->uuid) }}">
+
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="package-sortable-handle" title="Geser untuk mengubah urutan"><i class="bi bi-grip-vertical"></i></span>
@@ -290,19 +314,17 @@
                                     <div class="col-md-4">
                                         <label class="form-label">
                                             Kuota
-                                            <span class="text-danger">*</span>
                                         </label>
 
                                         <input type="number"
                                             name="options[{{ $index }}][quota]"
                                             class="form-control"
                                             value="{{ old("options.$index.quota", $option->quota) }}"
-                                            placeholder="Contoh: 1"
-                                            min="1"
-                                            required>
+                                            placeholder="Kosongkan = tanpa batas"
+                                            min="1">
 
                                         <small class="text-muted">
-                                            Jumlah yang disertakan pada opsi ini.
+                                            Jumlah yang disertakan pada opsi ini. Kosongkan untuk kuota tanpa batas.
                                         </small>
                                     </div>
 
@@ -439,18 +461,16 @@
                                     <div class="col-md-4">
                                         <label class="form-label">
                                             Kuota
-                                            <span class="text-danger">*</span>
                                         </label>
 
                                         <input type="number"
                                             name="options[0][quota]"
                                             class="form-control"
-                                            placeholder="Contoh: 1"
-                                            min="1"
-                                            required>
+                                            placeholder="Kosongkan = tanpa batas"
+                                            min="1">
 
                                         <small class="text-muted">
-                                            Jumlah yang disertakan pada opsi ini.
+                                            Jumlah yang disertakan pada opsi ini. Kosongkan untuk kuota tanpa batas.
                                         </small>
                                     </div>
 
@@ -582,8 +602,12 @@
                     <div class="card-body p-4 pt-2">
                         <div id="package-addons-container">
 
-                            @forelse ($package->addons ?? [] as $index => $addon)
+                            @forelse ($addonRows as $index => $addon)
                             <div class="package-addon-item border rounded-3 p-3 mb-3" draggable="true" data-uuid="{{ $addon->uuid }}">
+                                <input type="hidden"
+                                    name="addons[{{ $index }}][uuid]"
+                                    value="{{ old("addons.$index.uuid", $addon->uuid) }}">
+
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="package-sortable-handle" title="Geser untuk mengubah urutan"><i class="bi bi-grip-vertical"></i></span>
@@ -690,7 +714,7 @@
 
                                     <div class="col-md-4">
                                         <label class="form-label">
-                                            Butuh Layanan ke-
+                                            Butuh Layanan (0 = pertama)
                                         </label>
 
                                         <input type="number"
@@ -698,7 +722,7 @@
                                             class="form-control"
                                             value="{{ old("addons.$index.requires_addon_index", $addonIndexByUuid[$addon->requires_addon_uuid] ?? '') }}"
                                             min="0"
-                                            placeholder="Contoh: 1">
+                                            placeholder="Contoh: 0">
                                     </div>
                                 </div>
                             </div>
@@ -811,7 +835,7 @@
 
                                     <div class="col-md-4">
                                         <label class="form-label">
-                                            Butuh Layanan ke-
+                                            Butuh Layanan (0 = pertama)
                                         </label>
 
                                         <input type="number"
@@ -819,7 +843,7 @@
                                             class="form-control"
                                             value="{{ old('addons.0.requires_addon_index') }}"
                                             min="0"
-                                            placeholder="Contoh: 1">
+                                            placeholder="Contoh: 0">
                                     </div>
                                 </div>
                             </div>
@@ -865,8 +889,8 @@
                     <div class="card-body p-4 pt-2">
                         <div id="package-features-container">
 
-                            @forelse ($package->features as $index => $feature)
-                            <div class="row g-2 align-items-end mb-3 package-feature-item" draggable="true" data-uuid="{{ $feature->uuid }}">
+                            @forelse ($featureRows as $index => $feature)
+                            <div class="row g-2 align-items-end mb-3 package-feature-item" draggable="true" data-uuid="{{ $feature->uuid ?? '' }}">
                                 <div class="col-md-1 d-grid">
                                     <span class="btn btn-light border package-sortable-handle" title="Geser untuk mengubah urutan" aria-label="Geser isi paket">
                                         <i class="bi bi-grip-vertical"></i>
@@ -878,7 +902,7 @@
                                         id="feature-category-{{ $index }}"
                                         name="features[{{ $index }}][category]"
                                         class="form-control package-feature-category"
-                                        value="{{ old("features.$index.category", $feature->category) }}"
+                                        value="{{ old("features.$index.category", $feature->category ?? null) }}"
                                         maxlength="100"
                                         placeholder="Contoh: Dekorasi">
                                 </div>
@@ -890,7 +914,7 @@
                                             id="feature-text-{{ $index }}"
                                             name="features[{{ $index }}][feature]"
                                             class="form-control package-feature-text"
-                                            value="{{ old("features.$index.feature", $feature->feature) }}"
+                                            value="{{ old("features.$index.feature", $feature->feature ?? null) }}"
                                             maxlength="255"
                                             placeholder="Contoh: Dokumentasi foto dan video">
                                     </div>
@@ -1018,7 +1042,7 @@
                                 </label>
 
                                 <div id="package-promos-container">
-                                    @forelse ($package->promos as $index => $promo)
+                                    @forelse ($promoRows as $index => $promo)
                                     <div class="package-promo-item border rounded-3 p-3 mb-3">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <span class="fw-semibold package-promo-title">
@@ -1038,7 +1062,7 @@
                                                 <input type="text"
                                                     name="promos[{{ $index }}][code]"
                                                     class="form-control"
-                                                    value="{{ old("promos.$index.code", $promo->code) }}"
+                                                    value="{{ old("promos.$index.code", $promo->code ?? null) }}"
                                                     placeholder="Contoh: HEMAT2026"
                                                     required>
                                             </div>
@@ -1050,12 +1074,12 @@
                                                     class="form-select"
                                                     required>
                                                     <option value="percent"
-                                                        {{ old("promos.$index.type", $promo->type) === 'percent' ? 'selected' : '' }}>
+                                                        {{ old("promos.$index.type", $promo->type ?? null) === 'percent' ? 'selected' : '' }}>
                                                         Persentase
                                                     </option>
 
                                                     <option value="fixed"
-                                                        {{ old("promos.$index.type", $promo->type) === 'fixed' ? 'selected' : '' }}>
+                                                        {{ old("promos.$index.type", $promo->type ?? null) === 'fixed' ? 'selected' : '' }}>
                                                         Nominal
                                                     </option>
                                                 </select>
@@ -1067,7 +1091,7 @@
                                                 <input type="number"
                                                     name="promos[{{ $index }}][value]"
                                                     class="form-control"
-                                                    value="{{ old("promos.$index.value", $promo->value) }}"
+                                                    value="{{ old("promos.$index.value", $promo->value ?? null) }}"
                                                     min="1"
                                                     required>
                                             </div>
@@ -1078,7 +1102,7 @@
                                                 <input type="number"
                                                     name="promos[{{ $index }}][min_purchase]"
                                                     class="form-control"
-                                                    value="{{ old("promos.$index.min_purchase", $promo->min_purchase) }}"
+                                                    value="{{ old("promos.$index.min_purchase", $promo->min_purchase ?? null) }}"
                                                     min="0">
                                             </div>
 
@@ -1088,7 +1112,7 @@
                                                 <input type="number"
                                                     name="promos[{{ $index }}][max_discount]"
                                                     class="form-control"
-                                                    value="{{ old("promos.$index.max_discount", $promo->max_discount) }}"
+                                                    value="{{ old("promos.$index.max_discount", $promo->max_discount ?? null) }}"
                                                     min="1">
                                             </div>
 
@@ -1098,7 +1122,7 @@
                                                 <input type="number"
                                                     name="promos[{{ $index }}][max_uses]"
                                                     class="form-control"
-                                                    value="{{ old("promos.$index.max_uses", $promo->max_uses) }}"
+                                                    value="{{ old("promos.$index.max_uses", $promo->max_uses ?? null) }}"
                                                     min="1">
                                             </div>
 
@@ -1108,7 +1132,7 @@
                                                 <input type="date"
                                                     name="promos[{{ $index }}][starts_at]"
                                                     class="form-control"
-                                                    value="{{ old("promos.$index.starts_at", $promo->starts_at ? $promo->starts_at->format('Y-m-d') : '') }}">
+                                                    value="{{ old("promos.$index.starts_at", $promoDateValue($promo->starts_at ?? null)) }}">
                                             </div>
 
                                             <div class="col-md-6">
@@ -1117,7 +1141,7 @@
                                                 <input type="date"
                                                     name="promos[{{ $index }}][ends_at]"
                                                     class="form-control"
-                                                    value="{{ old("promos.$index.ends_at", $promo->ends_at ? $promo->ends_at->format('Y-m-d') : '') }}">
+                                                    value="{{ old("promos.$index.ends_at", $promoDateValue($promo->ends_at ?? null)) }}">
                                             </div>
 
                                             <div class="col-12">
@@ -1131,7 +1155,7 @@
                                                         id="promo-active-{{ $index }}"
                                                         name="promos[{{ $index }}][is_active]"
                                                         value="1"
-                                                        {{ filter_var(old("promos.$index.is_active", $promo->is_active), FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
+                                                        {{ filter_var(old("promos.$index.is_active", $promo->is_active ?? null), FILTER_VALIDATE_BOOLEAN) ? 'checked' : '' }}>
 
                                                     <label class="form-check-label" for="promo-active-{{ $index }}">
                                                         Aktif
@@ -1643,7 +1667,7 @@
                         <input type="number"
                                name="addons[${index}][requires_addon_index]"
                                class="form-control"
-                               placeholder="Contoh: 1"
+                               placeholder="Contoh: 0"
                                min="0">
 
                     </div>
@@ -1736,18 +1760,16 @@
 
                         <label class="form-label">
                             Kuota
-                            <span class="text-danger">*</span>
                         </label>
 
                         <input type="number"
                                name="options[${index}][quota]"
                                class="form-control"
-                               placeholder="Contoh: 1"
-                               min="1"
-                               required>
+                               placeholder="Kosongkan = tanpa batas"
+                               min="1">
 
                         <small class="text-muted">
-                            Jumlah yang disertakan pada opsi ini.
+                            Jumlah yang disertakan pada opsi ini. Kosongkan untuk kuota tanpa batas.
                         </small>
 
                     </div>
@@ -2241,8 +2263,30 @@
         function renumberIndexedItems(container, selector, prefix) {
             if (!container) return;
 
-            container.querySelectorAll(selector).forEach(function (item, index) {
+            const items = Array.from(container.querySelectorAll(selector));
+            const oldToNew = new Map();
+
+            items.forEach(function (item, index) {
+                const firstField = item.querySelector('[name^="' + prefix + '["]');
+                const match = firstField
+                    ? new RegExp('^' + prefix + '\\[(\\d+)\\]').exec(firstField.name)
+                    : null;
+
+                if (match) {
+                    oldToNew.set(match[1], index);
+                }
+            });
+
+            items.forEach(function (item, index) {
                 item.querySelectorAll('[name^="' + prefix + '["]').forEach(function (field) {
+                    if (
+                        prefix === 'addons' &&
+                        field.name.endsWith('[requires_addon_index]') &&
+                        oldToNew.has(field.value)
+                    ) {
+                        field.value = oldToNew.get(field.value);
+                    }
+
                     field.name = field.name.replace(
                         new RegExp('^' + prefix + '\\[\\d+\\]'),
                         prefix + '[' + index + ']'
@@ -2275,43 +2319,55 @@
             if (!container) return;
             let dragged = null;
 
-            container.querySelectorAll(selector).forEach(function (item) {
-                item.addEventListener('dragstart', function (event) {
-                    dragged = item;
-                    item.classList.add('is-dragging');
-                    event.dataTransfer.effectAllowed = 'move';
-                    event.dataTransfer.setData('text/plain', type);
+            const targetItem = function (event) {
+                const target = event.target.closest?.(selector);
+
+                return target && container.contains(target) ? target : null;
+            };
+
+            container.addEventListener('dragstart', function (event) {
+                const item = targetItem(event);
+                if (!item) return;
+
+                dragged = item;
+                item.classList.add('is-dragging');
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', type);
+            });
+
+            container.addEventListener('dragend', function () {
+                container.querySelectorAll(selector).forEach(function (node) {
+                    node.classList.remove('is-dragging', 'drag-over');
                 });
+                dragged = null;
+            });
 
-                item.addEventListener('dragend', function () {
-                    container.querySelectorAll(selector).forEach(function (node) {
-                        node.classList.remove('is-dragging', 'drag-over');
-                    });
-                    dragged = null;
-                });
+            container.addEventListener('dragover', function (event) {
+                const item = targetItem(event);
+                if (!dragged || !item || dragged === item) return;
 
-                item.addEventListener('dragover', function (event) {
-                    if (!dragged || dragged === item) return;
-                    event.preventDefault();
-                    item.classList.add('drag-over');
+                event.preventDefault();
+                item.classList.add('drag-over');
 
-                    const bounds = item.getBoundingClientRect();
-                    const insertAfter = event.clientY > bounds.top + bounds.height / 2;
-                    container.insertBefore(dragged, insertAfter ? item.nextSibling : item);
-                });
+                const bounds = item.getBoundingClientRect();
+                const insertAfter = event.clientY > bounds.top + bounds.height / 2;
+                container.insertBefore(dragged, insertAfter ? item.nextSibling : item);
+            });
 
-                item.addEventListener('dragleave', function () {
-                    item.classList.remove('drag-over');
-                });
+            container.addEventListener('dragleave', function (event) {
+                const item = targetItem(event);
+                if (item) item.classList.remove('drag-over');
+            });
 
-                item.addEventListener('drop', function (event) {
-                    event.preventDefault();
-                    item.classList.remove('drag-over');
-                    if (!dragged) return;
+            container.addEventListener('drop', function (event) {
+                const item = targetItem(event);
+                if (!dragged || !item) return;
 
-                    if (afterDrop) afterDrop();
-                    persistReorder(type, container, selector);
-                });
+                event.preventDefault();
+                item.classList.remove('drag-over');
+
+                if (afterDrop) afterDrop();
+                persistReorder(type, container, selector);
             });
         }
 

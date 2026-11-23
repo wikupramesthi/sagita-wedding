@@ -49,27 +49,4 @@ class Venue extends Model
         });
     }
 
-    /**
-     * Venue schedules
-     */
-    public function schedules()
-    {
-        return $this->hasMany(
-            'venue_uuid',
-            'uuid'
-        );
-    }
-
-    /**
-     * Classes available at this venue
-     */
-    public function classes()
-    {
-        return $this->belongsToMany(
-            'venue_uuid',
-            'class_uuid',
-            'uuid',
-            'uuid'
-        )->distinct();
-    }
 }

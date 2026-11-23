@@ -10,6 +10,7 @@ use App\Models\Package\PackageFeature;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
 use App\Models\Package\PackageWishlist;
+use App\Models\Payment\Order;
 use App\Support\MemberView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -115,7 +116,7 @@ class PackageController extends Controller
             'cover_url' => [
                 'nullable',
                 'url',
-                'max:2048',
+                'max:255',
             ],
 
             'is_active' => [
@@ -150,6 +151,11 @@ class PackageController extends Controller
                 'min:1',
             ],
 
+            'options.*.uuid' => [
+                'nullable',
+                'string',
+            ],
+
             'options.*.name' => [
                 'required',
                 'string',
@@ -157,7 +163,7 @@ class PackageController extends Controller
             ],
 
             'options.*.quota' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:1',
             ],
@@ -190,8 +196,13 @@ class PackageController extends Controller
                 'array',
             ],
 
+            'addons.*.uuid' => [
+                'nullable',
+                'string',
+            ],
+
             'addons.*.name' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -203,9 +214,19 @@ class PackageController extends Controller
             ],
 
             'addons.*.price' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
+                function ($attribute, $value, $fail) use ($request) {
+                    $index = explode('.', $attribute)[1] ?? null;
+
+                    if (
+                        filled($request->input("addons.$index.name")) &&
+                        blank($value)
+                    ) {
+                        $fail('Harga layanan tambahan wajib diisi.');
+                    }
+                },
             ],
 
             'addons.*.discount_price' => [
@@ -241,7 +262,7 @@ class PackageController extends Controller
             'promos.*.code' => [
                 'required',
                 'string',
-                'max:255',
+                'max:50',
             ],
 
             'promos.*.type' => [
@@ -543,7 +564,7 @@ class PackageController extends Controller
             'cover_url' => [
                 'nullable',
                 'url',
-                'max:2048',
+                'max:255',
             ],
 
             'is_active' => [
@@ -578,6 +599,11 @@ class PackageController extends Controller
                 'min:1',
             ],
 
+            'options.*.uuid' => [
+                'nullable',
+                'string',
+            ],
+
             'options.*.name' => [
                 'required',
                 'string',
@@ -585,7 +611,7 @@ class PackageController extends Controller
             ],
 
             'options.*.quota' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:1',
             ],
@@ -618,8 +644,13 @@ class PackageController extends Controller
                 'array',
             ],
 
+            'addons.*.uuid' => [
+                'nullable',
+                'string',
+            ],
+
             'addons.*.name' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -631,9 +662,19 @@ class PackageController extends Controller
             ],
 
             'addons.*.price' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
+                function ($attribute, $value, $fail) use ($request) {
+                    $index = explode('.', $attribute)[1] ?? null;
+
+                    if (
+                        filled($request->input("addons.$index.name")) &&
+                        blank($value)
+                    ) {
+                        $fail('Harga layanan tambahan wajib diisi.');
+                    }
+                },
             ],
 
             'addons.*.discount_price' => [
@@ -669,7 +710,7 @@ class PackageController extends Controller
             'promos.*.code' => [
                 'required',
                 'string',
-                'max:255',
+                'max:50',
             ],
 
             'promos.*.type' => [
@@ -769,46 +810,28 @@ class PackageController extends Controller
 
             /*
         |--------------------------------------------------------------------------
-        | Generate Unique Slug
-        |--------------------------------------------------------------------------
-        */
-
-            $baseSlug = Str::slug(
-                $validated['name']
-            );
-
-            if ($baseSlug === '') {
-                $baseSlug = 'package';
-            }
-
-            $slug = $baseSlug;
-            $counter = 2;
-
-            while (
-                Package::where('slug', $slug)
-                    ->where('uuid', '!=', $package->uuid)
-                    ->exists()
-            ) {
-
-                $slug =
-                    $baseSlug.'-'.$counter;
-
-                $counter++;
-            }
-
-            /*
-        |--------------------------------------------------------------------------
         | Update Package
         |--------------------------------------------------------------------------
         */
+
+            $isPublished = filter_var(
+                $validated['is_published'] ?? true,
+                FILTER_VALIDATE_BOOLEAN
+            );
+
+            $basePrice = (float) (
+                collect($validated['options'])->sortBy('sort_order')->first()['price'] ?? 0
+            );
 
             $package->update([
 
                 'name' => $validated['name'],
 
-                'slug' => $slug,
+                'slug' => $package->slug,
 
                 'description' => $validated['description'] ?? null,
+
+                'price' => $basePrice,
 
                 'guest_capacity' => $validated['guest_capacity'] ?? null,
 
@@ -822,15 +845,11 @@ class PackageController extends Controller
 
                 'is_active' => $validated['is_active'],
 
-                'is_published' => filter_var(
-                    $validated['is_published'] ?? true,
-                    FILTER_VALIDATE_BOOLEAN
-                ),
+                'is_published' => $isPublished,
 
-                'published_at' => filter_var(
-                    $validated['is_published'] ?? true,
-                    FILTER_VALIDATE_BOOLEAN
-                ) ? now() : null,
+                'published_at' => $isPublished
+                    ? ($package->published_at ?? now())
+                    : null,
 
                 'lead_time_days' => $validated['lead_time_days'] ?? 30,
 
@@ -838,39 +857,53 @@ class PackageController extends Controller
 
             /*
         |--------------------------------------------------------------------------
-        | Replace Package Options
+        | Sync Package Options
         |--------------------------------------------------------------------------
         */
 
-            $package->options()->delete();
+            $existingOptions = $package->options()->get()->keyBy('uuid');
+            $submittedOptionUuids = [];
 
-            foreach (
-                array_values($validated['options']) as $index => $option
-            ) {
-
-                PackageOption::create([
-
-                    'uuid' => (string) Str::uuid(),
-
+            foreach (array_values($validated['options']) as $index => $option) {
+                $uuid = $option['uuid'] ?? null;
+                $attributes = [
                     'package_uuid' => $package->uuid,
-
                     'name' => $option['name'],
-
                     'quota' => $option['quota'],
-
                     'price' => $option['price'],
-
                     'discount_price' => $option['discount_price'] ?? null,
-
                     'duration' => $option['duration'],
-
                     'duration_unit' => $option['duration_unit'],
-
                     'sort_order' => $index,
-
                     'is_active' => true,
+                ];
 
-                ]);
+                if ($uuid && $existingOptions->has($uuid)) {
+                    $existingOptions->get($uuid)->update($attributes);
+                    $submittedOptionUuids[] = $uuid;
+
+                    continue;
+                }
+
+                $created = PackageOption::create(array_merge(
+                    ['uuid' => (string) Str::uuid()],
+                    $attributes
+                ));
+                $submittedOptionUuids[] = $created->uuid;
+            }
+
+            foreach ($existingOptions as $uuid => $option) {
+                if (in_array($uuid, $submittedOptionUuids, true)) {
+                    continue;
+                }
+
+                if (Order::where('package_option_uuid', $uuid)->exists()) {
+                    $option->update(['is_active' => false]);
+
+                    continue;
+                }
+
+                $option->delete();
             }
 
             $this->savePackageAddons($package, $validated);
@@ -1402,10 +1435,8 @@ class PackageController extends Controller
 
         $currentUuids = $model::where('package_uuid', $package->uuid)->pluck('uuid')->all();
         $providedUuids = array_values(array_unique($validated['uuids']));
-        sort($currentUuids);
-        sort($providedUuids);
 
-        if ($currentUuids !== $providedUuids) {
+        if (array_diff($providedUuids, $currentUuids)) {
             return response()->json(['message' => 'Urutan tidak valid.'], 422);
         }
 
@@ -1732,20 +1763,18 @@ class PackageController extends Controller
 
     private function savePackageAddons(Package $package, array $validated): void
     {
-        $package->addons()->delete();
-
+        $existingAddons = $package->addons()->get()->keyBy('uuid');
         $addonUuids = [];
+        $submittedUuids = [];
+        $sortOrder = 0;
 
         foreach ($validated['addons'] ?? [] as $index => $addon) {
             if (blank($addon['name'] ?? null)) {
                 continue;
             }
 
-            $uuid = (string) Str::uuid();
-            $addonUuids[$index] = $uuid;
-
-            PackageAddon::create([
-                'uuid' => $uuid,
+            $uuid = $addon['uuid'] ?? null;
+            $attributes = [
                 'package_uuid' => $package->uuid,
                 'name' => $addon['name'],
                 'description' => $addon['description'] ?? null,
@@ -1753,10 +1782,30 @@ class PackageController extends Controller
                 'discount_price' => $addon['discount_price'] ?? null,
                 'min_quantity' => $addon['min_quantity'] ?? 1,
                 'max_quantity' => $addon['max_quantity'] ?? null,
-                'requires_addon_uuid' => null,
-                'sort_order' => $index,
+                'sort_order' => $sortOrder++,
                 'is_active' => true,
-            ]);
+            ];
+
+            if ($uuid && $existingAddons->has($uuid)) {
+                $existingAddons->get($uuid)->update($attributes);
+                $addonUuids[$index] = $uuid;
+                $submittedUuids[] = $uuid;
+
+                continue;
+            }
+
+            $created = PackageAddon::create(array_merge(
+                ['uuid' => (string) Str::uuid(), 'requires_addon_uuid' => null],
+                $attributes
+            ));
+            $addonUuids[$index] = $created->uuid;
+            $submittedUuids[] = $created->uuid;
+        }
+
+        foreach ($existingAddons as $uuid => $addon) {
+            if (! in_array($uuid, $submittedUuids, true)) {
+                $addon->delete();
+            }
         }
 
         foreach ($validated['addons'] ?? [] as $index => $addon) {
@@ -1837,7 +1886,7 @@ class PackageController extends Controller
             PackagePromo::create([
                 'uuid' => (string) Str::uuid(),
                 'package_uuid' => $package->uuid,
-                'code' => trim((string) $promo['code']),
+                'code' => mb_strtoupper(trim((string) $promo['code'])),
                 'type' => $promo['type'],
                 'value' => $promo['value'],
                 'min_purchase' => $promo['min_purchase'] ?? 0,

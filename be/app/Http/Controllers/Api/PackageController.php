@@ -297,6 +297,8 @@ class PackageController extends Controller
                 )
                 ->published()
                 ->with([
+                    'blackoutDates',
+                    'promos',
                     'options' => function ($query) {
                         $query
                             ->where(

@@ -532,8 +532,10 @@ class PackageAdminTest extends TestCase
                 'type' => 'options',
                 'uuids' => [$second->uuid],
             ])
-            ->assertStatus(422)
-            ->assertJsonPath('message', 'Urutan tidak valid.');
+            ->assertOk()
+            ->assertJson(['ok' => true]);
+
+        $this->assertSame(0, (int) $second->fresh()->sort_order);
     }
 
     public function test_cleanup_migration_updates_legacy_package_name_and_slug(): void
@@ -572,6 +574,133 @@ class PackageAdminTest extends TestCase
             'name' => 'Sagita Wedding Venue',
             'slug' => 'sagita-wedding-venue',
         ]);
+    }
+
+    public function test_admin_can_save_package_with_empty_optional_addon_row(): void
+    {
+        $payload = $this->payload('Paket Tanpa Addon', 3000000);
+        $payload['addons'] = [
+            [
+                'name' => '',
+                'description' => '',
+                'price' => '',
+            ],
+        ];
+
+        $this->actingAs($this->admin)
+            ->post(route('packages.store'), $payload)
+            ->assertRedirect(route('packages.index'))
+            ->assertSessionHasNoErrors();
+
+        $package = Package::where('slug', 'paket-tanpa-addon')->firstOrFail();
+        $this->assertCount(0, $package->addons);
+    }
+
+    public function test_update_preserves_child_uuid_slug_and_publication_time(): void
+    {
+        $publishedAt = now()->subDays(3)->startOfSecond();
+        $package = Package::create([
+            'name' => 'Paket Lama',
+            'slug' => 'paket-lama',
+            'price' => 100000,
+            'is_active' => 'active',
+            'is_published' => true,
+            'published_at' => $publishedAt,
+        ]);
+
+        $option = PackageOption::create([
+            'package_uuid' => $package->uuid,
+            'name' => 'Standar',
+            'quota' => 1,
+            'price' => 4000000,
+            'duration' => 1,
+            'duration_unit' => 'month',
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        $addon = PackageAddon::create([
+            'package_uuid' => $package->uuid,
+            'name' => 'Dekorasi tambahan',
+            'price' => 500000,
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        $payload = $this->payload('Paket Baru', 7000000);
+        $payload['is_published'] = true;
+        $payload['options'][0]['uuid'] = $option->uuid;
+        $payload['addons'][0]['uuid'] = $addon->uuid;
+
+        $this->actingAs($this->admin)
+            ->put(route('packages.update', $package->uuid), $payload)
+            ->assertRedirect(route('packages.index'))
+            ->assertSessionHasNoErrors();
+
+        $fresh = $package->fresh();
+        $this->assertSame('paket-lama', $fresh->slug);
+        $this->assertSame(7000000, (int) $fresh->price);
+        $this->assertSame($publishedAt->timestamp, $fresh->published_at->timestamp);
+        $this->assertTrue($fresh->options->contains('uuid', $option->uuid));
+        $this->assertTrue($fresh->addons->contains('uuid', $addon->uuid));
+    }
+
+    public function test_option_quota_can_be_blank_for_unlimited(): void
+    {
+        $payload = $this->payload('Paket Tanpa Batas', 3000000);
+        $payload['options'][0]['quota'] = '';
+
+        $this->actingAs($this->admin)
+            ->post(route('packages.store'), $payload)
+            ->assertRedirect(route('packages.index'))
+            ->assertSessionHasNoErrors();
+
+        $package = Package::where('slug', 'paket-tanpa-batas')->firstOrFail();
+
+        $this->assertNull($package->options->first()->quota);
+    }
+
+    public function test_create_form_restores_old_input_for_dynamic_rows(): void
+    {
+        $payload = $this->payload('Paket Sementara', 3000000);
+        $payload['name'] = '';
+        $payload['options'][1] = [
+            'name' => 'Opsi Kedua',
+            'quota' => 1,
+            'price' => 4500000,
+            'duration' => 1,
+            'duration_unit' => 'month',
+        ];
+        $payload['addons'][1] = [
+            'name' => 'Addon Kedua',
+            'price' => 250000,
+        ];
+        $payload['promos'] = [
+            [
+                'code' => 'HEMATOLD',
+                'type' => 'percent',
+                'value' => 10,
+                'is_active' => 1,
+            ],
+        ];
+        $payload['features'] = [
+            ['category' => 'Dekorasi', 'feature' => 'Rincian Pertama'],
+            ['category' => 'Dokumentasi', 'feature' => 'Rincian Kedua'],
+        ];
+
+        $this->actingAs($this->admin)
+            ->from(route('packages.create'))
+            ->post(route('packages.store'), $payload)
+            ->assertRedirect(route('packages.create'))
+            ->assertSessionHasErrors('name');
+
+        $this->actingAs($this->admin)
+            ->get(route('packages.create'))
+            ->assertOk()
+            ->assertSee('"name":"Opsi Kedua"', false)
+            ->assertSee('"name":"Addon Kedua"', false)
+            ->assertSee('"code":"HEMATOLD"', false)
+            ->assertSee('"feature":"Rincian Kedua"', false);
     }
 
     /** @return array<string, mixed> */

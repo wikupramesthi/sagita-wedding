@@ -316,6 +316,15 @@ class PackageWeddingFeatureTest extends TestCase
             'is_active' => true,
         ]);
 
+        PackagePromo::create([
+            'package_uuid' => $package->uuid,
+            'code' => 'HEMATAPI',
+            'type' => 'percent',
+            'value' => 10,
+            'min_purchase' => 0,
+            'is_active' => true,
+        ]);
+
         $this->api()
             ->getJson('/api/packages')
             ->assertOk()
@@ -341,7 +350,8 @@ class PackageWeddingFeatureTest extends TestCase
             ->assertJsonPath('data.0.cover_url', 'https://example.com/images/paket-api.jpg')
             ->assertJsonPath('data.0.features.0.category', 'Dekorasi')
             ->assertJsonPath('data.0.features.0.feature', 'Tenda 80 meter')
-            ->assertJsonPath('data.0.addons.0.name', 'Fotografer tambahan');
+            ->assertJsonPath('data.0.addons.0.name', 'Fotografer tambahan')
+            ->assertJsonPath('data.0.promos.0.code', 'HEMATAPI');
 
         $this->api()
             ->getJson('/api/packages/'.$package->slug)
@@ -368,7 +378,8 @@ class PackageWeddingFeatureTest extends TestCase
             ->assertJsonPath('data.features.0.category', 'Dekorasi')
             ->assertJsonPath('data.features.0.feature', 'Tenda 80 meter')
             ->assertJsonPath('data.addons.0.uuid', $addon->uuid)
-            ->assertJsonPath('data.addons.0.name', 'Fotografer tambahan');
+            ->assertJsonPath('data.addons.0.name', 'Fotografer tambahan')
+            ->assertJsonPath('data.promos.0.code', 'HEMATAPI');
     }
 
     public function test_checkout_total_includes_selected_addons(): void

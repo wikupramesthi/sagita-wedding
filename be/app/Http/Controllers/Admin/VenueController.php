@@ -35,14 +35,13 @@ class VenueController extends Controller
             $query->where('status', $status);
         }
 
-        $venues = (clone $query)->withCount('schedules')->latest()->get();
+        $venues = (clone $query)->latest()->get();
 
         // Stats follow the active filter so numbers stay in sync with the data.
         $stats = [
             'total' => (clone $query)->count(),
             'active' => (clone $query)->where('status', 'active')->count(),
             'inactive' => (clone $query)->where('status', 'inactive')->count(),
-            'schedules' => 0,
         ];
 
         return view(
@@ -210,15 +209,6 @@ class VenueController extends Controller
      */
     public function destroy(Venue $venue)
     {
-        if ($venue->schedules()->exists()) {
-            return redirect()
-                ->route('venues.index')
-                ->with(
-                    'error',
-                    'Venue ini tidak dapat dihapus karena masih digunakan oleh jadwal kelas.'
-                );
-        }
-
         DB::beginTransaction();
 
         try {

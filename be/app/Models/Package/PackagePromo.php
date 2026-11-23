@@ -72,6 +72,14 @@ class PackagePromo extends Model
             });
     }
 
+    public function isUsable(): bool
+    {
+        return $this->is_active &&
+            ($this->starts_at === null || $this->starts_at->lessThanOrEqualTo(now())) &&
+            ($this->ends_at === null || $this->ends_at->greaterThanOrEqualTo(now())) &&
+            ($this->max_uses === null || $this->used_count < $this->max_uses);
+    }
+
     public function discountFor(int $subtotal): int
     {
         if ($subtotal < $this->min_purchase) {

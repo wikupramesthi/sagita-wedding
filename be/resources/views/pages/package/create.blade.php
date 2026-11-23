@@ -324,7 +324,6 @@
                   <div class="col-md-4">
                     <label class="form-label">
                       Kuota
-                      <span class="text-danger">*</span>
                     </label>
 
                     <input
@@ -332,12 +331,12 @@
                       name="options[0][quota]"
                       class="form-control"
                       value="{{ old('options.0.quota') }}"
-                      min="1"
-                      placeholder="Contoh: 1"
-                      required>
+                       min="1"
+                       placeholder="Kosongkan = tanpa batas">
+
 
                     <small class="text-muted">
-                      Jumlah yang disertakan pada opsi ini.
+                      Jumlah yang disertakan pada opsi ini. Kosongkan untuk kuota tanpa batas.
                     </small>
                   </div>
 
@@ -394,9 +393,10 @@
                       name="options[0][duration]"
                       class="form-control"
                       value="{{ old('options.0.duration', 1) }}"
-                      min="1"
-                      placeholder="Contoh: 1"
-                      required>
+                       min="1"
+                       placeholder="Contoh: 1"
+                       required>
+
                   </div>
 
                   <div class="col-md-6">
@@ -599,7 +599,7 @@
 
                   <div class="col-md-4">
                     <label class="form-label">
-                      Butuh Layanan ke-
+                      Butuh Layanan (0 = pertama)
                     </label>
 
                     <input
@@ -607,8 +607,9 @@
                       name="addons[0][requires_addon_index]"
                       class="form-control"
                       value="{{ old('addons.0.requires_addon_index') }}"
-                      min="0"
-                      placeholder="Contoh: 1">
+                       min="0"
+                       placeholder="Contoh: 0">
+
                   </div>
                 </div>
               </div>
@@ -1065,6 +1066,25 @@
 </style>
 
 
+@php
+  $oldOptionRows = collect(old('options'))->values()->map(fn ($row) => (object) $row);
+  $oldAddonRows = collect(old('addons'))->values()->map(fn ($row) => (object) $row);
+  $oldPromoRows = collect(old('promos'))->values()->map(fn ($row) => (object) $row);
+  $oldFeatureRows = collect(old('features'))
+    ->values()
+    ->map(fn ($row) => is_array($row) ? (object) $row : (object) ['feature' => $row]);
+
+  $oldRowsMeta = [
+    'options' => $oldOptionRows,
+    'addons' => $oldAddonRows,
+    'promos' => $oldPromoRows,
+    'features' => $oldFeatureRows,
+  ];
+@endphp
+
+<script type="application/json" id="package-old-rows">@json($oldRowsMeta)</script>
+
+
 <script>
   let packageOptionIndex = 1;
 
@@ -1135,19 +1155,17 @@
 
                         <label class="form-label">
                             Kuota
-                            <span class="text-danger">*</span>
                         </label>
 
                         <input
                             type="number"
                             name="options[${index}][quota]"
                             class="form-control"
-                            placeholder="Contoh: 1"
-                            min="1"
-                            required>
+                            placeholder="Kosongkan = tanpa batas"
+                            min="1">
 
                         <small class="text-muted">
-                            Jumlah yang disertakan pada opsi ini.
+                            Jumlah yang disertakan pada opsi ini. Kosongkan untuk kuota tanpa batas.
                         </small>
 
                     </div>
@@ -1434,14 +1452,14 @@
                     <div class="col-md-4">
 
                         <label class="form-label">
-                            Butuh Layanan ke-
+                            Butuh Layanan (0 = pertama)
                         </label>
 
                         <input
                             type="number"
                             name="addons[${index}][requires_addon_index]"
                             class="form-control"
-                            placeholder="Contoh: 1"
+                            placeholder="Contoh: 0"
                             min="0">
 
                     </div>
@@ -1683,6 +1701,136 @@
       row.querySelector('label[for^="feature-text-"]').htmlFor = `feature-text-${index}`;
     });
   }
+
+
+  function setPackageFieldValue(row, name, value) {
+    if (value === undefined || value === null) {
+      return;
+    }
+
+    const field = row.querySelector(`[name="${name}"]`);
+
+    if (!field) {
+      return;
+    }
+
+    if (field.type === 'checkbox') {
+      field.checked = ['1', 1, true, 'true', 'on'].includes(value);
+
+      return;
+    }
+
+    field.value = value;
+  }
+
+
+  function restorePackageRows(selector, itemSelector, rows, addRow, fields) {
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return;
+    }
+
+    const container = document.querySelector(selector);
+
+    if (!container) {
+      return;
+    }
+
+    while (container.querySelectorAll(itemSelector).length < rows.length) {
+      addRow();
+    }
+
+    container.querySelectorAll(itemSelector).forEach(function(row, index) {
+      const values = rows[index] ?? {};
+
+      fields.forEach(function([key, name]) {
+        setPackageFieldValue(row, name.replace('{index}', index), values[key]);
+      });
+    });
+  }
+
+
+  function restorePackageFormFromOldInput() {
+    const meta = document.getElementById('package-old-rows');
+
+    if (!meta) {
+      return;
+    }
+
+    const oldRows = JSON.parse(meta.textContent || '{}');
+
+    restorePackageRows(
+      '#package-options-container',
+      '.package-option-item',
+      oldRows.options,
+      addPackageOption,
+      [
+        ['name', 'options[{index}][name]'],
+        ['quota', 'options[{index}][quota]'],
+        ['price', 'options[{index}][price]'],
+        ['discount_price', 'options[{index}][discount_price]'],
+        ['duration', 'options[{index}][duration]'],
+        ['duration_unit', 'options[{index}][duration_unit]'],
+      ]
+    );
+
+    restorePackageRows(
+      '#package-addons-container',
+      '.package-addon-item',
+      oldRows.addons,
+      addPackageAddon,
+      [
+        ['name', 'addons[{index}][name]'],
+        ['description', 'addons[{index}][description]'],
+        ['price', 'addons[{index}][price]'],
+        ['discount_price', 'addons[{index}][discount_price]'],
+        ['min_quantity', 'addons[{index}][min_quantity]'],
+        ['max_quantity', 'addons[{index}][max_quantity]'],
+        ['requires_addon_index', 'addons[{index}][requires_addon_index]'],
+      ]
+    );
+
+    restorePackageRows(
+      '#package-promos-container',
+      '.package-promo-item',
+      oldRows.promos,
+      addPackagePromo,
+      [
+        ['code', 'promos[{index}][code]'],
+        ['type', 'promos[{index}][type]'],
+        ['value', 'promos[{index}][value]'],
+        ['min_purchase', 'promos[{index}][min_purchase]'],
+        ['max_discount', 'promos[{index}][max_discount]'],
+        ['max_uses', 'promos[{index}][max_uses]'],
+        ['starts_at', 'promos[{index}][starts_at]'],
+        ['ends_at', 'promos[{index}][ends_at]'],
+      ]
+    );
+
+    document.querySelectorAll('#package-promos-container .package-promo-item').forEach(function(row, index) {
+      const values = (oldRows.promos || [])[index] || {};
+      const active = row.querySelector(`input[type="checkbox"][name="promos[${index}][is_active]"]`);
+
+      if (active) {
+        active.checked = values.is_active === undefined
+          ? true
+          : ['1', 1, true, 'true', 'on'].includes(values.is_active);
+      }
+    });
+
+    restorePackageRows(
+      '#package-features-container',
+      '.package-feature-item',
+      oldRows.features,
+      addPackageFeature,
+      [
+        ['category', 'features[{index}][category]'],
+        ['feature', 'features[{index}][feature]'],
+      ]
+    );
+  }
+
+
+  restorePackageFormFromOldInput();
 </script>
 
 @endsection
