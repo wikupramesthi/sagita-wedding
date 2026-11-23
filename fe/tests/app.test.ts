@@ -731,16 +731,26 @@ describe("pageScript wiring", () => {
 			featured_image: `https://example.test/article-${index + 1}.webp`,
 			created_at: "2026-11-20 12:00:00",
 		}));
+		homeTestimonials = [
+			{ nama: "Pasangan Uji", isi_testimoni: "Persiapan terasa lebih mudah." },
+		];
 
 		const res = await request(app).get("/").set("Cookie", "locale=id");
 
 		expect(res.status).toBe(200);
-		const preparationPosition = res.text.indexOf('id="home-preparation"');
 		const articlesPosition = res.text.indexOf('id="home-articles"');
-		expect(preparationPosition).toBeGreaterThan(-1);
-		expect(preparationPosition).toBeLessThan(articlesPosition);
-		expect(res.text).toContain("Rencanakan pernikahan dengan lebih tenang");
-		expect(res.text).toContain("Koordinasi vendor");
+		const testimonialsPosition = res.text.indexOf(
+			'class="home-testimonials-section',
+		);
+		const dashboardPosition = res.text.indexOf('id="home-preparation"');
+		expect(testimonialsPosition).toBeGreaterThan(articlesPosition);
+		expect(dashboardPosition).toBeGreaterThan(testimonialsPosition);
+		expect(res.text).toContain("Pantau semuanya dari");
+		expect(res.text).toContain("satu</span>");
+		expect(res.text).toContain("dashboard");
+		expect(res.text).toContain("Satu akun untuk memantau seluruh layanan");
+		expect(res.text).toContain("Paket dan pesanan");
+		expect(res.text).toContain('src="/img/ss-penuh.png"');
 		expect(res.text).toContain("BACAAN SEPUTAR PERNIKAHAN");
 		expect(res.text).toContain("Artikel &amp;");
 		expect(res.text).toContain("Inspirasi Pernikahan");

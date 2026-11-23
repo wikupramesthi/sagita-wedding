@@ -242,46 +242,6 @@
   </section>
   <% } %>
 
-  <!-- ======================= WEDDING PREPARATION ======================= -->
-  <section id="home-preparation" class="scroll-mt-28 bg-[#f6f7f8] py-10 sm:py-12 lg:py-16">
-    <div class="site-container">
-      <div class="grid items-center gap-8 rounded-[2rem] bg-white p-5 shadow-sm sm:p-8 min-[800px]:grid-cols-[1.05fr_0.95fr] min-[1200px]:grid-cols-[1.2fr_0.8fr] lg:gap-12 lg:p-12">
-        <div class="py-2 sm:py-4">
-          <p class="mb-4 inline-flex rounded-full bg-[#fce7ef] px-4 py-2 text-xs font-semibold text-[#b83060]"><%= t.homePreparationEyebrow %></p>
-          <h2 class="home-preparation-title max-w-xl text-3xl font-bold leading-[1.12] tracking-tight text-sage-900 sm:text-4xl"><%= t.homePreparationTitle %></h2>
-          <p class="mt-5 max-w-xl text-base leading-relaxed text-stone-warm sm:text-lg"><%= t.homePreparationDescription %></p>
-          <ul class="mt-6 space-y-3.5">
-            <% t.homePreparationHighlights.forEach((highlight) => { %>
-              <li class="flex items-start gap-3 text-sm leading-relaxed text-sage-900 sm:text-base">
-                <span class="mt-0.5 shrink-0 text-emerald-600" aria-hidden="true">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg>
-                </span>
-                <span><%= highlight %></span>
-              </li>
-            <% }) %>
-          </ul>
-        </div>
-
-        <aside class="rounded-[1.75rem] bg-[#f5f6f7] p-4 sm:p-6" aria-label="<%= t.homePreparationTitle %>">
-          <ol class="space-y-3">
-            <% t.homePreparationSteps.forEach((step) => { %>
-              <li class="flex min-h-[58px] items-center gap-3 rounded-[1.25rem] bg-white px-4 py-3 shadow-sm sm:gap-3.5">
-                <span class="grid h-6 w-6 shrink-0 place-items-center rounded-md <%= step.done ? 'bg-emerald-600 text-white' : 'border-2 border-slate-300 text-transparent' %>" aria-hidden="true">
-                  <% if (step.done) { %>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg>
-                  <% } %>
-                </span>
-                <span class="min-w-0 flex-1 text-sm leading-snug <%= step.done ? 'text-slate-500 line-through' : 'font-medium text-sage-900' %>"><%= step.title %></span>
-                <span class="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-600 sm:px-2.5 sm:text-xs"><%= step.phase %></span>
-                <span class="hidden shrink-0 text-[10px] text-slate-500 min-[1200px]:inline min-[1200px]:text-xs"><%= step.timing %></span>
-              </li>
-            <% }) %>
-          </ol>
-        </aside>
-      </div>
-    </div>
-  </section>
-
   <!-- ======================= FEATURED ARTICLES ======================= -->
   <% if (weddingContentReady && Array.isArray(articles) && articles.length > 0) { %>
   <section id="home-articles" class="py-16 bg-clay-50/30">
@@ -381,6 +341,54 @@
       </div>
     </section>
   <% } %>
+
+  <!-- ======================= MEMBER DASHBOARD ======================= -->
+  <section id="home-preparation" class="home-system-section scroll-mt-28 overflow-hidden bg-[#fff9fb] py-14 sm:py-16 lg:py-20">
+    <div class="site-container">
+      <div class="grid items-center gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14">
+        <div>
+          <p class="mb-5 inline-flex rounded-full bg-[#fce7ef] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#c62f60]"><%= t.homePreparationEyebrow %></p>
+          <h2 class="home-preparation-title text-4xl font-bold leading-[1.05] tracking-tight text-sage-900 sm:text-5xl">
+            <%= t.homePreparationTitlePrefix %> <span class="italic font-medium text-[#d53a68]"><%= t.homePreparationTitleAccent %></span>
+            <%= t.homePreparationTitleSuffix %>
+          </h2>
+          <p class="mt-5 max-w-xl text-base leading-relaxed text-stone-warm sm:text-lg"><%= t.homePreparationDescription %></p>
+
+          <ul class="mt-7 space-y-3">
+            <% t.homePreparationFeatures.forEach((feature) => { %>
+              <li class="flex items-start gap-3 text-sm leading-relaxed text-sage-800 sm:text-base">
+                <span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#ef4f78]" aria-hidden="true"></span>
+                <span><strong class="font-semibold text-sage-900"><%= feature.title %></strong> — <%= feature.description %></span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+
+        <div class="relative flex justify-center">
+          <div class="absolute -inset-8 -z-10 rounded-[3rem] bg-gradient-to-br from-[#fcebf0] via-white to-[#f7edf0] blur-[1px]" aria-hidden="true"></div>
+          <img
+            src="/img/ss-penuh.png"
+            alt="<%= t.homePreparationImageAlt %>"
+            width="746"
+            height="2048"
+            loading="lazy"
+            decoding="async"
+            class="h-auto max-h-[75vh] w-full max-w-[520px] object-contain drop-shadow-[0_25px_35px_rgba(87,67,73,0.14)]"
+          >
+        </div>
+      </div>
+
+      <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a href="<%= user ? contactLinks.dashboardUrl : contactLinks.loginUrl %>" class="inline-flex items-center gap-3 rounded-full bg-[#df3157] px-6 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(223,49,87,0.18)] transition hover:-translate-y-0.5 hover:bg-[#c9274c]">
+            <%= user ? t.homePreparationOpenDashboard : t.homePreparationSignIn %>
+            <span class="grid h-8 w-8 place-items-center rounded-full bg-white text-[#df3157]" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg>
+            </span>
+          </a>
+          <a href="/packages" class="inline-flex items-center rounded-full border border-sand-300 bg-white px-6 py-3 text-sm font-bold text-sage-900 transition hover:border-sage-700"><%= t.viewAllPackages %></a>
+      </div>
+    </div>
+  </section>
 
   <% const homeFaqGroups = Array.isArray(homeFaqs) ? homeFaqs : []; %>
   <% if (homeFaqGroups.length) { %>

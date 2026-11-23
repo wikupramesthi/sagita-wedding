@@ -325,7 +325,7 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
 			heroNav: sliderBanners.length > 0,
 			heroImage: sliderBanners[0]?.gambar ?? "",
 			pageScript: "home",
-			assetV: `${res.locals.assetV}-home-preparation1`,
+			assetV: `${res.locals.assetV}-home-dashboard3`,
 			weddingContentReady,
 			articles: weddingContentReady
 				? getHomeArticles(data?.articles, isID ? "id-ID" : "en-US")

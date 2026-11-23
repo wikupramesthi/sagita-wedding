@@ -79,6 +79,8 @@ export async function appLocals(
 		res.locals.contactLinks = {
 			...alternatingWhatsApp,
 			googleAuthUrl: siteContact.googleAuthUrl,
+			loginUrl: `${env.API_BASE}/auth/login`,
+			dashboardUrl: `${env.API_BASE}/backend/dashboard`,
 		};
 		res.locals.currentPath = req.path;
 		const requestedLocale = isLocale(res.locals.lang)

@@ -392,48 +392,67 @@ const rawTranslations = {
 		homePackageViewDetails: "View package details",
 		viewAllPackages: "View all packages",
 
-		// Homepage planning checklist
-		homePreparationEyebrow: "PLANNING WITH SAGITA",
-		homePreparationTitle: "A calmer, more considered wedding plan",
+		// Homepage member dashboard
+		homePreparationEyebrow: "YOUR SAGITA MEMBER AREA",
+		homePreparationTitlePrefix: "See everything in",
+		homePreparationTitleAccent: "one",
+		homePreparationTitleSuffix: "dashboard",
 		homePreparationDescription:
-			"From your concept and budget to packages, vendors, and the wedding-day flow, our team helps bring every detail together around your needs.",
-		homePreparationHighlights: [
-			"Start with your needs and priorities",
-			"Choose packages, venues, and vendors that fit",
-			"Coordinate the details through your wedding day",
+			"One account to follow your wedding services and plans in one place—from packages and orders to payments, your checklist, and event timeline.",
+		homePreparationFeatures: [
+			{
+				title: "Planning checklist and important dates",
+				description:
+					"Keep track of preparation tasks and key dates, all in one place.",
+			},
+			{
+				title: "Event timeline",
+				description:
+					"Follow the important milestones leading up to your wedding day.",
+			},
+			{
+				title: "Orders and payment updates",
+				description:
+					"Review your selected package, order details, and payment status in your account.",
+			},
+			{
+				title: "Package recommendations",
+				description:
+					"Explore package options and recommendations for your wedding plans.",
+			},
 		],
+		homePreparationPreviewLabel: "SAGITA MEMBER DASHBOARD",
+		homePreparationPreviewTitle: "Planning overview",
+		homePreparationPreviewBadge: "System preview",
 		homePreparationSteps: [
 			{
-				title: "Discuss needs and ideas",
-				phase: "Consult",
-				timing: "Start",
-				done: true,
+				category: "PREPARATION",
+				title: "Checklist",
+				detail: "Tasks and important dates",
 			},
 			{
-				title: "Shape concept and budget",
-				phase: "Budget",
-				timing: "Planning",
-				done: true,
+				category: "ORDERS",
+				title: "Packages & payments",
+				detail: "Orders, status, and history",
 			},
 			{
-				title: "Choose package and venue",
-				phase: "Venue",
-				timing: "Selection",
-				done: false,
-			},
-			{
-				title: "Coordinate vendors",
-				phase: "Vendors",
-				timing: "Coordination",
-				done: false,
-			},
-			{
-				title: "Plan the wedding-day flow",
-				phase: "Schedule",
-				timing: "Wedding day",
-				done: false,
+				category: "SCHEDULE",
+				title: "Event timeline",
+				detail: "Milestones toward the day",
 			},
 		],
+		homePreparationTimelineTitle: "Your planning flow",
+		homePreparationTimeline: ["Planning", "Orders", "Wedding day"],
+		homePreparationQuickActionsTitle: "Quick links",
+		homePreparationQuickActions: [
+			"View preparation checklist",
+			"Check order status",
+			"Review event timeline",
+		],
+		homePreparationSignIn: "Sign in to your account",
+		homePreparationOpenDashboard: "Open dashboard",
+		homePreparationImageAlt:
+			"Preview of the Sagita Wedding Planner member dashboard",
 
 		// Homepage articles
 		homeArticlesEyebrow: "WEDDING PLANNING READS",
@@ -852,48 +871,67 @@ const rawTranslations = {
 		homePackageViewDetails: "Lihat detail paket",
 		viewAllPackages: "Lihat semua paket",
 
-		// Homepage planning checklist
-		homePreparationEyebrow: "PERENCANAAN BERSAMA SAGITA",
-		homePreparationTitle: "Rencanakan pernikahan dengan lebih tenang",
+		// Homepage member dashboard
+		homePreparationEyebrow: "AKUN ANGGOTA SAGITA",
+		homePreparationTitlePrefix: "Pantau semuanya dari",
+		homePreparationTitleAccent: "satu",
+		homePreparationTitleSuffix: "dashboard",
 		homePreparationDescription:
-			"Tim Sagita membantu menyusun konsep, anggaran, paket, dan vendor—serta menyelaraskan setiap detail hingga hari pernikahan.",
-		homePreparationHighlights: [
-			"Mulai dari kebutuhan dan prioritas Anda",
-			"Pilih paket, venue, dan vendor yang sesuai",
-			"Koordinasikan detail hingga hari pernikahan",
+			"Satu akun untuk memantau seluruh layanan dan persiapan pernikahan—mulai dari paket dan pesanan, status pembayaran, checklist, hingga timeline acara.",
+		homePreparationFeatures: [
+			{
+				title: "Paket dan pesanan",
+				description:
+					"Lihat paket yang dipilih, detail pesanan, dan rekomendasi yang sesuai rencana Anda.",
+			},
+			{
+				title: "Pembayaran",
+				description:
+					"Pantau status pembayaran, kekurangan tagihan, dan bukti transfer.",
+			},
+			{
+				title: "Checklist persiapan",
+				description:
+					"Catat tugas penting dan lihat progres persiapan pernikahan Anda.",
+			},
+			{
+				title: "Timeline acara",
+				description:
+					"Ikuti tahapan persiapan hingga hari pernikahan dalam satu tampilan.",
+			},
 		],
+		homePreparationPreviewLabel: "DASHBOARD ANGGOTA SAGITA",
+		homePreparationPreviewTitle: "Ringkasan persiapan",
+		homePreparationPreviewBadge: "Pratinjau sistem",
 		homePreparationSteps: [
 			{
-				title: "Bahas kebutuhan dan konsep",
-				phase: "Konsultasi",
-				timing: "Awal",
-				done: true,
+				category: "PERSIAPAN",
+				title: "Checklist",
+				detail: "Tugas dan tanggal penting",
 			},
 			{
-				title: "Susun konsep dan anggaran",
-				phase: "Anggaran",
-				timing: "Perencanaan",
-				done: true,
+				category: "PESANAN",
+				title: "Paket & pembayaran",
+				detail: "Status dan riwayat pesanan",
 			},
 			{
-				title: "Pilih paket dan venue",
-				phase: "Venue",
-				timing: "Pemilihan",
-				done: false,
-			},
-			{
-				title: "Koordinasi vendor",
-				phase: "Vendor",
-				timing: "Koordinasi",
-				done: false,
-			},
-			{
-				title: "Susun alur acara hari-H",
-				phase: "Rundown",
-				timing: "Hari-H",
-				done: false,
+				category: "JADWAL",
+				title: "Timeline acara",
+				detail: "Tahapan menuju hari-H",
 			},
 		],
+		homePreparationTimelineTitle: "Alur persiapan",
+		homePreparationTimeline: ["Perencanaan", "Pesanan", "Hari pernikahan"],
+		homePreparationQuickActionsTitle: "Menu pintas",
+		homePreparationQuickActions: [
+			"Lihat checklist persiapan",
+			"Periksa status pesanan",
+			"Lihat timeline acara",
+		],
+		homePreparationSignIn: "Masuk ke akun Anda",
+		homePreparationOpenDashboard: "Buka dashboard",
+		homePreparationImageAlt:
+			"Pratinjau dashboard anggota Sagita Wedding Planner",
 
 		// Homepage articles
 		homeArticlesEyebrow: "BACAAN SEPUTAR PERNIKAHAN",
