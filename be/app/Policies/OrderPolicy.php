@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Models\Payment\Order;
 use App\Models\User;
 
 class OrderPolicy
@@ -62,4 +61,3 @@ class OrderPolicy
         return $user->can('orders.manageVendors') || $user->hasAnyRole(['super-admin', 'admin']);
     }
 }
-

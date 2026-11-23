@@ -8,8 +8,8 @@ use App\Models\Payment\Order;
 use App\Services\CheckoutSessionService;
 use App\Services\EventDateReservationService;
 use App\Support\MemberView;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
 {
@@ -18,8 +18,7 @@ class CheckoutController extends Controller
         string $packageUuid,
         CheckoutSessionService $checkoutSessions,
         EventDateReservationService $reservations
-    )
-    {
+    ) {
         $package = Package::with([
             'options' => function ($query) {
                 $query->where('is_active', true)

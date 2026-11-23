@@ -24,8 +24,8 @@ class PackagePromoController extends Controller
             ->with('package:uuid,name')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
-                    $inner->where('code', 'like', '%' . $search . '%')
-                        ->orWhereHas('package', fn ($p) => $p->where('name', 'like', '%' . $search . '%'));
+                    $inner->where('code', 'like', '%'.$search.'%')
+                        ->orWhereHas('package', fn ($p) => $p->where('name', 'like', '%'.$search.'%'));
                 });
             })
             ->when(in_array($status, ['active', 'inactive'], true), fn ($q) => $q->where('is_active', $status === 'active'))
@@ -132,6 +132,7 @@ class PackagePromoController extends Controller
             return null;
         }
         $date = Carbon::parse($value);
+
         return ($endOfDay ? $date->endOfDay() : $date->startOfDay())->format('Y-m-d H:i:s');
     }
 }

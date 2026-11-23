@@ -614,10 +614,15 @@ router.get(
 	"/packages",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
+			const rawFilter = cleanText(req.query.filter, {
+				max: 40,
+				label: "Filter",
+			});
+			const rawSort = cleanText(req.query.sort, { max: 40, label: "Sort" });
 			const params = {
 				search: cleanText(req.query.search, { max: 80, label: "Search" }),
-				filter: cleanText(req.query.filter, { max: 40, label: "Filter" }),
-				sort: cleanText(req.query.sort, { max: 40, label: "Sort" }),
+				filter: ["popular", "unlimited"].includes(rawFilter) ? rawFilter : "",
+				sort: ["popular", "lowest_price"].includes(rawSort) ? rawSort : "",
 				page: cleanPage(req.query.page),
 				per_page: 10,
 			};
@@ -647,34 +652,50 @@ router.get(
 	},
 );
 
-router.get("/packages/:slug", async (req: Request, res: Response) => {
-	try {
-		const data = await getPageBatch("package-detail", {
-			slug: cleanSlug(req.params.slug, "package"),
-		});
-		const packageDetail = data?.package;
-		if (!packageDetail) throw new Error("Package not found");
-		res.render("pages/packages-detail", {
-			title: `${packageDetail.name} | Wedding Package | Sagita Wedding`,
-			metaDescription:
-				typeof packageDetail.description === "string"
-					? packageDetail.description
-							.replace(/<[^>]*>/g, " ")
-							.replace(/\s+/g, " ")
-							.trim()
-					: undefined,
-			package: packageDetail,
-			error: null,
-		});
-	} catch (_err) {
-		return res.status(404).render("pages/packages-detail", {
-			title: "Package Not Found",
-			robots: "noindex, nofollow",
-			package: null,
-			error: "Package not found.",
-		});
-	}
-});
+router.get(
+	"/packages/:slug",
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const data = await getPageBatch("package-detail", {
+				slug: cleanSlug(req.params.slug, "package"),
+			});
+			const packageDetail = data?.package;
+			if (!packageDetail) {
+				return res.status(404).render("pages/packages-detail", {
+					title: "Package Not Found",
+					robots: "noindex, nofollow",
+					package: null,
+					error: "Package not found.",
+				});
+			}
+
+			return res.render("pages/packages-detail", {
+				title: `${packageDetail.name} | Wedding Package | Sagita Wedding`,
+				metaDescription:
+					typeof packageDetail.description === "string"
+						? packageDetail.description
+								.replace(/<[^>]*>/g, " ")
+								.replace(/\s+/g, " ")
+								.trim()
+						: undefined,
+				package: packageDetail,
+				error: null,
+			});
+		} catch (err) {
+			const apiError = toApiError(err);
+			if (apiError.status === 404) {
+				return res.status(404).render("pages/packages-detail", {
+					title: "Package Not Found",
+					robots: "noindex, nofollow",
+					package: null,
+					error: "Package not found.",
+				});
+			}
+
+			return next(apiError);
+		}
+	},
+);
 
 // ---------- Events ----------
 router.get(

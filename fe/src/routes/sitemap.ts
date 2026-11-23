@@ -97,15 +97,31 @@ async function buildSitemap() {
 
 	// Slug dinamis � tiap sumber gagal independen (satu mati tidak menggugurkan lain).
 	const results = await Promise.allSettled(
-		DYNAMIC_SOURCES.map((src) => apiRequest(src.endpoint)),
+		DYNAMIC_SOURCES.map(async (src) => {
+			const items: unknown[] = [];
+			let page = 1;
+			let lastPage = 1;
+
+			while (page <= lastPage && page <= 50) {
+				const separator = src.endpoint.includes("?") ? "&" : "?";
+				const data = await apiRequest(
+					`${src.endpoint}${separator}page=${page}`,
+				);
+				const pageItems = Array.isArray(data) ? data : data?.data || [];
+				items.push(...pageItems);
+				lastPage = Math.min(Number(data?.meta?.last_page) || 1, 50);
+				page += 1;
+			}
+
+			return { src, items };
+		}),
 	);
-	results.forEach((result, i) => {
+	results.forEach((result) => {
 		if (result.status !== "fulfilled") return;
-		const data = result.value;
-		const items = Array.isArray(data) ? data : data?.data || [];
-		const src = DYNAMIC_SOURCES[i];
+		const { src, items } = result.value;
 		for (const item of items) {
-			const slug = cleanSlug(item?.slug);
+			const record = item as { slug?: unknown } | null;
+			const slug = cleanSlug(record?.slug);
 			if (slug) push(`${src.base}/${slug}`, src.changefreq, src.priority);
 		}
 	});

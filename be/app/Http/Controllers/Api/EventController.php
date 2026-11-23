@@ -77,7 +77,6 @@ class EventController extends Controller
                 ],
             ]);
 
-
             /*
             |--------------------------------------------------------------------------
             | QUERY DASAR
@@ -86,7 +85,6 @@ class EventController extends Controller
 
             $query = Event::query()
                 ->where('status', 'published');
-
 
             /*
             |--------------------------------------------------------------------------
@@ -103,12 +101,11 @@ class EventController extends Controller
                     $q->where(
                         'judul',
                         'like',
-                        '%' . $search . '%'
+                        '%'.$search.'%'
                     );
 
                 });
             }
-
 
             /*
             |--------------------------------------------------------------------------
@@ -135,12 +132,11 @@ class EventController extends Controller
 
                         break;
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | MINGGU INI
-                    |--------------------------------------------------------------------------
-                    */
+                        /*
+                        |--------------------------------------------------------------------------
+                        | MINGGU INI
+                        |--------------------------------------------------------------------------
+                        */
 
                     case 'week':
 
@@ -159,12 +155,11 @@ class EventController extends Controller
 
                         break;
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | BULAN INI
-                    |--------------------------------------------------------------------------
-                    */
+                        /*
+                        |--------------------------------------------------------------------------
+                        | BULAN INI
+                        |--------------------------------------------------------------------------
+                        */
 
                     case 'month':
 
@@ -185,7 +180,6 @@ class EventController extends Controller
                 }
             }
 
-
             /*
             |--------------------------------------------------------------------------
             | FILTER TANGGAL CUSTOM - MULAI
@@ -200,7 +194,6 @@ class EventController extends Controller
                     $request->input('date_from')
                 );
             }
-
 
             /*
             |--------------------------------------------------------------------------
@@ -217,7 +210,6 @@ class EventController extends Controller
                 );
             }
 
-
             /*
             |--------------------------------------------------------------------------
             | ORDER EVENT
@@ -230,7 +222,6 @@ class EventController extends Controller
             $query
                 ->orderBy('tanggal', 'asc')
                 ->orderBy('waktu_mulai', 'asc');
-
 
             /*
             |--------------------------------------------------------------------------
@@ -246,7 +237,6 @@ class EventController extends Controller
             $events = $query->paginate(
                 $perPage
             );
-
 
             /*
             |--------------------------------------------------------------------------
@@ -284,7 +274,6 @@ class EventController extends Controller
 
             ], 200);
 
-
         } catch (ValidationException $e) {
 
             return response()->json([
@@ -299,17 +288,15 @@ class EventController extends Controller
 
             ], 422);
 
-
         } catch (\Throwable $e) {
 
             Log::error(
-                'Event index error: ' . $e->getMessage(),
+                'Event index error: '.$e->getMessage(),
                 [
                     'request' => $request->only(['search', 'filter', 'start_date', 'end_date', 'page', 'per_page']),
                     'trace' => $e->getTraceAsString(),
                 ]
             );
-
 
             return response()->json([
 
@@ -322,7 +309,6 @@ class EventController extends Controller
             ], 500);
         }
     }
-
 
     /**
      * Menampilkan detail event berdasarkan slug.
@@ -342,7 +328,6 @@ class EventController extends Controller
                 ->where('status', 'published')
                 ->firstOrFail();
 
-
             /*
             |--------------------------------------------------------------------------
             | RESPONSE
@@ -359,7 +344,6 @@ class EventController extends Controller
 
             ], 200);
 
-
         } catch (ModelNotFoundException $e) {
 
             return response()->json([
@@ -372,17 +356,15 @@ class EventController extends Controller
 
             ], 404);
 
-
         } catch (\Throwable $e) {
 
             Log::error(
-                'Event show error: ' . $e->getMessage(),
+                'Event show error: '.$e->getMessage(),
                 [
                     'slug' => $slug,
                     'trace' => $e->getTraceAsString(),
                 ]
             );
-
 
             return response()->json([
 

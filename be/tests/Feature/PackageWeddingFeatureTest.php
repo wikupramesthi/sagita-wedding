@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Admin\QuotationController;
 use App\Models\Package\Package;
 use App\Models\Package\PackageAddon;
 use App\Models\Package\PackageBlackoutDate;
@@ -9,17 +10,15 @@ use App\Models\Package\PackageFeature;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
 use App\Models\Payment\Order;
+use App\Models\User;
 use App\Models\WebsiteIdentity;
-use App\Http\Controllers\Admin\QuotationController;
-use Illuminate\Http\Request;
 use App\Notifications\OrderBalanceDueNotification;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Notification;
-use App\Models\User;
 use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -204,6 +203,25 @@ class PackageWeddingFeatureTest extends TestCase
             ]);
 
         $this->assertDatabaseMissing('packages', ['slug' => 'paket-addon-diskon']);
+    }
+
+    public function test_named_addon_requires_price_on_update(): void
+    {
+        $package = $this->createPackage('Paket Addon Tanpa Harga', 'paket-addon-tanpa-harga', 5000000, null, 100);
+        $payload = $this->packagePayload('Paket Addon Tanpa Harga', 5000000);
+        $payload['addons'][0]['price'] = null;
+        $payload['addons'][0]['discount_price'] = null;
+
+        $this->actingAs($this->admin)
+            ->put(route('packages.update', $package->uuid), $payload)
+            ->assertSessionHasErrors([
+                'addons.0.price' => 'Harga layanan tambahan wajib diisi.',
+            ]);
+
+        $this->assertDatabaseMissing('package_addons', [
+            'package_uuid' => $package->uuid,
+            'name' => 'Dekorasi tambahan',
+        ]);
     }
 
     public function test_member_catalog_shows_wedding_copy_and_filters_guests_and_budget(): void
@@ -816,7 +834,7 @@ class PackageWeddingFeatureTest extends TestCase
 
         $package = $this->createPackage('Paket Pratinjau', 'paket-pratinjau', 5000000, null, 150);
 
-        $view = (new QuotationController())->preview(Request::create('/'), $package->uuid);
+        $view = (new QuotationController)->preview(Request::create('/'), $package->uuid);
         $data = $view->getData();
 
         $this->assertSame('pages.package.quotation-preview', $view->name());

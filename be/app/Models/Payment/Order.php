@@ -307,4 +307,3 @@ class Order extends Model
             })->orderBy('paid_at')->orderBy('created_at');
     }
 }
-

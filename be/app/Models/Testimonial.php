@@ -11,11 +11,12 @@ class Testimonial extends Model
     use HasFactory;
 
     protected $primaryKey = 'uuid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = ['uuid', 'nama', 'jabatan', 'isi_testimoni', 'urutan', 'foto', 'is_active'];
-
 
     protected static function boot()
     {

@@ -65,9 +65,9 @@ class Package extends Model
         return $query->where(function ($query) {
             $query->where(function ($query) {
                 $query->whereNotNull('guest_capacity')
-                ->orWhereNotNull('event_duration_hours')
-                ->orWhereNotNull('venue_note')
-                ->orWhereNotNull('cover_url');
+                    ->orWhereNotNull('event_duration_hours')
+                    ->orWhereNotNull('venue_note')
+                    ->orWhereNotNull('cover_url');
             })->orWhere(function ($query) {
                 $query->whereRaw('LOWER(COALESCE(name, "")) NOT LIKE ?', ['%membership%'])
                     ->whereRaw('LOWER(COALESCE(name, "")) NOT LIKE ?', ['%keanggotaan%'])

@@ -28,6 +28,7 @@ class MemberView
         $query = request()->query('view');
         if ($query === 'mobile' || $query === 'desktop') {
             session(['member_view' => $query]);
+
             return $query === 'mobile';
         }
 

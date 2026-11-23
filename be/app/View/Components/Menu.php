@@ -2,10 +2,10 @@
 
 namespace App\View\Components;
 
+use App\Models\ManagementAccess\MenuGroup;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
-use App\Models\ManagementAccess\MenuGroup;
 
 class Menu extends Component
 {
@@ -20,7 +20,7 @@ class Menu extends Component
     /**
      * Get the view / contents that represent the component.
      */
-    public function render() : View|Closure|string
+    public function render(): View|Closure|string
     {
         $menus = MenuGroup::query()
             ->with('items', function ($query) {
@@ -29,6 +29,7 @@ class Menu extends Component
             ->where('status', true)
             ->orderBy('position')
             ->get();
+
         return view('components.web.sidebar', compact('menus'));
     }
 }

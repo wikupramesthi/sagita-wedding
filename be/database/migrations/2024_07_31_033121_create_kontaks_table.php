@@ -24,7 +24,7 @@ return new class extends Migration
                 'in_progress',
                 'resolved',
                 'closed',
-                'rejected'
+                'rejected',
             ])->default('open');
             $table->timestamps();
         });

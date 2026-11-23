@@ -18,7 +18,7 @@ class FileDownloadApiController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $query->latest()->get()
+            'data' => $query->latest()->get(),
         ]);
     }
 
@@ -26,16 +26,16 @@ class FileDownloadApiController extends Controller
     {
         $item = FileDownload::find($id);
 
-        if (!$item) {
+        if (! $item) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Data not found'
+                'message' => 'Data not found',
             ], 404);
         }
 
         return response()->json([
             'status' => 'success',
-            'data' => $item
+            'data' => $item,
         ]);
     }
 }

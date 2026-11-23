@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Consultation;
 use App\Mail\ConsultationReceivedMail;
+use App\Models\Consultation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;

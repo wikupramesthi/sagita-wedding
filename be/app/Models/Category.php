@@ -4,26 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+use RalphJSmit\Laravel\SEO\SchemaCollection;
 use RalphJSmit\Laravel\SEO\Support\HasSEO;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
-use RalphJSmit\Laravel\SEO\SchemaCollection;
-use RalphJSmit\Laravel\SEO\Facades\SEO;
-use Illuminate\Support\Str;
-
 
 class Category extends Model
 {
     use HasFactory, HasSEO;
 
     protected $primaryKey = 'uuid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
-    protected $fillable = ['uuid', 'name', 'slug','description','icon'];
+    protected $fillable = ['uuid', 'name', 'slug', 'description', 'icon'];
 
     public function articles()
     {
-            return $this->hasMany(Article::class, 'category_uuid', 'uuid');
+        return $this->hasMany(Article::class, 'category_uuid', 'uuid');
 
     }
 
@@ -48,5 +48,4 @@ class Category extends Model
             }
         });
     }
-    
 }

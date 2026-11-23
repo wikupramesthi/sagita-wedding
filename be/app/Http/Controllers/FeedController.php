@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use GuzzleHttp\Client;
-use Illuminate\Http\Request;
 
 class FeedController extends Controller
 {
     public function index()
     {
-        $client = new Client();
+        $client = new Client;
         $response = $client->get('https://blog.rumahdewi.com/wp-json/wp/v2/posts?per_page=5');
         $posts = json_decode($response->getBody()->getContents(), true);
 
@@ -21,7 +20,6 @@ class FeedController extends Controller
                 $post['image_url'] = $mediaData['source_url'] ?? '';
             }
         }
-
 
         return view('feed.index', ['posts' => $posts]);
     }

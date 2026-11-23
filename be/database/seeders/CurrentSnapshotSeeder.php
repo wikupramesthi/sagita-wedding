@@ -108,6 +108,7 @@ class CurrentSnapshotSeeder extends Seeder
             if ($char === "'" || $char === '"') {
                 $quote = $char;
                 $buffer .= $char;
+
                 continue;
             }
 
@@ -119,6 +120,7 @@ class CurrentSnapshotSeeder extends Seeder
                 }
 
                 $buffer = '';
+
                 continue;
             }
 

@@ -772,6 +772,10 @@
         box-shadow: 0 12px 32px rgba(0, 0, 0, .16);
     }
 
+    #main-content .konsultasi-table-shell {
+        overflow-x: clip !important;
+    }
+
     #main-content .table-responsive .lead-table {
         width: 100% !important;
         min-width: 0 !important;
@@ -785,7 +789,7 @@
     #main-content .lead-table .badge {
         display: inline-flex;
         align-items: center;
-        font-size: .72rem !important;
+        font-size: 11px !important;
         line-height: 1.2 !important;
         padding: .3em .5em !important;
         white-space: nowrap !important;

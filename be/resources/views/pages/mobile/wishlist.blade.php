@@ -230,12 +230,6 @@
             $quotationParams['option_uuid'] = $firstOption->uuid;
         }
 
-        $quotationAddons = $package->addons->take(2)->pluck('uuid')->filter()->all();
-
-        if ($quotationAddons) {
-            $quotationParams['addon_uuids'] = $quotationAddons;
-        }
-
         if (request('event_date')) {
             $quotationParams['event_date'] = request('event_date');
         }

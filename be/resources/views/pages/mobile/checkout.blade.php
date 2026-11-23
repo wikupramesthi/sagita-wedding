@@ -293,6 +293,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
         <div class="app-card overflow-hidden mt-3 mb-4">
 
+            <p id="addonDependencyNote" class="small text-warning px-4 mb-2 d-none" role="status"></p>
+
             @foreach($package->addons as $addon)
 
             @php
@@ -311,7 +313,11 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                     name="addon_uuids[]"
                     form="checkoutForm"
                     value="{{ $addon->uuid }}"
-                    data-addon-price="{{ $addonFinalPrice }}">
+                    data-addon-uuid="{{ $addon->uuid }}"
+                    data-addon-name="{{ $addon->name }}"
+                    data-addon-price="{{ $addonFinalPrice }}"
+                    data-requires-addon-uuid="{{ $addon->requires_addon_uuid ?? '' }}"
+                    data-requires-addon-name="{{ $package->addons->firstWhere('uuid', $addon->requires_addon_uuid)?->name ?? '' }}">
 
                 <span class="flex-fill">
 
@@ -340,6 +346,12 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                     @if($addon->description)
                     <span class="small text-muted2 d-block mt-1" style="line-height:1.5">
                         {{ $addon->description }}
+                    </span>
+                    @endif
+
+                    @if($addon->requires_addon_uuid && $package->addons->firstWhere('uuid', $addon->requires_addon_uuid))
+                    <span class="small text-warning d-block mt-1">
+                        Memerlukan {{ $package->addons->firstWhere('uuid', $addon->requires_addon_uuid)?->name }}
                     </span>
                     @endif
 
@@ -2067,9 +2079,41 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         });
 
 
+        const addonDependencyNote =
+            document.getElementById('addonDependencyNote');
+
         addons.forEach(addon => {
 
             addon.addEventListener('change', function() {
+
+                const requiredUuid =
+                    this.dataset.requiresAddonUuid || '';
+
+                if (this.checked && requiredUuid) {
+                    const required = Array.from(addons).find(
+                        item => item.dataset.addonUuid === requiredUuid
+                    );
+
+                    if (required && !required.checked) {
+                        required.checked = true;
+
+                        if (addonDependencyNote) {
+                            addonDependencyNote.textContent =
+                                this.dataset.requiresAddonName
+                                    ? 'Layanan ' + this.dataset.addonName + ' otomatis menambahkan ' + this.dataset.requiresAddonName + '.'
+                                    : 'Layanan pendukung otomatis ditambahkan.';
+                            addonDependencyNote.classList.remove('d-none');
+                        }
+                    }
+                }
+
+                if (!this.checked) {
+                    Array.from(addons)
+                        .filter(item => item.dataset.requiresAddonUuid === this.dataset.addonUuid)
+                        .forEach(item => {
+                            item.checked = false;
+                        });
+                }
 
                 updateSummary();
 

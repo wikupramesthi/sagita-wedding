@@ -36,7 +36,7 @@ return new class extends Migration
         $seenKeys = [];
 
         foreach ($pendingOrders as $order) {
-            $key = $order->user_uuid . '|' . $order->package_option_uuid;
+            $key = $order->user_uuid.'|'.$order->package_option_uuid;
 
             if (isset($seenKeys[$key])) {
                 continue;
@@ -53,7 +53,5 @@ return new class extends Migration
         }
     }
 
-    public function down(): void
-    {
-    }
+    public function down(): void {}
 };

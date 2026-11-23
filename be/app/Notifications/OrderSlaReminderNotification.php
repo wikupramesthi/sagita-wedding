@@ -25,8 +25,8 @@ class OrderSlaReminderNotification extends Notification
     {
         return [
             'judul_kegiatan' => 'Pesanan menunggu terlalu lama',
-            'message' => $this->orderNumber . ' — ' . $this->customerName
-                . ' sudah menunggu verifikasi sekitar ' . $this->hours . ' jam.',
+            'message' => $this->orderNumber.' — '.$this->customerName
+                .' sudah menunggu verifikasi sekitar '.$this->hours.' jam.',
             'path' => route('orders.show', $this->orderUuid, false),
             'icon' => 'bi-hourglass-split',
         ];

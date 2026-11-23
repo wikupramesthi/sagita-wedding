@@ -25,7 +25,7 @@ class EventResource extends JsonResource
                 ? (Str::startsWith($this->gambar, ['http://', 'https://'])
                     ? $this->gambar
                     : (Storage::disk('public')->exists($this->gambar)
-                        ? asset('storage/' . $this->gambar)
+                        ? asset('storage/'.$this->gambar)
                         : null))
                 : null,
             'tanggal' => $this->tanggal

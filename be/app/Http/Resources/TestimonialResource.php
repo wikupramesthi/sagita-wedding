@@ -18,8 +18,8 @@ class TestimonialResource extends JsonResource
             'id' => $this->uuid,
             'nama' => $this->nama,
             'jabatan' => $this->jabatan,
-            'foto'    => $this->foto
-                ? url('storage/' . $this->foto)
+            'foto' => $this->foto
+                ? url('storage/'.$this->foto)
                 : url('images/default.png'),
             'isi_testimoni' => $this->isi_testimoni,
             'status' => $this->is_active,

@@ -4,8 +4,8 @@ namespace App\Models;
 
 use App\Models\Package\Package;
 use App\Models\Payment\Order;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 
 class UserPackage extends Model
 {

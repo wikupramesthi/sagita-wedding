@@ -20,7 +20,7 @@ class PageResource extends JsonResource
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
             'content' => $this->content,
-            'featured_image' => $this->featured_image ? asset('storage/' . $this->featured_image) : null,
+            'featured_image' => $this->featured_image ? asset('storage/'.$this->featured_image) : null,
             'is_published' => (bool) $this->is_published,
             'published_at' => $this->published_at ? $this->published_at->format('Y-m-d H:i:s') : null,
             'has_sidebar' => (bool) $this->has_sidebar,

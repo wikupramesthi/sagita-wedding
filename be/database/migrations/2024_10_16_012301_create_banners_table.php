@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('deskripsi')->nullable();
             $table->string('link');
             $table->string('gambar');
-            $table->enum('posisi', ['slider','pengumuman','infografis','prestasi','popup','mitra', 'lainnya']);
+            $table->enum('posisi', ['slider', 'pengumuman', 'infografis', 'prestasi', 'popup', 'mitra', 'lainnya']);
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });

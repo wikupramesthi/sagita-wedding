@@ -14,9 +14,9 @@ class Authenticate extends Middleware
     {
         // return $request->expectsJson() ? null : route('login');
         if (! $request->expectsJson()) {
-        return redirect('/login')->getTargetUrl();
-    }
+            return redirect('/login')->getTargetUrl();
+        }
 
-    return null;
+        return null;
     }
 }

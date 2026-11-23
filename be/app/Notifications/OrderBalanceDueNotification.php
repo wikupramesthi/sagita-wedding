@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -36,7 +37,7 @@ class OrderBalanceDueNotification extends Notification implements ShouldQueue
 
     public function toWhatsApp(object $notifiable): array
     {
-        $due = $this->dueAt ? \Carbon\Carbon::parse($this->dueAt)->translatedFormat('d F Y') : 'segera';
+        $due = $this->dueAt ? Carbon::parse($this->dueAt)->translatedFormat('d F Y') : 'segera';
         $amount = 'Rp '.number_format($this->remainingAmount, 0, ',', '.');
         $message = 'Pengingat '.$this->orderNumber.': sisa '.$amount.', jatuh tempo '.$due.'. Bayar via '.route('orders.show', $this->orderUuid);
 
@@ -55,7 +56,7 @@ class OrderBalanceDueNotification extends Notification implements ShouldQueue
                 'orderNumber' => $this->orderNumber,
                 'remainingAmount' => $this->remainingAmount,
                 'dueLabel' => $this->dueAt
-                    ? \Carbon\Carbon::parse($this->dueAt)->translatedFormat('d F Y')
+                    ? Carbon::parse($this->dueAt)->translatedFormat('d F Y')
                     : 'Segera',
                 'installmentAmount' => $this->installmentAmount,
                 'installmentLabel' => $this->installmentLabel,
@@ -66,18 +67,18 @@ class OrderBalanceDueNotification extends Notification implements ShouldQueue
 
     public function toArray(object $notifiable): array
     {
-        $due = $this->dueAt ? \Carbon\Carbon::parse($this->dueAt)->translatedFormat('d F Y') : null;
-        $message = 'Sisa pembayaran ' . $this->orderNumber . ' sebesar Rp ' . number_format($this->remainingAmount, 0, ',', '.');
+        $due = $this->dueAt ? Carbon::parse($this->dueAt)->translatedFormat('d F Y') : null;
+        $message = 'Sisa pembayaran '.$this->orderNumber.' sebesar Rp '.number_format($this->remainingAmount, 0, ',', '.');
         if ($this->installmentAmount !== null) {
-            $message .= '. ' . ($this->installmentLabel ?: 'Termin pembayaran') . ' Rp ' . number_format($this->installmentAmount, 0, ',', '.') . ' jatuh tempo ' . ($due ?: 'segera') . ' (pengingat H-' . $this->reminderDays . ')';
+            $message .= '. '.($this->installmentLabel ?: 'Termin pembayaran').' Rp '.number_format($this->installmentAmount, 0, ',', '.').' jatuh tempo '.($due ?: 'segera').' (pengingat H-'.$this->reminderDays.')';
         } elseif ($due) {
-            $message .= ' jatuh tempo ' . $due;
+            $message .= ' jatuh tempo '.$due;
         }
 
         return [
             'type' => 'order_balance_due',
             'title' => $this->installmentAmount !== null ? 'Pengingat Cicilan' : 'Pengingat Pelunasan',
-            'message' => $message . '.',
+            'message' => $message.'.',
             'icon' => 'bi-alarm',
             'url' => route('orders.show', $this->orderUuid),
             'order_uuid' => $this->orderUuid,

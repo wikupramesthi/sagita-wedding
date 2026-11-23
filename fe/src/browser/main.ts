@@ -11,6 +11,7 @@
  */
 
 import { $, lockScroll, onAction, unlockScroll } from "./lib/dom";
+import "./lib/sita-chat";
 
 /* ---------- 1. navbar ---------- */
 
@@ -144,6 +145,45 @@ function openBooking(trigger: HTMLElement) {
 	const m = $("bookingModal");
 	if (!m) return;
 	bookingTrigger = trigger;
+
+	const packageUuid = trigger.dataset.packageUuid;
+	const packageSlug = trigger.dataset.packageSlug;
+	const primary = document.getElementById(
+		"bookingPrimaryAction",
+	) as HTMLAnchorElement | null;
+	const login = document.getElementById(
+		"googleLoginBtn",
+	) as HTMLAnchorElement | null;
+
+	if (primary) {
+		const defaultHref = primary.dataset.defaultHref || "/venues";
+		const defaultLabel = primary.dataset.defaultLabel || primary.textContent;
+		const label = (trigger.textContent || "").trim();
+
+		if (packageUuid) {
+			const backendBase = (m.dataset.backendBaseUrl || "").replace(/\/$/, "");
+			primary.href = `${backendBase}/backend/checkout/package/${encodeURIComponent(packageUuid)}`;
+			primary.textContent = label || defaultLabel || "";
+		} else {
+			primary.href = defaultHref;
+			primary.textContent = defaultLabel || "";
+		}
+	}
+
+	if (login) {
+		const baseHref = login.dataset.baseHref || login.href;
+		const loginUrl = new URL(baseHref, window.location.origin);
+
+		if (packageSlug) {
+			loginUrl.searchParams.set(
+				"redirect",
+				`${window.location.origin}/packages/${encodeURIComponent(packageSlug)}`,
+			);
+		}
+
+		login.href = loginUrl.toString();
+	}
+
 	m.classList.remove("hidden");
 	lockScroll();
 	m.querySelector<HTMLElement>(BOOKING_FOCUSABLE)?.focus();

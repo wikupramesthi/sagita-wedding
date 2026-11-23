@@ -4,21 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
+use RalphJSmit\Laravel\SEO\SchemaCollection;
 use RalphJSmit\Laravel\SEO\Support\HasSEO;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
-use RalphJSmit\Laravel\SEO\SchemaCollection;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use RalphJSmit\Laravel\SEO\Facades\SEO;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-
 
 class Article extends Model
 {
     use HasFactory, HasSEO, SoftDeletes;
 
     protected $primaryKey = 'uuid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -35,13 +34,13 @@ class Article extends Model
         'video',
         'search_engine',
         'featured_image',
-        'views'
+        'views',
     ];
 
     protected $casts = [
         'scheduled_at' => 'datetime',
     ];
-    
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_uuid', 'uuid');
@@ -51,7 +50,7 @@ class Article extends Model
     {
         return $this->belongsTo(Category::class, 'category_uuid', 'uuid');
     }
-    
+
     public function scopePublished($query)
     {
         return $query->where(function ($q) {
@@ -71,7 +70,7 @@ class Article extends Model
 
     public function getDynamicSEOData(): SEOData
     {
-        Log::info('getDynamicSEOData called for Article ID: ' . $this->id);
+        Log::info('getDynamicSEOData called for Article ID: '.$this->id);
 
         return new SEOData(
             description: $this->excerpt,

@@ -10,5 +10,6 @@ class Helpdesk extends Model
     use HasFactory;
 
     protected $table = 'helpdesks';
+
     protected $guarded = ['id'];
 }

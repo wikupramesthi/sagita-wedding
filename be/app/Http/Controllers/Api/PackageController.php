@@ -126,7 +126,8 @@ class PackageController extends Controller
                 $query->whereHas(
                     'options',
                     function ($q) {
-                        $q->whereNull('quota');
+                        $q->whereNull('quota')
+                            ->where('is_active', true);
                     }
                 );
             }

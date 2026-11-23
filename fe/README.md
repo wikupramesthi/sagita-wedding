@@ -67,10 +67,27 @@ fe/
 Newsletter sengaja membalas 501, bukan sukses palsu, supaya klien tidak
 mengira aksi tersimpan.
 
+Widget Sita mencocokkan pertanyaan dengan FAQ, paket, venue, dan vendor dari database
+Sagita melalui service server-side yang sudah ada. Jawabannya berbasis aturan
+dan data, bukan layanan AI atau API pihak ketiga. Pesan chat tidak disimpan;
+nama dan nomor WhatsApp tetap di browser dan hanya ditambahkan ke draf WhatsApp
+setelah pengguna menyetujui dan memilih lanjut.
+
+- `POST /api/sita/chat` `{message, locale, context?: {topic, criteria?}}` → jawaban dari
+  data Sagita atau fallback yang mengarahkan pengguna ke admin. Konteks browser
+  hanya memuat topik dan kriteria yang diizinkan (anggaran, jumlah tamu, kota,
+  tanggal, dan kategori vendor); konteks tidak disimpan sebagai riwayat chat.
+  Tautan konsultasi dapat mengisi kriteria terkait melalui `sessionStorage`
+  sekali pakai, tanpa menyertakan teks percakapan atau data pribadi.
+  Pilihan “Layanan WO” menampilkan tautan ke `/formulir-konsultasi`.
+- `POST /api/telemetry` menerima event allowlist `sita.no_match`. Event ini hanya
+  mencatat nama event dan path tetap `/` sekali per halaman, tanpa pertanyaan
+  atau data pribadi.
+
 ## Testing
 
 ```bash
-npm test          # vitest run (95 test: unit validate + integrasi supertest)
+npm test          # vitest run (unit and integration suite)
 npm run typecheck # tsc server + browser
 npm run lint      # biome
 npm run build     # build CSS + bundle browser

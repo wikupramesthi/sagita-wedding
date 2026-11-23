@@ -8,6 +8,10 @@
 
 @push('after-style')
 <style>
+    #main-content .table-responsive {
+        overflow-x: clip !important;
+    }
+
     .duplicate-group .duplicate-value {
         overflow-wrap: anywhere;
     }

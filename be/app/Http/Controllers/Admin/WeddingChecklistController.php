@@ -20,7 +20,7 @@ class WeddingChecklistController extends Controller
         $orderModel = Order::packageOnly()->where('uuid', $order)->firstOrFail();
 
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string'],
             'due_at' => ['nullable', 'date'],
             'status' => ['nullable', 'in:pending,completed'],
@@ -64,7 +64,7 @@ class WeddingChecklistController extends Controller
         ];
 
         if ($isAdmin) {
-            $rules['title'] = ['sometimes', 'required', 'string', 'max:255'];
+            $rules['title'] = ['sometimes', 'required', 'string', 'max:120'];
             $rules['description'] = ['nullable', 'string'];
             $rules['due_at'] = ['nullable', 'date'];
         }

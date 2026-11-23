@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Venue extends Model
@@ -13,7 +13,9 @@ class Venue extends Model
     protected $table = 'venues';
 
     protected $primaryKey = 'uuid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -48,5 +50,4 @@ class Venue extends Model
             }
         });
     }
-
 }

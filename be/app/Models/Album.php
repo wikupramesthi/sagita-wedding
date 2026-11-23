@@ -11,10 +11,13 @@ class Album extends Model
     use HasFactory;
 
     protected $table = 'albums';
+
     protected $guarded = [];
 
     protected $primaryKey = 'uuid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     public function fotos()

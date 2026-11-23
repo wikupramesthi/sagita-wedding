@@ -15,21 +15,21 @@ class ArticleResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'uuid'          => $this->uuid,
-            'title'         => $this->title,
-            'slug'          => $this->slug,
-            'excerpt'       => $this->excerpt,
-            'content'       => $this->content,
-            'featured_image'    => $this->featured_image
-                ? url('storage/' . $this->featured_image)
+            'uuid' => $this->uuid,
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'excerpt' => $this->excerpt,
+            'content' => $this->content,
+            'featured_image' => $this->featured_image
+                ? url('storage/'.$this->featured_image)
                 : url('images/default.png'),
-            'scheduled_at'  => $this->scheduled_at,
-            'views'         => $this->views,
-            'link'          => $this->link,
-            'video'         => $this->video,
-            'author'        => $this->user?->name,
-            'category'      => $this->category?->name,
-            'created_at'    => $this->created_at->format('Y-m-d H:i:s'),
+            'scheduled_at' => $this->scheduled_at,
+            'views' => $this->views,
+            'link' => $this->link,
+            'video' => $this->video,
+            'author' => $this->user?->name,
+            'category' => $this->category?->name,
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
 }

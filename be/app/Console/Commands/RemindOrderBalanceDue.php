@@ -11,12 +11,13 @@ use Illuminate\Support\Facades\Log;
 class RemindOrderBalanceDue extends Command
 {
     protected $signature = 'orders:remind-balance-due';
+
     protected $description = 'Send installment reminders at H-30, H-7, and H-1';
 
     public function handle(): int
     {
         $orders = Order::packageOnly()
-            ->with(['user','package'])
+            ->with(['user', 'package'])
             ->where('status', 'partially_paid')
             ->get();
 

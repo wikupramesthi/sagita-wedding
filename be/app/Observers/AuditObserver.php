@@ -114,6 +114,6 @@ class AuditObserver
             }
         }
 
-        return class_basename($model) . ' #' . $model->getKey();
+        return class_basename($model).' #'.$model->getKey();
     }
 }

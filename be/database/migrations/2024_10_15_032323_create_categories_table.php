@@ -9,7 +9,7 @@ class CreateCategoriesTable extends Migration
     /**
      * Run the migrations.
      */
-      public function up(): void
+    public function up(): void
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->uuid('uuid')->primary();

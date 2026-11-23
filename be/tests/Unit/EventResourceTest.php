@@ -13,7 +13,7 @@ class EventResourceTest extends TestCase
     public function test_missing_event_image_is_omitted_and_valid_images_are_preserved(): void
     {
         Storage::fake('public');
-        $event = new Event();
+        $event = new Event;
         $request = Request::create('/');
 
         $event->gambar = 'events/missing.jpg';

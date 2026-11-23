@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Resources\PegawaiResource;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class PegawaiController extends Controller
 {
-
     public function index(): JsonResponse
     {
         try {
@@ -25,22 +25,22 @@ class PegawaiController extends Controller
                 return response()->json([
                     'status' => 'success',
                     'message' => 'No staff with teacher role currently available',
-                    'data' => []
+                    'data' => [],
                 ], 200);
             }
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Teaching staff data retrieved successfully',
-                'data' => PegawaiResource::collection($pegawai)
+                'data' => PegawaiResource::collection($pegawai),
             ], 200);
         } catch (\Throwable $e) {
-            Log::error('Pegawai fetch error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+            Log::error('Pegawai fetch error: '.$e->getMessage().' in '.$e->getFile().' on line '.$e->getLine());
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to fetch staff data',
-                'data' => []
+                'data' => [],
             ], 500);
         }
     }
@@ -48,8 +48,8 @@ class PegawaiController extends Controller
     public function show(string $uuid)
     {
         try {
-            if (! \Illuminate\Support\Str::isUuid($uuid)) {
-                throw new \Illuminate\Database\Eloquent\ModelNotFoundException();
+            if (! Str::isUuid($uuid)) {
+                throw new ModelNotFoundException;
             }
 
             $pegawai = User::where('uuid', $uuid)
@@ -61,20 +61,21 @@ class PegawaiController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Staff details retrieved successfully',
-                'data' => new PegawaiResource($pegawai)
+                'data' => new PegawaiResource($pegawai),
             ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Staff not found',
-                'data' => null
+                'data' => null,
             ], 404);
         } catch (\Throwable $e) {
-            Log::error('Pegawai show error: ' . $e->getMessage());
+            Log::error('Pegawai show error: '.$e->getMessage());
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'An error occurred while fetching staff data',
-                'data' => null
+                'data' => null,
             ], 500);
         }
     }

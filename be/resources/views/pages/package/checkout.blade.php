@@ -322,6 +322,8 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
                 <div class="card-body p-4">
 
+                    <p id="addonDependencyNote" class="small text-warning mb-2 d-none" role="status"></p>
+
                     @forelse ($package->addons ?? [] as $addon)
                     <label class="addon-option-item">
                         <input
@@ -329,7 +331,9 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                             class="addon-option form-check-input"
                             data-addon-uuid="{{ $addon->uuid }}"
                             data-addon-name="{{ $addon->name }}"
-                            data-addon-price="{{ (int) $addon->final_price }}">
+                            data-addon-price="{{ (int) $addon->final_price }}"
+                            data-requires-addon-uuid="{{ $addon->requires_addon_uuid ?? '' }}"
+                            data-requires-addon-name="{{ $package->addons->firstWhere('uuid', $addon->requires_addon_uuid)?->name ?? '' }}">
 
                         <span class="addon-option-body">
                             <span class="fw-semibold d-block">
@@ -339,6 +343,12 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                             @if ($addon->description)
                             <span class="text-muted small d-block">
                                 {{ $addon->description }}
+                            </span>
+                            @endif
+
+                            @if ($addon->requires_addon_uuid && $package->addons->firstWhere('uuid', $addon->requires_addon_uuid))
+                            <span class="text-warning small d-block mt-1">
+                                <i class="bi bi-link-45deg me-1"></i>Memerlukan {{ $package->addons->firstWhere('uuid', $addon->requires_addon_uuid)?->name }}
                             </span>
                             @endif
                         </span>
@@ -493,6 +503,22 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                             <div class="text-muted small mb-0">Pilih jumlah yang dibayar sekarang.</div>
                         </div>
                     </div>
+
+                    @if ($package->dp_percentage !== null || $package->payment_terms_note)
+                    <div class="checkout-payment-terms small text-muted mb-3">
+                        <div class="fw-semibold mb-1">Ketentuan Pembayaran Paket</div>
+
+                        @if ($package->dp_percentage !== null)
+                        <div class="mb-1">
+                            DP awal paket: <strong>{{ (int) $package->dp_percentage }}%</strong>.
+                        </div>
+                        @endif
+
+                        @if ($package->payment_terms_note)
+                        <div class="mb-0">{{ $package->payment_terms_note }}</div>
+                        @endif
+                    </div>
+                    @endif
 
                     <div class="checkout-scheme-options">
                         <label class="checkout-scheme-option">
@@ -2583,9 +2609,41 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
         }
 
 
+        const addonDependencyNote =
+            document.getElementById('addonDependencyNote');
+
         addonOptions.forEach(addon => {
 
             addon.addEventListener('change', function() {
+
+                const requiredUuid =
+                    this.dataset.requiresAddonUuid || '';
+
+                if (this.checked && requiredUuid) {
+                    const required = Array.from(addonOptions).find(
+                        item => item.dataset.addonUuid === requiredUuid
+                    );
+
+                    if (required && !required.checked) {
+                        required.checked = true;
+
+                        if (addonDependencyNote) {
+                            addonDependencyNote.textContent =
+                                this.dataset.requiresAddonName
+                                    ? 'Layanan ' + this.dataset.addonName + ' otomatis menambahkan ' + this.dataset.requiresAddonName + '.'
+                                    : 'Layanan pendukung otomatis ditambahkan.';
+                            addonDependencyNote.classList.remove('d-none');
+                        }
+                    }
+                }
+
+                if (!this.checked) {
+                    Array.from(addonOptions)
+                        .filter(item => item.dataset.requiresAddonUuid === this.dataset.addonUuid)
+                        .forEach(item => {
+                            item.checked = false;
+                        });
+                }
 
                 const selected =
                     document.querySelector(

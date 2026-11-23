@@ -22,7 +22,7 @@ class BannerController extends Controller
         // Albums: withCount + 2 photos for the collage cover (no full load).
         $fotos = Banner::where('tipe', 'foto')->withCount('albums')->orderBy('created_at', 'desc')->limit(6)->get();
         $videos = Banner::where('tipe', 'video')->orderBy('created_at', 'desc')->limit(6)->get();
-        $albums = Album::withCount('fotos')->with(['fotos' => fn($q) => $q->select('banner.uuid', 'banner.nama', 'banner.gambar')])
+        $albums = Album::withCount('fotos')->with(['fotos' => fn ($q) => $q->select('banner.uuid', 'banner.nama', 'banner.gambar')])
             ->orderBy('created_at', 'desc')->limit(6)->get();
         // Album options for the select in the photo form (lightweight, uuid+nama only)
         $albumOptions = Album::select('uuid', 'nama')->orderBy('nama')->limit(100)->get();
@@ -54,10 +54,10 @@ class BannerController extends Controller
         $limit = min(50, max(10, (int) $request->query('limit', 30)));
         $q = Banner::where('tipe', 'foto')->select('uuid', 'nama', 'gambar');
         if ($search !== '') {
-            $q->where('nama', 'like', '%' . $search . '%');
+            $q->where('nama', 'like', '%'.$search.'%');
         }
         $items = $q->orderBy('created_at', 'desc')->limit($limit)->get()
-            ->map(fn($b) => ['uuid' => $b->uuid, 'nama' => $b->nama, 'thumb' => $b->gambar()]);
+            ->map(fn ($b) => ['uuid' => $b->uuid, 'nama' => $b->nama, 'thumb' => $b->gambar()]);
 
         return response()->json(['data' => $items]);
     }
@@ -70,7 +70,7 @@ class BannerController extends Controller
     {
         $album = Album::where('uuid', $uuid)->firstOrFail();
         $fotos = $album->fotos()->select('banner.uuid', 'banner.nama', 'banner.gambar')->orderBy('banner.created_at', 'desc')->get()
-            ->map(fn($b) => ['uuid' => $b->uuid, 'nama' => $b->nama, 'thumb' => $b->gambar()]);
+            ->map(fn ($b) => ['uuid' => $b->uuid, 'nama' => $b->nama, 'thumb' => $b->gambar()]);
 
         return response()->json([
             'album' => ['uuid' => $album->uuid, 'nama' => $album->nama, 'deskripsi' => $album->deskripsi, 'count' => $fotos->count()],
@@ -221,7 +221,7 @@ class BannerController extends Controller
             $html = view('pages.banner.partials.cards-video', compact('items'))->render();
         } elseif ($tipe === 'album') {
             $count = Album::count();
-            $albums = Album::withCount('fotos')->with(['fotos' => fn($q) => $q->select('banner.uuid', 'banner.nama', 'banner.gambar')])
+            $albums = Album::withCount('fotos')->with(['fotos' => fn ($q) => $q->select('banner.uuid', 'banner.nama', 'banner.gambar')])
                 ->orderBy('created_at', 'desc')
                 ->offset($offset)
                 ->limit($limit + 1)
@@ -537,9 +537,9 @@ class BannerController extends Controller
             return $file->store($dir, 'public');
         }
 
-        $name = Str::random(40) . '.' . $ext;
-        Storage::disk('public')->put($dir . '/' . $name, $encoded);
+        $name = Str::random(40).'.'.$ext;
+        Storage::disk('public')->put($dir.'/'.$name, $encoded);
 
-        return $dir . '/' . $name;
+        return $dir.'/'.$name;
     }
 }

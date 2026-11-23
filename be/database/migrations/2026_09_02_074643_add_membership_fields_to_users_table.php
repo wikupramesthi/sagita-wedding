@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-     public function up(): void
+    public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
 
@@ -53,7 +53,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
 
             $table->dropForeign([
-                'package_uuid'
+                'package_uuid',
             ]);
 
             $table->dropColumn([

@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Resources\ArticleResource;
 use App\Http\Resources\CategoryResource;
 use App\Models\Article;
 use App\Models\Category;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class ArticleController extends Controller
@@ -25,17 +25,17 @@ class ArticleController extends Controller
                 ->get();
 
             return response()->json([
-                'status'  => 'success',
+                'status' => 'success',
                 'message' => 'Article list retrieved successfully',
-                'data'    => ArticleResource::collection($articles)
+                'data' => ArticleResource::collection($articles),
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Article fetch error: ' . $e->getMessage());
+            Log::error('Article fetch error: '.$e->getMessage());
 
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Failed to fetch articles',
-                'data'    => []
+                'data' => [],
             ], 500);
         }
     }
@@ -59,28 +59,28 @@ class ArticleController extends Controller
                 ->where('slug', $slug)
                 ->first();
 
-            if (!$article) {
+            if (! $article) {
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'Article not found',
-                    'data'    => null,
+                    'data' => null,
                 ], 404);
             }
 
             $article->increment('views');
 
             return response()->json([
-                'status'  => 'success',
+                'status' => 'success',
                 'message' => 'Article details retrieved successfully',
-                'data'    => new ArticleResource($article),
+                'data' => new ArticleResource($article),
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Article detail error: ' . $e->getMessage());
+            Log::error('Article detail error: '.$e->getMessage());
 
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Failed to fetch article details',
-                'data'    => null,
+                'data' => null,
             ], 500);
         }
     }
@@ -112,7 +112,7 @@ class ArticleController extends Controller
                 'data' => CategoryResource::collection($categories),
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Category fetch error: ' . $e->getMessage());
+            Log::error('Category fetch error: '.$e->getMessage());
 
             return response()->json([
                 'status' => 'error',
@@ -128,11 +128,11 @@ class ArticleController extends Controller
             // Find category
             $category = Category::where('slug', $slug)->first();
 
-            if (!$category) {
+            if (! $category) {
                 return response()->json([
-                    'status'  => 'error',
-                    'message' => 'Category with slug "' . $slug . '" not found',
-                    'data'    => []
+                    'status' => 'error',
+                    'message' => 'Category with slug "'.$slug.'" not found',
+                    'data' => [],
                 ], 404);
             }
 
@@ -147,24 +147,24 @@ class ArticleController extends Controller
 
             if ($articles->isEmpty()) {
                 return response()->json([
-                    'status'  => 'success',
-                    'message' => 'No articles yet in category "' . $slug . '"',
-                    'data'    => []
+                    'status' => 'success',
+                    'message' => 'No articles yet in category "'.$slug.'"',
+                    'data' => [],
                 ], 200);
             }
 
             return response()->json([
-                'status'  => 'success',
-                'message' => 'Articles in category "' . $slug . '" retrieved successfully',
-                'data'    => ArticleResource::collection($articles)
+                'status' => 'success',
+                'message' => 'Articles in category "'.$slug.'" retrieved successfully',
+                'data' => ArticleResource::collection($articles),
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Article by category fetch error: ' . $e->getMessage());
+            Log::error('Article by category fetch error: '.$e->getMessage());
 
             return response()->json([
-                'status'  => 'error',
-                'message' => 'Failed to fetch articles in category ' . $slug,
-                'data'    => []
+                'status' => 'error',
+                'message' => 'Failed to fetch articles in category '.$slug,
+                'data' => [],
             ], 500);
         }
     }

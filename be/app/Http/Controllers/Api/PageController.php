@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Resources\PageResource;
 use App\Models\Page;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
@@ -22,22 +22,22 @@ class PageController extends Controller
                 return response()->json([
                     'status' => 'success',
                     'message' => 'No pages available',
-                    'data' => []
+                    'data' => [],
                 ], 200);
             }
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Page data retrieved successfully',
-                'data' => PageResource::collection($pages)
+                'data' => PageResource::collection($pages),
             ], 200);
         } catch (\Throwable $e) {
-            Log::error('Page fetch error: ' . $e->getMessage());
+            Log::error('Page fetch error: '.$e->getMessage());
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to fetch page data',
-                'data' => []
+                'data' => [],
             ], 500);
         }
     }
@@ -52,23 +52,23 @@ class PageController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Page details retrieved successfully',
-                'data' => new PageResource($page)
+                'data' => new PageResource($page),
             ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Page not found',
-                'data' => null
+                'data' => null,
             ], 404);
         } catch (\Throwable $e) {
 
-            Log::error('Page show error: ' . $e->getMessage());
+            Log::error('Page show error: '.$e->getMessage());
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'An error occurred while fetching page details',
-                'data' => null
+                'data' => null,
             ], 500);
         }
     }

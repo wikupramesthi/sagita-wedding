@@ -28,5 +28,4 @@ class ConsultationFollowUpNotification extends Notification
             'icon' => 'bi-clock-history',
         ];
     }
-
 }

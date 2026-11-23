@@ -32,6 +32,7 @@ if (
 	whatsappConfirm
 ) {
 	const button = submitButton;
+	const consultationForm = form;
 	const captchaIdField = captchaId;
 	const captchaQuestionText = captchaQuestion;
 	const captchaCodeText = captchaCode;
@@ -142,6 +143,146 @@ if (
 			.join("\n")
 			.slice(0, 2000);
 	}
+
+	function isValidISODate(value: string): boolean {
+		const date = new Date(`${value}T00:00:00Z`);
+		return (
+			/^\d{4}-\d{2}-\d{2}$/.test(value) &&
+			!Number.isNaN(date.getTime()) &&
+			date.toISOString().slice(0, 10) === value
+		);
+	}
+
+	function applySitaPrefill(): void {
+		const key = "sita-consultation-prefill";
+		try {
+			const stored = sessionStorage.getItem(key);
+			if (!stored) return;
+			sessionStorage.removeItem(key);
+			const value: unknown = JSON.parse(stored);
+			if (!value || typeof value !== "object" || Array.isArray(value)) return;
+			const prefill = value as Record<string, unknown>;
+			const rawCriteria = prefill.criteria;
+			const criteria =
+				rawCriteria &&
+				typeof rawCriteria === "object" &&
+				!Array.isArray(rawCriteria)
+					? (rawCriteria as Record<string, unknown>)
+					: {};
+			const english = document.documentElement.lang === "en";
+			const topic =
+				prefill.topic === "packages" ||
+				prefill.topic === "venues" ||
+				prefill.topic === "vendors" ||
+				prefill.topic === "services"
+					? prefill.topic
+					: undefined;
+			const dateField = consultationForm.elements.namedItem("wedding_date");
+			if (
+				dateField instanceof HTMLInputElement &&
+				typeof criteria.eventDate === "string" &&
+				isValidISODate(criteria.eventDate)
+			) {
+				dateField.value = criteria.eventDate;
+			}
+			const cityField = consultationForm.elements.namedItem("wedding_city");
+			const city =
+				typeof criteria.city === "string"
+					? criteria.city.trim().slice(0, 100)
+					: "";
+			if (cityField instanceof HTMLInputElement && city) {
+				cityField.value = city;
+			}
+			const guestsField = consultationForm.elements.namedItem("guests");
+			const guestCount =
+				typeof criteria.guestCount === "number" &&
+				Number.isSafeInteger(criteria.guestCount) &&
+				criteria.guestCount > 0
+					? criteria.guestCount
+					: undefined;
+			if (
+				guestsField instanceof HTMLSelectElement &&
+				guestCount !== undefined
+			) {
+				const optionIndex =
+					guestCount < 100
+						? 1
+						: guestCount <= 300
+							? 2
+							: guestCount <= 500
+								? 3
+								: 4;
+				guestsField.selectedIndex = optionIndex;
+			}
+			const budgetField = consultationForm.elements.namedItem("budget");
+			const budgetLimit =
+				typeof criteria.budgetLimit === "number" &&
+				Number.isFinite(criteria.budgetLimit) &&
+				criteria.budgetLimit >= 0
+					? criteria.budgetLimit
+					: undefined;
+			if (
+				budgetField instanceof HTMLSelectElement &&
+				budgetLimit !== undefined
+			) {
+				const optionIndex =
+					budgetLimit < 100_000_000
+						? 1
+						: budgetLimit <= 250_000_000
+							? 2
+							: budgetLimit <= 500_000_000
+								? 3
+								: 4;
+				budgetField.selectedIndex = optionIndex;
+			}
+			if (topic) {
+				const serviceIndex =
+					topic === "packages" ? 3 : topic === "services" ? 0 : 2;
+				const serviceOptions =
+					consultationForm.querySelectorAll<HTMLInputElement>(
+						"input[name='services']",
+					);
+				if (serviceOptions[serviceIndex]) {
+					serviceOptions[serviceIndex].checked = true;
+				}
+			}
+			const details = [
+				english
+					? "Context shared with Sita:"
+					: "Kriteria dari percakapan dengan Sita:",
+				...(city ? [`${english ? "City" : "Kota"}: ${city}`] : []),
+				...(typeof criteria.eventDate === "string" &&
+				isValidISODate(criteria.eventDate)
+					? [
+							`${english ? "Estimated date" : "Perkiraan tanggal"}: ${criteria.eventDate}`,
+						]
+					: []),
+				...(guestCount !== undefined
+					? [
+							`${english ? "Estimated guests" : "Perkiraan tamu"}: ${new Intl.NumberFormat(english ? "en-US" : "id-ID").format(guestCount)}`,
+						]
+					: []),
+				...(budgetLimit !== undefined
+					? [
+							`${english ? "Maximum budget" : "Anggaran maksimum"}: ${new Intl.NumberFormat(english ? "en-US" : "id-ID").format(budgetLimit)}`,
+						]
+					: []),
+				...(typeof criteria.vendorCategory === "string"
+					? [
+							`${english ? "Vendor category" : "Kategori vendor"}: ${criteria.vendorCategory.slice(0, 60)}`,
+						]
+					: []),
+			];
+			const messageField = consultationForm.elements.namedItem("message");
+			if (messageField instanceof HTMLTextAreaElement && !messageField.value) {
+				messageField.value = details.join("\n").slice(0, 1200);
+			}
+		} catch (error) {
+			console.error("Could not apply Sita consultation criteria", error);
+		}
+	}
+
+	applySitaPrefill();
 
 	successDialog.addEventListener("cancel", (event) => {
 		event.preventDefault();

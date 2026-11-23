@@ -49,6 +49,7 @@ $canBulk = $canBulkUpdate || $canBulkDelete;
 
 $detailMeta = [
     'editUrl' => route('packages.edit', '__UUID__'),
+    'previewUrl' => route('packages.preview', '__UUID__'),
     'quotationUrl' => route('packages.quotation', ['package' => '__UUID__']),
     'downloadUrl' => route('packages.quotation.download', ['package' => '__UUID__']),
     'toggleUrl' => route('packages.toggle-status', '__UUID__'),
@@ -206,7 +207,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                         </select>
                     </div>
 
-                    @can('package.update')
+                    @can('package.index')
                     <a href="{{ route('packages.export', request()->except('page')) }}" class="btn btn-sm btn-outline-secondary ms-lg-auto">
                         <i class="bi bi-download me-1"></i>Ekspor CSV
                     </a>
@@ -276,7 +277,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             <div class="package-alert-title">Jumlah layanan terbatas</div>
             <div class="package-alert-text">
                 @foreach ($lowQuotaOptions->take(3) as $lowQuota)
-                <span><b>{{ $lowQuota['package'] }}</b> Â· {{ $lowQuota['option'] }}: {{ $lowQuota['quota'] }} tersisa</span>
+                <span><b>{{ $lowQuota['package'] }}</b> · {{ $lowQuota['option'] }}: {{ $lowQuota['quota'] }} tersisa</span>
                 @endforeach
                 @if ($lowQuotaOptions->count() > 3)
                 <span>dan {{ $lowQuotaOptions->count() - 3 }} opsi lainnya.</span>
@@ -333,8 +334,6 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                 <div class="d-flex align-items-center gap-2">
                                     @if ($package->cover_url)
                                     <img src="{{ $package->cover_url }}" alt="" class="pkg-cover">
-                                    @else
-                                    <span class="pkg-cover-fallback"><i class="bi bi-image"></i></span>
                                     @endif
                                     <div class="min-w-0">
                                         <div class="fw-semibold text-truncate pkg-name">{{ $package->name }}</div>
@@ -356,7 +355,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                         @else
                                         Rp {{ number_format($option->price, 0, ',', '.') }}
                                         @endif
-                                        · {{ $option->quota }}
+                                        · {{ $option->quota === null ? 'Tanpa batas' : $option->quota }}
                                     </div>
                                 </div>
                                 @empty
@@ -460,7 +459,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     <div class="package-list-subtitle">Tampilan kartu untuk meninjau paket lebih cepat.</div>
                 </div>
             </div>
-            <span class="badge bg-primary-subtle text-primary">{{ number_format($stats['total']) }} paket</span>
+            <span class="badge bg-primary-subtle text-primary">{{ number_format($packages->total()) }} paket</span>
         </div>
 
         <div class="card-body p-3">
@@ -588,7 +587,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                         </div>
                         <div class="package-card-quick-actions">
                             <button type="button" class="btn btn-sm btn-light" onclick="previewPackageQuotation('{{ $package->uuid }}')">
-                                <i class="bi bi-file-earmark-pdf me-1"></i>Penawaran
+                <i class="bi bi-file-earmark-text me-1"></i>Penawaran
                             </button>
                             <a href="{{ route('packages.preview', $package->uuid) }}" target="_blank" rel="noopener" class="btn btn-sm btn-light">
                                 <i class="bi bi-globe2 me-1"></i>Pratinjau
@@ -695,7 +694,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
 
     <div class="package-drawer-backdrop d-none" id="package-drawer-backdrop"></div>
 
-    <aside class="package-drawer d-none" id="package-drawer" role="dialog" aria-modal="true" aria-label="Detail paket">
+    <aside class="package-drawer d-none" id="package-drawer" role="dialog" aria-modal="true" aria-labelledby="package-drawer-title" tabindex="-1">
         <div class="package-drawer-head">
             <div>
                 <h6 class="package-drawer-title mb-0" id="package-drawer-title">Detail Paket</h6>
@@ -707,7 +706,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         <div class="package-drawer-footer">
             <button type="button" class="btn btn-sm btn-light" id="package-drawer-dismiss">Tutup</button>
             <button type="button" class="btn btn-sm btn-outline-secondary" id="package-drawer-quotation">
-                <i class="bi bi-file-earmark-pdf me-1"></i>Penawaran
+                <i class="bi bi-file-earmark-text me-1"></i>Penawaran
             </button>
             <a href="#" class="btn btn-sm btn-outline-secondary" id="package-drawer-preview" target="_blank" rel="noopener">
                 <i class="bi bi-globe2 me-1"></i>Pratinjau
@@ -827,7 +826,6 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .package-page .pkg-col-published { width: 10%; }
     .package-page .pkg-col-action { width: 7%; }
     .package-page .pkg-cover { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
-    .package-page .pkg-cover-fallback { width: 40px; height: 40px; display: grid; place-items: center; border: 1px dashed #d0d5dd; border-radius: 8px; background: #f9fafb; color: #98a2b3; flex-shrink: 0; font-size: 14px; }
     .package-page .pkg-name { max-width: 180px; }
     .package-page .package-sort-link { color: inherit; text-decoration: none; white-space: nowrap; }
     .package-page .package-sort-link:hover,
@@ -880,34 +878,26 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .package-page .flex-1 { flex: 1; }
 
     .package-drawer-backdrop { position: fixed; inset: 0; z-index: 1040; background: rgba(16,24,40,.42); backdrop-filter: blur(2px); }
-    .package-drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 1050; width: min(480px, 100vw); display: flex; flex-direction: column; background: #fff; box-shadow: -16px 0 40px rgba(16,24,40,.16); transform: translateX(100%); transition: transform .22s ease; }
+    .package-drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 1050; width: min(480px, 100vw); display: flex; flex-direction: column; overflow: hidden; background: #fff; box-shadow: -16px 0 40px rgba(16,24,40,.16); transform: translateX(100%); transition: transform .22s ease; }
     .package-drawer.show { transform: translateX(0); }
-    .package-page .package-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid #eef0f4; }
-    .package-page .package-drawer-title { font-size: 15px; font-weight: 700; color: #101828; }
-    .package-page .package-drawer-subtitle { font-size: 11px; color: #98a2b3; }
-    .package-page .package-drawer-body { flex: 1; overflow-y: auto; padding: 18px 20px; background: #fcfcfe; }
-    .package-page .package-drawer-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid #eef0f4; background: #fff; }
-    .package-page .package-drawer-footer .btn { flex: 1 1 auto; }
-    .package-page .package-drawer-gallery h6 { margin-bottom: 10px; }
-    .package-page .package-drawer-cover { width: 100%; height: 150px; object-fit: cover; border-radius: 12px; border: 1px solid #eef0f4; }
-    .package-page .package-drawer-gallery { margin-top: 0; }
-    .package-page .package-drawer-gallery-strip { display: flex; gap: 8px; margin-top: 8px; }
-    .package-page .package-drawer-thumb { width: 52px; height: 52px; display: grid; place-items: center; overflow: hidden; border: 1px solid #d0d5dd; border-radius: 10px; background: #f9fafb; color: #667085; }
-    .package-page .package-drawer-thumb.active { border-color: #4b6b52; box-shadow: 0 0 0 2px #eef3ee; }
-    .package-page .package-drawer-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .package-page .package-drawer-cover-empty { height: 90px; display: grid; place-items: center; border: 1px dashed #d0d5dd; border-radius: 12px; color: #98a2b3; background: #f9fafb; font-size: 22px; }
-    .package-page .package-drawer-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-    .package-page .package-drawer-description { margin-top: 12px; font-size: 13px; line-height: 1.6; color: #475467; }
-    .package-page .package-drawer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
-    .package-page .package-drawer-metric { padding: 10px 12px; border: 1px solid #eef0f4; border-radius: 10px; background: #fff; }
-    .package-page .package-drawer-metric-label { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #98a2b3; }
-    .package-page .package-drawer-metric-value { margin-top: 4px; font-size: 14px; font-weight: 700; color: #101828; }
-    .package-page .package-drawer-section { margin-top: 20px; }
-    .package-page .package-drawer-section h6 { font-size: 12px; font-weight: 700; color: #344054; text-transform: uppercase; letter-spacing: .04em; }
-    .package-page .package-drawer-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
-    .package-page .package-drawer-list li { padding: 10px 12px; border: 1px solid #eef0f4; border-radius: 10px; background: #fff; font-size: 12px; color: #475467; }
-    .package-page .package-drawer-list strong { display: block; color: #101828; font-size: 13px; }
-    .package-page .package-drawer-empty { margin-top: 8px; font-size: 12px; color: #98a2b3; }
+    .package-drawer-head { flex: 0 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid #eef0f4; }
+    .package-drawer-title { font-size: 15px; font-weight: 700; color: #101828; }
+    .package-drawer-subtitle { font-size: 11px; color: #98a2b3; }
+    .package-drawer-body { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 18px 20px; background: #fcfcfe; }
+    .package-drawer-footer { flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid #eef0f4; background: #fff; }
+    .package-drawer-footer .btn { flex: 0 0 auto; }
+    .package-drawer-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .package-drawer-description { margin-top: 12px; font-size: 13px; line-height: 1.6; color: #475467; }
+    .package-drawer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+    .package-drawer-metric { padding: 10px 12px; border: 1px solid #eef0f4; border-radius: 10px; background: #fff; }
+    .package-drawer-metric-label { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #98a2b3; }
+    .package-drawer-metric-value { margin-top: 4px; font-size: 14px; font-weight: 700; color: #101828; }
+    .package-drawer-section { margin-top: 20px; }
+    .package-drawer-section h6 { font-size: 12px; font-weight: 700; color: #344054; text-transform: uppercase; letter-spacing: .04em; }
+    .package-drawer-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+    .package-drawer-list li { padding: 10px 12px; border: 1px solid #eef0f4; border-radius: 10px; background: #fff; font-size: 12px; color: #475467; }
+    .package-drawer-list strong { display: block; color: #101828; font-size: 13px; }
+    .package-drawer-empty { margin-top: 8px; font-size: 12px; color: #98a2b3; }
     body.package-drawer-open { overflow: hidden; }
 
     @media (max-width: 1599.98px) {
@@ -949,7 +939,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         .package-page .package-pagination { width: 100%; }
         .package-page .package-pagination .pagination { justify-content: center; }
         .package-page .package-list-footer .card-body { gap: 12px; }
-        .package-page .package-drawer-grid { grid-template-columns: 1fr; }
+        .package-drawer-grid { grid-template-columns: 1fr; }
     }
 </style>
 
@@ -1154,9 +1144,12 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
 
     let packageDetailItems = [];
     let packageEditUrlTemplate = '';
+    let packagePreviewUrlTemplate = '';
     let packageQuotationUrlTemplate = '';
     let packageQuotationDownloadTemplate = '';
     let packageStatusUrlTemplate = '';
+    let packageDetailCloseTimer = null;
+    let packageDetailReturnFocus = null;
 
     try {
         packageDetailItems = JSON.parse(packageDetailData?.textContent || '[]');
@@ -1167,11 +1160,13 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     try {
         const meta = JSON.parse(packageDetailMeta?.textContent || '{}');
         packageEditUrlTemplate = meta.editUrl || '';
+        packagePreviewUrlTemplate = meta.previewUrl || '';
         packageQuotationUrlTemplate = meta.quotationUrl || '';
         packageQuotationDownloadTemplate = meta.downloadUrl || '';
         packageStatusUrlTemplate = meta.toggleUrl || '';
     } catch (error) {
         packageEditUrlTemplate = '';
+        packagePreviewUrlTemplate = '';
         packageQuotationUrlTemplate = '';
         packageQuotationDownloadTemplate = '';
         packageStatusUrlTemplate = '';
@@ -1190,6 +1185,30 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         return Number.isFinite(number) ? 'Rp ' + number.toLocaleString('id-ID') : '-';
     }
 
+    function formatPackageDate(value) {
+        if (!value) return '-';
+        const date = new Date(value);
+        return Number.isNaN(date.getTime())
+            ? '-'
+            : date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function promoValueHtml(promo) {
+        const value = Number(promo.value || 0);
+        if (promo.type === 'percent') return escapeHtml(value) + '%';
+        if (promo.type === 'fixed') return formatRupiah(value);
+        return escapeHtml(promo.value) + ' ' + escapeHtml(promo.type || '');
+    }
+
+    function promoIsActive(promo) {
+        if (!promo.is_active) return false;
+        if (!promo.starts_at && !promo.ends_at) return true;
+        const now = Date.now();
+        if (promo.starts_at && new Date(promo.starts_at).getTime() > now) return false;
+        if (promo.ends_at && new Date(promo.ends_at).getTime() < now) return false;
+        return true;
+    }
+
     function drawerMetric(label, value) {
         return '<div class="package-drawer-metric">'
             + '<div class="package-drawer-metric-label">' + escapeHtml(label) + '</div>'
@@ -1203,6 +1222,14 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         }
 
         return '<ul class="package-drawer-list">' + items.map(renderer).join('') + '</ul>';
+    }
+
+    function drawerSection(title, items, renderer) {
+        if (!items || !items.length) return '';
+
+        return '<div class="package-drawer-section"><h6>' + escapeHtml(title) + '</h6>'
+            + drawerList(items, renderer)
+            + '</div>';
     }
 
     function optionPriceHtml(option) {
@@ -1223,18 +1250,24 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         const item = packageDetailMap.get(uuid);
         if (!item || !packageDrawer || !packageDrawerBody) return;
 
+        if (packageDetailCloseTimer) {
+            window.clearTimeout(packageDetailCloseTimer);
+            packageDetailCloseTimer = null;
+        }
+
+        packageDetailReturnFocus = document.activeElement;
+
         const options = item.options || [];
+        const activeOptions = options.filter((option) => option.is_active !== false);
         const features = item.features || [];
         const addons = item.addons || [];
         const blackoutDates = item.blackout_dates || item.blackoutDates || [];
         const promos = item.promos || [];
-        const prices = options
+        const prices = activeOptions
             .map((option) => Number(option.discount_price ?? option.price))
             .filter((value) => Number.isFinite(value));
         const startingPrice = prices.length > 0 ? Math.min(...prices) : null;
-        const createdAt = item.created_at
-            ? new Date(item.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
-            : '-';
+        const createdAt = formatPackageDate(item.created_at);
 
         if (packageDrawerTitle) {
             packageDrawerTitle.textContent = item.name;
@@ -1245,31 +1278,14 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         if (packageDrawerEdit && packageEditUrlTemplate) {
             packageDrawerEdit.href = packageEditUrlTemplate.replace('__UUID__', uuid);
         }
-        if (packageDrawerPreview) {
-            packageDrawerPreview.href = '{{ route('packages.preview', '__UUID__') }}'.replace('__UUID__', uuid);
+        if (packageDrawerPreview && packagePreviewUrlTemplate) {
+            packageDrawerPreview.href = packagePreviewUrlTemplate.replace('__UUID__', uuid);
         }
         if (packageDrawerQuotation) {
             packageDrawerQuotation.dataset.uuid = uuid;
         }
 
         let html = '';
-
-        html += '<div class="package-drawer-section package-drawer-gallery"><h6>Galeri Foto</h6>';
-        if (item.cover_url) {
-            html += '<a href="' + escapeHtml(item.cover_url) + '" target="_blank" rel="noopener">'
-                + '<img src="' + escapeHtml(item.cover_url) + '" alt="Foto ' + escapeHtml(item.name)
-                + '" class="package-drawer-cover"></a>'
-                + '<div class="package-drawer-gallery-strip">'
-                + '<a href="' + escapeHtml(item.cover_url) + '" target="_blank" rel="noopener" class="package-drawer-thumb active">'
-                + '<img src="' + escapeHtml(item.cover_url) + '" alt="Foto utama ' + escapeHtml(item.name) + '"></a>'
-                + '<a href="' + escapeHtml(item.cover_url) + '" target="_blank" rel="noopener" class="package-drawer-thumb">'
-                + '<i class="bi bi-box-arrow-up-right"></i></a>'
-                + '</div>';
-        } else {
-            html += '<div class="package-drawer-cover-empty"><i class="bi bi-image"></i></div>'
-                + '<div class="package-drawer-empty">Belum ada foto paket.</div>';
-        }
-        html += '</div>';
 
         html += '<div class="package-drawer-badges">';
         html += item.is_active === 'active'
@@ -1289,57 +1305,94 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
 
         html += '<div class="package-drawer-grid">';
         html += drawerMetric('Harga mulai', startingPrice !== null ? formatRupiah(startingPrice) : '-');
+        html += drawerMetric('DP', item.dp_percentage !== null && item.dp_percentage !== undefined ? item.dp_percentage + '%' : '-');
         html += drawerMetric('Kapasitas', item.guest_capacity ? Number(item.guest_capacity).toLocaleString('id-ID') + ' tamu' : '-');
         html += drawerMetric('Durasi acara', item.event_duration_hours ? item.event_duration_hours + ' jam' : '-');
         html += drawerMetric('Lead time', item.lead_time_days !== null && item.lead_time_days !== undefined ? item.lead_time_days + ' hari' : '-');
-        html += drawerMetric('Jumlah opsi', options.length + ' opsi');
+        html += drawerMetric('Jumlah opsi', activeOptions.length + ' opsi');
         html += drawerMetric('Publikasi', item.is_published ? 'Dipublikasikan' : 'Draft');
         html += '</div>';
+
+        if (item.payment_terms_note) {
+            html += '<div class="package-drawer-section"><h6>Syarat Pembayaran</h6>'
+                + '<p class="package-drawer-description">' + escapeHtml(item.payment_terms_note) + '</p></div>';
+        }
 
         if (item.venue_note) {
             html += '<div class="package-drawer-section"><h6>Catatan Venue</h6>'
                 + '<p class="package-drawer-description">' + escapeHtml(item.venue_note) + '</p></div>';
         }
 
-        html += '<div class="package-drawer-section"><h6>Opsi Paket</h6>'
-            + drawerList(options, function (option) {
-                const unit = { day: 'hari', week: 'minggu', month: 'bulan', year: 'tahun' }[option.duration_unit] || option.duration_unit || '';
-                return '<li><strong>' + escapeHtml(option.name) + '</strong>'
-                    + optionPriceHtml(option)
-                    + '<div class="small text-muted mt-1">Kuota ' + escapeHtml(option.quota)
-                    + ' Â· ' + escapeHtml(option.duration) + ' ' + escapeHtml(unit) + '</div></li>';
-            })
-            + '</div>';
+        html += drawerSection('Opsi Paket', options, function (option) {
+            const unit = { day: 'hari', week: 'minggu', month: 'bulan', year: 'tahun' }[option.duration_unit] || option.duration_unit || '';
+            const quota = option.quota === null || option.quota === undefined
+                ? 'Tanpa batas'
+                : 'Kuota ' + escapeHtml(option.quota);
+            const duration = option.duration
+                ? escapeHtml(option.duration) + ' ' + escapeHtml(unit)
+                : '';
+            const details = [quota, duration].filter(Boolean).join(' · ');
 
-        html += '<div class="package-drawer-section"><h6>Fitur</h6>'
-            + drawerList(features, function (feature) {
-                return '<li>' + escapeHtml(feature.feature) + '</li>';
-            })
-            + '</div>';
+            return '<li><strong>' + escapeHtml(option.name)
+                + (option.is_active === false ? '<span class="badge bg-light text-muted ms-2">Nonaktif</span>' : '')
+                + '</strong>'
+                + optionPriceHtml(option)
+                + (details ? '<div class="small text-muted mt-1">' + details + '</div>' : '')
+                + '</li>';
+        });
 
-        html += '<div class="package-drawer-section"><h6>Layanan Tambahan</h6>'
-            + drawerList(addons, function (addon) {
-                return '<li><strong>' + escapeHtml(addon.name) + '</strong>'
-                    + (addon.price !== null && addon.price !== undefined ? formatRupiah(addon.price) : '')
-                    + (addon.description ? '<div class="small text-muted mt-1">' + escapeHtml(addon.description) + '</div>' : '')
-                    + '</li>';
-            })
-            + '</div>';
+        html += drawerSection('Fitur', features, function (feature) {
+            return '<li>'
+                + (feature.category ? '<span class="badge bg-light text-muted me-2">' + escapeHtml(feature.category) + '</span>' : '')
+                + escapeHtml(feature.feature)
+                + '</li>';
+        });
 
-        html += '<div class="package-drawer-section"><h6>Tanggal Terkunci</h6>'
-            + drawerList(blackoutDates, function (date) {
-                return '<li>' + escapeHtml(date.date)
-                    + (date.reason ? ' Â· ' + escapeHtml(date.reason) : '') + '</li>';
-            })
-            + '</div>';
+        html += drawerSection('Layanan Tambahan', addons, function (addon) {
+            const details = [];
 
-        html += '<div class="package-drawer-section"><h6>Promo</h6>'
-            + drawerList(promos, function (promo) {
-                return '<li><strong>' + escapeHtml(promo.code) + '</strong>'
-                    + ' Â· ' + escapeHtml(promo.type) + ' ' + escapeHtml(promo.value)
-                    + (promo.is_active ? ' Â· Aktif' : ' Â· Nonaktif') + '</li>';
-            })
-            + '</div>';
+            if (addon.description) details.push(escapeHtml(addon.description));
+            if (addon.min_quantity !== null && addon.min_quantity !== undefined) details.push('Min ' + escapeHtml(addon.min_quantity));
+            if (addon.max_quantity !== null && addon.max_quantity !== undefined) details.push('Maks ' + escapeHtml(addon.max_quantity));
+            if (addon.requires_addon_uuid) details.push('Butuh layanan lain');
+
+            return '<li><strong>' + escapeHtml(addon.name)
+                + (addon.is_active === false ? '<span class="badge bg-light text-muted ms-2">Nonaktif</span>' : '')
+                + '</strong>'
+                + (addon.price !== null && addon.price !== undefined ? optionPriceHtml(addon) : '')
+                + (details.length ? '<div class="small text-muted mt-1">' + details.join(' · ') + '</div>' : '')
+                + '</li>';
+        });
+
+        html += drawerSection('Tanggal Terkunci', blackoutDates, function (date) {
+            return '<li>' + escapeHtml(date.date)
+                + (date.reason ? ' · ' + escapeHtml(date.reason) : '') + '</li>';
+        });
+
+        html += drawerSection('Promo', promos, function (promo) {
+            const active = promoIsActive(promo);
+            const details = [];
+
+            if (promo.min_purchase !== null && promo.min_purchase !== undefined) details.push('Min belanja ' + formatRupiah(promo.min_purchase));
+            if (promo.max_discount !== null && promo.max_discount !== undefined) details.push('Maks diskon ' + formatRupiah(promo.max_discount));
+            if (promo.max_uses !== null && promo.max_uses !== undefined) details.push('Kuota ' + escapeHtml(promo.max_uses));
+
+            const period = promo.starts_at || promo.ends_at
+                ? '<div class="small text-muted mt-1">'
+                    + (promo.starts_at ? 'Mulai ' + formatPackageDate(promo.starts_at) : 'Tanpa awal')
+                    + ' · '
+                    + (promo.ends_at ? 'Sampai ' + formatPackageDate(promo.ends_at) : 'Tanpa akhir')
+                    + '</div>'
+                : '';
+
+            return '<li><strong>' + escapeHtml(promo.code)
+                + '<span class="badge ' + (active ? 'bg-success' : 'bg-light text-muted') + ' ms-2">'
+                + (active ? 'Aktif' : 'Nonaktif') + '</span></strong>'
+                + '<div class="small fw-semibold mt-1">' + promoValueHtml(promo) + '</div>'
+                + (details.length ? '<div class="small text-muted mt-1">' + details.join(' · ') + '</div>' : '')
+                + period
+                + '</li>';
+        });
 
         packageDrawerBody.innerHTML = html;
         packageDrawerBackdrop?.classList.remove('d-none');
@@ -1347,6 +1400,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         document.body.classList.add('package-drawer-open');
         requestAnimationFrame(function () {
             packageDrawer.classList.add('show');
+            packageDrawer.focus();
         });
     }
 
@@ -1361,9 +1415,12 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         }
 
         const modalElement = document.getElementById('packageQuotationModal');
-        if (modalElement && window.bootstrap) {
+        if (modalElement && window.bootstrap?.Modal) {
             window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            return;
         }
+
+        window.open(packageQuotationUrl(uuid), '_blank', 'noopener');
     }
 
     function packageQuotationUrl(uuid) {
@@ -1457,13 +1514,19 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     });
 
     function closePackageDetail() {
-        if (!packageDrawer) return;
+        if (!packageDrawer || packageDrawer.classList.contains('d-none')) return;
 
         packageDrawer.classList.remove('show');
-        setTimeout(function () {
+        packageDetailCloseTimer = window.setTimeout(function () {
             packageDrawer.classList.add('d-none');
             packageDrawerBackdrop?.classList.add('d-none');
             document.body.classList.remove('package-drawer-open');
+            packageDetailCloseTimer = null;
+
+            if (packageDetailReturnFocus && document.contains(packageDetailReturnFocus)) {
+                packageDetailReturnFocus.focus();
+            }
+            packageDetailReturnFocus = null;
         }, 220);
     }
 
@@ -1472,6 +1535,25 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     packageDrawerBackdrop?.addEventListener('click', closePackageDetail);
 
     document.addEventListener('keydown', function (event) {
+        const drawerOpen = packageDrawer && !packageDrawer.classList.contains('d-none');
+
+        if (event.key === 'Tab' && drawerOpen) {
+            const focusable = packageDrawer.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+            if (!focusable.length) return;
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+            return;
+        }
+
         if (event.key !== 'Escape') return;
         if (document.querySelector('.modal.show')) return;
         closePackageDetail();

@@ -8,6 +8,7 @@ use App\Models\UserPackage;
 use App\Notifications\OrderExpiredNotification;
 use App\Services\EventDateReservationService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ExpireStaleRecords extends Command
@@ -53,7 +54,7 @@ class ExpireStaleRecords extends Command
             $processed = 0;
 
             foreach ($staleOrders as $order) {
-                $expired = \Illuminate\Support\Facades\DB::transaction(function () use ($order, $reservations): bool {
+                $expired = DB::transaction(function () use ($order, $reservations): bool {
                     $locked = Order::packageOnly()
                         ->where('uuid', $order->uuid)
                         ->lockForUpdate()
@@ -98,7 +99,7 @@ class ExpireStaleRecords extends Command
                 try {
                     $order->user?->notify(new OrderExpiredNotification($order->order_number));
                 } catch (\Throwable $e) {
-                    Log::warning('Order expiry notification failed for ' . $order->order_number . ': ' . $e->getMessage());
+                    Log::warning('Order expiry notification failed for '.$order->order_number.': '.$e->getMessage());
                 }
             }
 
@@ -115,7 +116,7 @@ class ExpireStaleRecords extends Command
         $message = "Expired {$expiredOrders} orders and {$expiredPackages} memberships.";
 
         $this->info($message);
-        Log::info('records:expire: ' . $message);
+        Log::info('records:expire: '.$message);
 
         return self::SUCCESS;
     }

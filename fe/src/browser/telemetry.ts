@@ -1,10 +1,21 @@
-type TelemetryPayload = {
-	kind: "error" | "vital";
-	name: string;
-	value?: number;
-	path: string;
-	message?: string;
-};
+type TelemetryPayload =
+	| {
+			kind: "error";
+			name: string;
+			path: string;
+			message: string;
+	  }
+	| {
+			kind: "vital";
+			name: string;
+			path: string;
+			value: number;
+	  }
+	| {
+			kind: "event";
+			name: "sita.no_match";
+			path: "/";
+	  };
 
 const ENDPOINT = "/api/telemetry";
 const seen = new Set<string>();
@@ -63,6 +74,11 @@ function reportVital(name: string, value: number) {
 		path: location.pathname,
 	});
 }
+
+window.addEventListener("sita:no-match", () => {
+	if (!once("event:sita.no_match")) return;
+	send({ kind: "event", name: "sita.no_match", path: "/" });
+});
 
 window.addEventListener("error", (event) => {
 	reportError(event.message || "Error", event.message || "unknown");

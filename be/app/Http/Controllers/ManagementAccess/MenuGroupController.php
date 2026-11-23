@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\ManagementAccess;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ManagementAccess\StoreMenuGroupRequest;
 use App\Http\Requests\ManagementAccess\UpdateMenuGroupRequest;
-use Spatie\Permission\Models\Permission;
 use App\Models\ManagementAccess\MenuGroup;
+use Spatie\Permission\Models\Permission;
 
 class MenuGroupController extends Controller
 {
@@ -44,11 +43,12 @@ class MenuGroupController extends Controller
     {
         MenuGroup::create(array_merge(
             $request->all(),
-            array(
+            [
                 'status' => ! blank($request->status) ? true : false,
-                'position' => MenuGroup::max('position') + 1
-            ),
+                'position' => MenuGroup::max('position') + 1,
+            ],
         ));
+
         return back()->with('success', 'Menu berhasil ditambahkan!');
     }
 

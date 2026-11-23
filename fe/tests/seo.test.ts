@@ -123,9 +123,15 @@ const SEO_ROUTES = [
 beforeEach(() => {
 	vi.clearAllMocks();
 	apiRequestMock.mockImplementation(async (path: string) => {
-		if (path === "/packages?per_page=50") return [{ slug: "paket-uji" }];
-		if (path === "/articles") return [{ slug: "panduan-venue" }];
-		if (path === "/pages") return [{ slug: "tentang" }];
+		const page = Number(
+			new URL(`http://localhost${path}`).searchParams.get("page") ?? 1,
+		);
+		if (path.startsWith("/packages?"))
+			return page === 1
+				? { data: [{ slug: "paket-uji" }], meta: { last_page: 2 } }
+				: { data: [{ slug: "paket-uji-2" }], meta: { last_page: 2 } };
+		if (path.startsWith("/articles")) return [{ slug: "panduan-venue" }];
+		if (path.startsWith("/pages")) return [{ slug: "tentang" }];
 		return [];
 	});
 });
@@ -194,6 +200,9 @@ describe("audit SEO lintas halaman", () => {
 		expect(sitemap.text).toContain("<loc>http://localhost:3000/blog</loc>");
 		expect(sitemap.text).toContain(
 			"<loc>http://localhost:3000/packages/paket-uji</loc>",
+		);
+		expect(sitemap.text).toContain(
+			"<loc>http://localhost:3000/packages/paket-uji-2</loc>",
 		);
 		expect(sitemap.text).toContain(
 			"<loc>http://localhost:3000/blog/panduan-venue</loc>",

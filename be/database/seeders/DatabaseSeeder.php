@@ -11,5 +11,6 @@ class DatabaseSeeder extends Seeder
         $this->call(CurrentSnapshotSeeder::class);
         $this->call(AdminWeddingOpsSeeder::class);
         $this->call(WeddingPackageCleanupSeeder::class);
+        $this->call(WeddingBrandCleanupSeeder::class);
     }
 }

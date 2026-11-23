@@ -869,15 +869,22 @@
 
                                     <div class="col-md-4">
                                         <label class="form-label">
-                                            Butuh Layanan (0 = pertama)
+                                            Butuh Layanan Lainnya
                                         </label>
 
-                                        <input type="number"
-                                            name="addons[0][requires_addon_index]"
-                                            class="form-control"
-                                            value="{{ old('addons.0.requires_addon_index') }}"
-                                            min="0"
-                                            placeholder="Contoh: 0">
+                                        <select name="addons[0][requires_addon_index]"
+                                            class="form-select">
+                                            <option value="">Tidak ada</option>
+
+                                            @foreach ($addonRows as $dependencyIndex => $dependency)
+                                            @if ($dependencyIndex !== 0 && ! blank($dependency->name))
+                                            <option value="{{ $dependencyIndex }}"
+                                                {{ (string) old('addons.0.requires_addon_index') === (string) $dependencyIndex ? 'selected' : '' }}>
+                                                {{ $dependency->name }}
+                                            </option>
+                                            @endif
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                             </div>

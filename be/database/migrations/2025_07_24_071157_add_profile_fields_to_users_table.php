@@ -25,7 +25,7 @@ return new class extends Migration
                 'Hindu',
                 'Buddha',
                 'Konghucu',
-                'Lainnya'
+                'Lainnya',
             ])->nullable();
             $table->string('jabatan')->nullable();
             $table->timestamp('is_active')->nullable();
@@ -33,7 +33,7 @@ return new class extends Migration
                 'asn',
                 'honorer',
                 'magang',
-                'lainnya'
+                'lainnya',
             ])->nullable();
             $table->string('file_pendukung')->nullable();
             $table->foreign('kecamatan_id')->references('id')->on('kecamatans')->onDelete('set null');
@@ -59,7 +59,7 @@ return new class extends Migration
                 'alamat',
                 'file_pendukung',
                 'kecamatan_id',
-                'kelurahan_id'
+                'kelurahan_id',
             ]);
         });
     }

@@ -14,16 +14,16 @@ class BannerResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-         return [
-            'uuid'      => $this->uuid,
-            'nama'      => $this->nama,
+        return [
+            'uuid' => $this->uuid,
+            'nama' => $this->nama,
             'deskripsi' => $this->deskripsi,
-            'link'      => $this->link && preg_match('#^(https?://|/(?!/))#i', $this->link) ? $this->link : null,
-            'gambar'    => $this->gambar
-                                ? url('storage/' . $this->gambar)
+            'link' => $this->link && preg_match('#^(https?://|/(?!/))#i', $this->link) ? $this->link : null,
+            'gambar' => $this->gambar
+                                ? url('storage/'.$this->gambar)
                                 : url('images/default.png'),
-            'posisi'    => $this->posisi,
-            'status'    => $this->status,
+            'posisi' => $this->posisi,
+            'status' => $this->status,
         ];
     }
 }

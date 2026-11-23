@@ -2,8 +2,8 @@
 
 namespace App\Models\Payment;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
@@ -11,9 +11,11 @@ class Payment extends Model
     use HasUuids;
 
     protected $table = 'payments';
+
     protected $primaryKey = 'uuid';
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

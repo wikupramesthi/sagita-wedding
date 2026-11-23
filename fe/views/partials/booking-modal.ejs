@@ -1,6 +1,6 @@
 <%# Modal booking — diekstrak dari footer agar footer hanya berisi footer %>
 <%# `user` diisi appLocals dari backend GET /auth/me (null = anonim) %>
-<div id="bookingModal" role="dialog" aria-modal="true" aria-label="Booking" class="fixed inset-0 z-[60] hidden">
+<div id="bookingModal" role="dialog" aria-modal="true" aria-label="Booking" data-backend-base-url="<%= contactLinks.backendBaseUrl %>" class="fixed inset-0 z-[60] hidden">
   <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" data-action="close-booking"></div>
   <div class="relative max-w-md mx-auto mt-[10vh] bg-white rounded-[24px] p-6 shadow-2xl m-4">
     <button type="button" data-action="close-booking" class="absolute right-4 top-4 w-8 h-8 rounded-full bg-sage-50 grid place-items-center" aria-label="<%= t.closeModal || 'Close' %>">✕</button>
@@ -23,7 +23,7 @@
       </div>
 
       <div class="mt-4 flex flex-col gap-2">
-        <a href="/venues" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-sage-700 text-white font-medium transition-colors hover:bg-sage-800">
+        <a id="bookingPrimaryAction" data-default-href="/venues" data-default-label="<%= t.nav.venues %>" href="/venues" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-sage-700 text-white font-medium transition-colors hover:bg-sage-800">
           <%= t.nav.venues %>
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
         </a>
@@ -41,6 +41,7 @@
       <div id="preAuthState" class="mt-5">
         <a
           id="googleLoginBtn"
+          data-base-href="<%= contactLinks.googleAuthUrl %>"
           href="<%= contactLinks.googleAuthUrl %>"
           class="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-stone-200 bg-white font-medium text-stone-700 hover:bg-stone-50 transition"
         >

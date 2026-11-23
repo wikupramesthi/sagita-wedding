@@ -139,7 +139,7 @@ test('dashboard highlights konsultasi tanpa card lama', async ({ page }) => {
 
     await page.goto('/backend/dashboard');
     await expect(page.getByText('Pipeline konsultasi')).toBeVisible();
-    await expect(page.getByText('Calon Konsumen Baru')).toBeVisible();
+    await expect(page.getByText('Lead baru')).toBeVisible();
     const statHeight = await page.locator('.dashboard-stat-grid').evaluate((el) => el.getBoundingClientRect().height);
     expect(statHeight).toBeLessThan(420);
     await expect(page.getByText('Kategori vendor aktif')).toHaveCount(0);
@@ -173,6 +173,6 @@ test('dashboard highlights konsultasi tanpa card lama', async ({ page }) => {
     await expect(page.locator('.dashboard-details-fold')).not.toHaveAttribute('open', '');
     await page.locator('.dashboard-details-summary').click();
     await expect(page.getByText('Pipeline konsultasi')).toBeVisible();
-    await expect(page.getByText('Calon Konsumen Baru')).toBeVisible();
+    await expect(page.getByText('Lead baru')).toBeVisible();
     await expectNoHorizontalScroll(page, 'dashboard mobile', { allowAutoContainers: true });
 });

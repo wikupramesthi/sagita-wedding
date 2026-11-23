@@ -6,6 +6,14 @@
 <x-breadcrumb title="Impor Konsultasi" page="Konsultasi" active="Konsultasi" route="{{ route('konsultasi.index') }}" />
 @endsection
 
+@push('after-style')
+<style>
+    #main-content .table-responsive {
+        overflow-x: clip !important;
+    }
+</style>
+@endpush
+
 <section class="section">
     <div class="alert alert-info border-0 shadow-sm d-flex align-items-start gap-3 mb-3">
         <i class="bx bx-import fs-4 mt-1"></i>

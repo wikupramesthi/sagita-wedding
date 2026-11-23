@@ -13,7 +13,7 @@ class TestimonialController extends Controller
     /**
      * Display a listing of the resource.
      */
-     public function index(): JsonResponse
+    public function index(): JsonResponse
     {
         try {
             $testimoni = Testimonial::where('is_active', 'active')
@@ -23,7 +23,7 @@ class TestimonialController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Testimonial list retrieved successfully',
-                'data' => TestimonialResource::collection($testimoni)
+                'data' => TestimonialResource::collection($testimoni),
             ], 200);
 
         } catch (\Exception $e) {
@@ -33,7 +33,7 @@ class TestimonialController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to fetch testimonials',
-                'data' => []
+                'data' => [],
             ], 500);
         }
     }

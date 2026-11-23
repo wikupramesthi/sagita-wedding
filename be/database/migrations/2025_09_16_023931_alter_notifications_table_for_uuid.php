@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-         Schema::table('notifications', function (Blueprint $table) {
+        Schema::table('notifications', function (Blueprint $table) {
             $table->bigInteger('notifiable_id')->change();
         });
     }

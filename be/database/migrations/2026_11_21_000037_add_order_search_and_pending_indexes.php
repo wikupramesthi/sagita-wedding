@@ -25,7 +25,7 @@ return new class extends Migration
         $seenKeys = [];
 
         foreach ($pendingOrders as $order) {
-            $key = $order->user_uuid . '|' . $order->package_option_uuid;
+            $key = $order->user_uuid.'|'.$order->package_option_uuid;
 
             if (isset($seenKeys[$key])) {
                 DB::table('orders')->where('uuid', $order->uuid)->update(['pending_key' => null]);
@@ -87,7 +87,7 @@ return new class extends Migration
     {
         try {
             $callback();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
         }
     }
 };

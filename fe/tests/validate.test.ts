@@ -10,6 +10,7 @@ import {
 	validateBooking,
 	validateContact,
 	validateNewsletter,
+	validateSitaChat,
 } from "../src/utils/validate.js";
 
 const statusOf = (fn: () => unknown) => {
@@ -225,5 +226,63 @@ describe("validateNewsletter", () => {
 			email: "a@b.co",
 		});
 		expect(statusOf(() => validateNewsletter({ email: "nope" }))).toBe(400);
+	});
+});
+
+describe("validateSitaChat", () => {
+	it("requires a bounded question and normalizes the locale", () => {
+		expect(
+			validateSitaChat({ message: "Paket wedding", locale: "en" }),
+		).toEqual({
+			message: "Paket wedding",
+			locale: "en",
+		});
+		expect(
+			validateSitaChat({
+				message: "yang di Jakarta",
+				context: {
+					topic: "venues",
+					criteria: {
+						city: "Jakarta",
+						eventDate: "2027-06-15",
+						guestCount: 250,
+					},
+				},
+			}),
+		).toEqual({
+			message: "yang di Jakarta",
+			locale: "id",
+			context: {
+				topic: "venues",
+				criteria: {
+					city: "Jakarta",
+					eventDate: "2027-06-15",
+					guestCount: 250,
+				},
+			},
+		});
+		expect(statusOf(() => validateSitaChat({ message: "" }))).toBe(400);
+		expect(statusOf(() => validateSitaChat({ message: "a".repeat(501) }))).toBe(
+			400,
+		);
+		expect(
+			statusOf(() =>
+				validateSitaChat({
+					message: "yang di Jakarta",
+					context: { topic: "secrets" },
+				}),
+			),
+		).toBe(400);
+		expect(
+			statusOf(() =>
+				validateSitaChat({
+					message: "yang di Jakarta",
+					context: {
+						topic: "venues",
+						criteria: { guestCount: 250, message: "full chat history" },
+					},
+				}),
+			),
+		).toBe(400);
 	});
 });

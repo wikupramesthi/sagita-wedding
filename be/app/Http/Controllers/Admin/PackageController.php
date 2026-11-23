@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PackageController extends Controller
 {
@@ -32,7 +33,8 @@ class PackageController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        $statsRow = (clone $query)
+        $statsRow = Package::query()
+            ->reorder()
             ->selectRaw("COUNT(*) as total, COALESCE(SUM(CASE WHEN is_active = 'active' THEN 1 ELSE 0 END), 0) as active, COALESCE(SUM(CASE WHEN is_active = 'inactive' THEN 1 ELSE 0 END), 0) as inactive, COALESCE(SUM(CASE WHEN is_popular = 1 THEN 1 ELSE 0 END), 0) as popular, COALESCE(SUM(CASE WHEN is_published = 1 THEN 1 ELSE 0 END), 0) as published, COALESCE(SUM(CASE WHEN is_published = 0 THEN 1 ELSE 0 END), 0) as draft")
             ->first();
 
@@ -517,7 +519,9 @@ class PackageController extends Controller
      */
     public function show(string $uuid)
     {
-        //
+        Package::where('uuid', $uuid)->firstOrFail();
+
+        return redirect()->route('packages.edit', $uuid);
     }
 
     /**
@@ -931,7 +935,6 @@ class PackageController extends Controller
                     'duration' => $option['duration'],
                     'duration_unit' => $option['duration_unit'],
                     'sort_order' => $index,
-                    'is_active' => true,
                 ];
 
                 if ($uuid && $existingOptions->has($uuid)) {
@@ -942,7 +945,7 @@ class PackageController extends Controller
                 }
 
                 $created = PackageOption::create(array_merge(
-                    ['uuid' => (string) Str::uuid()],
+                    ['uuid' => (string) Str::uuid(), 'is_active' => true],
                     $attributes
                 ));
                 $submittedOptionUuids[] = $created->uuid;
@@ -1001,13 +1004,12 @@ class PackageController extends Controller
      */
     public function destroy($uuid)
     {
+        $package = Package::where('uuid', $uuid)
+            ->firstOrFail();
+
         DB::beginTransaction();
 
         try {
-
-            $package = Package::where('uuid', $uuid)
-                ->firstOrFail();
-
             $package->delete();
 
             DB::commit();
@@ -1120,7 +1122,8 @@ class PackageController extends Controller
         } elseif ($request->filter === 'unlimited') {
 
             $query->whereHas('options', function ($query) {
-                $query->whereNull('quota');
+                $query->whereNull('quota')
+                    ->where('is_active', true);
             });
         }
 
@@ -1133,7 +1136,7 @@ class PackageController extends Controller
 
                 $packages = $packages->sortBy(function ($package) {
                     return $package->options->min(
-                        fn ($option) => $option->discount_price ?? $option->price
+                        fn ($option) => $this->finalOptionPrice($option)
                     );
                 });
 
@@ -1143,7 +1146,7 @@ class PackageController extends Controller
 
                 $packages = $packages->sortByDesc(function ($package) {
                     return $package->options->max(
-                        fn ($option) => $option->discount_price ?? $option->price
+                        fn ($option) => $this->finalOptionPrice($option)
                     );
                 });
 
@@ -1380,6 +1383,7 @@ class PackageController extends Controller
         } else {
             $value = ! $package->is_published;
             $package->update([
+                'is_active' => $value ? 'active' : $package->is_active,
                 'is_published' => $value,
                 'published_at' => $value ? Carbon::now() : null,
             ]);
@@ -1425,7 +1429,7 @@ class PackageController extends Controller
 
     public function export(Request $request)
     {
-        abort_unless(auth()->user()?->can('package.update'), 404);
+        abort_unless(auth()->user()?->can('package.index'), 404);
 
         $context = $this->packageListContext($request);
         extract($context);
@@ -1452,11 +1456,7 @@ class PackageController extends Controller
             ], ';', '"', '\\');
 
             foreach ($packages as $package) {
-                $prices = $package->options->map(fn ($option) => (int) (
-                    $option->discount_price !== null && $option->discount_price < $option->price
-                        ? $option->discount_price
-                        : $option->price
-                ));
+                $prices = $package->options->map(fn ($option) => $this->finalOptionPrice($option));
                 $quotas = $package->options
                     ->filter(fn ($option) => $option->quota !== null)
                     ->pluck('quota');
@@ -1504,10 +1504,21 @@ class PackageController extends Controller
         };
 
         $currentUuids = $model::where('package_uuid', $package->uuid)->pluck('uuid')->all();
-        $providedUuids = array_values(array_unique($validated['uuids']));
+        $providedUuids = array_values($validated['uuids']);
 
-        if (array_diff($providedUuids, $currentUuids)) {
-            return response()->json(['message' => 'Urutan tidak valid.'], 422);
+        if (count($providedUuids) !== count(array_unique($providedUuids))) {
+            throw ValidationException::withMessages([
+                'uuids' => 'Urutan tidak valid.',
+            ]);
+        }
+
+        sort($currentUuids);
+        sort($providedUuids);
+
+        if ($providedUuids !== $currentUuids) {
+            throw ValidationException::withMessages([
+                'uuids' => 'Urutan tidak valid.',
+            ]);
         }
 
         DB::transaction(function () use ($model, $package, $validated) {
@@ -1569,20 +1580,25 @@ class PackageController extends Controller
         }
 
         if ($quota_type === 'unlimited') {
-            $query->whereDoesntHave('options', function ($query) {
-                $query->whereNotNull('quota');
+            $query->whereHas('options', function ($query) {
+                $query->whereNull('quota')
+                    ->where('is_active', true);
+            })->whereDoesntHave('options', function ($query) {
+                $query->whereNotNull('quota')
+                    ->where('is_active', true);
             });
         }
 
         if ($quota_type === 'limited') {
             $query->whereHas('options', function ($query) {
-                $query->whereNotNull('quota');
+                $query->whereNotNull('quota')
+                    ->where('is_active', true);
             });
         }
 
         if ($sort === 'price') {
             $query->orderByRaw(
-                '(select min(coalesce(po.discount_price, po.price)) from package_options po where po.package_uuid = packages.uuid) '.$direction
+                '(select min(case when po.discount_price is not null and po.discount_price < po.price then po.discount_price else po.price end) from package_options po where po.package_uuid = packages.uuid) '.$direction
             );
         } else {
             $query->orderBy($sort, $direction);
@@ -1632,6 +1648,15 @@ class PackageController extends Controller
         return $candidate;
     }
 
+    private function finalOptionPrice($option): int
+    {
+        return (int) (
+            $option->discount_price !== null && $option->discount_price < $option->price
+                ? $option->discount_price
+                : $option->price
+        );
+    }
+
     private function csvCell($value): string
     {
         $value = trim((string) $value);
@@ -1670,7 +1695,9 @@ class PackageController extends Controller
                 continue;
             }
 
-            if (
+            if (blank($addon['price'] ?? null)) {
+                $errors["addons.$index.price"] = 'Harga layanan tambahan wajib diisi.';
+            } elseif (
                 isset($addon['discount_price']) &&
                 $addon['discount_price'] !== null &&
                 $addon['discount_price'] >= $addon['price']
@@ -1767,7 +1794,7 @@ class PackageController extends Controller
             }
 
             $startsAt = $this->parseDateTime($promo['starts_at'] ?? null);
-            $endsAt = $this->parseDateTime($promo['ends_at'] ?? null);
+            $endsAt = $this->parseDateTime($promo['ends_at'] ?? null, true);
 
             if ($startsAt && $endsAt && $endsAt->lt($startsAt)) {
                 $errors["promos.$index.ends_at"] = 'Tanggal akhir harus lebih besar atau sama dengan tanggal awal.';
@@ -1826,22 +1853,24 @@ class PackageController extends Controller
         ];
     }
 
-    private function parseDateTime($value)
+    private function parseDateTime($value, bool $endOfDay = false)
     {
         if (blank($value)) {
             return null;
         }
 
         try {
-            return Carbon::parse($value);
+            $date = Carbon::parse($value);
+
+            return $endOfDay ? $date->endOfDay() : $date;
         } catch (\Throwable $exception) {
             return null;
         }
     }
 
-    private function formatDateTime($value)
+    private function formatDateTime($value, bool $endOfDay = false)
     {
-        $date = $this->parseDateTime($value);
+        $date = $this->parseDateTime($value, $endOfDay);
 
         return $date ? $date->format('Y-m-d H:i:s') : null;
     }
@@ -1869,6 +1898,7 @@ class PackageController extends Controller
                 'max_quantity' => $addon['max_quantity'] ?? null,
                 'sort_order' => $sortOrder++,
                 'is_active' => true,
+                'requires_addon_uuid' => null,
             ];
 
             if ($uuid && $existingAddons->has($uuid)) {
@@ -1988,7 +2018,7 @@ class PackageController extends Controller
                 'max_discount' => $promo['max_discount'] ?? null,
                 'max_uses' => $promo['max_uses'] ?? null,
                 'starts_at' => $this->formatDateTime($promo['starts_at'] ?? null),
-                'ends_at' => $this->formatDateTime($promo['ends_at'] ?? null),
+                'ends_at' => $this->formatDateTime($promo['ends_at'] ?? null, true),
                 'is_active' => filter_var(
                     $promo['is_active'] ?? true,
                     FILTER_VALIDATE_BOOLEAN

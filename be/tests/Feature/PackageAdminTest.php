@@ -9,12 +9,14 @@ use App\Models\Package\PackageFeature;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
 use App\Models\User;
+use App\Models\UserPackage;
 use App\Models\Venue;
 use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class PackageAdminTest extends TestCase
@@ -227,6 +229,30 @@ class PackageAdminTest extends TestCase
             ->assertSessionHas('success', 'Paket berhasil dihapus.');
     }
 
+    public function test_package_can_be_deleted_when_it_has_user_membership(): void
+    {
+        $package = Package::create([
+            'name' => 'Paket Member',
+            'slug' => 'paket-member',
+            'price' => 100000,
+            'is_active' => 'active',
+        ]);
+
+        UserPackage::create([
+            'user_uuid' => $this->admin->uuid,
+            'package_uuid' => $package->uuid,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->delete(route('packages.destroy', $package->uuid))
+            ->assertRedirect(route('packages.index'))
+            ->assertSessionHas('success', 'Paket berhasil dihapus.');
+
+        $this->assertDatabaseMissing('packages', ['uuid' => $package->uuid]);
+        $this->assertDatabaseMissing('user_packages', ['package_uuid' => $package->uuid]);
+    }
+
     public function test_discount_validation_message_is_indonesian(): void
     {
         $this->actingAs($this->admin)
@@ -315,6 +341,38 @@ class PackageAdminTest extends TestCase
             ->assertSee(route('packages.edit', $package->uuid), false);
 
         $this->assertStringContainsString('table-layout: fixed', $response->getContent());
+    }
+
+    public function test_package_detail_drawer_metadata_is_complete(): void
+    {
+        $package = Package::create([
+            'name' => 'Paket Detail',
+            'slug' => 'paket-detail',
+            'price' => 100000,
+            'is_active' => 'active',
+            'dp_percentage' => 30,
+            'payment_terms_note' => 'DP 30% saat booking',
+        ]);
+
+        PackageOption::create([
+            'package_uuid' => $package->uuid,
+            'name' => 'Opsi Tanpa Kuota',
+            'quota' => null,
+            'price' => 100000,
+            'duration' => 1,
+            'duration_unit' => 'month',
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('packages.index'))
+            ->assertOk()
+            ->assertDontSee('Foto Sampul')
+            ->assertDontSee('pkg-cover-fallback', false)
+            ->assertSee('Tanpa batas')
+            ->assertSee('DP 30% saat booking')
+            ->assertSee(str_replace('/', '\\/', route('packages.preview', '__UUID__')), false);
     }
 
     public function test_admin_can_bulk_update_and_delete_packages(): void
@@ -532,10 +590,29 @@ class PackageAdminTest extends TestCase
                 'type' => 'options',
                 'uuids' => [$second->uuid],
             ])
-            ->assertOk()
-            ->assertJson(['ok' => true]);
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('uuids');
 
         $this->assertSame(0, (int) $second->fresh()->sort_order);
+        $this->assertSame(1, (int) $first->fresh()->sort_order);
+    }
+
+    public function test_package_show_redirects_to_edit_page(): void
+    {
+        $package = Package::create([
+            'name' => 'Paket Detail',
+            'slug' => 'paket-detail',
+            'price' => 100000,
+            'is_active' => 'active',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('packages.show', $package->uuid))
+            ->assertRedirect(route('packages.edit', $package->uuid));
+
+        $this->actingAs($this->admin)
+            ->get(route('packages.show', 'paket-tidak-ada'))
+            ->assertNotFound();
     }
 
     public function test_cleanup_migration_updates_legacy_package_name_and_slug(): void
@@ -701,6 +778,196 @@ class PackageAdminTest extends TestCase
             ->assertSee('"name":"Addon Kedua"', false)
             ->assertSee('"code":"HEMATOLD"', false)
             ->assertSee('"feature":"Rincian Kedua"', false);
+    }
+
+    public function test_export_uses_index_permission(): void
+    {
+        $role = Role::findByName('admin', 'web');
+        $role->syncPermissions([Permission::firstOrCreate(
+            ['name' => 'package.index', 'guard_name' => 'web']
+        )]);
+        $viewer = User::factory()->create(['email_verified_at' => now()]);
+        $viewer->assignRole($role);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($viewer)
+            ->get(route('packages.export'))
+            ->assertOk();
+    }
+
+    public function test_publishing_inactive_package_activates_it(): void
+    {
+        $package = Package::create([
+            'name' => 'Paket Draft',
+            'slug' => 'paket-draft',
+            'price' => 100000,
+            'is_active' => 'inactive',
+            'is_published' => false,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->patchJson(route('packages.toggle-status', $package->uuid), [
+                'field' => 'is_published',
+            ])
+            ->assertOk()
+            ->assertJson(['ok' => true, 'value' => true]);
+
+        $fresh = $package->fresh();
+        $this->assertSame('active', $fresh->is_active);
+        $this->assertTrue((bool) $fresh->is_published);
+    }
+
+    public function test_delete_missing_package_returns_not_found(): void
+    {
+        $this->actingAs($this->admin)
+            ->delete(route('packages.destroy', 'paket-tidak-ada'))
+            ->assertNotFound();
+    }
+
+    public function test_inactive_option_is_not_reactivated_on_update(): void
+    {
+        $package = Package::create([
+            'name' => 'Paket Opsi Nonaktif',
+            'slug' => 'paket-opsi-nonaktif',
+            'price' => 100000,
+            'is_active' => 'active',
+        ]);
+
+        $option = PackageOption::create([
+            'package_uuid' => $package->uuid,
+            'name' => 'Opsi Lama',
+            'quota' => 1,
+            'price' => 100000,
+            'duration' => 1,
+            'duration_unit' => 'month',
+            'sort_order' => 0,
+            'is_active' => false,
+        ]);
+
+        $payload = $this->payload('Paket Opsi Nonaktif', 100000);
+        $payload['options'][0]['uuid'] = $option->uuid;
+
+        $this->actingAs($this->admin)
+            ->put(route('packages.update', $package->uuid), $payload)
+            ->assertRedirect(route('packages.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertFalse((bool) $option->fresh()->is_active);
+    }
+
+    public function test_addon_dependency_can_be_cleared_on_update(): void
+    {
+        $package = Package::create([
+            'name' => 'Paket Addon',
+            'slug' => 'paket-addon',
+            'price' => 100000,
+            'is_active' => 'active',
+        ]);
+
+        $main = PackageAddon::create([
+            'package_uuid' => $package->uuid,
+            'name' => 'Addon Utama',
+            'price' => 100000,
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+        $support = PackageAddon::create([
+            'package_uuid' => $package->uuid,
+            'name' => 'Addon Pendukung',
+            'price' => 50000,
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $payload = $this->payload('Paket Addon', 100000);
+        $payload['addons'] = [
+            [
+                'uuid' => $main->uuid,
+                'name' => 'Addon Utama',
+                'price' => 100000,
+                'requires_addon_index' => 1,
+            ],
+            [
+                'uuid' => $support->uuid,
+                'name' => 'Addon Pendukung',
+                'price' => 50000,
+            ],
+        ];
+
+        $this->actingAs($this->admin)
+            ->put(route('packages.update', $package->uuid), $payload)
+            ->assertRedirect(route('packages.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($support->uuid, $main->fresh()->requires_addon_uuid);
+
+        $payload['addons'][0]['requires_addon_index'] = '';
+
+        $this->actingAs($this->admin)
+            ->put(route('packages.update', $package->uuid), $payload)
+            ->assertRedirect(route('packages.index'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($main->fresh()->requires_addon_uuid);
+    }
+
+    public function test_promo_ends_at_uses_end_of_day(): void
+    {
+        $payload = $this->payload('Paket Promo', 100000);
+        $payload['promos'] = [
+            [
+                'code' => 'HEMATDESEMBER',
+                'type' => 'percent',
+                'value' => 10,
+                'starts_at' => '2026-12-01',
+                'ends_at' => '2026-12-31',
+                'is_active' => 1,
+            ],
+        ];
+
+        $this->actingAs($this->admin)
+            ->post(route('packages.store'), $payload)
+            ->assertRedirect(route('packages.index'))
+            ->assertSessionHasNoErrors();
+
+        $promo = PackagePromo::where('code', 'HEMATDESEMBER')->firstOrFail();
+
+        $this->assertSame(
+            '2026-12-31 23:59:59',
+            $promo->ends_at->format('Y-m-d H:i:s')
+        );
+    }
+
+    public function test_unlimited_filter_requires_active_unlimited_option(): void
+    {
+        config(['services.frontend_api.key' => 'test-frontend-key']);
+
+        Package::create([
+            'name' => 'Paket Unlimited Nonaktif',
+            'slug' => 'paket-unlimited-nonaktif',
+            'price' => 100000,
+            'is_active' => 'active',
+            'is_published' => true,
+            'published_at' => now(),
+        ])->options()->create([
+            'name' => 'Nonaktif',
+            'quota' => null,
+            'price' => 100000,
+            'duration' => 1,
+            'duration_unit' => 'month',
+            'sort_order' => 0,
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('packages.index', ['quota_type' => 'unlimited']))
+            ->assertOk()
+            ->assertDontSee('Paket Unlimited Nonaktif');
+
+        $this->withHeader('X-Api-Key', 'test-frontend-key')
+            ->getJson('/api/packages?filter=unlimited')
+            ->assertOk()
+            ->assertJsonMissing(['name' => 'Paket Unlimited Nonaktif']);
     }
 
     /** @return array<string, mixed> */

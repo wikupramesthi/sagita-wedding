@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_published')->default(false);
             $table->timestamp('published_at')->nullable();
             $table->uuid('user_uuid')->nullable();
-            $table->boolean('has_sidebar')->default(false); 
+            $table->boolean('has_sidebar')->default(false);
             $table->timestamps();
 
             $table->foreign('user_uuid')->references('uuid')->on('users')->onDelete('set null');

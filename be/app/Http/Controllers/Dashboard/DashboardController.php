@@ -3,14 +3,8 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Category;
-use App\Models\Reference;
-use Illuminate\Support\Facades\DB;
-use GuzzleHttp\Client;
-use Carbon\Carbon;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -21,6 +15,7 @@ class DashboardController extends Controller
     {
         $jumlahUser = User::role('user')->count();
         $jumlahOpd = User::role('opd')->count();
+
         return view('pages.dashboard.index', compact('jumlahUser', 'jumlahOpd'));
     }
 

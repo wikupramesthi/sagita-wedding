@@ -6,6 +6,7 @@ import {
 	sendBooking,
 	sendContact,
 } from "../services/contactService.js";
+import { answerSitaQuestion } from "../services/sitaService.js";
 import type { Request, Response } from "../types/index.js";
 import { toApiError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
@@ -13,21 +14,38 @@ import {
 	validateBooking,
 	validateContact,
 	validateNewsletter,
+	validateSitaChat,
 } from "../utils/validate.js";
 
 const router = Router();
 
-type TelemetryPayload = {
-	kind: "error" | "vital";
-	name: string;
-	path: string;
-	value?: number;
-	message?: string;
-};
+type TelemetryPayload =
+	| {
+			kind: "error";
+			name: string;
+			path: string;
+			message: string;
+	  }
+	| {
+			kind: "vital";
+			name: string;
+			path: string;
+			value: number;
+	  }
+	| {
+			kind: "event";
+			name: "sita.no_match";
+			path: "/";
+	  };
 
 function parseTelemetry(value: unknown): TelemetryPayload | null {
 	if (!value || typeof value !== "object" || Array.isArray(value)) return null;
 	const item = value as Record<string, unknown>;
+	if (item.kind === "event") {
+		return item.name === "sita.no_match"
+			? { kind: "event", name: "sita.no_match", path: "/" }
+			: null;
+	}
 	if (item.kind !== "error" && item.kind !== "vital") return null;
 
 	const name =
@@ -87,8 +105,31 @@ router.post("/telemetry", (req: Request, res: Response) => {
 		});
 	}
 	if (payload.kind === "error") logger.error("client.error", payload);
-	else logger.info("client.vital", payload);
+	else if (payload.kind === "vital") logger.info("client.vital", payload);
+	else logger.info("client.event", payload);
 	res.status(204).end();
+});
+
+router.post("/sita/chat", async (req: Request, res: Response) => {
+	try {
+		const { message, locale, context } = validateSitaChat(req.body);
+		const result = await answerSitaQuestion(message, locale, context);
+		res.set("Cache-Control", "no-store");
+		res.json({ success: true, ...result });
+	} catch (e) {
+		const err = toApiError(e);
+		const status = Number(err.status) || 503;
+		const isClientError = status >= 400 && status < 500;
+		if (!isClientError) {
+			logger.error("sita.chat.failed", { error: err.message.slice(0, 200) });
+		}
+		res.status(status).json({
+			success: false,
+			message: isClientError
+				? err.message || "Invalid chat question."
+				: "Sagita data is temporarily unavailable. Please try again or contact the team.",
+		});
+	}
 });
 
 /**

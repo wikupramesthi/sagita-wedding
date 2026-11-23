@@ -1,5 +1,6 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { logger } from "../src/utils/logger.js";
 
 const { apiRequestMock } = vi.hoisted(() => ({ apiRequestMock: vi.fn() }));
 vi.mock("../src/services/apiClient.js", () => ({ default: apiRequestMock }));
@@ -241,12 +242,38 @@ describe("telemetry", () => {
 		expect(res.status).toBe(204);
 	});
 
+	it("menerima Sita no-match events without retaining submitted text", async () => {
+		const infoSpy = vi.spyOn(logger, "info");
+		const res = await request(app).post("/api/telemetry").send({
+			kind: "event",
+			name: "sita.no_match",
+			path: "/private/path?email=person@example.test",
+			message: "private conversation text",
+		});
+
+		expect(res.status).toBe(204);
+		expect(infoSpy).toHaveBeenCalledWith("client.event", {
+			kind: "event",
+			name: "sita.no_match",
+			path: "/",
+		});
+		infoSpy.mockRestore();
+	});
+
 	it("menolak payload telemetry yang tidak dikenal", async () => {
 		const res = await request(app)
 			.post("/api/telemetry")
 			.send({ kind: "vital", name: "", value: 1, path: "/" });
 		expect(res.status).toBe(400);
 		expect(res.body.success).toBe(false);
+	});
+
+	it("menolak nama event telemetry yang tidak diizinkan", async () => {
+		const res = await request(app)
+			.post("/api/telemetry")
+			.send({ kind: "event", name: "arbitrary.event", path: "/" });
+
+		expect(res.status).toBe(400);
 	});
 });
 

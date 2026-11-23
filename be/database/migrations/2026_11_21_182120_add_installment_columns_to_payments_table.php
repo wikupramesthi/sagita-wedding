@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -25,7 +25,9 @@ return new class extends Migration
         $payments = DB::table('payments')->select('uuid', 'order_uuid', 'status')->get();
         foreach ($payments as $payment) {
             $order = DB::table('orders')->where('uuid', $payment->order_uuid)->select('payment_scheme', 'status', 'proof_image_path', 'proof_uploaded_at', 'amount', 'total_amount')->first();
-            if (! $order) continue;
+            if (! $order) {
+                continue;
+            }
             $scheme = (string) ($order->payment_scheme ?? 'full');
             $kind = 'full';
             if ($payment->status === 'paid' && in_array($scheme, ['dp30', 'dp50'], true)) {

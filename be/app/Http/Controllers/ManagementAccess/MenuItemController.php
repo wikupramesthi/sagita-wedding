@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\ManagementAccess;
 
-use App\Models\ManagementAccess\MenuItem;
-use App\Models\ManagementAccess\MenuGroup;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ManagementAccess\StoreMenuItemRequest;
+use App\Http\Requests\ManagementAccess\UpdateMenuItemRequest;
+use App\Models\ManagementAccess\MenuGroup;
+use App\Models\ManagementAccess\MenuItem;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
-use App\Http\Requests\ManagementAccess\StoreMenuItemRequest;
-use App\Http\Requests\ManagementAccess\UpdateMenuItemRequest;
 
 class MenuItemController extends Controller
 {
@@ -26,8 +26,8 @@ class MenuItemController extends Controller
         $menuItems = $menu->items()
             ->when(! blank($request->search), function ($query) use ($request) {
                 return $query
-                    ->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('permission_name', 'like', '%' . $request->search . '%');
+                    ->where('name', 'like', '%'.$request->search.'%')
+                    ->orWhere('permission_name', 'like', '%'.$request->search.'%');
             })
             ->orderBy('name')
             ->paginate(10);
@@ -44,12 +44,13 @@ class MenuItemController extends Controller
     {
         MenuItem::create(array_merge(
             $request->all(),
-            array(
+            [
                 'menu_group_id' => $menu->id,
                 'status' => ! blank($request->status) ? true : false,
-                'position' => $menu->items()->max('position') + 1
-            )
+                'position' => $menu->items()->max('position') + 1,
+            ]
         ));
+
         return back()->with('success', 'Item menu berhasil ditambahkan!');
     }
 
@@ -78,10 +79,10 @@ class MenuItemController extends Controller
         $menuItemId = $menuItem->findOrFail($id);
         $menuItemId->update(array_merge(
             $request->all(),
-            array(
+            [
                 'menu_group_id' => $menu->id,
-                'status' => ! blank($request->status) ? true : false
-            )
+                'status' => ! blank($request->status) ? true : false,
+            ]
         ));
 
         return back()->with('success', 'Item menu berhasil diperbarui!');

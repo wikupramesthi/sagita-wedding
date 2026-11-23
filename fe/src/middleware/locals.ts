@@ -80,6 +80,7 @@ export async function appLocals(
 			...alternatingWhatsApp,
 			googleAuthUrl: siteContact.googleAuthUrl,
 			loginUrl: `${env.API_BASE}/auth/login`,
+			backendBaseUrl: env.API_BASE,
 			dashboardUrl: `${env.API_BASE}/backend/dashboard`,
 		};
 		res.locals.currentPath = req.path;

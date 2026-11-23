@@ -3386,8 +3386,7 @@ header[data-home] .mobile-drawer {
 	background: transparent;
 }
 
-.home-dashboard-scroll-stage.is-scroll-linked
-	.home-dashboard-preview-scroll {
+.home-dashboard-scroll-stage.is-scroll-linked .home-dashboard-preview-scroll {
 	overflow: hidden;
 }
 

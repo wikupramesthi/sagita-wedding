@@ -20,12 +20,12 @@ class MinifyHtml
                 '/<!--(?!\[if).*?-->/',     // remove HTML comments except IE conditionals
                 '/\>[^\S ]+/s',             // remove whitespace after tags
                 '/[^\S ]+\</s',             // remove whitespace before tags
-                '/(\s)+/s'                  // collapse multiple whitespace
+                '/(\s)+/s',                  // collapse multiple whitespace
             ], [
                 '',
                 '>',
                 '<',
-                '\\1'
+                '\\1',
             ], $output);
 
             $response->setContent($output);

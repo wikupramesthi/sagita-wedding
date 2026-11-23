@@ -39,13 +39,13 @@ class AutoLogoutInactive
 
                     if ($request->expectsJson() || $request->is('api/*')) {
                         return response()->json([
-                            'message' => 'Session expired due to ' . $timeoutMinutes . ' minutes of inactivity. Please sign in again.',
+                            'message' => 'Session expired due to '.$timeoutMinutes.' minutes of inactivity. Please sign in again.',
                         ], 401);
                     }
 
                     return redirect()
                         ->route('login')
-                        ->withErrors(['session_expired' => 'Session expired due to ' . $timeoutMinutes . ' minutes of inactivity. Please sign in again.']);
+                        ->withErrors(['session_expired' => 'Session expired due to '.$timeoutMinutes.' minutes of inactivity. Please sign in again.']);
                 }
             }
 

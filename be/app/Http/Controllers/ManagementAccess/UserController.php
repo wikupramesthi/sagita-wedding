@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\ManagementAccess;
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ManagementAccess\StoreUserRequest;
 use App\Http\Requests\ManagementAccess\UpdateUserRequest;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -20,8 +20,8 @@ class UserController extends Controller
         $users = User::with('roles:id,name')
             ->when($request->filled('start_date') && $request->filled('end_date'), function ($query) use ($request) {
                 $query->whereBetween('created_at', [
-                    $request->start_date . ' 00:00:00',
-                    $request->end_date . ' 23:59:59'
+                    $request->start_date.' 00:00:00',
+                    $request->end_date.' 23:59:59',
                 ]);
             })
             ->latest()
@@ -31,7 +31,6 @@ class UserController extends Controller
 
         return view('management-access.user.index', compact('users', 'roles'));
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -49,11 +48,11 @@ class UserController extends Controller
         // dd($request->all());
         User::create(array_merge(
             $request->all(),
-            array(
+            [
                 'password' => Hash::make('password'),
                 'email_verified_at' => ! blank($request->verified) ? now() : null,
-            )
-        ))?->assignRole(! blank($request->role) ? $request->role : array());
+            ]
+        ))?->assignRole(! blank($request->role) ? $request->role : []);
 
         return back()->with('success', 'Pengguna berhasil ditambahkan!');
     }

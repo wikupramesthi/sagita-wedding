@@ -61,5 +61,4 @@ class EmailSettingController extends Controller
             return redirect()->back()->withInput()->with('error', $this->safeErrorMessage($th));
         }
     }
-
 }
