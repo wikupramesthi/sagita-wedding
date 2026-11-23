@@ -39,6 +39,120 @@ interface HomePackage {
 	features: string[];
 }
 
+interface ArticleView extends Record<string, unknown> {
+	slug: string;
+	title: string;
+	excerpt: string;
+	content: string;
+	image: string;
+	category: string;
+	date: string;
+	read: string;
+	publishedAt: string;
+	modifiedAt: string;
+}
+
+interface VenueLink {
+	name: string;
+	slug: string;
+	address: string;
+	image: string;
+}
+
+function firstString(...values: unknown[]): string {
+	for (const value of values) {
+		if (typeof value === "string" && value.trim()) return value.trim();
+	}
+	return "";
+}
+
+function isoArticleDate(value: unknown): string {
+	const datePart = firstString(value).slice(0, 10);
+	return /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : "";
+}
+
+function formatArticleDate(value: unknown, locale: string): string {
+	const datePart = isoArticleDate(value);
+	if (!datePart) return "";
+	const parsed = new Date(`${datePart}T00:00:00Z`);
+	if (!parsed.toISOString().startsWith(datePart)) return "";
+	return new Intl.DateTimeFormat(locale, {
+		day: "numeric",
+		month: "short",
+		year: "numeric",
+		timeZone: "UTC",
+	}).format(parsed);
+}
+
+function readingTime(content: unknown, locale: string): string {
+	const plain = firstString(content)
+		.replace(/<[^>]*>/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+	const words = plain ? plain.split(" ").length : 0;
+	const minutes = Math.max(1, Math.ceil(words / 200));
+	return locale === "id" ? `${minutes} menit baca` : `${minutes} min read`;
+}
+
+function normalizeBlogPost(value: unknown, locale: string): ArticleView | null {
+	if (!value || typeof value !== "object") return null;
+	const article = value as Record<string, unknown>;
+	const slug = firstString(article.slug);
+	const title = firstString(article.title);
+	if (!slug || !title) return null;
+
+	const dateValue = firstString(
+		article.published_at,
+		article.scheduled_at,
+		article.created_at,
+		article.date,
+	);
+	const content = firstString(article.content);
+
+	return {
+		...article,
+		slug,
+		title,
+		excerpt: firstString(article.excerpt),
+		content,
+		image: firstString(article.image, article.featured_image),
+		category: firstString(article.category),
+		date: formatArticleDate(dateValue, locale),
+		read: firstString(article.read) || readingTime(content, locale),
+		publishedAt: isoArticleDate(
+			article.published_at || article.scheduled_at || article.created_at,
+		),
+		modifiedAt: isoArticleDate(article.updated_at),
+	};
+}
+
+function normalizeBlogPosts(value: unknown, locale: string): ArticleView[] {
+	if (!Array.isArray(value)) return [];
+	return value.flatMap((item): ArticleView[] => {
+		const post = normalizeBlogPost(item, locale);
+		return post ? [post] : [];
+	});
+}
+
+function normalizeVenueLinks(value: unknown): VenueLink[] {
+	if (!Array.isArray(value)) return [];
+	return value.flatMap((item): VenueLink[] => {
+		if (!item || typeof item !== "object") return [];
+		const venue = item as Record<string, unknown>;
+		const name = firstString(venue.name);
+		const slug = firstString(venue.slug, venue.uuid);
+		if (!name || !slug) return [];
+		return [
+			{
+				name,
+				slug,
+				address: firstString(venue.address),
+				image: firstString(venue.image),
+			},
+		];
+	});
+}
+
 function getHomeArticles(value: unknown, locale: string): HomeArticle[] {
 	if (!Array.isArray(value)) return [];
 
@@ -345,8 +459,11 @@ router.get(
 	async (_req: Request, res: Response, next: NextFunction) => {
 		try {
 			const data = await getPageBatch("blog");
-			const posts = Array.isArray(data?.articles) ? data.articles : [];
 			const isID = res.locals.lang === "id";
+			const posts = normalizeBlogPosts(
+				data?.articles,
+				isID ? "id-ID" : "en-US",
+			);
 			res.render("pages/blog", {
 				title: isID
 					? "Artikel Pernikahan & Tips Wedding | Sagita Wedding"
@@ -370,25 +487,41 @@ router.get(
 		try {
 			const slug = cleanSlug(req.params.slug, "article");
 			const data = await getPageBatch("blog-detail", { slug });
-			const post = data?.post;
-			if (!post)
+			const isID = res.locals.lang === "id";
+			const locale = isID ? "id-ID" : "en-US";
+			const rawPost = normalizeBlogPost(data?.post, locale);
+			if (!rawPost)
 				return res.status(404).render("pages/404", {
 					title: "Article Not Found",
 					robots: "noindex, nofollow",
 					heroNav: true,
 				});
+
+			const excerptText = rawPost.excerpt
+				.replace(/<[^>]*>/g, " ")
+				.replace(/\s+/g, " ")
+				.trim();
+			const articleImage = rawPost.image || undefined;
+			const publishedAt = rawPost.publishedAt || undefined;
+
 			res.render("pages/blog-detail", {
-				title: `${post.title} | Sagita Wedding`,
-				metaDescription:
-					typeof post.excerpt === "string" && post.excerpt.trim()
-						? post.excerpt
-								.replace(/<[^>]*>/g, " ")
-								.replace(/\s+/g, " ")
-								.trim()
-						: undefined,
+				title: `${rawPost.title} | Sagita Wedding`,
+				metaDescription: excerptText || undefined,
+				ogType: "article",
+				ogImage: articleImage,
+				articleMeta: {
+					headline: rawPost.title,
+					description: excerptText || undefined,
+					image: articleImage,
+					section: rawPost.category || undefined,
+					datePublished: publishedAt,
+					dateModified: rawPost.modifiedAt || publishedAt,
+				},
 				pageScript: "blog-detail",
-				post: { ...post, content: sanitizeRichHtml(post.content) },
-				related: Array.isArray(data?.related) ? data.related : [],
+				post: { ...rawPost, content: sanitizeRichHtml(rawPost.content) },
+				related: normalizeBlogPosts(data?.related, locale).slice(0, 3),
+				popularPosts: normalizeBlogPosts(data?.popular, locale).slice(0, 5),
+				sidebarVenues: normalizeVenueLinks(data?.venues).slice(0, 5),
 			});
 		} catch (e) {
 			const err = toApiError(e);

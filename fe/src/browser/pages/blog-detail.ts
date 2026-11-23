@@ -1,16 +1,21 @@
 export {};
 
-const btn = document.getElementById("copyLinkBtn");
+const copyBtn = document.getElementById("copyLinkBtn");
+const copyLabel = copyBtn?.querySelector<HTMLElement>("[data-copy-label]");
 
-btn?.addEventListener("click", () => {
-	const url = btn.getAttribute("data-url") || "";
+copyBtn?.addEventListener("click", () => {
+	const url = copyBtn.getAttribute("data-url") || "";
+	const original = copyBtn.getAttribute("data-label") || "Copy link";
+	const copied = copyBtn.getAttribute("data-copied") || "Copied!";
 	const done = () => {
-		const original = "Copy link";
-		btn.textContent = btn.getAttribute("data-copied") || "Copied!";
+		if (copyLabel) copyLabel.textContent = copied;
+		else copyBtn.textContent = copied;
 		setTimeout(() => {
-			btn.textContent = original;
+			if (copyLabel) copyLabel.textContent = original;
+			else copyBtn.textContent = original;
 		}, 2000);
 	};
+
 	if (navigator.clipboard?.writeText) {
 		navigator.clipboard.writeText(url).then(done, done);
 	} else {
@@ -21,9 +26,28 @@ btn?.addEventListener("click", () => {
 		try {
 			document.execCommand("copy");
 		} catch {
-			/* ignore */
+			// ignore
 		}
 		document.body.removeChild(ta);
 		done();
 	}
 });
+
+const shareBtn = document.getElementById("nativeShareBtn");
+
+if (shareBtn && typeof navigator.share === "function") {
+	shareBtn.hidden = false;
+	shareBtn.addEventListener("click", async () => {
+		const payload = {
+			title: shareBtn.getAttribute("data-title") || document.title,
+			text: shareBtn.getAttribute("data-title") || document.title,
+			url: shareBtn.getAttribute("data-url") || window.location.href,
+		};
+		try {
+			await navigator.share(payload);
+		} catch (error) {
+			if (error instanceof DOMException && error.name === "AbortError") return;
+			console.error("Native share failed", error);
+		}
+	});
+}

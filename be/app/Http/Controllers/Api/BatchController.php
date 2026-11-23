@@ -225,10 +225,14 @@ class BatchController extends Controller
             $others,
             fn ($article) => ! $category || ($article['category'] ?? null) !== $category,
         ));
+        $popular = $others;
+        usort($popular, fn ($a, $b) => (int) ($b['views'] ?? 0) <=> (int) ($a['views'] ?? 0));
 
         return [
             'post' => $post,
             'related' => array_slice(array_merge($sameCategory, $rest), 0, 3),
+            'popular' => array_slice($popular, 0, 5),
+            'venues' => array_slice($this->venueRecords(), 0, 5),
         ];
     }
 

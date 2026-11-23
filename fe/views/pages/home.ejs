@@ -185,7 +185,7 @@
           </p>
           <h2 class="home-packages-title font-display text-3xl sm:text-4xl text-sage-900 leading-tight"><%= t.homePackagesTitle %> <span class="italic text-terracotta-600"><%= t.homePackagesTitleItalic %></span></h2>
         </div>
-        <a href="/packages" class="btn-secondary group hidden sm:inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm">
+        <a href="/packages" class="home-packages-view-all group hidden sm:inline-flex items-center gap-2 text-sm">
           <%= t.viewAllPackages %>
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
         </a>
@@ -193,35 +193,29 @@
 
       <div class="grid grid-cols-1 items-stretch gap-5 md:grid-cols-3 md:gap-6 lg:gap-7">
         <% packages.slice(0, 3).forEach((pkg, i) => { %>
-          <article data-home-package-slug="<%= pkg.slug %>" class="home-package-card reveal relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border transition-all duration-300 <%= pkg.isPopular ? 'home-package-card--featured z-10 border-sage-800 bg-sage-800 text-white shadow-2xl' : 'border-sage-100 bg-white text-sage-900 shadow-lg' %>" data-delay="<%= i * 120 %>">
-            <div class="home-package-media relative h-44 w-full overflow-hidden sm:h-48">
-              <% if (pkg.coverUrl) { %>
-                <img src="<%= pkg.coverUrl %>" alt="" aria-hidden="true" loading="lazy" decoding="async" class="h-full w-full object-cover">
-              <% } else { %>
-                <div class="h-full w-full bg-gradient-to-br from-sand-100 via-clay-50 to-sage-100" aria-hidden="true"></div>
-              <% } %>
-              <% if (pkg.isPopular) { %>
-                <span class="home-package-badge absolute left-5 top-5 rounded-full bg-[#d7bd85] px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#403a34]"><%= t.homePackagePopular %></span>
-              <% } %>
-              <span class="home-package-index absolute right-5 top-5 font-sans text-[11px] font-semibold tracking-[0.2em] <%= pkg.isPopular ? 'text-white/70' : 'text-sage-700/60' %>" aria-hidden="true"><%= String(i + 1).padStart(2, "0") %></span>
-            </div>
-            <div class="home-package-body flex flex-1 flex-col p-6 sm:p-7">
-              <h3 class="home-package-title font-display text-2xl font-bold leading-tight"><%= pkg.name %></h3>
-              <div class="home-package-description mt-2.5 min-h-[3.25rem] flex-1">
+          <article data-home-package-slug="<%= pkg.slug %>" class="home-package-card reveal relative flex h-full flex-col overflow-visible rounded-[24px] border transition-all duration-300 <%= pkg.isPopular ? 'home-package-card--featured z-10 border-[#c5a96e] bg-white text-sage-900 shadow-xl' : 'border-stone-200 bg-white text-sage-900 hover:shadow-lg' %>" data-delay="<%= i * 120 %>">
+            <% if (pkg.isPopular) { %>
+              <span class="home-package-badge absolute left-1/2 top-[-13px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#c5a96e] bg-[#403a34] px-4 py-2 text-xs font-bold text-[#fffefd] shadow-md"><%= lang === 'id' ? 'Paling banyak dipilih' : 'Most popular' %></span>
+            <% } %>
+            <div class="home-package-body flex flex-1 flex-col p-7">
+              <div class="<%= pkg.isPopular ? '-mx-7 -mt-7 mb-5 rounded-t-[23px] bg-[#403a34] px-7 py-7 text-white' : '' %>">
+                <h3 class="home-package-title font-sans text-[21px] font-bold leading-tight"><%= pkg.name %></h3>
+                <div class="home-package-description mt-2.5 min-h-[3.25rem]">
                 <% if (pkg.description) { %>
-                  <p class="line-clamp-3 text-sm leading-relaxed <%= pkg.isPopular ? 'text-white/80' : 'text-stone-500' %>"><%= pkg.description %></p>
+                  <p class="text-sm leading-relaxed <%= pkg.isPopular ? 'text-white' : 'text-stone-500' %>"><%= pkg.description %></p>
                 <% } %>
+                </div>
               </div>
               <% if (pkg.startingPrice !== null) { %>
-                <div class="home-package-price mt-4 border-t pt-4 <%= pkg.isPopular ? 'border-white/15' : 'border-sage-100' %>">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.16em] <%= pkg.isPopular ? 'text-white/65' : 'text-stone-500' %>"><%= t.homePackageStartingAt %></p>
-                  <p class="mt-1.5 font-display text-3xl font-semibold leading-none tracking-tight">Rp <%= new Intl.NumberFormat('id-ID').format(pkg.startingPrice) %></p>
+                <div class="home-package-price mt-6 flex items-end justify-between gap-3 border-t pt-5 border-stone-100">
+                  <p class="font-sans text-[2rem] font-bold leading-none tracking-tight">Rp <%= new Intl.NumberFormat('id-ID').format(pkg.startingPrice) %></p>
+                  <p class="pb-0.5 text-xs text-stone-500"><%= lang === 'id' ? 'Sekali bayar' : 'One-time payment' %></p>
                 </div>
               <% } %>
               <% if (pkg.features.length) { %>
                 <ul class="home-package-features mt-5 space-y-2.5">
                   <% pkg.features.forEach((feature) => { %>
-                    <li class="flex items-start gap-2.5 text-sm <%= pkg.isPopular ? 'text-white/90' : 'text-stone-600' %>">
+                    <li class="flex items-start gap-2.5 text-sm text-stone-600">
                       <span class="home-package-feature-icon" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg>
                       </span>
@@ -231,7 +225,7 @@
                 </ul>
               <% } %>
               <div class="mt-auto pt-7">
-                <a href="/packages/<%= pkg.slug %>" class="home-package-cta inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-colors <%= pkg.isPopular ? 'bg-white text-sage-800 hover:bg-sand-100' : 'bg-sage-800 text-white hover:bg-sage-700' %>">
+                <a href="/packages/<%= pkg.slug %>" class="home-package-cta inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-colors <%= pkg.isPopular ? 'bg-[#403a34] text-[#fffefd] hover:bg-[#6c5a4a]' : 'bg-sage-800 text-white hover:bg-sage-900' %>">
                   <%= t.homePackageViewDetails %>
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
                 </a>

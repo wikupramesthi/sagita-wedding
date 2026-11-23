@@ -50,6 +50,8 @@ const PACKAGES_PAGE = {
 let homeSliderBanners: unknown[] = [];
 let homeTestimonials: unknown = [];
 let homeArticles: unknown[] = [];
+let blogPosts: unknown[] = [];
+let blogDetailPost: unknown = null;
 let homePackages: unknown[] = [];
 let homeVenues: unknown = [
 	{
@@ -124,7 +126,23 @@ const getPageBatch = vi.fn(
 					],
 				};
 			case "blog":
-				return { articles: [], total: 0 };
+				return { articles: blogPosts, total: blogPosts.length };
+			case "blog-detail":
+				if (!blogDetailPost) return {};
+				return {
+					post: blogDetailPost,
+					related: blogPosts.slice(0, 2),
+					popular: blogPosts.slice().reverse(),
+					venues: [
+						{
+							uuid: "v1",
+							name: "Venue Uji",
+							slug: "venue-uji",
+							address: "Jl. Pernikahan",
+							image: "/img/venue.jpg",
+						},
+					],
+				};
 			default:
 				return {};
 		}
@@ -156,6 +174,8 @@ beforeEach(() => {
 	homeSliderBanners = [];
 	homeTestimonials = [];
 	homeArticles = [];
+	blogPosts = [];
+	blogDetailPost = null;
 	homePackages = [];
 	homeWeddingContentReady = true;
 	homeVenues = [
@@ -413,6 +433,87 @@ describe("pageScript wiring", () => {
 				`/js/pages/${name}.js`,
 			);
 		}
+	});
+
+	it("halaman blog menampilkan artikel unggulan dan tombol muat lainnya", async () => {
+		blogPosts = Array.from({ length: 10 }, (_, index) => ({
+			slug: `artikel-${index + 1}`,
+			title: `Artikel ${index + 1}`,
+			image: `https://example.test/article-${index + 1}.webp`,
+			category: "Tips",
+			date: "12 November 2026",
+			read: "4 menit baca",
+			excerpt: `Ringkasan artikel ${index + 1}.`,
+		}));
+
+		const res = await request(app).get("/blog").set("Cookie", "locale=id");
+		expect(res.status).toBe(200);
+		expect(res.text).toContain('id="articleGrid"');
+		expect(res.text).toContain("blog-feature-card");
+		expect(res.text).toContain("Bacaan pilihan");
+		expect(res.text).toContain("Baca artikel");
+		expect(res.text).toContain('id="loadMoreBtn"');
+		expect(res.text.match(/article-card blog-card/g)).toHaveLength(10);
+		expect(res.text).toContain("hidden");
+	});
+
+	it("halaman blog menampilkan pesan kosong ketika belum ada artikel", async () => {
+		const res = await request(app).get("/blog").set("Cookie", "locale=id");
+		expect(res.status).toBe(200);
+		expect(res.text).toContain("Belum ada artikel");
+		expect(res.text).not.toContain('id="articleGrid"');
+	});
+
+	it("halaman detail blog punya SEO artikel dan sidebar berita populer serta venue", async () => {
+		blogPosts = [
+			{
+				slug: "artikel-1",
+				title: "Artikel Satu",
+				featured_image: "https://example.test/artikel-1.webp",
+				scheduled_at: "2026-11-20T08:00:00Z",
+				content: "<p>Isi artikel satu.</p>",
+				category: "Tips",
+				excerpt: "Ringkasan artikel satu.",
+			},
+			{
+				slug: "artikel-2",
+				title: "Artikel Dua",
+				featured_image: "https://example.test/artikel-2.webp",
+				scheduled_at: "2026-11-21T08:00:00Z",
+				content: "<p>Isi artikel dua.</p>",
+				category: "Venue",
+				excerpt: "Ringkasan artikel dua.",
+			},
+		];
+		blogDetailPost = {
+			slug: "panduan-venue",
+			title: "Panduan Memilih Venue",
+			featured_image: "https://example.test/cover.webp",
+			scheduled_at: "2026-11-22T08:00:00Z",
+			updated_at: "2026-11-23T08:00:00Z",
+			category: "Venue",
+			excerpt: "Semua yang perlu dipertimbangkan saat memilih venue.",
+			content: "<h2>Memilih venue</h2><p>Isi artikel.</p>",
+		};
+
+		const res = await request(app)
+			.get("/blog/panduan-venue")
+			.set("Cookie", "locale=id");
+
+		expect(res.status).toBe(200);
+		expect(getPageBatch).toHaveBeenCalledWith("blog-detail", {
+			slug: "panduan-venue",
+		});
+		expect(res.text).toContain('property="og:type" content="article"');
+		expect(res.text).toContain(
+			'property="article:published_time" content="2026-11-22"',
+		);
+		expect(res.text).toContain('"@type":"BlogPosting"');
+		expect(res.text).toContain("blog-detail-aside");
+		expect(res.text).toContain("Berita populer");
+		expect(res.text).toContain("Rekomendasi venue");
+		expect(res.text).toContain('href="/venues#venue-venue-uji"');
+		expect(res.text).toContain("Artikel Satu");
 	});
 
 	it("halaman vendor menggunakan satu batch dengan kategori untuk filter frontend", async () => {

@@ -318,7 +318,12 @@
                     <div class="identity-tip__glow"></div>
                     <div class="identity-tip__body">
                         <div class="identity-tip__head">
-                            <span class="identity-tip__icon"><i class="bi bi-stars"></i></span>
+                            <span class="identity-tip__icon" aria-hidden="true">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m12 3 1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7L12 3Z"></path>
+                                    <path d="m19 14 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14Z"></path>
+                                </svg>
+                            </span>
                             <div>
                                 <h6 class="mb-0">Informasi Penting</h6>
                                 <small>Optimalkan identitas website Anda</small>
@@ -326,21 +331,43 @@
                         </div>
                         <ul class="identity-tip__list">
                             <li>
-                                <span class="tip-bullet"><i class="bi bi-palette"></i></span>
+                                <span class="tip-bullet" aria-hidden="true">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="13.5" cy="6.5" r="1.5"></circle>
+                                        <circle cx="17.5" cy="10.5" r="1.5"></circle>
+                                        <circle cx="8.5" cy="7.5" r="1.5"></circle>
+                                        <circle cx="6.5" cy="12.5" r="1.5"></circle>
+                                        <path d="M12 3a9 9 0 1 0 0 18h1.5a1.5 1.5 0 0 0 0-3H12a2 2 0 0 1 0-4h3a6 6 0 0 0 0-12h-3Z"></path>
+                                    </svg>
+                                </span>
                                 <div>
                                     <strong>Logo &amp; Favicon</strong>
                                     <span>Ditampilkan di header &amp; frontend. Gunakan PNG transparan 512x512, maks. 2MB.</span>
                                 </div>
                             </li>
                             <li>
-                                <span class="tip-bullet"><i class="bi bi-share"></i></span>
+                                <span class="tip-bullet" aria-hidden="true">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="18" cy="5" r="3"></circle>
+                                        <circle cx="6" cy="12" r="3"></circle>
+                                        <circle cx="18" cy="19" r="3"></circle>
+                                        <path d="m8.6 10.5 6.8-4"></path>
+                                        <path d="m8.6 13.5 6.8 4"></path>
+                                    </svg>
+                                </span>
                                 <div>
                                     <strong>Gambar OG</strong>
                                     <span>Pratinjau saat dibagikan ke WhatsApp / Facebook. Ideal 1200x630, maks. 3MB.</span>
                                 </div>
                             </li>
                             <li>
-                                <span class="tip-bullet"><i class="bi bi-graph-up"></i></span>
+                                <span class="tip-bullet" aria-hidden="true">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 3v18h18"></path>
+                                        <path d="m7 16 4-5 3 3 5-7"></path>
+                                        <path d="M16 7h3v3"></path>
+                                    </svg>
+                                </span>
                                 <div>
                                     <strong>ID GA4</strong>
                                     <span>Format <code>G-XXXXXXXXXX</code> — dapat ditemukan di Google Analytics &gt; Admin &gt; Aliran Data.</span>

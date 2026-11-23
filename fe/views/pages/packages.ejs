@@ -333,18 +333,29 @@
 
                         <!-- CARD -->
                         <article
-                            class="relative rounded-[24px] overflow-hidden border flex flex-col h-full
+                            class="relative rounded-[24px] overflow-visible border flex flex-col h-full
                                    transition-all duration-300 hover:-translate-y-1
                                    <%= isPopular
-                                       ? 'bg-[#315d52] text-white border-[#315d52] shadow-xl'
-                                       : 'bg-white border-stone-200 hover:shadow-lg'
+                                       ? 'bg-white text-sage-900 border-[#c5a96e] shadow-xl'
+                                       : 'bg-white text-sage-900 border-stone-200 hover:shadow-lg'
                                    %>"
                         >
+                            <% if (isPopular) { %>
+                                <span
+                                    class="absolute left-1/2 top-[-13px] z-20 -translate-x-1/2
+                                    inline-flex whitespace-nowrap items-center gap-1.5
+                                    bg-[#403a34] text-white border border-[#c5a96e]
+                                    text-xs font-bold
+                                    px-4 py-2 rounded-full shadow-md"
+                                >
+                                    <%= lang === 'id' ? 'Paling banyak dipilih' : 'Most popular' %>
+                                </span>
+                            <% } %>
 
                             <!-- COVER IMAGE -->
                             <% if (hasCover) { %>
 
-                                <div class="relative w-full h-48 overflow-hidden">
+                                <div class="relative w-full h-48 overflow-hidden rounded-t-[23px]">
 
                                     <img
                                         src="<%= pkg.cover_url %>"
@@ -353,76 +364,31 @@
                                         loading="lazy"
                                     >
 
-                                    <% if (isPopular) { %>
-
-                                        <span
-                                            class="absolute top-3 left-3 inline-flex items-center gap-1.5
-                                            bg-[#d7bd85] text-[#403a34]
-                                            text-[10px] font-bold tracking-widest
-                                            px-3 py-1.5 rounded-full"
-                                        >
-
-                                            <i class="bi bi-star-fill"></i>
-
-                                            <%= lang === 'id' ? 'PALING POPULER' : 'MOST POPULAR' %>
-
-                                        </span>
-
-                                    <% } %>
-
                                 </div>
-
-                            <% } else if (isPopular) { %>
-
-                                <div class="p-7 pb-0 flex justify-center">
-
-                                    <span
-                                        class="self-start inline-flex items-center gap-1.5
-                                        bg-[#d7bd85] text-[#403a34]
-                                        text-[10px] font-bold tracking-widest
-                                        px-3 py-1.5 rounded-full"
-                                    >
-
-                                        <i class="bi bi-star-fill"></i>
-
-                                        <%= lang === 'id' ? 'PALING POPULER' : 'MOST POPULAR' %>
-
-                                    </span>
-
-                                </div>
-
                             <% } %>
 
 
                             <!-- BODY -->
-                            <div class="p-7 flex flex-col flex-1 <%= !hasCover && isPopular ? 'pt-2' : '' %>">
+                            <div class="p-7 flex flex-col flex-1">
 
                                 <!-- NAME -->
-                                <h2
-                                    class="font-display text-2xl font-bold leading-tight
-                                    <%= isPopular
-                                        ? 'text-white'
-                                        : 'text-sage-900'
-                                    %>"
-                                >
-                                    <%= pkg.name %>
-                                </h2>
-
-
-                                <!-- DESCRIPTION -->
-                                <% if (pkg.description) { %>
-
-                                    <p
-                                        class="text-sm leading-relaxed mt-2
-                                        <%= isPopular
-                                            ? 'text-white/80'
-                                            : 'text-stone-500'
-                                        %>"
+                                <div class="<%= isPopular ? '-mx-7 -mt-7 mb-5 rounded-t-[23px] bg-[#403a34] px-7 py-7 text-white' : '' %>">
+                                    <h2
+                                        class="font-display text-2xl font-bold leading-tight
+                                        <%= isPopular ? 'text-white' : 'text-sage-900' %>"
                                     >
-                                        <%= pkg.description %>
-                                    </p>
+                                        <%= pkg.name %>
+                                    </h2>
 
-                                <% } %>
+                                    <% if (pkg.description) { %>
+                                        <p
+                                            class="text-sm leading-relaxed mt-2
+                                            <%= isPopular ? 'text-white' : 'text-stone-500' %>"
+                                        >
+                                            <%= pkg.description %>
+                                        </p>
+                                    <% } %>
+                                </div>
 
 
                                 <!-- META -->
@@ -435,7 +401,7 @@
                                             <span
                                                 class="inline-flex items-center gap-1 text-[11px] font-medium
                                                 px-2.5 py-1 rounded-lg
-                                                <%= isPopular ? 'bg-white/10 text-white/90' : 'bg-sand-100 text-stone-600' %>"
+                                                <%= isPopular ? 'bg-sand-100 text-stone-600' : 'bg-sand-100 text-stone-600' %>"
                                             >
                                                 <i class="bi bi-people-fill"></i>
                                                 <%= pkg.guest_capacity %> <%= lang === 'id' ? 'tamu' : 'guests' %>
@@ -448,7 +414,7 @@
                                             <span
                                                 class="inline-flex items-center gap-1 text-[11px] font-medium
                                                 px-2.5 py-1 rounded-lg
-                                                <%= isPopular ? 'bg-white/10 text-white/90' : 'bg-sand-100 text-stone-600' %>"
+                                                <%= isPopular ? 'bg-sand-100 text-stone-600' : 'bg-sand-100 text-stone-600' %>"
                                             >
                                                 <i class="bi bi-clock-fill"></i>
                                                 <%= pkg.event_duration_hours %> <%= lang === 'id' ? 'jam' : 'hours' %>
@@ -461,7 +427,7 @@
                                             <span
                                                 class="inline-flex items-center gap-1 text-[11px] font-medium
                                                 px-2.5 py-1 rounded-lg
-                                                <%= isPopular ? 'bg-white/10 text-white/90' : 'bg-sand-100 text-stone-600' %>"
+                                                <%= isPopular ? 'bg-sand-100 text-stone-600' : 'bg-sand-100 text-stone-600' %>"
                                             >
                                                 <i class="bi bi-geo-alt-fill"></i>
                                                 <%= pkg.venue_note %>
@@ -484,7 +450,7 @@
                                             <div
                                                 class="rounded-xl px-3 py-3
                                                 <%= isPopular
-                                                    ? 'bg-white/10'
+                                                    ? 'bg-stone-50'
                                                     : 'bg-stone-50'
                                                 %>"
                                             >
@@ -494,14 +460,14 @@
                                                     <div class="min-w-0">
 
                                                         <p class="text-xs font-semibold truncate
-                                                        <%= isPopular ? 'text-white' : 'text-stone-700' %>">
+                                                        <%= isPopular ? 'text-stone-700' : 'text-stone-700' %>">
                                                             <%= option.name %>
                                                         </p>
 
                                                         <p
                                                             class="text-[11px] mt-1
                                                             <%= isPopular
-                                                                ? 'text-white/70'
+                                                                ? 'text-stone-400'
                                                                 : 'text-stone-400'
                                                             %>"
                                                         >
@@ -523,7 +489,7 @@
                                                         <% if (option.discount_price && Number(option.discount_price) < Number(option.price)) { %>
 
                                                             <p class="text-[11px] line-through opacity-60
-                                                            <%= isPopular ? 'text-white/70' : 'text-stone-400' %>">
+                                                            <%= isPopular ? 'text-stone-400' : 'text-stone-400' %>">
                                                                 Rp <%= formatPrice(option.price) %>
                                                             </p>
 
@@ -558,7 +524,7 @@
                                     <div
                                         class="mt-5 pt-5 border-t
                                         <%= isPopular
-                                            ? 'border-white/20'
+                                            ? 'border-stone-100'
                                             : 'border-stone-100'
                                         %>"
                                     >
@@ -567,7 +533,7 @@
                                             class="text-xs font-semibold uppercase
                                             tracking-wider mb-3
                                             <%= isPopular
-                                                ? 'text-white/75'
+                                                ? 'text-stone-500'
                                                 : 'text-stone-500'
                                             %>"
                                         >
@@ -581,12 +547,12 @@
                                                 <li
                                                     class="flex items-start gap-2 text-sm
                                                     <%= isPopular
-                                                        ? 'text-white/90'
+                                                        ? 'text-stone-warm'
                                                         : 'text-stone-warm'
                                                     %>"
                                                 >
 
-                                                <span class="mt-0.5 shrink-0 <%= isPopular ? 'text-[#f4dfaa]' : 'text-sage-700' %>">
+                                                <span class="mt-0.5 shrink-0 text-sage-700">
     <svg xmlns="http://www.w3.org/2000/svg"
          width="16"
          height="16"
@@ -622,7 +588,7 @@
                                            flex items-center justify-center
                                            font-semibold text-sm transition
                                            <%= isPopular
-                                               ? 'bg-white text-[#315d52] hover:bg-[#edf5f1]'
+                                               ? 'bg-[#403a34] text-[#fffefd] hover:bg-[#6c5a4a]'
                                                : 'bg-sage-700 text-white hover:bg-sage-800'
                                            %>"
                                 >

@@ -5,103 +5,96 @@
   <%- include('../partials/head') %>
 </head>
 
-<body class="antialiased">
+<body class="antialiased bg-sand-50">
 
   <%- include('../partials/navbar') %>
 
-   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8">
-      <div class="max-w-2xl">
-
-    <h1 class="font-display text-4xl lg:text-5xl font-bold text-sage-900 mt-3 leading-tight">
-                <%= t.blogTitleA %>
-                <span class="text-terracotta-600"><%= t.blogTitleB %></span>
-            </h1>
-
-    <p class="text-stone-warm mt-2">
-     <%= t.blogDesc %>
-    </p>
-
-    </div>
-
-    <!-- Artikel -->
-    <div
-      id="articleGrid"
-      class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"
-    >
-
-      <% posts.forEach((p, i) => { %>
-
-        <a
-          href="/blog/<%= p.slug %>"
-          class="article-card bg-white border border-sage-100 rounded-[24px] overflow-hidden hover:shadow-lg transition group <%= i >= 9 ? 'hidden' : '' %>"
-        >
-
-          <% if (p.image) { %>
-            <img
-              src="<%= p.image %>"
-              alt="<%= p.title %>"
-              loading="lazy"
-              decoding="async"
-              data-img-error="remove"
-              class="h-[180px] w-full object-cover group-hover:scale-[1.02] transition"
-            >
-          <% } %>
-
-          <div class="p-5">
-
-            <div class="flex items-center gap-2 text-xs">
-
-              <% if (p.category) { %>
-                <span class="bg-sage-700 text-white px-2.5 py-1 rounded-full font-semibold">
-                  <%= p.category %>
-                </span>
-              <% } %>
-
-              <span class="text-stone-warm">
-                <%= p.date %> • <%= p.read %>
-              </span>
-
-            </div>
-
-            <h3 class="font-semibold mt-3 leading-tight">
-              <%= p.title %>
-            </h3>
-
-            <p class="text-sm text-stone-warm mt-1 line-clamp-2">
-              <%= p.excerpt %>
-            </p>
-
-            <span class="text-xs font-semibold text-sage-700 mt-3 inline-block">
-              Read more →
-            </span>
-
-          </div>
-
-        </a>
-
-      <% }) %>
-
-    </div>
-
-
-    <!-- Load More -->
-    <% if (posts.length > 9) { %>
-
-      <div class="flex justify-center mt-10">
-
-        <button
-          id="loadMoreBtn"
-          type="button"
-          class="bg-sage-700 text-white px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition"
-        >
-          Load More Articles
-        </button>
-
+  <main class="blog-page">
+    <section class="site-container blog-hero">
+      <div class="relative max-w-3xl">
+        <p class="blog-eyebrow">
+          <span class="blog-eyebrow-line" aria-hidden="true"></span>
+          <%= t.homeArticlesEyebrow %>
+        </p>
+        <h1 class="blog-title font-display font-bold text-sage-900">
+          <%= t.blogTitleA %>
+          <span class="text-terracotta-600"><%= t.blogTitleB %></span>
+        </h1>
+        <p class="blog-description">
+          <%= t.blogDesc %>
+        </p>
+        <div class="blog-hero-meta">
+          <span class="blog-hero-rule" aria-hidden="true"></span>
+          <span><%= totalPosts %> <%= lang === 'id' ? 'artikel untuk dijelajahi' : 'articles to explore' %></span>
+        </div>
       </div>
+    </section>
 
-    <% } %>
+    <section class="site-container blog-list-section">
+      <% if (!posts.length) { %>
+        <div class="blog-empty">
+          <span class="blog-empty-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg>
+          </span>
+          <h2><%= lang === 'id' ? 'Belum ada artikel' : 'No articles yet' %></h2>
+          <p><%= lang === 'id' ? 'Cerita dan tips pernikahan kami sedang disiapkan. Silakan kembali lagi segera.' : 'Our wedding stories and planning tips are on their way. Please check back soon.' %></p>
+        </div>
+      <% } else { %>
+        <div id="articleGrid" class="blog-grid">
+          <% posts.forEach((p, i) => { %>
+            <a
+              href="/blog/<%= p.slug %>"
+              class="article-card blog-card <%= i === 0 ? 'blog-feature-card' : '' %> <%= i >= 9 ? 'hidden' : '' %>"
+              data-delay="<%= i * 70 %>"
+            >
+              <div class="blog-card-media">
+                <% if (p.image) { %>
+                  <img
+                    src="<%= p.image %>"
+                    alt="<%= p.title %>"
+                    loading="lazy"
+                    decoding="async"
+                    data-img-error="remove"
+                    class="blog-card-image"
+                  >
+                <% } else { %>
+                  <div class="blog-card-placeholder" aria-hidden="true"><span>SW</span></div>
+                <% } %>
+                <% if (i === 0) { %>
+                  <span class="blog-feature-label"><%= lang === 'id' ? 'Bacaan pilihan' : 'Featured read' %></span>
+                <% } %>
+              </div>
+              <div class="blog-card-body">
+                <div class="blog-card-meta">
+                  <% if (p.category) { %>
+                    <span class="blog-card-category"><%= p.category %></span>
+                  <% } %>
+                  <span class="blog-card-date"><%= p.date %> <span class="blog-meta-dot">•</span> <%= p.read %></span>
+                </div>
+                <h3 class="blog-card-title"><%= p.title %></h3>
+                <% if (p.excerpt) { %>
+                  <p class="blog-card-excerpt"><%= p.excerpt %></p>
+                <% } %>
+                <span class="blog-card-link">
+                  <%= t.homeArticleReadMore %>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </span>
+              </div>
+            </a>
+          <% }) %>
+        </div>
 
-  </section>
+        <% if (posts.length > 9) { %>
+          <div class="blog-load-more-wrap">
+            <button id="loadMoreBtn" type="button" class="blog-load-more">
+              <span><%= lang === 'id' ? 'Muat artikel lainnya' : 'Load more articles' %></span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="m5 12 7 7 7-7"></path></svg>
+            </button>
+          </div>
+        <% } %>
+      <% } %>
+    </section>
+  </main>
 
   <%- include('../partials/footer') %>
 
