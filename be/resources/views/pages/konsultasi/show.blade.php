@@ -27,6 +27,15 @@
                 </div>
             </div>
             <div class="lead-hero-actions">
+                @if ($consultation->converted_order_uuid)
+                    <a href="{{ route('orders.show', $consultation->converted_order_uuid) }}" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-right me-1"></i> Lihat Pesanan
+                    </a>
+                @else
+                    <a href="{{ route('orders.create', ['consultation' => $consultation->uuid]) }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Buat Pesanan
+                    </a>
+                @endif
                 <a href="{{ route('konsultasi.whatsapp', $consultation->uuid) }}" target="_blank" rel="noopener" class="btn btn-success">
                     <i class="bx bxl-whatsapp me-1"></i> Hubungi WhatsApp
                 </a>

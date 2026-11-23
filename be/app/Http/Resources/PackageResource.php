@@ -27,6 +27,10 @@ class PackageResource extends JsonResource
 
             'cover_url' => $this->cover_url,
 
+            'dp_percentage' => $this->dp_percentage !== null ? (int) $this->dp_percentage : null,
+
+            'payment_terms_note' => $this->payment_terms_note,
+
             'is_popular' => (bool) $this->is_popular,
 
             'lead_time_days' => (int) $this->lead_time_days,

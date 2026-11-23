@@ -227,6 +227,47 @@
                 @enderror
               </div>
 
+              <div class="col-md-4">
+                <label for="dp_percentage" class="form-label fw-semibold">
+                  DP awal (%)
+                </label>
+
+                <input
+                  type="number"
+                  id="dp_percentage"
+                  name="dp_percentage"
+                  class="form-control @error('dp_percentage') is-invalid @enderror"
+                  value="{{ old('dp_percentage', 30) }}"
+                  min="0"
+                  max="100"
+                  placeholder="30">
+
+                @error('dp_percentage')
+                <div class="invalid-feedback">
+                  {{ $message }}
+                </div>
+                @enderror
+              </div>
+
+              <div class="col-md-8">
+                <label for="payment_terms_note" class="form-label fw-semibold">
+                  Catatan termin pembayaran
+                </label>
+
+                <textarea
+                  id="payment_terms_note"
+                  name="payment_terms_note"
+                  rows="3"
+                  class="form-control @error('payment_terms_note') is-invalid @enderror"
+                  placeholder="Contoh: Pelunasan maksimal H-7 acara">{{ old('payment_terms_note') }}</textarea>
+
+                @error('payment_terms_note')
+                <div class="invalid-feedback">
+                  {{ $message }}
+                </div>
+                @enderror
+              </div>
+
               <div class="col-12">
                 <label for="cover_url" class="form-label fw-semibold">
                   Foto Paket (URL)
@@ -263,7 +304,7 @@
                     Pilihan Paket
                   </h5>
                   <p class="text-muted small mb-0">
-                    Atur harga, masa berlaku, dan kuota untuk setiap pilihan.
+                    Atur harga, masa berlaku, dan jumlah layanan untuk setiap pilihan.
                   </p>
                 </div>
               </div>
@@ -323,7 +364,7 @@
                 <div class="row g-3">
                   <div class="col-md-4">
                     <label class="form-label">
-                      Kuota
+                      Jumlah layanan termasuk
                     </label>
 
                     <input
@@ -332,11 +373,11 @@
                       class="form-control"
                       value="{{ old('options.0.quota') }}"
                        min="1"
-                       placeholder="Kosongkan = tanpa batas">
+                      placeholder="Kosongkan = tanpa batas">
 
 
                     <small class="text-muted">
-                      Jumlah yang disertakan pada opsi ini. Kosongkan untuk kuota tanpa batas.
+                      Jumlah layanan yang disertakan pada opsi ini. Kosongkan jika tidak ada batasan jumlah layanan.
                     </small>
                   </div>
 
@@ -384,7 +425,7 @@
 
                   <div class="col-md-6">
                     <label class="form-label">
-                      Durasi
+                      Masa berlaku penawaran
                       <span class="text-danger">*</span>
                     </label>
 
@@ -401,7 +442,7 @@
 
                   <div class="col-md-6">
                     <label class="form-label">
-                      Satuan Durasi
+                      Satuan masa berlaku
                       <span class="text-danger">*</span>
                     </label>
 
@@ -446,7 +487,7 @@
 
             <div class="package-option-info mt-3">
               <i class="bi bi-info-circle me-1"></i>
-              Setiap opsi dapat memiliki harga, kuota, dan masa berlaku tersendiri.
+              Setiap opsi dapat memiliki harga, jumlah layanan, dan masa berlaku tersendiri.
             </div>
           </div>
         </div>
@@ -599,16 +640,12 @@
 
                   <div class="col-md-4">
                     <label class="form-label">
-                      Butuh Layanan (0 = pertama)
+                      Butuh Layanan Lainnya
                     </label>
 
-                    <input
-                      type="number"
-                      name="addons[0][requires_addon_index]"
-                      class="form-control"
-                      value="{{ old('addons.0.requires_addon_index') }}"
-                       min="0"
-                       placeholder="Contoh: 0">
+                    <select name="addons[0][requires_addon_index]" class="form-select">
+                      <option value="">Tidak ada</option>
+                    </select>
 
                   </div>
                 </div>
@@ -1154,7 +1191,7 @@
                     <div class="col-md-4">
 
                         <label class="form-label">
-                            Kuota
+                            Jumlah layanan termasuk
                         </label>
 
                         <input
@@ -1165,7 +1202,7 @@
                             min="1">
 
                         <small class="text-muted">
-                            Jumlah yang disertakan pada opsi ini. Kosongkan untuk kuota tanpa batas.
+                            Jumlah layanan yang disertakan pada opsi ini. Kosongkan jika tidak ada batasan jumlah layanan.
                         </small>
 
                     </div>
@@ -1224,7 +1261,7 @@
                     <div class="col-md-6">
 
                         <label class="form-label">
-                            Durasi
+                            Masa berlaku penawaran
                             <span class="text-danger">*</span>
                         </label>
 
@@ -1243,7 +1280,7 @@
                     <div class="col-md-6">
 
                         <label class="form-label">
-                            Satuan Durasi
+                            Satuan masa berlaku
                             <span class="text-danger">*</span>
                         </label>
 
@@ -1452,15 +1489,11 @@
                     <div class="col-md-4">
 
                         <label class="form-label">
-                            Butuh Layanan (0 = pertama)
+                            Butuh Layanan Lainnya
                         </label>
 
-                        <input
-                            type="number"
-                            name="addons[${index}][requires_addon_index]"
-                            class="form-control"
-                            placeholder="Contoh: 0"
-                            min="0">
+                        <select name="addons[${index}][requires_addon_index]"
+                            class="form-select"></select>
 
                     </div>
 
@@ -1475,6 +1508,7 @@
     );
 
     updatePackageAddonTitles();
+    syncPackageAddonDependencyOptions();
   }
 
 
@@ -1485,6 +1519,53 @@
       .remove();
 
     updatePackageAddonTitles();
+    syncPackageAddonDependencyOptions();
+  }
+
+
+  function syncPackageAddonDependencyOptions() {
+
+    const container = document.getElementById(
+      'package-addons-container'
+    );
+
+    if (!container) {
+      return;
+    }
+
+    const items = Array.from(
+      container.querySelectorAll('.package-addon-item')
+    );
+
+    const names = items.map(function (item) {
+      const nameField = item.querySelector('[name$="[name]"]');
+
+      return nameField ? String(nameField.value || '').trim() : '';
+    });
+
+    items.forEach(function (item, index) {
+      const field = item.querySelector('[name$="[requires_addon_index]"]');
+
+      if (!field) {
+        return;
+      }
+
+      const selected = String(field.value || '');
+      field.replaceChildren(new Option('Tidak ada', ''));
+
+      names.forEach(function (name, addonIndex) {
+        if (addonIndex === index || name === '') {
+          return;
+        }
+
+        field.add(new Option(
+          name,
+          String(addonIndex),
+          false,
+          selected === String(addonIndex)
+        ));
+      });
+    });
   }
 
 
@@ -1555,6 +1636,7 @@
 
                 <div class="row g-3">
                     <div class="col-md-4">
+                        <input type="hidden" name="promos[${index}][uuid]" value="">
                         <label class="form-label">Kode Promo <span class="text-danger">*</span></label>
                         <input type="text" name="promos[${index}][code]" class="form-control" placeholder="Contoh: HEMAT2026" required>
                     </div>
@@ -1720,6 +1802,16 @@
       return;
     }
 
+    if (
+      field.tagName === 'SELECT' &&
+      value !== undefined &&
+      value !== null &&
+      value !== '' &&
+      !Array.from(field.options).some(option => option.value === String(value))
+    ) {
+      field.add(new Option(`Layanan ${Number(value) + 1}`, String(value), false, true));
+    }
+
     field.value = value;
   }
 
@@ -1789,12 +1881,15 @@
       ]
     );
 
+    syncPackageAddonDependencyOptions();
+
     restorePackageRows(
       '#package-promos-container',
       '.package-promo-item',
       oldRows.promos,
       addPackagePromo,
       [
+        ['uuid', 'promos[{index}][uuid]'],
         ['code', 'promos[{index}][code]'],
         ['type', 'promos[{index}][type]'],
         ['value', 'promos[{index}][value]'],

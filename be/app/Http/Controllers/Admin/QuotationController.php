@@ -10,6 +10,7 @@ use App\Models\WebsiteIdentity;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class QuotationController extends Controller
 {
@@ -36,7 +37,7 @@ class QuotationController extends Controller
 
     private function buildQuotationData(Request $request, string $packageUuid): array
     {
-        $package = Package::with([
+        $packageQuery = Package::with([
             'options' => function ($query) {
                 $query->where('is_active', true)
                     ->orderBy('sort_order');
@@ -50,10 +51,13 @@ class QuotationController extends Controller
                 $query->usable()
                     ->orderBy('sort_order');
             },
-        ])
-            ->where('uuid', $packageUuid)
-            ->published()
-            ->firstOrFail();
+        ])->where('uuid', $packageUuid);
+
+        if (! Auth::user()?->hasAnyRole(['super-admin', 'admin'])) {
+            $packageQuery->published();
+        }
+
+        $package = $packageQuery->firstOrFail();
 
         $siteName = WebsiteIdentity::singleton()->site_name;
 

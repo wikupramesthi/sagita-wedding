@@ -273,7 +273,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     <div class="package-alert package-alert-warning" role="status">
         <span class="package-alert-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
         <div class="package-alert-copy">
-            <div class="package-alert-title">Kuota menipis</div>
+            <div class="package-alert-title">Jumlah layanan terbatas</div>
             <div class="package-alert-text">
                 @foreach ($lowQuotaOptions->take(3) as $lowQuota)
                 <span><b>{{ $lowQuota['package'] }}</b> Â· {{ $lowQuota['option'] }}: {{ $lowQuota['quota'] }} tersisa</span>

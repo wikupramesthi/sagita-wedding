@@ -29,6 +29,8 @@ class Package extends Model
         'event_duration_hours',
         'venue_note',
         'cover_url',
+        'dp_percentage',
+        'payment_terms_note',
         'is_popular',
         'is_active',
         'is_published',
@@ -44,6 +46,7 @@ class Package extends Model
         'lead_time_days' => 'integer',
         'guest_capacity' => 'integer',
         'event_duration_hours' => 'integer',
+        'dp_percentage' => 'integer',
     ];
 
     public function scopePublished($query)

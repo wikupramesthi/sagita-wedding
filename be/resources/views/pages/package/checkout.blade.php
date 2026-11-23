@@ -165,7 +165,6 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
                     </div>
                     @endif
 
-
                 </div>
 
             </div>

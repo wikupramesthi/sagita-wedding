@@ -30,6 +30,18 @@
     </style>
 </head>
 <body>
+    @php
+    $durationUnitLabels = [
+        'day' => 'hari',
+        'week' => 'minggu',
+        'month' => 'bulan',
+        'year' => 'tahun',
+    ];
+    $durationLabel = $option
+        ? $option->duration.' '.($durationUnitLabels[$option->duration_unit] ?? $option->duration_unit)
+        : '-';
+    @endphp
+
     <table class="header">
         <tr>
             <td class="brand">{{ $siteName }}<span class="brand-sub"><br>Penyelenggara pernikahan Anda</span></td>
@@ -45,24 +57,30 @@
         </tr>
         <tr>
             <td><span class="label">Deskripsi</span><span class="value">{{ $package->description ?: '-' }}</span></td>
-            <td><span class="label">Durasi layanan</span><span class="value">
-                @if ($option)
-                {{ $option->duration }} {{ ucfirst($option->duration_unit) }}
-                @else
-                -
-                @endif
+            <td><span class="label">Masa berlaku penawaran</span><span class="value">
+                {{ $durationLabel }}
             </span></td>
         </tr>
         <tr>
             <td><span class="label">Tanggal acara</span><span class="value">{{ $eventDate?->translatedFormat('d F Y') ?? '-' }}</span></td>
-            <td><span class="label">Kuota</span><span class="value">
+            <td><span class="label">Jumlah layanan termasuk</span><span class="value">
                 @if ($option)
-                {{ $option->quota === null ? 'Tanpa batas' : $option->quota . ' sesi' }}
+                {{ $option->quota === null ? 'Tanpa batas' : $option->quota.' layanan' }}
                 @else
                 -
                 @endif
             </span></td>
         </tr>
+        @if ($package->dp_percentage !== null || $package->payment_terms_note)
+        <tr>
+            <td><span class="label">DP awal</span><span class="value">
+                {{ $package->dp_percentage !== null ? (int) $package->dp_percentage.'%' : '-' }}
+            </span></td>
+            <td><span class="label">Catatan termin pembayaran</span><span class="value">
+                {{ $package->payment_terms_note ?: '-' }}
+            </span></td>
+        </tr>
+        @endif
     </table>
 
     <div class="section-title">Layanan Tambahan</div>

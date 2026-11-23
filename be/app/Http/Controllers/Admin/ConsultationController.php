@@ -862,6 +862,10 @@ class ConsultationController extends Controller
 
                     $consultation->update($data);
 
+                    if ($data['lead_status'] === 'Converted') {
+                        $this->syncConvertedLead($consultation->fresh());
+                    }
+
                     return ['consultation' => $consultation];
                 });
             } catch (QueryException $exception) {
@@ -917,7 +921,13 @@ class ConsultationController extends Controller
                 $this->assertWipCapacity($target, [$consultation->uuid]);
             }
 
-            DB::transaction(fn () => $consultation->update($update));
+            DB::transaction(function () use ($consultation, $update) {
+                $consultation->update($update);
+
+                if (($update['lead_status'] ?? null) === 'Converted') {
+                    $this->syncConvertedLead($consultation->fresh());
+                }
+            });
 
             return back()->with('success', 'Pipeline calon pelanggan berhasil diperbarui.');
         };
@@ -982,6 +992,74 @@ class ConsultationController extends Controller
         return redirect()->route('konsultasi.index')->with('success', 'Data konsultasi berhasil dihapus.');
     }
 
+    private function findUserForConsultation(Consultation $consultation): ?User
+    {
+        $email = Consultation::normalizeEmail($consultation->email);
+
+        if ($email !== null) {
+            $candidate = User::whereRaw('LOWER(email) = ?', [$email])->first();
+
+            if ($candidate) {
+                return $candidate;
+            }
+        }
+
+        $phone = Consultation::normalizeWhatsapp($consultation->whatsapp);
+
+        if ($phone === null) {
+            return null;
+        }
+
+        foreach (User::whereNotNull('no_hp')->get() as $candidate) {
+            if (Consultation::normalizeWhatsapp($candidate->no_hp) === $phone) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function syncConvertedLead(Consultation $consultation, ?string $orderUuid = null): void
+    {
+        $candidate = $this->findUserForConsultation($consultation);
+        $update = [];
+
+        if ($consultation->lead_status !== 'Converted') {
+            $update['lead_status'] = 'Converted';
+        }
+
+        if ($orderUuid !== null && ! $consultation->converted_order_uuid) {
+            $update['converted_order_uuid'] = $orderUuid;
+        }
+
+        if ($candidate && ! $consultation->user_uuid) {
+            $update['user_uuid'] = $candidate->uuid;
+        }
+
+        if ($update !== []) {
+            $consultation->update($update);
+        }
+
+        if (! $candidate) {
+            return;
+        }
+
+        $userPayload = [];
+
+        if (! $candidate->consultation_uuid) {
+            $userPayload['consultation_uuid'] = $consultation->uuid;
+        }
+
+        if ($candidate->prospect_status !== 'customer') {
+            $userPayload['prospect_status'] = 'customer';
+            $userPayload['prospect_status_updated_at'] = now();
+        }
+
+        if ($userPayload !== []) {
+            $candidate->update($userPayload);
+        }
+    }
+
     private function applyBulkLead(Consultation $consultation, string $leadStatus): void
     {
         $consultation->update([
@@ -990,6 +1068,10 @@ class ConsultationController extends Controller
                 ? ($consultation->converted_to_booking_at ?? now())
                 : null,
         ]);
+
+        if ($leadStatus === 'Converted') {
+            $this->syncConvertedLead($consultation->fresh());
+        }
     }
 
     private function withNamedLock(string $key, callable $callback): mixed

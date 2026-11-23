@@ -78,7 +78,7 @@
                     <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
 
-                <%= t.backToMembership %>
+                <%= t.backToPackages %>
             </a>
 
             <div class="max-w-3xl">
@@ -341,7 +341,7 @@
                                tracking-widest
                                text-sage-200"
                     >
-                        Sagita Wedding Membership
+                        Sagita Wedding Organizer
                     </p>
 
                     <h2
@@ -362,6 +362,23 @@
                     <p class="text-sm text-sage-200 leading-relaxed">
                         <%= t.chooseYourPackageDesc %>
                     </p>
+
+                    <% if ((pkg.dp_percentage !== null && pkg.dp_percentage !== undefined) || pkg.payment_terms_note) { %>
+                    <div class="mt-6 rounded-2xl bg-white/10 p-4 text-sm text-sage-100">
+                        <% if (pkg.dp_percentage !== null && pkg.dp_percentage !== undefined) { %>
+                        <div class="flex items-center justify-between gap-3">
+                            <span><%= t.dpInitial %></span>
+                            <strong><%= pkg.dp_percentage %>%</strong>
+                        </div>
+                        <% } %>
+
+                        <% if (pkg.payment_terms_note) { %>
+                        <p class="mt-2 text-xs text-sage-200">
+                            <%= t.paymentTerms %>: <%= pkg.payment_terms_note %>
+                        </p>
+                        <% } %>
+                    </div>
+                    <% } %>
 
                      <button type="button" data-action="open-booking"
                         class="w-full

@@ -51,26 +51,86 @@
         </div>
         <div class="{{ $compact ? 'mt-3' : 'card-body' }}">
             @foreach ($order->checklistItems as $item)
-                <div class="d-flex align-items-start gap-2 py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                <div class="py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
                     @if ($isAdmin)
-                        <i class="bi {{ $item->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted' }} mt-1"></i>
+                        <div class="d-flex align-items-start gap-2">
+                            <form method="POST" action="{{ route('orders.checklist.update', [$order->uuid, $item->uuid]) }}" class="flex-grow-1">
+                                @csrf
+                                <div class="row g-2">
+                                    <div class="col-12 col-md-5">
+                                        <input type="text" name="title" class="form-control form-control-sm" value="{{ $item->title }}" maxlength="255" required>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <input type="date" name="due_at" class="form-control form-control-sm" value="{{ optional($item->due_at)->format('Y-m-d') }}">
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <select name="status" class="form-select form-select-sm">
+                                            <option value="pending" @selected($item->status === 'pending')>Pending</option>
+                                            <option value="completed" @selected($item->status === 'completed')>Selesai</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-2 d-flex gap-1">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" aria-label="Simpan checklist">
+                                            <i class="bi bi-check2"></i>
+                                        </button>
+                                        <button type="submit" form="checklist-delete-{{ $item->uuid }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus checklist ini?')" aria-label="Hapus checklist">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                @if ($item->description)<div class="small text-muted mt-1">{{ $item->description }}</div>@endif
+                            </form>
+                            <form id="checklist-delete-{{ $item->uuid }}" method="POST" action="{{ route('orders.checklist.destroy', [$order->uuid, $item->uuid]) }}" class="d-none">
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                        </div>
                     @else
-                        <form method="POST" action="{{ route('orders.checklist.update', [$order->uuid, $item->uuid]) }}">
-                            @csrf
-                            <input type="hidden" name="status" value="{{ $item->status === 'completed' ? 'pending' : 'completed' }}">
-                            <button type="submit" class="btn btn-link p-0 border-0 text-decoration-none" aria-label="{{ $item->status === 'completed' ? 'Tandai belum selesai' : 'Tandai selesai' }}">
-                                <i class="bi {{ $item->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted' }}"></i>
-                            </button>
-                        </form>
+                        <div class="d-flex align-items-start gap-2">
+                            <form method="POST" action="{{ route('orders.checklist.update', [$order->uuid, $item->uuid]) }}">
+                                @csrf
+                                <input type="hidden" name="status" value="{{ $item->status === 'completed' ? 'pending' : 'completed' }}">
+                                <button type="submit" class="btn btn-link p-0 border-0 text-decoration-none" aria-label="{{ $item->status === 'completed' ? 'Tandai belum selesai' : 'Tandai selesai' }}">
+                                    <i class="bi {{ $item->status === 'completed' ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted' }}"></i>
+                                </button>
+                            </form>
+                            <div class="flex-grow-1">
+                                <div class="small fw-semibold {{ $item->status === 'completed' ? 'text-decoration-line-through text-muted' : '' }}">{{ $item->title }}</div>
+                                @if ($item->description)<div class="small text-muted">{{ $item->description }}</div>@endif
+                                @if ($item->due_at)<div class="small text-muted">Target {{ $item->due_at->translatedFormat('d M Y') }}</div>@endif
+                            </div>
+                            @if ($item->status === 'completed')<span class="badge text-bg-success">Selesai</span>@endif
+                        </div>
                     @endif
-                    <div class="flex-grow-1">
-                        <div class="small fw-semibold {{ $item->status === 'completed' ? 'text-decoration-line-through text-muted' : '' }}">{{ $item->title }}</div>
-                        @if ($item->description)<div class="small text-muted">{{ $item->description }}</div>@endif
-                        @if ($item->due_at)<div class="small text-muted">Target {{ $item->due_at->translatedFormat('d M Y') }}</div>@endif
-                    </div>
-                    @if ($item->status === 'completed')<span class="badge text-bg-success">Selesai</span>@endif
                 </div>
             @endforeach
+        </div>
+    </div>
+@endif
+
+@if ($isAdmin)
+    <div class="{{ $compact ? 'app-card p-3 mt-3' : 'card border-0 shadow-sm mb-4' }}">
+        <div class="{{ $compact ? 'h6 fw-semibold mb-3' : 'card-header bg-white fw-semibold' }}">Tambah checklist persiapan</div>
+        <div class="{{ $compact ? '' : 'card-body' }}">
+            <form method="POST" action="{{ route('orders.checklist.store', $order->uuid) }}">
+                @csrf
+                <div class="row g-2">
+                    <div class="col-12 col-md-5">
+                        <input type="text" name="title" class="form-control form-control-sm" placeholder="Nama checklist" maxlength="255" required>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <input type="date" name="due_at" class="form-control form-control-sm" aria-label="Target checklist">
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <textarea name="description" class="form-control form-control-sm" rows="1" placeholder="Catatan"></textarea>
+                    </div>
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i>Tambah
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 @endif

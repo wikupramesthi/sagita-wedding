@@ -100,6 +100,9 @@
         <div class="order-detail-layout">
             <div class="order-detail-main">
 
+        @include('pages.orders.partials.venue-booking', ['order' => $order, 'isAdmin' => $isAdmin, 'venues' => $venues ?? collect()])
+        @include('pages.orders.partials.timeline', ['order' => $order, 'isAdmin' => $isAdmin])
+
         {{-- Admin verification (manual transfer) --}}
         @php
             $pendingPayment = $order->payments->firstWhere('verification_status', 'pending') ?? $order->payments->firstWhere('status', 'pending');

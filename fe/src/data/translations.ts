@@ -252,7 +252,9 @@ const rawTranslations = {
 		// --- package detail ---
 		packageNotFoundTitle: "Package not found",
 		packageNotFoundDesc: "The package you are looking for is not available.",
-		backToMembership: "Back to Packages",
+		backToPackages: "Back to Packages",
+		dpInitial: "Initial down payment",
+		paymentTerms: "Payment instalment notes",
 		mostPopular: "Most Popular",
 		chooseYourOption: "Choose Your Option",
 		chooseYourOptionDesc: "Select the option that best fits your practice.",
@@ -729,7 +731,9 @@ const rawTranslations = {
 		// --- detail paket ---
 		packageNotFoundTitle: "Paket tidak ditemukan",
 		packageNotFoundDesc: "Paket yang kamu cari tidak tersedia.",
-		backToMembership: "Kembali ke Paket",
+		backToPackages: "Kembali ke Daftar Paket",
+		dpInitial: "DP awal",
+		paymentTerms: "Catatan termin pembayaran",
 		mostPopular: "Paling Populer",
 		chooseYourOption: "Pilih Opsi",
 		chooseYourOptionDesc: "Pilih opsi yang paling sesuai dengan praktikmu.",

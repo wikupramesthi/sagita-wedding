@@ -406,6 +406,12 @@ class OrderController extends Controller
         }
 
         $matchedUser = $this->findUserForConsultation($consultation);
+        $addons = $selectedOption
+            ? PackageAddon::where('package_uuid', $selectedOption->package_uuid)
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get()
+            : collect();
 
         return view('pages.orders.create', compact(
             'consultation',
@@ -414,13 +420,16 @@ class OrderController extends Controller
             'users',
             'selectedOption',
             'selectedVenue',
-            'matchedUser'
+            'matchedUser',
+            'addons'
         ));
     }
 
-    public function updateVenueBooking(Request $request, Order $order)
+    public function updateVenueBooking(Request $request, string $order)
     {
         abort_unless(Auth::user()->hasAnyRole(['super-admin', 'admin']), 403);
+
+        $orderModel = Order::packageOnly()->where('uuid', $order)->firstOrFail();
 
         $validated = $request->validate([
             'venue_uuid' => ['nullable', 'uuid', 'exists:venues,uuid'],
@@ -430,7 +439,7 @@ class OrderController extends Controller
             'venue_booking_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $order->update([
+        $orderModel->update([
             'venue_uuid' => $validated['venue_uuid'] ?? null,
             'venue_booking_status' => $validated['venue_booking_status'],
             'venue_booking_amount' => $validated['venue_booking_amount'] ?? null,
@@ -438,11 +447,11 @@ class OrderController extends Controller
             'venue_booking_note' => $validated['venue_booking_note'] ?? null,
         ]);
 
-        $this->logOrderAction($order, 'venue_booking_updated', [
-            'venue_uuid' => $order->venue_uuid,
-            'venue_booking_status' => $order->venue_booking_status,
-            'venue_booking_amount' => $order->venue_booking_amount,
-            'venue_booking_at' => $order->venue_booking_at?->toDateString(),
+        $this->logOrderAction($orderModel, 'venue_booking_updated', [
+            'venue_uuid' => $orderModel->venue_uuid,
+            'venue_booking_status' => $orderModel->venue_booking_status,
+            'venue_booking_amount' => $orderModel->venue_booking_amount,
+            'venue_booking_at' => $orderModel->venue_booking_at?->toDateString(),
         ]);
 
         return back()->with('success', 'Booking venue berhasil diperbarui.');
@@ -1289,6 +1298,30 @@ class OrderController extends Controller
                     'approval_snapshot',
                 ]) ?? [];
 
+                $reservationBefore = [];
+
+                if ($beforeOrderModel) {
+                    $reservationModel = EventDateReservation::where('order_uuid', $beforeOrderModel->uuid)->first()
+                        ?: EventDateReservation::whereDate('event_date', $beforeOrderModel->event_date)->first();
+                    $reservationBefore = $reservationModel?->only([
+                        'event_date',
+                        'order_uuid',
+                        'status',
+                        'expires_at',
+                    ]) ?? [];
+                }
+
+                $documentsBefore = $beforeOrderModel
+                    ? OrderDocument::where('order_uuid', $beforeOrderModel->uuid)
+                        ->pluck('document_key', 'uuid')
+                        ->all()
+                    : [];
+                $checklistBefore = $beforeOrderModel
+                    ? WeddingChecklistItem::where('order_uuid', $beforeOrderModel->uuid)
+                        ->pluck('uuid')
+                        ->all()
+                    : [];
+
                 if ($validated['action'] === 'approve') {
                     $record = $beforeOrderModel ?: Order::packageOnly()->where('uuid', $orderUuid)->firstOrFail();
                     $beforeApproval = $record->approval_snapshot;
@@ -1333,6 +1366,30 @@ class OrderController extends Controller
                         [$order] = $this->verifyPendingPayment($record->fresh(), $payment, $validated['admin_note'] ?? null);
                     }
                     $snapshot = $order->approval_snapshot ?: $beforeApproval;
+
+                    $documentsAfter = OrderDocument::where('order_uuid', $order->uuid)
+                        ->pluck('document_key', 'uuid')
+                        ->all();
+                    $documentsCreated = collect($documentsAfter)
+                        ->reject(fn ($documentKey, $documentUuid) => array_key_exists($documentUuid, $documentsBefore))
+                        ->map(fn ($documentKey, $documentUuid) => [
+                            'uuid' => $documentUuid,
+                            'document_key' => $documentKey,
+                        ])
+                        ->values()
+                        ->all();
+
+                    $checklistAfter = WeddingChecklistItem::where('order_uuid', $order->uuid)
+                        ->pluck('uuid')
+                        ->all();
+                    $checklistCreated = array_values(array_diff($checklistAfter, $checklistBefore));
+
+                    $reservationAfter = EventDateReservation::where('order_uuid', $order->uuid)
+                        ->first()
+                        ?->only(['event_date', 'order_uuid', 'status', 'expires_at']) ?? [];
+                    $reservationConfirmedByAction = ($reservationBefore['status'] ?? null) !== 'confirmed'
+                        && ($reservationAfter['status'] ?? null) === 'confirmed';
+
                     $undoSnapshot[] = [
                         'type' => 'approve',
                         'uuid' => $order->uuid,
@@ -1341,6 +1398,11 @@ class OrderController extends Controller
                         'payment_uuid' => $payment->uuid ?? null,
                         'payment_before' => $paymentBeforeApproval,
                         'snapshot' => array_merge($snapshot, ['payment_uuid' => $payment->uuid ?? null]),
+                        'documents_before' => $documentsBefore,
+                        'documents_created' => $documentsCreated,
+                        'checklist_created' => $checklistCreated,
+                        'reservation_before' => $reservationBefore,
+                        'reservation_confirmed_by_action' => $reservationConfirmedByAction,
                     ];
                 } else {
                     $paymentBefore = Payment::where('order_uuid', $orderUuid)
@@ -1369,6 +1431,7 @@ class OrderController extends Controller
                         'pending_key' => $before['pending_key'] ?? null,
                         'payment_uuid' => $paymentBefore['uuid'] ?? null,
                         'payment_before' => $paymentBefore,
+                        'reservation_before' => $reservationBefore,
                     ];
                 }
 
@@ -1451,6 +1514,27 @@ class OrderController extends Controller
                             : Payment::where('order_uuid', $order->uuid);
                         $paymentQuery->update($paymentRestore);
 
+                        $reservationBefore = $item['reservation_before'] ?? [];
+
+                        if ($reservationBefore !== []) {
+                            $reservationQuery = EventDateReservation::whereDate('event_date', $order->event_date);
+
+                            if (! empty($reservationBefore['order_uuid'])) {
+                                $reservationQuery->where('order_uuid', $reservationBefore['order_uuid']);
+                            } else {
+                                $reservationQuery->where(function ($query) use ($order) {
+                                    $query->where('order_uuid', $order->uuid)->orWhereNull('order_uuid');
+                                });
+                            }
+
+                            $reservationQuery->update([
+                                'order_uuid' => $reservationBefore['order_uuid'] ?? null,
+                                'status' => $reservationBefore['status'] ?? 'available',
+                                'expires_at' => $reservationBefore['expires_at'] ?? null,
+                                'updated_at' => now(),
+                            ]);
+                        }
+
                         $this->logOrderAction($order, 'rejection_reverted');
 
                         continue;
@@ -1489,6 +1573,56 @@ class OrderController extends Controller
                         ]);
                     } else {
                         $paymentQuery->delete();
+                    }
+
+                    foreach ($item['documents_created'] ?? [] as $documentCreated) {
+                        if (! empty($documentCreated['uuid'])) {
+                            OrderDocument::where('order_uuid', $order->uuid)
+                                ->where('uuid', $documentCreated['uuid'])
+                                ->delete();
+                        }
+                    }
+
+                    foreach ($item['checklist_created'] ?? [] as $checklistUuid) {
+                        WeddingChecklistItem::where('order_uuid', $order->uuid)
+                            ->where('uuid', $checklistUuid)
+                            ->delete();
+                    }
+
+                    if (! empty($item['reservation_confirmed_by_action'])) {
+                        $hasOtherActiveReservation = Order::packageOnly()
+                            ->whereDate('event_date', $order->event_date)
+                            ->where('uuid', '!=', $order->uuid)
+                            ->where(function ($query) {
+                                $query->whereIn('status', ['partially_paid', 'paid'])
+                                    ->orWhere(function ($pendingQuery) {
+                                        $pendingQuery->where('status', 'pending')
+                                            ->where(function ($expiryQuery) {
+                                                $expiryQuery->whereNull('expired_at')
+                                                    ->orWhere('expired_at', '>', now());
+                                            });
+                                    });
+                            })
+                            ->exists();
+
+                        if (! $hasOtherActiveReservation) {
+                            $reservationBefore = $item['reservation_before'] ?? [];
+
+                            if (
+                                ! empty($reservationBefore['order_uuid']) &&
+                                $reservationBefore['order_uuid'] !== $order->uuid
+                            ) {
+                                EventDateReservation::where('order_uuid', $reservationBefore['order_uuid'])
+                                    ->update([
+                                        'order_uuid' => $reservationBefore['order_uuid'],
+                                        'status' => $reservationBefore['status'] ?? 'available',
+                                        'expires_at' => $reservationBefore['expires_at'] ?? null,
+                                        'updated_at' => now(),
+                                    ]);
+                            } else {
+                                app(EventDateReservationService::class)->releaseForOrder($order->uuid);
+                            }
+                        }
                     }
 
                     if (! empty($userPackageBefore['created'])) {
@@ -2109,9 +2243,43 @@ class OrderController extends Controller
                 'nullable',
                 Rule::in(['no_dp', 'dp30', 'dp50', 'full']),
             ],
+
+            'consultation_uuid' => [
+                'nullable',
+                'uuid',
+                'exists:consultations,uuid',
+            ],
+
+            'user_uuid' => [
+                'nullable',
+                'uuid',
+                'exists:users,uuid',
+            ],
+
+            'venue_uuid' => [
+                'nullable',
+                'uuid',
+                'exists:venues,uuid',
+            ],
+
+            'venue_booking_status' => [
+                'nullable',
+                Rule::in(['none', 'requested', 'confirmed', 'cancelled']),
+            ],
+
+            'venue_booking_at' => ['nullable', 'date'],
+
+            'venue_booking_amount' => ['nullable', 'numeric', 'min:0'],
+
+            'venue_booking_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $user = Auth::user();
+        $consultation = ! empty($validated['consultation_uuid'])
+            ? Consultation::where('uuid', $validated['consultation_uuid'])->firstOrFail()
+            : null;
+        $user = ! empty($validated['user_uuid'])
+            ? User::where('uuid', $validated['user_uuid'])->firstOrFail()
+            : Auth::user();
 
         /*
         |--------------------------------------------------------------------------
@@ -2388,7 +2556,9 @@ class OrderController extends Controller
                 $bookingFee,
                 $netAmount,
                 $installmentSchedule,
-                $reservations
+                $reservations,
+                $consultation,
+                $validated
             ) {
                 $dateReservation = $reservations->lockDate($eventDate);
 
@@ -2445,9 +2615,19 @@ class OrderController extends Controller
                         'scheme_due' => (int) $amount,
                         'due_now' => $dueNow,
                     ],
+                    'consultation_uuid' => $consultation?->uuid,
+                    'venue_uuid' => $validated['venue_uuid'] ?? null,
+                    'venue_booking_status' => $validated['venue_booking_status'] ?? 'none',
+                    'venue_booking_at' => $validated['venue_booking_at'] ?? null,
+                    'venue_booking_amount' => $validated['venue_booking_amount'] ?? null,
+                    'venue_booking_note' => $validated['venue_booking_note'] ?? null,
                 ]);
 
                 $reservations->hold($dateReservation, $order);
+
+                if ($consultation) {
+                    $this->syncConvertedLead($consultation, $order->uuid);
+                }
 
                 return $order;
             });
@@ -3093,6 +3273,72 @@ class OrderController extends Controller
             'admin_note.required' => 'Alasan penolakan wajib diisi.',
             'admin_note.required_if' => 'Alasan penolakan wajib diisi.',
         ];
+    }
+
+    private function findUserForConsultation(?Consultation $consultation): ?User
+    {
+        if (! $consultation) {
+            return null;
+        }
+
+        $email = Consultation::normalizeEmail($consultation->email);
+
+        if ($email !== null) {
+            $candidate = User::whereRaw('LOWER(email) = ?', [$email])->first();
+
+            if ($candidate) {
+                return $candidate;
+            }
+        }
+
+        $phone = Consultation::normalizeWhatsapp($consultation->whatsapp);
+
+        if ($phone === null) {
+            return null;
+        }
+
+        foreach (User::whereNotNull('no_hp')->get() as $candidate) {
+            if (Consultation::normalizeWhatsapp($candidate->no_hp) === $phone) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function syncConvertedLead(Consultation $consultation, string $orderUuid): void
+    {
+        if ($consultation->converted_order_uuid !== null) {
+            return;
+        }
+
+        $candidate = $this->findUserForConsultation($consultation);
+
+        $consultation->update([
+            'lead_status' => 'Converted',
+            'converted_order_uuid' => $orderUuid,
+            'converted_to_booking_at' => $consultation->converted_to_booking_at ?: now(),
+            'user_uuid' => $candidate?->uuid ?: $consultation->user_uuid,
+        ]);
+
+        if (! $candidate) {
+            return;
+        }
+
+        $userPayload = [];
+
+        if (! $candidate->consultation_uuid) {
+            $userPayload['consultation_uuid'] = $consultation->uuid;
+        }
+
+        if ($candidate->prospect_status !== 'customer') {
+            $userPayload['prospect_status'] = 'customer';
+            $userPayload['prospect_status_updated_at'] = now();
+        }
+
+        if ($userPayload !== []) {
+            $candidate->update($userPayload);
+        }
     }
 
     private function logOrderAction(Order $order, string $event, array $newValues = []): void

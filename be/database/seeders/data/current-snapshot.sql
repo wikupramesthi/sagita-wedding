@@ -389,45 +389,45 @@ INSERT INTO `orders` (`uuid`, `user_uuid`, `order_number`, `type`, `package_uuid
 /*!40000 ALTER TABLE `package_blackout_dates` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `package_features` DISABLE KEYS */;
-INSERT INTO `package_features` (`uuid`, `package_uuid`, `category`, `feature`, `sort_order`, `created_at`, `updated_at`) VALUES ('01a09615-73fb-702f-8c0a-b5012141236e','01a09615-73d8-7345-a20f-2d5eeb6b1d1a',NULL,'Unlimited Class Access',0,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
-('01a09615-7401-7073-add9-f090d187e2f8','01a09615-73d8-7345-a20f-2d5eeb6b1d1a',NULL,'Yoga Mat Provided',1,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
-('01a09615-7402-71bd-a8b8-9e5f3acd8ad7','01a09615-73d8-7345-a20f-2d5eeb6b1d1a',NULL,'Locker Access',2,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
-('01a09615-7402-71bd-a8b8-9e5f3ae8a3fb','01a09615-73d8-7345-a20f-2d5eeb6b1d1a',NULL,'Shower Facilities',3,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
-('01a09615-7409-70e7-9271-8596c85a0a7d','01a09615-73d8-7345-a20f-2d5eeb6b1d1a',NULL,'Access to All Studio Classes',4,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
-('01a098de-ec82-701f-bb24-c2dbbe0c59b9','01a098d2-a02c-72ee-a8eb-b9dc6786761d',NULL,'Private 1-on-1 Session',0,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
-('01a098de-ec83-7166-a29d-85d9cd8131b5','01a098d2-a02c-72ee-a8eb-b9dc6786761d',NULL,'Personalized Yoga Practice',1,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
-('01a098de-ec83-7166-a29d-85d9cdfbb9df','01a098d2-a02c-72ee-a8eb-b9dc6786761d',NULL,'Dedicated Instructor',2,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
-('01a098de-ec84-71fb-82be-6092568d7513','01a098d2-a02c-72ee-a8eb-b9dc6786761d',NULL,'Individual Guidance & Corrections',3,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
-('01a098de-ec86-70ea-a38d-1c994c52404a','01a098d2-a02c-72ee-a8eb-b9dc6786761d',NULL,'Practice Tailored to Your Goals',4,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
-('01a098de-ec87-70ea-ad3c-c41d16e6f542','01a098d2-a02c-72ee-a8eb-b9dc6786761d',NULL,'Flexible Session Focus',5,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
-('01a098e0-8799-703c-a314-911481118e4e','01a098e0-878e-7296-b1c0-a550bf0327b0',NULL,'Private Session for Two',0,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
-('01a098e0-879f-715a-8e83-0ae3ed067c6f','01a098e0-878e-7296-b1c0-a550bf0327b0',NULL,'Personalized Yoga Practice',1,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
-('01a098e0-87a0-705c-94e4-64e7348fd306','01a098e0-878e-7296-b1c0-a550bf0327b0',NULL,'Dedicated Instructor',2,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
-('01a098e0-87a1-7275-b6b4-5e5b4873a277','01a098e0-878e-7296-b1c0-a550bf0327b0',NULL,'Individual Guidance & Corrections',3,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
-('01a098e0-87a2-72dc-8631-635b1abff726','01a098e0-878e-7296-b1c0-a550bf0327b0',NULL,'Partner-Based Practice',4,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
-('01a098e0-87a3-72d4-b233-8ba8254b8bb6','01a098e0-878e-7296-b1c0-a550bf0327b0',NULL,'Practice Tailored to Your Goals',5,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
-('01a09965-fbf3-7255-bb66-859b3a4e1bff','01a098c6-e509-7154-869f-8d336d44ebc4',NULL,'Share Your Class Quota',0,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
-('01a09965-fbf9-7032-b9db-53e383f6b6c9','01a098c6-e509-7154-869f-8d336d44ebc4',NULL,'Flexible Class Access',1,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
-('01a09965-fbfa-72c8-9335-c298673b2bec','01a098c6-e509-7154-869f-8d336d44ebc4',NULL,'Locker Access',2,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
-('01a09965-fbfa-72c8-9335-c298680c415e','01a098c6-e509-7154-869f-8d336d44ebc4',NULL,'Shower Facilities',3,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
-('01a09965-fbfb-72aa-8e43-d33cdbde0650','01a098c6-e509-7154-869f-8d336d44ebc4',NULL,'Access to Studio Classes',4,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
-('01a09966-2967-7153-8bac-e05d58fabab9','01a095f2-d286-7241-b566-8027529b8196',NULL,'First Studio Session',0,'2026-09-13 06:13:24','2026-09-13 06:13:24'),
-('01a09966-296d-7188-bf8c-90a9e73adf27','01a095f2-d286-7241-b566-8027529b8196',NULL,'Yoga Mat Provided',1,'2026-09-13 06:13:24','2026-09-13 06:13:24'),
-('01a09966-296d-7188-bf8c-90a9e8268917','01a095f2-d286-7241-b566-8027529b8196',NULL,'Locker Access',2,'2026-09-13 06:13:24','2026-09-13 06:13:24'),
-('01a09966-296e-71e6-a0f5-c78ca826aad2','01a095f2-d286-7241-b566-8027529b8196',NULL,'Shower Facilities',3,'2026-09-13 06:13:24','2026-09-13 06:13:24'),
-('01a09966-296e-71e6-a0f5-c78ca89e5199','01a095f2-d286-7241-b566-8027529b8196',NULL,'Guidance from Our Instructor',4,'2026-09-13 06:13:24','2026-09-13 06:13:24');
+INSERT INTO `package_features` (`uuid`, `package_uuid`, `category`, `feature`, `sort_order`, `created_at`, `updated_at`) VALUES ('01a09615-73fb-702f-8c0a-b5012141236e','01a09615-73d8-7345-a20f-2d5eeb6b1d1a','Koordinasi Vendor','Koordinasi menyeluruh seluruh vendor acara',0,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
+('01a09615-7401-7073-add9-f090d187e2f8','01a09615-73d8-7345-a20f-2d5eeb6b1d1a','Perencanaan','Perencanaan detail konsep dan dekorasi',1,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
+('01a09615-7402-71bd-a8b8-9e5f3acd8ad7','01a09615-73d8-7345-a20f-2d5eeb6b1d1a','Anggaran','Penyusunan anggaran dan jadwal pembayaran vendor',2,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
+('01a09615-7402-71bd-a8b8-9e5f3ae8a3fb','01a09615-73d8-7345-a20f-2d5eeb6b1d1a','Hari Acara','Pendampingan teknis venue dan rundown acara',3,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
+('01a09615-7409-70e7-9271-8596c85a0a7d','01a09615-73d8-7345-a20f-2d5eeb6b1d1a','Checklist','Checklist persiapan pernikahan lengkap',4,'2026-09-12 14:46:23','2026-09-12 14:46:23'),
+('01a098de-ec82-701f-bb24-c2dbbe0c59b9','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Konsultasi','Konsultasi pernikahan personal bersama perencana',0,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
+('01a098de-ec83-7166-a29d-85d9cd8131b5','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Perencanaan','Penyusunan rencana dan target pernikahan',1,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
+('01a098de-ec83-7166-a29d-85d9cdfbb9df','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Pendampingan','Pendampingan konsultan pernikahan pribadi',2,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
+('01a098de-ec84-71fb-82be-6092568d7513','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Perencanaan','Evaluasi detail konsep dan kebutuhan acara',3,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
+('01a098de-ec86-70ea-a38d-1c994c52404a','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Koordinasi Vendor','Rekomendasi vendor sesuai anggaran',4,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
+('01a098de-ec87-70ea-ad3c-c41d16e6f542','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Konsultasi','Fokus diskusi sesuai kebutuhan pasangan',5,'2026-09-13 03:45:41','2026-09-13 03:45:41'),
+('01a098e0-8799-703c-a314-911481118e4e','01a098e0-878e-7296-b1c0-a550bf0327b0','Konsultasi','Konsultasi pernikahan untuk pasangan',0,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
+('01a098e0-879f-715a-8e83-0ae3ed067c6f','01a098e0-878e-7296-b1c0-a550bf0327b0','Perencanaan','Penyusunan konsep acara bersama pasangan',1,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
+('01a098e0-87a0-705c-94e4-64e7348fd306','01a098e0-878e-7296-b1c0-a550bf0327b0','Pendampingan','Pendampingan perencana pernikahan berpasangan',2,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
+('01a098e0-87a1-7275-b6b4-5e5b4873a277','01a098e0-878e-7296-b1c0-a550bf0327b0','Anggaran','Penyesuaian anggaran dan prioritas acara',3,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
+('01a098e0-87a2-72dc-8631-635b1abff726','01a098e0-878e-7296-b1c0-a550bf0327b0','Koordinasi Vendor','Diskusi dan pemilihan vendor bersama',4,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
+('01a098e0-87a3-72d4-b233-8ba8254b8bb6','01a098e0-878e-7296-b1c0-a550bf0327b0','Checklist','Checklist persiapan pernikahan berpasangan',5,'2026-09-13 03:47:26','2026-09-13 03:47:26'),
+('01a09965-fbf3-7255-bb66-859b3a4e1bff','01a098c6-e509-7154-869f-8d336d44ebc4','Perencanaan','Pembagian tugas persiapan pernikahan',0,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
+('01a09965-fbf9-7032-b9db-53e383f6b6c9','01a098c6-e509-7154-869f-8d336d44ebc4','Perencanaan','Penjadwalan persiapan yang fleksibel',1,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
+('01a09965-fbfa-72c8-9335-c298673b2bec','01a098c6-e509-7154-869f-8d336d44ebc4','Koordinasi Vendor','Koordinasi layanan yang sudah termasuk',2,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
+('01a09965-fbfa-72c8-9335-c298680c415e','01a098c6-e509-7154-869f-8d336d44ebc4','Hari Acara','Dukungan teknis pada hari acara',3,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
+('01a09965-fbfb-72aa-8e43-d33cdbde0650','01a098c6-e509-7154-869f-8d336d44ebc4','Konsultasi','Akses konsultasi selama masa penawaran',4,'2026-09-13 06:13:12','2026-09-13 06:13:12'),
+('01a09966-2967-7153-8bac-e05d58fabab9','01a095f2-d286-7241-b566-8027529b8196','Konsultasi','Konsultasi awal perencanaan pernikahan',0,'2026-09-13 06:13:24','2026-09-13 06:13:24'),
+('01a09966-296d-7188-bf8c-90a9e73adf27','01a095f2-d286-7241-b566-8027529b8196','Checklist','Checklist dasar persiapan pernikahan',1,'2026-09-13 06:13:24','2026-09-13 06:13:24'),
+('01a09966-296d-7188-bf8c-90a9e8268917','01a095f2-d286-7241-b566-8027529b8196','Anggaran','Panduan penyusunan anggaran awal',2,'2026-09-13 06:13:24','2026-09-13 06:13:24'),
+('01a09966-296e-71e6-a0f5-c78ca826aad2','01a095f2-d286-7241-b566-8027529b8196','Koordinasi Vendor','Referensi vendor sesuai kebutuhan',3,'2026-09-13 06:13:24','2026-09-13 06:13:24'),
+('01a09966-296e-71e6-a0f5-c78ca89e5199','01a095f2-d286-7241-b566-8027529b8196','Pendampingan','Pendampingan perencana saat diskusi awal',4,'2026-09-13 06:13:24','2026-09-13 06:13:24');
 /*!40000 ALTER TABLE `package_features` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `package_options` DISABLE KEYS */;
-INSERT INTO `package_options` (`uuid`, `package_uuid`, `name`, `quota`, `price`, `discount_price`, `duration`, `duration_unit`, `sort_order`, `is_active`, `created_at`, `updated_at`) VALUES ('01a09615-73f9-72ee-85e5-f2be4ef4c502','01a09615-73d8-7345-a20f-2d5eeb6b1d1a','Seluruh Layanan',50,3000000,2400000,1,'month',0,1,'2026-09-12 14:46:23','2026-11-22 07:30:14'),
-('01a098de-ec50-73bf-b928-c37f31d37568','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Satu Kali Konsultasi',1,1000000,NULL,1,'week',0,1,'2026-09-13 03:45:41','2026-11-22 07:30:14'),
-('01a098de-ec7d-7352-9076-67a2defe3fde','01a098d2-a02c-72ee-a8eb-b9dc6786761d','5 Kali Konsultasi',1,4500000,NULL,5,'week',1,1,'2026-09-13 03:45:41','2026-11-22 07:30:14'),
-('01a098de-ec7f-7275-a7f8-be27d7caa4ff','01a098d2-a02c-72ee-a8eb-b9dc6786761d','10 Kali Konsultasi',1,8100000,NULL,10,'week',2,1,'2026-09-13 03:45:41','2026-11-22 07:30:14'),
-('01a098e0-8795-71b4-84a4-de9c8a0b517e','01a098e0-878e-7296-b1c0-a550bf0327b0','Satu Kali Konsultasi',2,1200000,NULL,1,'week',0,1,'2026-09-13 03:47:26','2026-11-22 07:30:14'),
-('01a098e0-8797-7309-954d-6caac6a8f4ee','01a098e0-878e-7296-b1c0-a550bf0327b0','5 Kali Konsultasi',2,5400000,NULL,5,'week',1,1,'2026-09-13 03:47:26','2026-11-22 07:30:14'),
-('01a098e0-8798-707b-b260-c1379231361e','01a098e0-878e-7296-b1c0-a550bf0327b0','10 Kali Konsultasi',2,9720000,NULL,10,'week',2,1,'2026-09-13 03:47:26','2026-11-22 07:30:14'),
-('01a09965-fbf0-7307-ba83-dfa1382cf270','01a098c6-e509-7154-869f-8d336d44ebc4','25 Sesi Layanan',50,6999000,5599000,1,'month',0,1,'2026-09-13 06:13:12','2026-11-22 07:30:14'),
-('01a09966-2965-7201-ab57-9f085e23bbc7','01a095f2-d286-7241-b566-8027529b8196','Pengalaman Pertama',50,210000,NULL,1,'week',0,1,'2026-09-13 06:13:24','2026-11-22 07:30:14');
+INSERT INTO `package_options` (`uuid`, `package_uuid`, `name`, `quota`, `price`, `discount_price`, `duration`, `duration_unit`, `sort_order`, `is_active`, `created_at`, `updated_at`) VALUES ('01a09615-73f9-72ee-85e5-f2be4ef4c502','01a09615-73d8-7345-a20f-2d5eeb6b1d1a','Layanan Lengkap 1 Bulan',50,3000000,2400000,1,'month',0,1,'2026-09-12 14:46:23','2026-11-22 07:30:14'),
+('01a098de-ec50-73bf-b928-c37f31d37568','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Pendampingan Personal 1 Bulan',1,1000000,NULL,1,'month',0,1,'2026-09-13 03:45:41','2026-11-22 07:30:14'),
+('01a098de-ec7d-7352-9076-67a2defe3fde','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Pendampingan Personal 5 Bulan',1,4500000,NULL,5,'month',1,1,'2026-09-13 03:45:41','2026-11-22 07:30:14'),
+('01a098de-ec7f-7275-a7f8-be27d7caa4ff','01a098d2-a02c-72ee-a8eb-b9dc6786761d','Pendampingan Personal 10 Bulan',1,8100000,NULL,10,'month',2,1,'2026-09-13 03:45:41','2026-11-22 07:30:14'),
+('01a098e0-8795-71b4-84a4-de9c8a0b517e','01a098e0-878e-7296-b1c0-a550bf0327b0','Pendampingan Pasangan 1 Bulan',2,1200000,NULL,1,'month',0,1,'2026-09-13 03:47:26','2026-11-22 07:30:14'),
+('01a098e0-8797-7309-954d-6caac6a8f4ee','01a098e0-878e-7296-b1c0-a550bf0327b0','Pendampingan Pasangan 5 Bulan',2,5400000,NULL,5,'month',1,1,'2026-09-13 03:47:26','2026-11-22 07:30:14'),
+('01a098e0-8798-707b-b260-c1379231361e','01a098e0-878e-7296-b1c0-a550bf0327b0','Pendampingan Pasangan 10 Bulan',2,9720000,NULL,10,'month',2,1,'2026-09-13 03:47:26','2026-11-22 07:30:14'),
+('01a09965-fbf0-7307-ba83-dfa1382cf270','01a098c6-e509-7154-869f-8d336d44ebc4','Paket Berdua 25 Layanan',50,6999000,5599000,1,'month',0,1,'2026-09-13 06:13:12','2026-11-22 07:30:14'),
+('01a09966-2965-7201-ab57-9f085e23bbc7','01a095f2-d286-7241-b566-8027529b8196','Paket Rencana Pernikahan Dasar',50,210000,NULL,1,'month',0,1,'2026-09-13 06:13:24','2026-11-22 07:30:14');
 /*!40000 ALTER TABLE `package_options` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `package_promos` DISABLE KEYS */;
@@ -437,11 +437,11 @@ INSERT INTO `package_options` (`uuid`, `package_uuid`, `name`, `quota`, `price`,
 /*!40000 ALTER TABLE `package_wishlists` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `packages` DISABLE KEYS */;
-INSERT INTO `packages` (`id`, `uuid`, `name`, `slug`, `description`, `guest_capacity`, `event_duration_hours`, `venue_note`, `cover_url`, `price`, `quota`, `duration`, `duration_unit`, `is_popular`, `is_active`, `is_published`, `published_at`, `lead_time_days`, `created_at`, `updated_at`) VALUES (2,'01a095f2-d286-7241-b566-8027529b8196','Paket Rencana Pernikahan','first-timer-package','A welcoming first step into your yoga journey at Yogaroots. Enjoy a guided studio session designed to help you feel comfortable, refreshed, and ready to move.',NULL,NULL,NULL,NULL,0.00,NULL,1,'month',1,'active',1,NULL,0,'2026-09-12 14:08:33','2026-11-22 07:30:14'),
-(3,'01a09615-73d8-7345-a20f-2d5eeb6b1d1a','Paket Pernikahan Lengkap','unlimited-package','Practice freely with unlimited access to Yogaroots classes. Move at your own pace, explore different styles, and make yoga part of your everyday routine.',NULL,NULL,NULL,NULL,0.00,NULL,1,'month',0,'active',1,NULL,0,'2026-09-12 14:46:23','2026-11-22 07:30:14'),
-(4,'01a098c6-e509-7154-869f-8d336d44ebc4','Paket Pernikahan Berdua','sharing-package','A flexible membership designed to be shared with someone special. Enjoy Yogaroots classes together and make your yoga journey a shared experience.',NULL,NULL,NULL,NULL,0.00,NULL,1,'month',0,'active',1,NULL,0,'2026-09-13 03:19:26','2026-11-22 07:30:14'),
-(6,'01a098d2-a02c-72ee-a8eb-b9dc6786761d','Konsultasi Pernikahan Personal','1-on-1-private-class','A personalized yoga experience designed around you. Practice one-on-one with our instructor, receive focused guidance, and build a practice that supports your individual goals.',NULL,NULL,NULL,NULL,0.00,NULL,1,'month',0,'active',1,NULL,0,'2026-09-13 03:32:15','2026-11-22 07:30:14'),
-(7,'01a098e0-878e-7296-b1c0-a550bf0327b0','Konsultasi Pernikahan Pasangan','couples-private-class','A private yoga experience to enjoy together. Practice side by side with personalized guidance from our instructor, deepen your connection, and make every session a meaningful shared experience.',NULL,NULL,NULL,NULL,0.00,NULL,1,'month',0,'active',1,NULL,0,'2026-09-13 03:47:26','2026-11-22 07:30:14');
+INSERT INTO `packages` (`id`, `uuid`, `name`, `slug`, `description`, `guest_capacity`, `event_duration_hours`, `venue_note`, `cover_url`, `price`, `quota`, `duration`, `duration_unit`, `is_popular`, `is_active`, `is_published`, `published_at`, `lead_time_days`, `created_at`, `updated_at`) VALUES (2,'01a095f2-d286-7241-b566-8027529b8196','Paket Rencana Pernikahan','paket-rencana-pernikahan','Pendampingan awal wedding organizer untuk pasangan yang mulai merencanakan pernikahan. Kami bantu menyusun target acara, anggaran awal, dan checklist persiapan yang realistis.',50,6,'Jakarta dan sekitarnya',NULL,0.00,NULL,1,'month',1,'active',1,NULL,0,'2026-09-12 14:08:33','2026-11-22 07:30:14'),
+(3,'01a09615-73d8-7345-a20f-2d5eeb6b1d1a','Paket Pernikahan Lengkap','paket-pernikahan-lengkap','Layanan wedding organizer menyeluruh dari perencanaan konsep, koordinasi vendor, pengelolaan anggaran, hingga pendampingan teknis pada hari acara.',200,10,'Venue sesuai kesepakatan, Jabodetabek',NULL,0.00,NULL,1,'month',0,'active',1,NULL,0,'2026-09-12 14:46:23','2026-11-22 07:30:14'),
+(4,'01a098c6-e509-7154-869f-8d336d44ebc4','Paket Pernikahan Berdua','paket-pernikahan-berdua','Paket wedding organizer untuk pasangan yang ingin tetap terlibat aktif. Kami mendampingi penyusunan jadwal, koordinasi layanan, dan evaluasi detail acara.',100,8,'Jakarta dan sekitarnya',NULL,0.00,NULL,1,'month',0,'active',1,NULL,0,'2026-09-13 03:19:26','2026-11-22 07:30:14'),
+(6,'01a098d2-a02c-72ee-a8eb-b9dc6786761d','Konsultasi Pernikahan Personal','konsultasi-pernikahan-personal','Pertemuan konsultasi pernikahan personal bersama perencana acara. Fokus pada kebutuhan Anda, penyusunan rencana, serta rekomendasi vendor yang sesuai anggaran.',2,2,'Konsultasi di kantor atau daring',NULL,0.00,NULL,1,'month',0,'active',1,NULL,0,'2026-09-13 03:32:15','2026-11-22 07:30:14'),
+(7,'01a098e0-878e-7296-b1c0-a550bf0327b0','Konsultasi Pernikahan Pasangan','konsultasi-pernikahan-pasangan','Konsultasi pernikahan untuk pasangan dalam satu ruang diskusi. Kami bantu menyelaraskan konsep, prioritas anggaran, dan daftar persiapan menjelang acara.',2,2,'Konsultasi di kantor atau daring',NULL,0.00,NULL,1,'month',0,'active',1,NULL,0,'2026-09-13 03:47:26','2026-11-22 07:30:14');
 /*!40000 ALTER TABLE `packages` ENABLE KEYS */;
 
 /*!40000 ALTER TABLE `pages` DISABLE KEYS */;

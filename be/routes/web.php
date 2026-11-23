@@ -247,6 +247,8 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
         CheckoutController::class,
         'package',
     ])->name('checkout.package');
+    Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
+    Route::get('orders/verification', [OrderController::class, 'verification'])->name('orders.verification');
     Route::get('orders/report', [OrderController::class, 'report'])->name('orders.report');
     Route::get('orders/export-pdf', [OrderController::class, 'exportPdf'])->name('orders.exportPdf');
     Route::get('orders/export-csv', [OrderController::class, 'exportCsv'])->name('orders.exportCsv');
@@ -265,7 +267,10 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
     Route::post('orders/change-requests/{changeRequest}/review', [OrderChangeRequestController::class, 'review'])->name('orders.change-requests.review');
     Route::get('orders/{order}/documents/{document}/preview', [OrderDocumentController::class, 'preview'])->name('orders.documents.preview');
     Route::get('orders/{order}/documents/{document}/download', [OrderDocumentController::class, 'download'])->name('orders.documents.download');
+    Route::put('orders/{order}/venue-booking', [OrderController::class, 'updateVenueBooking'])->name('orders.venue-booking.update');
+    Route::post('orders/{order}/checklist', [WeddingChecklistController::class, 'store'])->name('orders.checklist.store');
     Route::post('orders/{order}/checklist/{item}', [WeddingChecklistController::class, 'update'])->name('orders.checklist.update');
+    Route::delete('orders/{order}/checklist/{item}', [WeddingChecklistController::class, 'destroy'])->name('orders.checklist.destroy');
     Route::post('orders/{order}/change-requests', [OrderChangeRequestController::class, 'store'])->name('orders.change-requests.store');
     Route::post('orders/bulk', [OrderController::class, 'bulkAction'])->name('orders.bulk');
     Route::post('orders/remind-sla', [OrderController::class, 'remindSla'])->name('orders.remind-sla');

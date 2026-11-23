@@ -117,6 +117,19 @@ class PackageController extends Controller
                 'max:1000',
             ],
 
+            'dp_percentage' => [
+                'nullable',
+                'integer',
+                'min:0',
+                'max:100',
+            ],
+
+            'payment_terms_note' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
             'cover_url' => [
                 'nullable',
                 'url',
@@ -264,6 +277,11 @@ class PackageController extends Controller
                 'nullable',
                 'array',
                 'max:30',
+            ],
+
+            'promos.*.uuid' => [
+                'nullable',
+                'string',
             ],
 
             'promos.*.code' => [
@@ -414,6 +432,10 @@ class PackageController extends Controller
                 'venue_note' => $validated['venue_note'] ?? null,
 
                 'cover_url' => $validated['cover_url'] ?? null,
+
+                'dp_percentage' => $validated['dp_percentage'] ?? 30,
+
+                'payment_terms_note' => $validated['payment_terms_note'] ?? null,
 
                 'is_popular' => $validated['is_popular'] ?? false,
 
@@ -569,6 +591,19 @@ class PackageController extends Controller
                 'max:1000',
             ],
 
+            'dp_percentage' => [
+                'nullable',
+                'integer',
+                'min:0',
+                'max:100',
+            ],
+
+            'payment_terms_note' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
             'cover_url' => [
                 'nullable',
                 'url',
@@ -718,6 +753,11 @@ class PackageController extends Controller
                 'max:30',
             ],
 
+            'promos.*.uuid' => [
+                'nullable',
+                'string',
+            ],
+
             'promos.*.code' => [
                 'required',
                 'string',
@@ -852,6 +892,10 @@ class PackageController extends Controller
                 'venue_note' => $validated['venue_note'] ?? null,
 
                 'cover_url' => $validated['cover_url'] ?? null,
+
+                'dp_percentage' => $validated['dp_percentage'] ?? 30,
+
+                'payment_terms_note' => $validated['payment_terms_note'] ?? null,
 
                 'is_popular' => $validated['is_popular'] ?? false,
 
@@ -1224,6 +1268,8 @@ class PackageController extends Controller
             'event_duration_hours',
             'venue_note',
             'cover_url',
+            'dp_percentage',
+            'payment_terms_note',
             'lead_time_days',
         ]);
         $copyData['name'] = 'Salinan '.$source->name;
@@ -1915,31 +1961,59 @@ class PackageController extends Controller
 
     private function savePackagePromos(Package $package, array $validated): void
     {
-        $package->promos()->delete();
+        $existingPromos = $package->promos()->get()->keyBy('uuid');
+        $submittedUuids = [];
+        $sortOrder = 0;
 
-        foreach ($validated['promos'] ?? [] as $index => $promo) {
+        foreach ($validated['promos'] ?? [] as $promo) {
             if (blank($promo['code'] ?? null)) {
                 continue;
             }
 
-            PackagePromo::create([
-                'uuid' => (string) Str::uuid(),
+            $code = mb_strtoupper(trim((string) $promo['code']));
+            $uuid = $promo['uuid'] ?? null;
+
+            $promoModel = ($uuid && $existingPromos->has($uuid))
+                ? $existingPromos->get($uuid)
+                : $existingPromos->first(
+                    fn ($item) => mb_strtoupper(trim((string) $item->code)) === $code
+                );
+
+            $attributes = [
                 'package_uuid' => $package->uuid,
-                'code' => mb_strtoupper(trim((string) $promo['code'])),
+                'code' => $code,
                 'type' => $promo['type'],
                 'value' => $promo['value'],
                 'min_purchase' => $promo['min_purchase'] ?? 0,
                 'max_discount' => $promo['max_discount'] ?? null,
                 'max_uses' => $promo['max_uses'] ?? null,
-                'used_count' => 0,
                 'starts_at' => $this->formatDateTime($promo['starts_at'] ?? null),
                 'ends_at' => $this->formatDateTime($promo['ends_at'] ?? null),
                 'is_active' => filter_var(
                     $promo['is_active'] ?? true,
                     FILTER_VALIDATE_BOOLEAN
                 ),
-                'sort_order' => $index,
-            ]);
+                'sort_order' => $sortOrder++,
+            ];
+
+            if ($promoModel) {
+                $promoModel->update($attributes);
+                $submittedUuids[] = $promoModel->uuid;
+
+                continue;
+            }
+
+            $created = PackagePromo::create(array_merge(
+                ['uuid' => (string) Str::uuid()],
+                $attributes
+            ));
+            $submittedUuids[] = $created->uuid;
+        }
+
+        foreach ($existingPromos as $uuid => $promo) {
+            if (! in_array($uuid, $submittedUuids, true)) {
+                $promo->delete();
+            }
         }
     }
 }
