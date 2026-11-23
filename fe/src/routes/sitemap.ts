@@ -23,7 +23,7 @@ const STATIC_URLS = [
 	{ path: "/blog", changefreq: "weekly", priority: "0.8" },
 	{ path: "/packages", changefreq: "weekly", priority: "0.8" },
 	{ path: "/event", changefreq: "weekly", priority: "0.7" },
-	{ path: "/gallery", changefreq: "monthly", priority: "0.5" },
+	{ path: "/portofolio", changefreq: "monthly", priority: "0.5" },
 	{ path: "/faq", changefreq: "monthly", priority: "0.6" },
 	{ path: "/formulir-konsultasi", changefreq: "monthly", priority: "0.7" },
 ];

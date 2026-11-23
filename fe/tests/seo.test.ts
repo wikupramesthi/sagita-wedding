@@ -112,7 +112,7 @@ const SEO_ROUTES = [
 	"/packages",
 	"/packages/paket-uji",
 	"/event",
-	"/gallery",
+	"/portofolio",
 	"/faq",
 	"/pages/tentang",
 ];

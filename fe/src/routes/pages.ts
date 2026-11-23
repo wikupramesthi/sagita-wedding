@@ -666,7 +666,7 @@ router.get(
 
 // ---------- Gallery (hanya foto asli API; tanpa placeholder) ----------
 router.get(
-	"/gallery",
+	["/gallery", "/portofolio"],
 	async (_req: Request, res: Response, next: NextFunction) => {
 		try {
 			const data = await getPageBatch("gallery").catch(() => null);

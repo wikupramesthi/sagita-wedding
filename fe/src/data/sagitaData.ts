@@ -19,7 +19,7 @@ export const sagitaData = {
 		{ key: "home", label: "Home", href: "/" },
 		{ key: "about", label: "About", href: "/about" },
 		{ key: "packages", label: "Packages", href: "/packages" },
-		{ key: "portfolio", label: "Portfolio", href: "#" },
+		{ key: "portfolio", label: "Portfolio", href: "/portofolio" },
 		{ key: "vendors", label: "Vendors", href: "/vendors" },
 		{ key: "venues", label: "Venues", href: "/venues" },
 	],

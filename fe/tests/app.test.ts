@@ -433,6 +433,7 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('aria-label="Sagita Wedding on Instagram"');
 		const footer = res.text.match(/<footer[\s\S]*?<\/footer>/)?.[0] ?? "";
 		expect(footer).not.toContain('href="https://api.whatsapp.com/send/');
+		expect(footer).toContain('href="/portofolio"');
 	});
 	it("halaman dengan island memuat loader bundle", async () => {
 		const cases: [string, string][] = [
