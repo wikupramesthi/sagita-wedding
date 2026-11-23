@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'School Documents')
+@section('title', 'Dokumen Wedding')
 @section('content')
 
 @section('breadcrumb')
-<x-breadcrumb title="School Documents" page="School Documents" active="Document List" route="{{ route('filedownload.index') }}" />
+<x-breadcrumb title="Dokumen Wedding" page="Dokumen Wedding" active="Document List" route="{{ route('filedownload.index') }}" />
 @endsection
 <!-- Content -->
 <section class="section">
@@ -18,7 +18,7 @@
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center ">
-                <h4 class="fw-normal mb-0 text-body">School Documents</h4>
+                <h4 class="fw-normal mb-0 text-body">Dokumen Wedding</h4>
                 @can('filedownload.store')
                 <button type="button" class="btn btn-primary btn-md" data-bs-toggle="modal"
                     data-bs-target="#modal-form-add-dokumen">

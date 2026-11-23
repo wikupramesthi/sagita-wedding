@@ -57,7 +57,7 @@
             <td><span class="label">Tanggal acara</span><span class="value">{{ $eventDate?->translatedFormat('d F Y') ?? '-' }}</span></td>
             <td><span class="label">Kuota</span><span class="value">
                 @if ($option)
-                {{ $option->quota === null ? 'Tanpa batas' : $option->quota . ' kelas' }}
+                {{ $option->quota === null ? 'Tanpa batas' : $option->quota . ' sesi' }}
                 @else
                 -
                 @endif

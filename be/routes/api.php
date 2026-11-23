@@ -41,7 +41,7 @@ Route::get('/banners', [BannerController::class, 'index']);
 // Identitas website publik (nama, kontak, sosmed, SEO, branding) — untuk frontend
 Route::get('/website-identity', [WebsiteIdentityController::class, 'index']);
 
-// Statistik publik (agregat member/vendor/kelas) — untuk frontend
+// Statistik publik (agregat member/vendor/mitra) — untuk frontend
 Route::get('/site-stats', [SiteStatsController::class, 'index']);
 Route::post('/analytics/visits', [SiteAnalyticsController::class, 'storeVisit'])->middleware('throttle:api-analytics');
 

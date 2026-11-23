@@ -13,7 +13,7 @@
             <i class="bi-bell-fill text-white fs-1 me-3 flex-shrink-0 align-self-start"></i>
             <div class="text-white mt-0">
                 Kelola Kategori Vendor yang tersedia di sistem.<br>
-                Tambah, ubah, atau nonaktifkan kategori vendor untuk mendukung pengelolaan vendor dan kelas.
+                Tambah, ubah, atau nonaktifkan kategori vendor untuk mendukung pengelolaan vendor dan mitra pernikahan.
             </div>
         </div>
     </div>

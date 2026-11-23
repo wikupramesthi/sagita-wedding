@@ -77,52 +77,54 @@
 
 /* Sagita Wedding Design Tokens */
 @theme {
-	--color-sage-50: #fcfaf8;
-	--color-sage-100: #f8f6f2;
-	--color-sage-200: #f1ede7;
-	--color-sage-300: #e5ddd2;
-	--color-sage-400: #d8c6a9;
-	--color-sage-500: #b79f80;
-	--color-sage-600: #a88f70;
-	--color-sage-700: #89745f;
-	--color-sage-800: #6c5a4a;
-	--color-sage-900: #403a34;
+	--color-sage-50: #f7f8f5;
+	--color-sage-100: #eef1eb;
+	--color-sage-200: #dde5dc;
+	--color-sage-300: #c4d1c4;
+	--color-sage-400: #9eb19f;
+	--color-sage-500: #7c967f;
+	--color-sage-600: #627a66;
+	--color-sage-700: #4e6554;
+	--color-sage-800: #3d5344;
+	--color-sage-900: #2c4035;
 
-	--color-terracotta-400: #d8c6a9;
-	--color-terracotta-500: #b79f80;
-	--color-terracotta-600: #89745f;
-	--color-cream: #fffefd;
-	--color-ink: #403a34;
-	--color-stone-warm: #716860;
+	--color-terracotta-50: #fcf6f5;
+	--color-terracotta-100: #f5e9e8;
+	--color-terracotta-400: #d9b6b5;
+	--color-terracotta-500: #bf8c8d;
+	--color-terracotta-600: #995961;
+	--color-cream: #fcfaf7;
+	--color-ink: #3d3834;
+	--color-stone-warm: #746b63;
 
 	/* Earthy palette */
-	--color-sand-50: #fffefd;
-	--color-sand-100: #f8f6f2;
-	--color-sand-200: #f1ede7;
-	--color-sand-300: #e5ddd2;
-	--color-sand-400: #cbb99f;
-	--color-sand-500: #b39c7c;
-	--color-sand-600: #9a856f;
-	--color-sand-700: #89745f;
-	--color-sand-800: #6c5a4a;
-	--color-sand-900: #403a34;
+	--color-sand-50: #fffefc;
+	--color-sand-100: #f8f5f0;
+	--color-sand-200: #efe8df;
+	--color-sand-300: #e5dace;
+	--color-sand-400: #d5c2ab;
+	--color-sand-500: #b9a58b;
+	--color-sand-600: #9a8269;
+	--color-sand-700: #806a56;
+	--color-sand-800: #66513f;
+	--color-sand-900: #44382f;
 
 	--color-gold: #b79f80;
-	--color-gold-dark: #89745f;
-	--color-gold-light: #d8c6a9;
+	--color-gold-dark: #806a56;
+	--color-gold-light: #d5c2ab;
 
-	--color-lotus-50: #fbf8f4;
-	--color-lotus-100: #f2eee8;
-	--color-lotus-600: #b79f80;
-	--color-lotus-700: #89745f;
+	--color-lotus-50: #fcf6f5;
+	--color-lotus-100: #f5e9e8;
+	--color-lotus-600: #995961;
+	--color-lotus-700: #80464d;
 
-	--color-clay-50: #fcfaf8;
-	--color-clay-100: #f3efe9;
-	--color-clay-200: #e8e0d5;
-	--color-clay-400: #cbb99f;
-	--color-clay-600: #9a856f;
-	--color-clay-700: #89745f;
-	--color-clay-800: #6c5a4a;
+	--color-clay-50: #f7f8f5;
+	--color-clay-100: #f8f5f0;
+	--color-clay-200: #efe8df;
+	--color-clay-400: #d5c2ab;
+	--color-clay-600: #9a8269;
+	--color-clay-700: #806a56;
+	--color-clay-800: #66513f;
 
 	--font-display: "Cormorant Garamond", Georgia, serif;
 	--font-body: "Plus Jakarta Sans", system-ui, sans-serif;
@@ -167,35 +169,35 @@ body {
 
 /* Keep the brand palette consistent when the device requests dark mode. */
 .dark body {
-	background: #fffefd;
-	color: #403a34;
+	background: var(--color-cream);
+	color: var(--color-ink);
 }
 .dark .bg-cream {
-	background-color: #fffefd !important;
+	background-color: var(--color-cream) !important;
 }
 .dark .bg-white {
-	background-color: #fffefd !important;
+	background-color: var(--color-sand-50) !important;
 }
 .dark .bg-sage-50 {
-	background-color: #fcfaf8 !important;
+	background-color: var(--color-sage-50) !important;
 }
 .dark .bg-sage-100 {
-	background-color: #f7f4ef !important;
+	background-color: var(--color-sage-100) !important;
 }
 .dark .border-sage-100 {
-	border-color: rgba(183, 159, 128, 0.16) !important;
+	border-color: rgba(78, 101, 84, 0.16) !important;
 }
 .dark .border-sage-200 {
-	border-color: rgba(183, 159, 128, 0.24) !important;
+	border-color: rgba(78, 101, 84, 0.24) !important;
 }
 .dark .text-ink {
-	color: #403a34 !important;
+	color: var(--color-ink) !important;
 }
 .dark .text-stone-warm {
-	color: #716860 !important;
+	color: var(--color-stone-warm) !important;
 }
 .dark .text-sage-700 {
-	color: #89745f !important;
+	color: var(--color-sage-700) !important;
 }
 
 /* Hide scrollbar for schedule */
@@ -227,7 +229,7 @@ body {
 	align-items: center;
 	justify-content: center;
 	border-radius: 0.75rem;
-	background-color: #89745f;
+	background-color: var(--color-sage-700);
 	padding: 0.625rem 1.5rem;
 	font-family: var(--font-body);
 	font-size: 0.875rem;
@@ -238,7 +240,7 @@ body {
 }
 
 .btn-primary:hover {
-	background-color: #6c5a4a;
+	background-color: var(--color-sage-800);
 }
 
 .btn-primary:active {
@@ -250,20 +252,20 @@ body {
 	align-items: center;
 	justify-content: center;
 	border-radius: 0.75rem;
-	border: 1px solid #e5ddd2;
+	border: 1px solid var(--color-sand-300);
 	background-color: transparent;
 	padding: 0.625rem 1.5rem;
 	font-family: var(--font-body);
 	font-size: 0.875rem;
 	line-height: 1.25rem;
 	font-weight: 500;
-	color: #89745f;
+	color: var(--color-sage-700);
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-secondary:hover {
-	border-color: #b79f80;
-	background-color: #f8f6f2;
+	border-color: var(--color-terracotta-400);
+	background-color: var(--color-sand-100);
 }
 
 .btn-secondary:active {

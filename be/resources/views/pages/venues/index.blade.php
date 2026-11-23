@@ -260,7 +260,7 @@
                         Coba kata kunci atau filter lain, atau
                         <a href="{{ route('venues.index') }}">atur ulang filter</a>.
                         @else
-                        Tambahkan venue pertama untuk mulai mengelola lokasi kelas.
+                        Tambahkan venue pertama untuk mulai mengelola lokasi acara.
                         @endif
                     </p>
 

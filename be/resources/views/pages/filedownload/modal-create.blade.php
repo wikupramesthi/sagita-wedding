@@ -37,7 +37,7 @@
               <option value="">-- Select --</option>
               <option value="akademik">Curriculum Document</option>
               <option value="informasi">Public Information</option>
-              <option value="laporan">School Report</option>
+              <option value="laporan">Dokumen Pernikahan</option>
               <option value="edaran">Circular Letter</option>
             </select>
             @error('kategori')

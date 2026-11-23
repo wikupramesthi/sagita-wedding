@@ -99,6 +99,8 @@ class PermissionSeeder extends Seeder
             'orders.audit',
             'orders.bulk',
             'orders.bulkUndo',
+            'orders.checklist.manage',
+            'orders.create',
             'orders.exportCsv',
             'orders.index',
             'orders.proof',
@@ -107,6 +109,9 @@ class PermissionSeeder extends Seeder
             'orders.savedFilters',
             'orders.show',
             'orders.store',
+            'orders.timeline',
+            'orders.verification',
+            'orders.venue-booking.update',
             'orders.whatsapp',
             'package.destroy',
             'package.index',
@@ -167,7 +172,6 @@ class PermissionSeeder extends Seeder
         if ($staleIds->isNotEmpty()) {
             DB::table('role_has_permissions')->whereIn('permission_id', $staleIds)->delete();
             DB::table('model_has_permissions')->whereIn('permission_id', $staleIds)->delete();
-            Permission::query()->whereIn('id', $staleIds)->delete();
         }
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();

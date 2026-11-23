@@ -196,6 +196,7 @@ class User extends Authenticatable
         'sumber_informasi',
         'prospect_status',
         'prospect_status_updated_at',
+        'consultation_uuid',
     ];
 
     /**
@@ -314,6 +315,11 @@ class User extends Authenticatable
     public function latestOrder()
     {
         return $this->hasOne(Order::class, 'user_uuid', 'uuid')->latestOfMany('created_at');
+    }
+
+    public function consultation()
+    {
+        return $this->belongsTo(Consultation::class, 'consultation_uuid', 'uuid');
     }
 
     public function userPackages()

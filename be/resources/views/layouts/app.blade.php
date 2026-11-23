@@ -374,7 +374,7 @@
                 });
             }
 
-            // Generic DBMSDA-style setup for .summernote textareas (including inside modals)
+            // Generic Sagita Wedding-style setup for .summernote textareas (including inside modals)
             function initSummernote($container) {
                 $container.find('.summernote').each(function() {
                     if (!$(this).hasClass('summernote-initialized')) {
@@ -452,7 +452,7 @@
     @auth
     <script>
         (function() {
-            // Auto-logout after 30 minutes without activity (DBMSDA-style).
+            // Auto-logout after 30 minutes without activity (Sagita Wedding-style).
             // 2 menit sebelum habis tampil pilihan: Tetap login / Keluar.
             const INACTIVE_TIMEOUT_MIN = {{ (int) config('session.inactive_timeout', 30) }};
             const WARNING_BEFORE_MIN = 2;
@@ -637,7 +637,7 @@
                 },
                 success: function(res) {
                     if (res.success) {
-                        // remove DBMSDA-style unread highlight
+                        // remove Sagita Wedding-style unread highlight
                         $item.removeClass("unread");
                         $item.find(".notif-dot").addClass("read");
 

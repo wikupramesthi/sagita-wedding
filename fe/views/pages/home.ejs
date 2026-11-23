@@ -42,7 +42,7 @@
       <p class="mt-6 font-sans text-base sm:text-lg <%= sliderBanners.length ? 'text-white/90' : 'text-sand-700' %> max-w-xl mx-auto leading-relaxed anim-fade-in" style="animation-delay:.45s"><%= t.heroSub %></p>
 
       <div class="mt-10 flex flex-wrap items-center justify-center gap-4 anim-fade-in" style="animation-delay:.65s">
-        <a href="/formulir-konsultasi" class="group inline-flex items-center gap-3 text-white bg-sand-800 hover:bg-sand-900 rounded-full px-8 py-3.5 text-sm font-medium tracking-wide transition-all">
+        <a href="/formulir-konsultasi" class="group inline-flex items-center gap-3 text-white bg-sage-800 hover:bg-sage-900 rounded-full px-8 py-3.5 text-sm font-medium tracking-wide transition-all">
           <%= t.consultationCta %>
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
         </a>
@@ -72,20 +72,20 @@
 
   <section id="home-planning-summary" class="scroll-mt-28 py-8 sm:py-10 lg:py-12">
     <div class="site-container">
-      <div class="overflow-hidden rounded-[2rem] bg-[#f0f4f6] px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+      <div class="overflow-hidden rounded-[2rem] bg-sage-50 px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
         <div class="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-14">
           <div class="max-w-xl">
             <h2 class="home-planning-summary__title font-body text-3xl font-bold leading-[1.08] tracking-tight text-sage-900 sm:text-4xl lg:text-5xl"><%= t.homePlanningTitle %></h2>
             <p class="mt-5 max-w-lg text-base leading-relaxed text-stone-warm sm:text-lg"><%= t.homePlanningDescription %></p>
-            <a href="/formulir-konsultasi" class="mt-7 inline-flex items-center gap-3 rounded-full bg-sand-800 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-sand-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sand-800">
+            <a href="/formulir-konsultasi" class="mt-7 inline-flex items-center gap-3 rounded-full bg-sage-800 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-sage-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-700">
               <%= t.consultationCta %>
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
             </a>
           </div>
 
           <div class="space-y-4">
-            <article class="flex items-start gap-4 rounded-3xl bg-[#e6f2fa] p-5 transition-transform duration-300 sm:-rotate-2 sm:p-6 sm:hover:rotate-0">
-              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#eeebff] text-[#7357e8]" aria-hidden="true">
+            <article class="flex items-start gap-4 rounded-3xl bg-sage-100 p-5 transition-transform duration-300 sm:-rotate-2 sm:p-6 sm:hover:rotate-0">
+              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-sage-200 text-sage-700" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="4" rx="1"></rect><path d="M8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path><path d="M8 12h8M8 16h6"></path></svg>
               </span>
               <div>
@@ -94,7 +94,7 @@
               </div>
             </article>
             <article class="flex items-start gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-sand-900/5 transition-transform duration-300 sm:ml-10 sm:rotate-2 sm:p-6 sm:hover:rotate-0">
-              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#fbe8f2] text-[#c8528b]" aria-hidden="true">
+              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-terracotta-100 text-terracotta-600" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
               </span>
               <div>
@@ -102,8 +102,8 @@
                 <p class="mt-2 text-sm leading-relaxed text-stone-warm sm:text-base"><%= t.homePlanningCoordinationDescription %></p>
               </div>
             </article>
-            <article class="flex items-start gap-4 rounded-3xl bg-[#fff1d8] p-5 transition-transform duration-300 sm:mr-10 sm:-rotate-1 sm:p-6 sm:hover:rotate-0">
-              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#fff1d8] text-[#be841f]" aria-hidden="true">
+            <article class="flex items-start gap-4 rounded-3xl bg-sand-100 p-5 transition-transform duration-300 sm:mr-10 sm:-rotate-1 sm:p-6 sm:hover:rotate-0">
+              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-sand-200 text-sand-700" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="15" rx="2"></rect><path d="M3 10h18M16 14h.01"></path><path d="M7 6V4a2 2 0 0 1 2-2h8"></path></svg>
               </span>
               <div>
@@ -193,12 +193,12 @@
 
       <div class="grid grid-cols-1 items-stretch gap-5 md:grid-cols-3 md:gap-6 lg:gap-7">
         <% packages.slice(0, 3).forEach((pkg, i) => { %>
-          <article data-home-package-slug="<%= pkg.slug %>" class="home-package-card reveal relative flex h-full flex-col overflow-visible rounded-[24px] border transition-all duration-300 <%= pkg.isPopular ? 'home-package-card--featured z-10 border-[#c5a96e] bg-white text-sage-900 shadow-xl' : 'border-stone-200 bg-white text-sage-900 hover:shadow-lg' %>" data-delay="<%= i * 120 %>">
+          <article data-home-package-slug="<%= pkg.slug %>" class="home-package-card reveal relative flex h-full flex-col overflow-visible rounded-[24px] border transition-all duration-300 <%= pkg.isPopular ? 'home-package-card--featured z-10 border-gold bg-white text-sage-900 shadow-xl' : 'border-stone-200 bg-white text-sage-900 hover:shadow-lg' %>" data-delay="<%= i * 120 %>">
             <% if (pkg.isPopular) { %>
-              <span class="home-package-badge absolute left-1/2 top-[-13px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#c5a96e] bg-[#403a34] px-4 py-2 text-xs font-bold text-[#fffefd] shadow-md"><%= lang === 'id' ? 'PALING DIMINATI' : 'MOST POPULAR' %></span>
+              <span class="home-package-badge absolute left-1/2 top-[-13px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-gold bg-sage-900 px-4 py-2 text-xs font-bold text-sand-50 shadow-md"><%= lang === 'id' ? 'PALING DIMINATI' : 'MOST POPULAR' %></span>
             <% } %>
             <div class="home-package-body flex flex-1 flex-col p-7">
-              <div class="<%= pkg.isPopular ? '-mx-7 -mt-7 mb-5 rounded-t-[23px] bg-[#403a34] px-7 py-7 text-white' : '' %>">
+              <div class="<%= pkg.isPopular ? '-mx-7 -mt-7 mb-5 rounded-t-[23px] bg-sage-900 px-7 py-7 text-white' : '' %>">
                 <h3 class="home-package-title font-sans text-[21px] font-bold leading-tight"><%= pkg.name %></h3>
                 <div class="home-package-description mt-2.5 min-h-[3.25rem]">
                 <% if (pkg.description) { %>
@@ -225,7 +225,7 @@
                 </ul>
               <% } %>
               <div class="mt-auto pt-7">
-                <a href="/packages/<%= pkg.slug %>" class="home-package-cta inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-colors <%= pkg.isPopular ? 'bg-[#403a34] text-[#fffefd] hover:bg-[#6c5a4a]' : 'bg-sage-800 text-white hover:bg-sage-900' %>">
+                <a href="/packages/<%= pkg.slug %>" class="home-package-cta inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-colors <%= pkg.isPopular ? 'bg-sage-900 text-white hover:bg-sage-800' : 'bg-sage-800 text-white hover:bg-sage-900' %>">
                   <%= t.homePackageViewDetails %>
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
                 </a>
@@ -343,15 +343,15 @@
   <% } %>
 
   <!-- ======================= MEMBER DASHBOARD ======================= -->
-  <section id="home-preparation" class="home-system-section scroll-mt-28 overflow-x-clip bg-[#fff9fb] py-14 sm:py-16 lg:py-20">
+  <section id="home-preparation" class="home-system-section scroll-mt-28 overflow-x-clip bg-terracotta-50 py-14 sm:py-16 lg:py-20">
     <div class="site-container">
     <div class="home-dashboard-scroll-stage relative" data-home-dashboard-scroll-stage>
       <div class="home-dashboard-scroll-pin grid items-start gap-9 lg:sticky lg:top-24 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12" data-home-dashboard-scroll-pin>
       <div class="reveal lg:py-4">
-        <p class="mb-5 inline-flex rounded-full bg-[#fce7ef] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#b83060]"><%= t.homePreparationEyebrow %></p>
+        <p class="mb-5 inline-flex rounded-full bg-terracotta-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-terracotta-600"><%= t.homePreparationEyebrow %></p>
         <h2 class="home-preparation-title text-3xl font-bold leading-[1.05] tracking-tight text-sage-900 sm:text-4xl">
           <%= t.homePreparationTitlePrefix %>
-          <span class="italic font-medium text-[#d53a68]"><%= t.homePreparationTitleAccent %></span>
+          <span class="italic font-medium text-terracotta-600"><%= t.homePreparationTitleAccent %></span>
           <%= t.homePreparationTitleSuffix %>
         </h2>
         <p class="mt-5 max-w-xl text-base leading-relaxed text-stone-warm sm:text-lg"><%= t.homePreparationDescription %></p>
@@ -359,7 +359,7 @@
         <ul class="mt-6 space-y-3">
           <% t.homePreparationFeatures.forEach((feature) => { %>
             <li class="flex items-start gap-3 text-sm leading-relaxed text-sage-800 sm:text-base">
-              <span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#ef4f78]" aria-hidden="true"></span>
+              <span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-terracotta-500" aria-hidden="true"></span>
               <span><strong class="font-semibold text-sage-900"><%= feature.title %></strong> — <%= feature.description %></span>
             </li>
           <% }) %>
@@ -367,7 +367,7 @@
       </div>
 
       <div class="relative reveal self-start" data-delay="120">
-        <div class="absolute -inset-5 -z-10 rounded-[2rem] bg-gradient-to-br from-[#fcebf0] via-white to-[#f7edf0] blur-lg" aria-hidden="true"></div>
+        <div class="absolute -inset-5 -z-10 rounded-[2rem] bg-gradient-to-br from-terracotta-100 via-white to-sand-100 blur-lg" aria-hidden="true"></div>
         <div class="overflow-hidden rounded-[1.5rem] border border-white bg-white shadow-[0_24px_70px_rgba(66,48,44,0.18)]">
           <div class="flex h-11 items-center gap-1.5 border-b border-sand-100 bg-white px-4">
             <span class="h-2.5 w-2.5 rounded-full bg-[#eea5ac]" aria-hidden="true"></span>
@@ -376,7 +376,7 @@
             <span class="ml-3 truncate rounded-md bg-sand-50 px-3 py-1 text-[10px] text-stone-warm"><%= t.homePreparationPreviewLabel %></span>
           </div>
           <div
-            class="home-dashboard-preview-scroll h-[340px] overflow-y-auto bg-[#f8f8fa] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#c62f60] sm:h-[420px] lg:h-[420px]"
+            class="home-dashboard-preview-scroll h-[340px] overflow-y-auto bg-sage-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-terracotta-600 sm:h-[420px] lg:h-[420px]"
             data-home-dashboard-scroll-viewport
             role="region"
             aria-label="<%= t.homePreparationImageAlt %>"
@@ -402,7 +402,7 @@
     </div>
 
     <div class="reveal mt-8 text-center" data-delay="200">
-      <p class="mx-auto max-w-3xl text-sm font-medium text-[#b83060]"><%= t.homePreparationFootnote %></p>
+      <p class="mx-auto max-w-3xl text-sm font-medium text-terracotta-600"><%= t.homePreparationFootnote %></p>
     </div>
   </section>
 

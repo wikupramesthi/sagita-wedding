@@ -2,9 +2,11 @@
 
 namespace App\Models\Payment;
 
+use App\Models\Consultation;
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
 use App\Models\User;
+use App\Models\Venue;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,6 +55,12 @@ class Order extends Model
         'promo_code',
         'promo_discount',
         'promo_snapshot',
+        'consultation_uuid',
+        'venue_uuid',
+        'venue_booking_status',
+        'venue_booking_at',
+        'venue_booking_amount',
+        'venue_booking_note',
     ];
 
     protected $casts = [
@@ -73,6 +81,8 @@ class Order extends Model
         'addons' => 'array',
         'promo_snapshot' => 'array',
         'promo_discount' => 'integer',
+        'venue_booking_at' => 'datetime',
+        'venue_booking_amount' => 'decimal:2',
     ];
 
     protected static function booted(): void
@@ -144,6 +154,16 @@ class Order extends Model
     public function packageOption(): BelongsTo
     {
         return $this->belongsTo(PackageOption::class, 'package_option_uuid', 'uuid');
+    }
+
+    public function consultation(): BelongsTo
+    {
+        return $this->belongsTo(Consultation::class, 'consultation_uuid', 'uuid');
+    }
+
+    public function venue(): BelongsTo
+    {
+        return $this->belongsTo(Venue::class, 'venue_uuid', 'uuid');
     }
 
     public function payment(): HasOne

@@ -5,7 +5,7 @@
                 <i class="bi bi-justify fs-3"></i>
             </a>
 
-            {{-- Global search (DBMSDA-style): command palette trigger button --}}
+            {{-- Global search (Sagita Wedding-style): command palette trigger button --}}
             <button type="button" id="topbar-search-trigger" class="topbar-search-trigger d-none d-md-flex">
                 <i class="bi bi-search"></i>
                 <span>Cari semua...</span>

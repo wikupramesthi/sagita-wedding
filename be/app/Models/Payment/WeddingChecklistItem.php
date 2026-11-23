@@ -32,6 +32,7 @@ class WeddingChecklistItem extends Model
     ];
 
     protected $casts = [
+        'status' => 'string',
         'due_at' => 'date',
         'completed_at' => 'datetime',
         'reminder_sent_at' => 'datetime',

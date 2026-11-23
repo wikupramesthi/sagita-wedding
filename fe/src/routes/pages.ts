@@ -503,7 +503,7 @@ router.get(
 					? "Jelajahi vendor pernikahan berdasarkan kategori dan konsultasikan kebutuhan Anda bersama tim Sagita Wedding Planner."
 					: "Explore wedding vendors by category and discuss your plans with the Sagita Wedding Planner team.",
 				vendors: data?.vendors || [],
-				assetV: `${res.locals.assetV}-vendors-warm4`,
+				assetV: `${res.locals.assetV}-vendors-elegant-palette1`,
 				pageScript: "vendors",
 				heroNav: true,
 				heroNavLight: true,

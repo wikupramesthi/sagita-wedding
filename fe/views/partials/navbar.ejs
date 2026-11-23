@@ -84,7 +84,7 @@
     <!-- Mobile drawer -->
     <div id="mobileNav" class="mobile-drawer hidden lg:hidden mt-2 rounded-2xl border px-4 py-4 space-y-1 <%= isHeroPage ? '' : 'bg-white border-sand-200' %>">
       <% nav.forEach(item => { %>
-        <a href="<%= item.href %>" class="block px-4 py-3 rounded-xl text-sm font-medium <%= currentPath === item.href ? 'bg-sand-800 text-white' : (isHeroPage ? 'hover:bg-white/10' : 'hover:bg-sand-100') %>"><%= (t.nav && t.nav[item.key]) || item.label %></a>
+        <a href="<%= item.href %>" class="block px-4 py-3 rounded-xl text-sm font-medium <%= currentPath === item.href ? 'bg-sage-800 text-white' : (isHeroPage ? 'hover:bg-white/10' : 'hover:bg-sand-100') %>"><%= (t.nav && t.nav[item.key]) || item.label %></a>
       <% }) %>
       <div class="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 mt-2 border-t <%= isHeroPage ? 'border-white/15' : 'border-sand-100' %>">
         <% languages.forEach((item, i) => { %>
@@ -92,7 +92,7 @@
           <a href="?lang=<%= item.code %>" class="text-sm <%= lang === item.code ? 'font-bold' : '' %>"><%= item.flag %> <%= item.label %></a>
         <% }) %>
       </div>
-      <a href="/formulir-konsultasi" class="block w-full text-center bg-lotus-600 text-white px-4 py-3 rounded-xl font-semibold mt-2"><%= t.consultationCta %></a>
+      <a href="/formulir-konsultasi" class="block w-full text-center bg-sage-800 text-white px-4 py-3 rounded-xl font-semibold mt-2"><%= t.consultationCta %></a>
     </div>
   </div>
 </header>

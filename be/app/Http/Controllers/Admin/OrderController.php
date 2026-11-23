@@ -5,15 +5,20 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\PaymentProofReceivedMail;
 use App\Models\AuditLog;
+use App\Models\Consultation;
 use App\Models\OrderSavedFilter;
 use App\Models\Package\PackageAddon;
 use App\Models\Package\PackageBlackoutDate;
 use App\Models\Package\PackageOption;
 use App\Models\Package\PackagePromo;
+use App\Models\Payment\EventDateReservation;
 use App\Models\Payment\Order;
+use App\Models\Payment\OrderDocument;
 use App\Models\Payment\Payment;
+use App\Models\Payment\WeddingChecklistItem;
 use App\Models\User;
 use App\Models\UserPackage;
+use App\Models\Venue;
 use App\Notifications\MemberActiveNotification;
 use App\Notifications\OrderBaruNotification;
 use App\Notifications\OrderRejectedNotification;
@@ -60,7 +65,7 @@ class OrderController extends Controller
             ->get();
 
         if (
-            ! $request->hasAny(['search', 'status', 'proof', 'start_date', 'end_date', 'per_page', 'sort', 'all'])
+            ! $request->hasAny(['search', 'status', 'proof', 'verification', 'start_date', 'end_date', 'per_page', 'sort', 'all'])
             && $defaultFilter = $savedFilters->firstWhere('is_default', true)
         ) {
             $request->merge($defaultFilter->filters ?? []);
@@ -130,6 +135,7 @@ class OrderController extends Controller
             'search' => $request->input('search'),
             'status' => $request->input('status'),
             'proof' => $request->input('proof'),
+            'verification' => $request->input('verification'),
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
             'per_page' => $perPage,
@@ -354,6 +360,94 @@ class OrderController extends Controller
         return $normalized;
     }
 
+    public function verification()
+    {
+        return redirect()->route('orders.index', ['verification' => 'pending']);
+    }
+
+    public function create(Request $request)
+    {
+        abort_unless(Auth::user()->hasAnyRole(['super-admin', 'admin']), 403);
+
+        $consultation = null;
+
+        if ($request->filled('consultation')) {
+            $consultation = Consultation::where('uuid', (string) $request->input('consultation'))
+                ->firstOrFail();
+        }
+
+        $packageOptions = PackageOption::with('package')
+            ->where('is_active', true)
+            ->whereHas('package', function ($query) {
+                $query->where('is_active', 'active')->where('is_published', true);
+            })
+            ->orderBy('name')
+            ->get();
+
+        $venues = Venue::where('status', 'active')->orderBy('name')->get(['uuid', 'name']);
+        $users = User::orderBy('name')->get(['uuid', 'name', 'email', 'no_hp']);
+
+        $selectedOption = null;
+
+        if ($consultation?->package_id) {
+            $selectedOption = PackageOption::where('is_active', true)
+                ->whereHas('package', function ($query) use ($consultation) {
+                    $query->where('id', $consultation->package_id);
+                })
+                ->orderBy('name')
+                ->first();
+        }
+
+        $selectedVenue = null;
+
+        if (filled($consultation?->venue)) {
+            $needle = Str::lower(trim((string) $consultation->venue));
+            $selectedVenue = $venues->first(fn (Venue $venue) => Str::lower(trim((string) $venue->name)) === $needle);
+        }
+
+        $matchedUser = $this->findUserForConsultation($consultation);
+
+        return view('pages.orders.create', compact(
+            'consultation',
+            'packageOptions',
+            'venues',
+            'users',
+            'selectedOption',
+            'selectedVenue',
+            'matchedUser'
+        ));
+    }
+
+    public function updateVenueBooking(Request $request, Order $order)
+    {
+        abort_unless(Auth::user()->hasAnyRole(['super-admin', 'admin']), 403);
+
+        $validated = $request->validate([
+            'venue_uuid' => ['nullable', 'uuid', 'exists:venues,uuid'],
+            'venue_booking_status' => ['required', Rule::in(['none', 'requested', 'confirmed', 'cancelled'])],
+            'venue_booking_amount' => ['nullable', 'numeric', 'min:0'],
+            'venue_booking_at' => ['nullable', 'date'],
+            'venue_booking_note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $order->update([
+            'venue_uuid' => $validated['venue_uuid'] ?? null,
+            'venue_booking_status' => $validated['venue_booking_status'],
+            'venue_booking_amount' => $validated['venue_booking_amount'] ?? null,
+            'venue_booking_at' => $validated['venue_booking_at'] ?? null,
+            'venue_booking_note' => $validated['venue_booking_note'] ?? null,
+        ]);
+
+        $this->logOrderAction($order, 'venue_booking_updated', [
+            'venue_uuid' => $order->venue_uuid,
+            'venue_booking_status' => $order->venue_booking_status,
+            'venue_booking_amount' => $order->venue_booking_amount,
+            'venue_booking_at' => $order->venue_booking_at?->toDateString(),
+        ]);
+
+        return back()->with('success', 'Booking venue berhasil diperbarui.');
+    }
+
     /**
      * Display the specified order.
      */
@@ -373,6 +467,8 @@ class OrderController extends Controller
             'changeRequests.addon',
             'vendorAssignments.vendor',
             'vendorAssignments.assignedBy',
+            'venue',
+            'consultation',
         ])
             ->where('uuid', $uuid)
             ->firstOrFail();
@@ -391,6 +487,7 @@ class OrderController extends Controller
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->get();
+        $venues = $isAdmin ? Venue::where('status', 'active')->orderBy('name')->get(['uuid', 'name']) : collect();
         $vendors = $isAdmin && Role::where('name', 'vendor')->exists()
             ? User::role('vendor')->orderBy('name')->get(['uuid', 'name'])
             : collect();
@@ -414,7 +511,7 @@ class OrderController extends Controller
 
         return view(
             'pages.orders.show',
-            compact('order', 'isAdmin', 'userPackage', 'audits', 'availableAddons', 'vendors')
+            compact('order', 'isAdmin', 'userPackage', 'audits', 'availableAddons', 'vendors', 'venues')
         );
     }
 
@@ -804,7 +901,7 @@ class OrderController extends Controller
     {
         $record = Order::packageOnly()->with('package')->where('uuid', $order)->firstOrFail();
         $user = Auth::user();
-        $isAdmin = $user->hasAnyRole(['admin', 'admin-venue', 'super-admin']);
+        $isAdmin = $user->hasAnyRole(['admin', 'super-admin']);
         $canRecordPayment = $user->hasAnyRole(['admin', 'super-admin']);
         abort_unless($record->user_uuid === $user->uuid || $isAdmin, 403);
         abort_unless(in_array($record->status, ['pending', 'partially_paid'], true), 403, 'Pesanan tidak dalam status pembayaran aktif.');
@@ -2695,6 +2792,16 @@ class OrderController extends Controller
             $query->whereNotNull('proof_image_path');
         } elseif ($request->input('proof') === 'missing') {
             $query->whereNull('proof_image_path');
+        }
+
+        if ($request->input('verification') === 'pending') {
+            $query->where(function ($query) {
+                $query->where('status', 'pending')
+                    ->orWhereHas('payments', function ($query) {
+                        $query->where('verification_status', 'pending')
+                            ->orWhere('status', 'pending');
+                    });
+            });
         }
 
         if ($request->filled('start_date')) {

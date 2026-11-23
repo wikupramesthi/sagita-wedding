@@ -32,22 +32,25 @@ function setCategory(category: string): void {
 		const isActive = (filter.dataset.category || "") === category;
 		filter.classList.toggle("shadow-sm", isActive);
 		filter.classList.toggle("bg-white", !isActive);
+		filter.classList.toggle("bg-sage-800", isActive);
 		filter.classList.toggle("text-white", isActive);
-		filter.classList.toggle("text-[#6c5a4a]", !isActive);
+		filter.classList.toggle("text-sage-800", !isActive);
+		filter.classList.toggle("ring-sage-800", isActive);
 		filter.classList.toggle("ring-sand-200", !isActive);
 		filter.classList.toggle("hover:bg-sand-100", !isActive);
-		filter.style.backgroundColor = isActive ? "#6c5a4a" : "#fff";
-		filter.style.color = isActive ? "#fff" : "#6c5a4a";
-		filter.style.borderColor = isActive ? "#6c5a4a" : "#e7dfd5";
+		filter.style.backgroundColor = "";
+		filter.style.color = "";
+		filter.style.borderColor = "";
 		filter.setAttribute("aria-pressed", String(isActive));
 
 		const count = filter.querySelector("span");
 		count?.classList.toggle("bg-sand-100", !isActive);
+		count?.classList.toggle("bg-white/20", isActive);
 		if (count) {
-			count.style.backgroundColor = isActive
-				? "rgba(255,255,255,.2)"
-				: "#f1ede7";
-			count.style.color = isActive ? "#fff" : "#6c5a4a";
+			count.style.backgroundColor = "";
+			count.style.color = "";
+			count.classList.toggle("text-white", isActive);
+			count.classList.toggle("text-sage-800", !isActive);
 		}
 	});
 

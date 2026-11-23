@@ -197,7 +197,7 @@
                                             Tanpa Batas
                                         </span>
                                         @else
-                                        {{ $userPackage->quota }} Kelas
+                                        {{ $userPackage->quota }} Paket
                                         @endif
                                     </div>
                                 </div>

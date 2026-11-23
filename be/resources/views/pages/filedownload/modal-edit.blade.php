@@ -39,7 +39,7 @@
               <option value="">-- Select --</option>
               <option value="akademik" {{ (isset($item) && $item->kategori == 'akademik') || old('kategori') == 'akademik' ? 'selected' : '' }} >Curriculum Document</option>
               <option value="informasi" {{ (isset($item) && $item->kategori == 'informasi') || old('kategori') == 'informasi' ? 'selected' : '' }}>Public Information</option>
-              <option value="laporan" {{ (isset($item) && $item->kategori == 'laporan') || old('kategori') == 'laporan' ? 'selected' : '' }}>School Report</option>
+              <option value="laporan" {{ (isset($item) && $item->kategori == 'laporan') || old('kategori') == 'laporan' ? 'selected' : '' }}>Dokumen Pernikahan</option>
               <option value="edaran" {{ (isset($item) && $item->kategori == 'edaran') || old('kategori') == 'edaran' ? 'selected' : '' }}>Circular Letter</option>
             </select>
             @error('kategori')

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Package\Package;
+use App\Models\Payment\Order;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -380,6 +381,8 @@ class Consultation extends Model
         'lead_status',
         'source',
         'converted_to_booking_at',
+        'converted_order_uuid',
+        'user_uuid',
         'merged_into_uuid',
         'merged_at',
         'merged_by',
@@ -405,6 +408,16 @@ class Consultation extends Model
     public function handler(): BelongsTo
     {
         return $this->belongsTo(User::class, 'handled_by', 'id');
+    }
+
+    public function convertedOrder(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'converted_order_uuid', 'uuid');
+    }
+
+    public function linkedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_uuid', 'uuid');
     }
 
     public function getMethodLabelAttribute(): string
