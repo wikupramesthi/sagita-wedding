@@ -407,11 +407,11 @@
 						cardLink.textContent = action.label;
 						if (action.href === "/formulir-konsultasi") {
 							cardLink.addEventListener("click", () => {
-								const topic =
-									activeTopic ||
-									(/\b(wo|wedding organizer|layanan)\b/i.test(selectedQuestion)
-										? "services"
-										: undefined);
+								const topic = /\b(wo|wedding organizer|layanan)\b/i.test(
+									selectedQuestion,
+								)
+									? "services"
+									: activeTopic;
 								try {
 									sessionStorage.setItem(
 										"sita-consultation-prefill",
