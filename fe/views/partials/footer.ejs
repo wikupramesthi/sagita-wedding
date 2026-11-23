@@ -7,7 +7,7 @@
       <!-- Brand (dinamis dari Identitas Website) -->
       <div class="min-w-0">
         <div class="mb-4">
-          <img src="<%= site.logoUrl || site.logoWhiteUrl || "/img/logo.WebP" %>" alt="<%= site.name %>" width="160" height="40" class="footer-logo object-contain" loading="lazy" decoding="async">
+          <img src="<%= site.logoUrl || site.logoWhiteUrl || "/img/logo-nav.png" %>" alt="<%= site.name %>" width="160" height="40" class="footer-logo object-contain" loading="lazy" decoding="async">
         </div>
         <p class="break-words text-sm leading-relaxed text-sand-400"><%= site.description ? site.description : "" %></p>
         <% if (site.instagramHref || site.facebookHref || site.youtubeHref || site.tiktokHref) { %>
@@ -94,6 +94,6 @@
 <%- include('./accessibility-widget') %>
 <%- include('./booking-modal') %>
 </aside>
-<script src="/js/main.js?v=<%= assetV %>" defer></script>
+<script src="/js/main.js?v=<%= assetV %>-dashboard-section-scroll-v3" defer></script>
 <script src="/js/accessibility.js?v=<%= assetV %>-a11y1" defer></script>
 <% if (typeof pageScript !== 'undefined' && pageScript) { %><script nonce="<%= nonce %>">import("/js/pages/<%= pageScript %>.js?v=<%= assetV %>");</script><% } %>

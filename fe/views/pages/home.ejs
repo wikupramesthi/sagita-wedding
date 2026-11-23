@@ -36,7 +36,7 @@
     <div class="home-hero-content relative w-full max-w-5xl mx-auto mt-12 sm:mt-16 px-6 py-28 text-center">
       <h1 class="font-display <%= sliderBanners.length ? 'text-white' : 'text-sand-900' %> tracking-tight">
         <span class="block anim-slide-up" style="animation-delay:.05s"><%= t.heroLine1 %></span>
-        <span class="block italic font-light anim-slide-up" style="animation-delay:.2s"><%= t.heroLine2 %></span>
+        <span class="block font-script leading-[1.15] tracking-normal anim-slide-up" style="animation-delay:.2s"><%= t.heroLine2 %></span>
       </h1>
 
       <p class="mt-6 font-sans text-base sm:text-lg <%= sliderBanners.length ? 'text-white/90' : 'text-sand-700' %> max-w-xl mx-auto leading-relaxed anim-fade-in" style="animation-delay:.45s"><%= t.heroSub %></p>
@@ -343,50 +343,66 @@
   <% } %>
 
   <!-- ======================= MEMBER DASHBOARD ======================= -->
-  <section id="home-preparation" class="home-system-section scroll-mt-28 overflow-hidden bg-[#fff9fb] py-14 sm:py-16 lg:py-20">
+  <section id="home-preparation" class="home-system-section scroll-mt-28 overflow-x-clip bg-[#fff9fb] py-14 sm:py-16 lg:py-20">
     <div class="site-container">
-      <div class="grid items-center gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-14">
-        <div>
-          <p class="mb-5 inline-flex rounded-full bg-[#fce7ef] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#c62f60]"><%= t.homePreparationEyebrow %></p>
-          <h2 class="home-preparation-title text-4xl font-bold leading-[1.05] tracking-tight text-sage-900 sm:text-5xl">
-            <%= t.homePreparationTitlePrefix %> <span class="italic font-medium text-[#d53a68]"><%= t.homePreparationTitleAccent %></span>
-            <%= t.homePreparationTitleSuffix %>
-          </h2>
-          <p class="mt-5 max-w-xl text-base leading-relaxed text-stone-warm sm:text-lg"><%= t.homePreparationDescription %></p>
+    <div class="home-dashboard-scroll-stage relative" data-home-dashboard-scroll-stage>
+      <div class="home-dashboard-scroll-pin grid items-start gap-9 lg:sticky lg:top-24 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12" data-home-dashboard-scroll-pin>
+      <div class="reveal lg:py-4">
+        <p class="mb-5 inline-flex rounded-full bg-[#fce7ef] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#b83060]"><%= t.homePreparationEyebrow %></p>
+        <h2 class="home-preparation-title text-3xl font-bold leading-[1.05] tracking-tight text-sage-900 sm:text-4xl">
+          <%= t.homePreparationTitlePrefix %>
+          <span class="italic font-medium text-[#d53a68]"><%= t.homePreparationTitleAccent %></span>
+          <%= t.homePreparationTitleSuffix %>
+        </h2>
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-stone-warm sm:text-lg"><%= t.homePreparationDescription %></p>
 
-          <ul class="mt-7 space-y-3">
-            <% t.homePreparationFeatures.forEach((feature) => { %>
-              <li class="flex items-start gap-3 text-sm leading-relaxed text-sage-800 sm:text-base">
-                <span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#ef4f78]" aria-hidden="true"></span>
-                <span><strong class="font-semibold text-sage-900"><%= feature.title %></strong> — <%= feature.description %></span>
-              </li>
-            <% }) %>
-          </ul>
-        </div>
+        <ul class="mt-6 space-y-3">
+          <% t.homePreparationFeatures.forEach((feature) => { %>
+            <li class="flex items-start gap-3 text-sm leading-relaxed text-sage-800 sm:text-base">
+              <span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#ef4f78]" aria-hidden="true"></span>
+              <span><strong class="font-semibold text-sage-900"><%= feature.title %></strong> — <%= feature.description %></span>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
 
-        <div class="relative flex justify-center">
-          <div class="absolute -inset-8 -z-10 rounded-[3rem] bg-gradient-to-br from-[#fcebf0] via-white to-[#f7edf0] blur-[1px]" aria-hidden="true"></div>
-          <img
-            src="/img/ss-penuh.png"
-            alt="<%= t.homePreparationImageAlt %>"
-            width="746"
-            height="2048"
-            loading="lazy"
-            decoding="async"
-            class="h-auto max-h-[75vh] w-full max-w-[520px] object-contain drop-shadow-[0_25px_35px_rgba(87,67,73,0.14)]"
+      <div class="relative reveal self-start" data-delay="120">
+        <div class="absolute -inset-5 -z-10 rounded-[2rem] bg-gradient-to-br from-[#fcebf0] via-white to-[#f7edf0] blur-lg" aria-hidden="true"></div>
+        <div class="overflow-hidden rounded-[1.5rem] border border-white bg-white shadow-[0_24px_70px_rgba(66,48,44,0.18)]">
+          <div class="flex h-11 items-center gap-1.5 border-b border-sand-100 bg-white px-4">
+            <span class="h-2.5 w-2.5 rounded-full bg-[#eea5ac]" aria-hidden="true"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-[#f2d18a]" aria-hidden="true"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-[#a9c5a5]" aria-hidden="true"></span>
+            <span class="ml-3 truncate rounded-md bg-sand-50 px-3 py-1 text-[10px] text-stone-warm"><%= t.homePreparationPreviewLabel %></span>
+          </div>
+          <div
+            class="home-dashboard-preview-scroll h-[340px] overflow-y-auto bg-[#f8f8fa] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#c62f60] sm:h-[420px] lg:h-[420px]"
+            data-home-dashboard-scroll-viewport
+            role="region"
+            aria-label="<%= t.homePreparationImageAlt %>"
+            tabindex="0"
           >
+            <a href="/img/ss-penuh.png" target="_blank" rel="noopener noreferrer" aria-label="<%= t.homePreparationImageAlt %>" class="block">
+              <img
+                src="/img/ss-penuh.png"
+                alt=""
+                width="746"
+                height="2048"
+                loading="lazy"
+                decoding="async"
+                class="block h-auto w-full"
+                data-home-dashboard-scroll-image
+              >
+            </a>
+          </div>
         </div>
       </div>
 
-      <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a href="<%= user ? contactLinks.dashboardUrl : contactLinks.loginUrl %>" class="inline-flex items-center gap-3 rounded-full bg-[#df3157] px-6 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(223,49,87,0.18)] transition hover:-translate-y-0.5 hover:bg-[#c9274c]">
-            <%= user ? t.homePreparationOpenDashboard : t.homePreparationSignIn %>
-            <span class="grid h-8 w-8 place-items-center rounded-full bg-white text-[#df3157]" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg>
-            </span>
-          </a>
-          <a href="/packages" class="inline-flex items-center rounded-full border border-sand-300 bg-white px-6 py-3 text-sm font-bold text-sage-900 transition hover:border-sage-700"><%= t.viewAllPackages %></a>
       </div>
+    </div>
+
+    <div class="reveal mt-8 text-center" data-delay="200">
+      <p class="mx-auto max-w-3xl text-sm font-medium text-[#b83060]"><%= t.homePreparationFootnote %></p>
     </div>
   </section>
 

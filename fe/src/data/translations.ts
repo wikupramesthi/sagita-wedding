@@ -422,7 +422,6 @@ const rawTranslations = {
 			},
 		],
 		homePreparationPreviewLabel: "SAGITA MEMBER DASHBOARD",
-		homePreparationPreviewTitle: "Planning overview",
 		homePreparationPreviewBadge: "System preview",
 		homePreparationSteps: [
 			{
@@ -449,10 +448,10 @@ const rawTranslations = {
 			"Check order status",
 			"Review event timeline",
 		],
-		homePreparationSignIn: "Sign in to your account",
-		homePreparationOpenDashboard: "Open dashboard",
 		homePreparationImageAlt:
 			"Preview of the Sagita Wedding Planner member dashboard",
+		homePreparationFootnote:
+			"Keep your wedding services, orders, payments, and planning progress together in one account.",
 
 		// Homepage articles
 		homeArticlesEyebrow: "WEDDING PLANNING READS",
@@ -901,7 +900,6 @@ const rawTranslations = {
 			},
 		],
 		homePreparationPreviewLabel: "DASHBOARD ANGGOTA SAGITA",
-		homePreparationPreviewTitle: "Ringkasan persiapan",
 		homePreparationPreviewBadge: "Pratinjau sistem",
 		homePreparationSteps: [
 			{
@@ -928,10 +926,10 @@ const rawTranslations = {
 			"Periksa status pesanan",
 			"Lihat timeline acara",
 		],
-		homePreparationSignIn: "Masuk ke akun Anda",
-		homePreparationOpenDashboard: "Buka dashboard",
 		homePreparationImageAlt:
 			"Pratinjau dashboard anggota Sagita Wedding Planner",
+		homePreparationFootnote:
+			"Satukan layanan pernikahan, pesanan, pembayaran, dan progres persiapan dalam satu akun.",
 
 		// Homepage articles
 		homeArticlesEyebrow: "BACAAN SEPUTAR PERNIKAHAN",

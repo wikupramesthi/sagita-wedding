@@ -5,6 +5,7 @@ const read = (path: string) =>
 	readFileSync(new URL(path, import.meta.url), "utf8");
 
 const customCss = read("../public/css/custom.css");
+const inputCss = read("../public/css/input.css");
 const head = read("../views/partials/head.ejs");
 const footer = read("../views/partials/footer.ejs");
 const blogDetail = read("../views/pages/blog-detail.ejs");
@@ -31,7 +32,12 @@ describe("kualitas frontend", () => {
 		expect(head).toContain('rel="preload" href="/css/custom.css');
 		expect(head).toContain('rel="preload" as="image" href="<%= heroImage %>"');
 		expect(head).toContain("?v=<%= assetV %>");
-		expect(head).toContain("display=swap");
+		expect(inputCss).toContain("font-display: swap");
+		expect(inputCss).toContain('font-family: "Cormorant Garamond"');
+		expect(inputCss).toContain('font-family: "Plus Jakarta Sans"');
+		expect(inputCss).toContain('font-family: "Pinyon Script"');
+		expect(head).toContain('href="/fonts/plus-jakarta-sans-latin.woff2');
+		expect(head).toContain('href="/fonts/cormorant-garamond-latin.woff2');
 		expect(head).toContain("/js/telemetry.js");
 		expect(footer).toContain("defer");
 	});

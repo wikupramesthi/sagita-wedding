@@ -155,19 +155,17 @@ if (_articleMeta || _ogType === "article") {
 </script>
 <% } %>
 
+<link rel="preload" as="image" href="<%= _site.logoUrl || "/img/logo-nav.png" %>" fetchpriority="high" />
 <% if (typeof heroImage !== "undefined" && heroImage) { %>
   <link rel="preload" as="image" href="<%= heroImage %>" fetchpriority="high" />
 <% } %>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-  href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
-  rel="stylesheet"
-/>
-<link rel="preload" href="/css/output.css?v=<%= assetV %>-tw-font-unify2" as="style" />
-<link rel="stylesheet" href="/css/output.css?v=<%= assetV %>-tw-font-unify2" />
-<link rel="preload" href="/css/custom.css?v=<%= assetV %>-layout-font-unify1" as="style" />
-<link rel="stylesheet" href="/css/custom.css?v=<%= assetV %>-layout-font-unify1" />
+<link rel="preload" href="/fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/pinyon-script-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/css/output.css?v=<%= assetV %>-tw-member-dashboard-scroll" as="style" />
+<link rel="stylesheet" href="/css/output.css?v=<%= assetV %>-tw-member-dashboard-scroll" />
+<link rel="preload" href="/css/custom.css?v=<%= assetV %>-member-dashboard-scroll-progress" as="style" />
+<link rel="stylesheet" href="/css/custom.css?v=<%= assetV %>-member-dashboard-scroll-progress" />
 
 <script nonce="<%= nonce %>">
   (function () {

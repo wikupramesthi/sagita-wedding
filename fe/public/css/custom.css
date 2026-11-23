@@ -3343,6 +3343,54 @@ header[data-home] .mobile-drawer {
 		box-shadow 0.35s ease;
 }
 
+.home-system-section {
+	background-image:
+		radial-gradient(
+			circle,
+			transparent 8px,
+			rgba(210, 135, 152, 0.1) 8.5px,
+			transparent 9.5px
+		),
+		radial-gradient(
+			circle,
+			transparent 8px,
+			rgba(210, 135, 152, 0.1) 8.5px,
+			transparent 9.5px
+		);
+	background-position:
+		0 0,
+		21px 21px;
+	background-size: 42px 42px;
+}
+
+.home-dashboard-preview-scroll {
+	scrollbar-color: rgba(166, 126, 138, 0.6) transparent;
+	scrollbar-width: thin;
+}
+
+.home-dashboard-preview-scroll::-webkit-scrollbar {
+	width: 7px;
+}
+
+.home-dashboard-preview-scroll::-webkit-scrollbar-thumb {
+	border-radius: 9999px;
+	background: rgba(166, 126, 138, 0.6);
+}
+
+.home-dashboard-preview-scroll::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.home-dashboard-scroll-stage.is-scroll-linked
+	.home-dashboard-preview-scroll {
+	overflow: hidden;
+}
+
+.home-dashboard-scroll-stage.is-scroll-linked
+	[data-home-dashboard-scroll-image] {
+	will-change: transform;
+}
+
 .home-preparation-title,
 .home-planning-summary__title,
 .home-planning-summary__card-title {

@@ -751,6 +751,27 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain("Satu akun untuk memantau seluruh layanan");
 		expect(res.text).toContain("Paket dan pesanan");
 		expect(res.text).toContain('src="/img/ss-penuh.png"');
+		expect(res.text).toContain('class="reveal lg:py-4"');
+		expect(res.text).toContain(
+			'class="reveal mt-8 text-center" data-delay="200"',
+		);
+		expect(res.text).toContain(
+			'class="home-dashboard-scroll-stage relative" data-home-dashboard-scroll-stage',
+		);
+		expect(res.text).toContain(
+			'class="home-dashboard-scroll-pin grid items-start gap-9 lg:sticky lg:top-24 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12" data-home-dashboard-scroll-pin',
+		);
+		expect(res.text).toContain('class="home-dashboard-preview-scroll');
+		expect(res.text).toContain('role="region"');
+		expect(res.text).toContain("data-home-dashboard-scroll-stage");
+		expect(res.text).toContain("data-home-dashboard-scroll-image");
+		const dashboardMarkup = res.text.slice(
+			dashboardPosition,
+			res.text.indexOf('id="home-faq"'),
+		);
+		expect(dashboardMarkup).not.toContain("Ringkasan persiapan");
+		expect(dashboardMarkup).not.toContain('href="/packages"');
+		expect(dashboardMarkup).not.toContain("Masuk ke akun Anda");
 		expect(res.text).toContain("BACAAN SEPUTAR PERNIKAHAN");
 		expect(res.text).toContain("Artikel &amp;");
 		expect(res.text).toContain("Inspirasi Pernikahan");

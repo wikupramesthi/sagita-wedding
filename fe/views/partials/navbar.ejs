@@ -9,11 +9,12 @@
       <!-- Logo (dinamis dari Identitas Website) -->
       <a href="/" class="flex-shrink-0" aria-label="<%= site.name %> — <%= t.nav.home %>">
         <img
-          src="<%= site.logoUrl || "/img/logo.WebP" %>"
+          src="<%= site.logoUrl || "/img/logo-nav.png" %>"
           alt="<%= site.name %>"
           width="160"
           height="40"
           decoding="async"
+          fetchpriority="high"
           class="logo-main h-10 w-auto object-contain"
         >
       </a>

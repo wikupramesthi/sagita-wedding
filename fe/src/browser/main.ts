@@ -5,7 +5,8 @@
  *   1. Navbar (mobile drawer, efek scroll, dropdown bahasa)
  *   2. Modal booking (data-action="open-booking" / "close-booking" + Escape)
  *   3. Reveal on scroll
- *   4. Fallback gambar (data-fallback, data-remove-on-error)
+ *   4. Scroll-linked dashboard preview
+ *   5. Fallback gambar (data-fallback, data-remove-on-error)
  *
  */
 
@@ -246,7 +247,87 @@ document.addEventListener("keydown", (ev) => {
 	});
 })();
 
-/* ---------- 4. fallback gambar ---------- */
+/* ---------- 4. scroll-linked dashboard preview ---------- */
+
+(() => {
+	const stage = document.querySelector<HTMLElement>(
+		"[data-home-dashboard-scroll-stage]",
+	);
+	const pin = stage?.querySelector<HTMLElement>(
+		"[data-home-dashboard-scroll-pin]",
+	);
+	const viewport = stage?.querySelector<HTMLElement>(
+		"[data-home-dashboard-scroll-viewport]",
+	);
+	const image = stage?.querySelector<HTMLImageElement>(
+		"[data-home-dashboard-scroll-image]",
+	);
+	if (!stage || !pin || !viewport || !image) return;
+
+	const desktop = window.matchMedia("(min-width: 1024px)");
+	const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+	const stickyViewportMargin = 24;
+	let maxOffset = 0;
+	let stickyTop = 0;
+	let scrollStart = 0;
+	let frameId = 0;
+
+	const render = () => {
+		frameId = 0;
+		if (!desktop.matches || reducedMotion.matches || maxOffset <= 0) return;
+
+		const progress = Math.min(
+			1,
+			Math.max(0, (window.scrollY - scrollStart) / maxOffset),
+		);
+		image.style.transform = `translate3d(0, ${-Math.round(progress * maxOffset)}px, 0)`;
+	};
+
+	const scheduleRender = () => {
+		if (!desktop.matches || reducedMotion.matches || maxOffset <= 0 || frameId)
+			return;
+		frameId = window.requestAnimationFrame(render);
+	};
+
+	const measure = () => {
+		stage.style.minHeight = "";
+		image.style.transform = "";
+		stickyTop = desktop.matches
+			? Number.parseFloat(window.getComputedStyle(pin).top) || 0
+			: 0;
+		const hasStickyRoom =
+			!desktop.matches ||
+			pin.offsetHeight + stickyTop + stickyViewportMargin <= window.innerHeight;
+		pin.style.position = hasStickyRoom ? "" : "static";
+
+		if (!desktop.matches || reducedMotion.matches || !hasStickyRoom) {
+			stage.classList.remove("is-scroll-linked");
+			maxOffset = 0;
+			return;
+		}
+
+		maxOffset = Math.max(0, image.offsetHeight - viewport.clientHeight);
+		if (maxOffset <= 0) {
+			stage.classList.remove("is-scroll-linked");
+			return;
+		}
+
+		stage.classList.add("is-scroll-linked");
+		scrollStart =
+			stage.getBoundingClientRect().top + window.scrollY - stickyTop;
+		stage.style.minHeight = `${Math.max(stage.scrollHeight, pin.offsetHeight + maxOffset)}px`;
+		scheduleRender();
+	};
+
+	window.addEventListener("scroll", scheduleRender, { passive: true });
+	window.addEventListener("resize", measure, { passive: true });
+	desktop.addEventListener("change", measure);
+	reducedMotion.addEventListener("change", measure);
+	image.addEventListener("load", measure);
+	measure();
+})();
+
+/* ---------- 5. fallback gambar ---------- */
 
 function handleImageError(img: HTMLImageElement) {
 	const fb = img.dataset.fallback;
