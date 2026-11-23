@@ -195,7 +195,7 @@
         <% packages.slice(0, 3).forEach((pkg, i) => { %>
           <article data-home-package-slug="<%= pkg.slug %>" class="home-package-card reveal relative flex h-full flex-col overflow-visible rounded-[24px] border transition-all duration-300 <%= pkg.isPopular ? 'home-package-card--featured z-10 border-[#c5a96e] bg-white text-sage-900 shadow-xl' : 'border-stone-200 bg-white text-sage-900 hover:shadow-lg' %>" data-delay="<%= i * 120 %>">
             <% if (pkg.isPopular) { %>
-              <span class="home-package-badge absolute left-1/2 top-[-13px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#c5a96e] bg-[#403a34] px-4 py-2 text-xs font-bold text-[#fffefd] shadow-md"><%= lang === 'id' ? 'Paling banyak dipilih' : 'Most popular' %></span>
+              <span class="home-package-badge absolute left-1/2 top-[-13px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#c5a96e] bg-[#403a34] px-4 py-2 text-xs font-bold text-[#fffefd] shadow-md"><%= lang === 'id' ? 'PALING DIMINATI' : 'MOST POPULAR' %></span>
             <% } %>
             <div class="home-package-body flex flex-1 flex-col p-7">
               <div class="<%= pkg.isPopular ? '-mx-7 -mt-7 mb-5 rounded-t-[23px] bg-[#403a34] px-7 py-7 text-white' : '' %>">

@@ -314,7 +314,8 @@
                 </div>
 
                 {{-- Important Information --}}
-                <div class="card border-0 shadow-sm mb-4 identity-tip">
+                <div class="card border-0 shadow-sm mb-4 identity-tip"
+                    style="background:linear-gradient(135deg,#403a34 0%,#6c5a4a 100%) !important;background-color:#403a34 !important;border:1px solid rgba(197,169,110,.38) !important;border-radius:1.25rem !important;color:#fff !important;">
                     <div class="identity-tip__glow"></div>
                     <div class="identity-tip__body">
                         <div class="identity-tip__head">

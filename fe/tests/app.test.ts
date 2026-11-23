@@ -509,6 +509,7 @@ describe("pageScript wiring", () => {
 			'property="article:published_time" content="2026-11-22"',
 		);
 		expect(res.text).toContain('"@type":"BlogPosting"');
+		expect(res.text).toContain("blog-detail-main");
 		expect(res.text).toContain("blog-detail-aside");
 		expect(res.text).toContain("Berita populer");
 		expect(res.text).toContain("Rekomendasi venue");

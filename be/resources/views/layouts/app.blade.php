@@ -627,6 +627,7 @@
 
             let id = $(this).data("id");
             let $item = $(this).closest(".notification-item");
+            let target = $(this).attr("href");
 
             $.ajax({
                 url: "{{ url('/notifications') }}/" + id + "/read",
@@ -646,6 +647,10 @@
                             $("#notif-count").text(count);
                         } else {
                             $("#notif-count").remove();
+                        }
+
+                        if (target && target !== "javascript:void(0)" && target !== "#") {
+                            window.location.assign(target);
                         }
                     }
                 }

@@ -23,47 +23,56 @@
         </nav>
 
         <article class="blog-detail-article">
-          <header class="blog-detail-header">
-            <div class="blog-detail-meta">
-              <% if (post.category) { %>
-                <span class="blog-detail-category"><%= post.category %></span>
-              <% } %>
-              <% if (post.date) { %>
-                <span class="blog-detail-date"><%= post.date %></span>
-              <% } %>
-              <% if (post.read) { %>
-                <span class="blog-detail-dot" aria-hidden="true">•</span>
-                <span class="blog-detail-read"><%= post.read %></span>
-              <% } %>
-              <% if (post.author) { %>
-                <span class="blog-detail-dot" aria-hidden="true">•</span>
-                <span class="blog-detail-author"><%= post.author %></span>
-              <% } %>
-            </div>
-
-            <h1 class="blog-detail-title"><%= post.title %></h1>
-
-            <% if (post.excerpt) { %>
-              <p class="blog-detail-excerpt"><%= post.excerpt %></p>
-            <% } %>
-
-            <% if (post.image) { %>
-              <figure class="blog-detail-figure">
-                <img
-                  src="<%= post.image %>"
-                  alt="<%= post.title %>"
-                  loading="eager"
-                  decoding="async"
-                  data-img-error="closest-figure"
-                  class="blog-detail-image"
-                >
-              </figure>
-            <% } %>
-          </header>
-
           <div class="blog-detail-layout">
-            <div class="blog-detail-content article-content">
-              <%- post.content %>
+            <div class="blog-detail-main">
+              <header class="blog-detail-header">
+                <div class="blog-detail-meta">
+                  <% if (post.category) { %>
+                    <span class="blog-detail-category"><%= post.category %></span>
+                  <% } %>
+                  <% if (post.date) { %>
+                    <span class="blog-detail-date"><%= post.date %></span>
+                  <% } %>
+                  <% if (post.read) { %>
+                    <span class="blog-detail-dot" aria-hidden="true">•</span>
+                    <span class="blog-detail-read"><%= post.read %></span>
+                  <% } %>
+                  <% if (post.author) { %>
+                    <span class="blog-detail-dot" aria-hidden="true">•</span>
+                    <span class="blog-detail-author"><%= post.author %></span>
+                  <% } %>
+                </div>
+
+                <h1 class="blog-detail-title"><%= post.title %></h1>
+
+                <% if (post.excerpt) { %>
+                  <p class="blog-detail-excerpt"><%= post.excerpt %></p>
+                <% } %>
+
+                <% if (post.image) { %>
+                  <figure class="blog-detail-figure">
+                    <img
+                      src="<%= post.image %>"
+                      alt="<%= post.title %>"
+                      loading="eager"
+                      decoding="async"
+                      data-img-error="closest-figure"
+                      class="blog-detail-image"
+                    >
+                  </figure>
+                <% } %>
+              </header>
+
+              <div class="blog-detail-content article-content">
+                <%- post.content %>
+              </div>
+
+              <footer class="blog-detail-footer">
+                <a href="/blog" class="blog-back-link">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
+                  <%= t.blogBack %>
+                </a>
+              </footer>
             </div>
 
             <aside class="blog-detail-aside">
@@ -179,13 +188,6 @@
               <% } %>
             </aside>
           </div>
-
-          <footer class="blog-detail-footer">
-            <a href="/blog" class="blog-back-link">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
-              <%= t.blogBack %>
-            </a>
-          </footer>
         </article>
 
         <% if (related.length) { %>

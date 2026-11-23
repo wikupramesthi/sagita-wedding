@@ -520,8 +520,8 @@ router.get(
 				pageScript: "blog-detail",
 				post: { ...rawPost, content: sanitizeRichHtml(rawPost.content) },
 				related: normalizeBlogPosts(data?.related, locale).slice(0, 3),
-				popularPosts: normalizeBlogPosts(data?.popular, locale).slice(0, 5),
-				sidebarVenues: normalizeVenueLinks(data?.venues).slice(0, 5),
+				popularPosts: normalizeBlogPosts(data?.popular, locale).slice(0, 3),
+				sidebarVenues: normalizeVenueLinks(data?.venues).slice(0, 3),
 			});
 		} catch (e) {
 			const err = toApiError(e);

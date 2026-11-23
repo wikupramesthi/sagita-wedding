@@ -123,17 +123,21 @@ class TestimonialController extends Controller
                 'is_active',
             ]);
 
-            if ($request->hasFile('foto')) {
-                if ($item->foto && Storage::disk('public')->exists($item->foto)) {
-                    Storage::disk('public')->delete($item->foto);
-                }
+            $oldFoto = $item->foto;
+            $newFoto = null;
 
-                $data['foto'] = $request->file('foto')->store('testimoni', 'public');
+            if ($request->hasFile('foto')) {
+                $newFoto = $request->file('foto')->store('testimoni', 'public');
+                $data['foto'] = $newFoto;
             }
 
             $item->update($data);
 
             DB::commit();
+
+            if ($newFoto && $oldFoto && Storage::disk('public')->exists($oldFoto)) {
+                Storage::disk('public')->delete($oldFoto);
+            }
 
             return redirect()
                 ->back()

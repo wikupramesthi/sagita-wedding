@@ -4391,6 +4391,12 @@ html[data-bs-theme="dark"] .media-status {
     box-shadow: 0 18px 40px rgba(64, 58, 52, 0.22);
     isolation: isolate;
 }
+#main-content .identity-tip,
+[data-bs-theme="dark"] #main-content .identity-tip {
+    background: linear-gradient(135deg, #403a34 0%, #6c5a4a 100%) !important;
+    background-color: #403a34 !important;
+    border: 1px solid rgba(197, 169, 110, 0.38) !important;
+}
 .identity-tip__glow {
     position: absolute;
     inset: -40% -20% auto -20%;

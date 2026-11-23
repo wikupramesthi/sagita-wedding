@@ -62,7 +62,7 @@
                                 <li
                                     class="notification-item {{ $notification->read_at ? '' : 'unread' }}">
 
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ $notification->data['path'] ?? 'javascript:void(0)' }}"
                                         class="mark-as-read d-flex align-items-start gap-2 text-decoration-none p-2 px-3"
                                         data-id="{{ $notification->id }}">
 
