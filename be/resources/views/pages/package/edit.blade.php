@@ -260,10 +260,10 @@
                                             <span class="fw-semibold package-option-title">
                                                 Opsi {{ $index + 1 }}
                                             </span>
-
-                                        <span class="text-muted small ms-1">
-                                            Pilihan harga
-                                        </span>
+                                            <span class="text-muted small ms-1">
+                                                Pilihan harga
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <button type="button"
@@ -1658,21 +1658,16 @@
                             <span class="fw-semibold package-option-title">
                                 Opsi ${index + 1}
                             </span>
-
                             <span class="text-muted small ms-1">
-                                                Pilihan harga
-                                            </span>
-                                        </div>
-                                    </div>
+                                Pilihan harga
+                            </span>
+                        </div>
+                    </div>
 
-                                    <button type="button"
-                                        class="btn btn-sm btn-outline-danger btn-remove-package-option">
-
-
+                    <button type="button"
+                        class="btn btn-sm btn-outline-danger btn-remove-package-option">
                         <i class="bi bi-trash3"></i>
-
                     </button>
-
                 </div>
 
 

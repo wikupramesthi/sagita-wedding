@@ -91,7 +91,9 @@ function readingTime(content: unknown, locale: string): string {
 		.trim();
 	const words = plain ? plain.split(" ").length : 0;
 	const minutes = Math.max(1, Math.ceil(words / 200));
-	return locale === "id" ? `${minutes} menit baca` : `${minutes} min read`;
+	return locale.toLowerCase().startsWith("id")
+		? `${minutes} menit baca`
+		: `${minutes} min read`;
 }
 
 function normalizeBlogPost(value: unknown, locale: string): ArticleView | null {
@@ -406,8 +408,23 @@ router.get(
 			if (!page) {
 				throw Object.assign(new Error("Page not found"), { status: 404 });
 			}
+			const rawPageDescription =
+				firstString(page.excerpt, page.description) ||
+				firstString(page.content)
+					.replace(/<[^>]*>/g, " ")
+					.replace(/\s+/g, " ")
+					.trim()
+					.slice(0, 160);
+			const pageDescription =
+				rawPageDescription.length >= 40
+					? rawPageDescription
+					: res.locals.lang === "id"
+						? `Baca ${page.title} dan informasi lengkapnya dari Sagita Wedding Planner.`
+						: `Read ${page.title} and learn more from Sagita Wedding Planner.`;
+
 			res.render("pages/page-detail", {
-				title: page.title,
+				title: `${page.title} | Sagita Wedding`,
+				metaDescription: pageDescription,
 				pageScript: "page-detail",
 				page: { ...page, content: sanitizeRichHtml(page.content) },
 			});
@@ -501,17 +518,23 @@ router.get(
 				.replace(/<[^>]*>/g, " ")
 				.replace(/\s+/g, " ")
 				.trim();
+			const descriptionText =
+				excerptText.length >= 40
+					? excerptText
+					: isID
+						? `Baca ${rawPost.title} — panduan dan inspirasi pernikahan dari Sagita Wedding Planner.`
+						: `Read ${rawPost.title} — wedding planning guidance and inspiration from Sagita Wedding Planner.`;
 			const articleImage = rawPost.image || undefined;
 			const publishedAt = rawPost.publishedAt || undefined;
 
 			res.render("pages/blog-detail", {
 				title: `${rawPost.title} | Sagita Wedding`,
-				metaDescription: excerptText || undefined,
+				metaDescription: descriptionText,
 				ogType: "article",
 				ogImage: articleImage,
 				articleMeta: {
 					headline: rawPost.title,
-					description: excerptText || undefined,
+					description: descriptionText,
 					image: articleImage,
 					section: rawPost.category || undefined,
 					datePublished: publishedAt,

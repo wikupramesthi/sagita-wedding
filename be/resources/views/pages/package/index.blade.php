@@ -303,10 +303,10 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                         @if ($canBulk)<col class="pkg-col-check">@endif
                         <col class="pkg-col-name">
                         <col class="pkg-col-options">
-                        <col class="pkg-col-features">
-                        <col class="pkg-col-popular">
+                        <col class="pkg-col-features hide-md">
+                        <col class="pkg-col-popular hide-md">
                         <col class="pkg-col-status">
-                        <col class="pkg-col-published">
+                        <col class="pkg-col-published hide-lg">
                         <col class="pkg-col-action">
                     </colgroup>
                     <thead>
@@ -817,15 +817,15 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .package-page .package-table { width: 100%; table-layout: fixed; font-size: .875rem; }
     .package-page .package-table th { font-size: .75rem; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; background: #f8f9fa; }
     .package-page .package-table td { vertical-align: middle; }
-    .package-page .pkg-col-check { width: 36px; }
-    .package-page .pkg-col-name { width: 24%; }
-    .package-page .pkg-col-options { width: 28%; }
+    .package-page .pkg-col-check { width: 4%; }
+    .package-page .pkg-col-name { width: 23%; }
+    .package-page .pkg-col-options { width: 27%; }
     .package-page .pkg-col-features { width: 9%; }
     .package-page .package-feature-btn { font-size: 12px; padding: .2rem .5rem; white-space: nowrap; }
-    .package-page .pkg-col-popular { width: 10%; }
+    .package-page .pkg-col-popular { width: 11%; }
     .package-page .pkg-col-status { width: 9%; }
-    .package-page .pkg-col-published { width: 9%; }
-    .package-page .pkg-col-action { width: 56px; }
+    .package-page .pkg-col-published { width: 10%; }
+    .package-page .pkg-col-action { width: 7%; }
     .package-page .pkg-cover { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
     .package-page .pkg-cover-fallback { width: 40px; height: 40px; display: grid; place-items: center; border: 1px dashed #d0d5dd; border-radius: 8px; background: #f9fafb; color: #98a2b3; flex-shrink: 0; font-size: 14px; }
     .package-page .pkg-name { max-width: 180px; }
@@ -851,6 +851,11 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
     .package-page .package-pagination .page-item .page-link:hover { border-color: #4b6b52; color: #4b6b52; background: #f6faf7; }
     .package-page .package-pagination .page-item.active .page-link { border-color: #4b6b52; background: #4b6b52; color: #fff; box-shadow: 0 4px 10px rgba(75,107,82,.28); }
     .package-page .package-pagination .page-item.disabled .page-link { border-color: #eef0f4; background: #fafbfc; color: #b2b7c3; }
+
+    @media (min-width: 1200px) and (max-width: 1399.98px) {
+        .package-page .pkg-col-name { width: 28%; }
+        .package-page .pkg-col-options { width: 32%; }
+    }
 
     .package-page .package-item-card { border-color: #e4e7ec; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform .18s ease, box-shadow .18s ease; }
     .package-page .package-item-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(16,24,40,.09); }
@@ -918,6 +923,11 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
         .package-page .package-filter-grid .field-search { grid-column: span 6; }
         .package-page .package-filter-grid .package-filter-field { grid-column: span 3; }
         .package-page .hide-md { display: none; }
+        .package-page .pkg-col-check { width: 4%; }
+        .package-page .pkg-col-name { width: 35%; }
+        .package-page .pkg-col-options { width: 42%; }
+        .package-page .pkg-col-status { width: 12%; }
+        .package-page .pkg-col-action { width: 7%; }
     }
 
     @media (max-width: 991.98px) {

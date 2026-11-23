@@ -1,0 +1,43 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const read = (path: string) =>
+	readFileSync(new URL(path, import.meta.url), "utf8");
+
+const customCss = read("../public/css/custom.css");
+const head = read("../views/partials/head.ejs");
+const footer = read("../views/partials/footer.ejs");
+const blogDetail = read("../views/pages/blog-detail.ejs");
+
+describe("kualitas frontend", () => {
+	it("punya breakpoint mobile dan desktop untuk halaman utama", () => {
+		expect(customCss).toContain("@media (max-width: 640px)");
+		expect(customCss).toContain("@media (min-width: 1024px)");
+		expect(customCss).toContain(".home-packages-section");
+		expect(customCss).toContain(".blog-grid");
+		expect(customCss).toContain(".blog-detail-layout");
+	});
+
+	it("sidebar detail blog sticky dan tetap turun di bawah konten di mobile", () => {
+		expect(customCss).toContain(".blog-detail-aside");
+		expect(customCss).toContain("position: sticky");
+		expect(blogDetail).toContain('class="blog-detail-main"');
+		expect(blogDetail).toContain('class="blog-detail-aside"');
+	});
+
+	it("aset critical memakai viewport, preload, cache-busting, font swap, dan script defer", () => {
+		expect(head).toContain('name="viewport"');
+		expect(head).toContain('rel="preload" href="/css/output.css');
+		expect(head).toContain('rel="preload" href="/css/custom.css');
+		expect(head).toContain("?v=<%= assetV %>");
+		expect(head).toContain("display=swap");
+		expect(footer).toContain("defer");
+	});
+
+	it("detail blog punya share native, copy link, berita populer, dan list venue", () => {
+		expect(blogDetail).toContain('id="nativeShareBtn"');
+		expect(blogDetail).toContain('id="copyLinkBtn"');
+		expect(blogDetail).toContain("blog-popular-list");
+		expect(blogDetail).toContain("blog-venue-list");
+	});
+});
