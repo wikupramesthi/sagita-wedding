@@ -478,3 +478,160 @@ describe("Sita database answers", () => {
 		expect(result.offerContact).toBe(true);
 	});
 });
+
+describe("Sita AI NLU-local understanding", () => {
+	beforeEach(() => {
+		getPageBatchMock.mockReset();
+	});
+
+	it("greets a hello with the topic menu instead of a no-match reply", async () => {
+		const result = await answerSitaQuestion("Halo", "id");
+
+		expect(result.answer).toContain("Sita AI");
+		expect(result.answer).toContain("paket, venue, vendor");
+		expect(result.cards).toEqual([]);
+		expect(result.offerContact).toBe(false);
+		expect(result.confidence).toBe(0.95);
+		expect(result.suggestions).toContainEqual({
+			label: "Paket & harga",
+			topic: "packages",
+		});
+		expect(result.suggestions).toContainEqual({
+			label: "Hubungi admin",
+			action: "contact",
+		});
+		expect(getPageBatchMock).not.toHaveBeenCalled();
+	});
+
+	it("answers a thank-you without treating it as a failed question", async () => {
+		const result = await answerSitaQuestion("makasih banyak", "id");
+
+		expect(result.answer).toContain("Sama-sama");
+		expect(result.confidence).toBe(0.95);
+		expect(result.unanswered).toBeUndefined();
+	});
+
+	it("understands slang and typos as a package question", async () => {
+		getPageBatchMock.mockResolvedValue({
+			packages: [
+				{
+					name: "Paket Wedding Mawar",
+					slug: "paket-wedding-mawar",
+					description: "Paket pernikahan di venue",
+					guest_capacity: "300 tamu",
+					options: [{ final_price: 25_000_000, price: 30_000_000 }],
+				},
+			],
+		});
+
+		const result = await answerSitaQuestion("brp hrga pket", "id");
+
+		expect(result.cards).toHaveLength(1);
+		expect(result.cards[0].title).toBe("Paket Wedding Mawar");
+		expect(result.confidence).toBe(0.9);
+	});
+
+	it("keeps the fallback reply and marks it as low confidence", async () => {
+		getPageBatchMock.mockImplementation(async (page) =>
+			page === "packages" ? { packages: [] } : { faqs: [] },
+		);
+
+		const result = await answerSitaQuestion(
+			"Berapa jumlah jerapah di bulan?",
+			"id",
+		);
+
+		expect(result.answer).toContain("belum menangkap maksudnya");
+		expect(result.confidence).toBe(0.15);
+		expect(result.unanswered).toBe(true);
+		expect(result.suggestions).toContainEqual({
+			label: "Venue",
+			topic: "venues",
+		});
+		expect(result.suggestions).toContainEqual({
+			label: "Hubungi admin",
+			action: "contact",
+		});
+	});
+
+	it("scores FAQ matches as confidently understood", async () => {
+		getPageBatchMock.mockResolvedValue({
+			faqs: [
+				{
+					question:
+						"Bagaimana cara melakukan pemesanan layanan Sagita Wedding Planner?",
+					answer:
+						"Pemesanan dapat dimulai dengan menghubungi tim kami melalui WhatsApp.",
+				},
+			],
+		});
+
+		const result = await answerSitaQuestion("Bagaimana cara booking?", "id");
+
+		expect(result.answer).toContain("Pemesanan dapat dimulai");
+		expect(result.confidence).toBe(0.8);
+	});
+
+	it("uses session criteria from a context follow-up", async () => {
+		getPageBatchMock.mockResolvedValue({
+			packages: [
+				{
+					name: "Paket Wedding Mawar",
+					slug: "paket-wedding-mawar",
+					description: "Paket pernikahan lengkap",
+					guest_capacity: "400 tamu",
+					options: [{ final_price: 25_000_000, price: 30_000_000 }],
+				},
+			],
+		});
+
+		const result = await answerSitaQuestion("Untuk 200 tamu", "id", {
+			topic: "packages",
+		});
+
+		expect(result.cards).toHaveLength(1);
+		expect(result.answer).toContain("200");
+		expect(result.confidence).toBe(0.85);
+	});
+
+	it("offers a secondary topic chip when the question mixes topics", async () => {
+		getPageBatchMock.mockResolvedValue({
+			packages: [
+				{
+					name: "Paket Wedding Mawar",
+					slug: "paket-wedding-mawar",
+					description: "Paket pernikahan di venue",
+					guest_capacity: "300 tamu",
+					options: [{ final_price: 25_000_000, price: 30_000_000 }],
+				},
+			],
+		});
+
+		const result = await answerSitaQuestion("paket sama venue", "id");
+
+		expect(result.cards).toHaveLength(1);
+		expect(result.confidence).toBe(0.9);
+		expect(result.suggestions).toContainEqual({
+			label: "Lihat venue",
+			topic: "venues",
+		});
+	});
+
+	it("still answers a booking question that starts with a hello", async () => {
+		getPageBatchMock.mockResolvedValue({
+			faqs: [
+				{
+					question:
+						"Bagaimana cara melakukan pemesanan layanan Sagita Wedding Planner?",
+					answer:
+						"Pemesanan dapat dimulai dengan menghubungi tim kami melalui WhatsApp.",
+				},
+			],
+		});
+
+		const result = await answerSitaQuestion("halo cara booking", "id");
+
+		expect(result.answer).toContain("Pemesanan dapat dimulai");
+		expect(result.answer).not.toContain("belum menangkap");
+	});
+});

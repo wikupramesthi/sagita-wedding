@@ -69,12 +69,29 @@ mengira aksi tersimpan.
 
 Widget Sita AI mencocokkan pertanyaan dengan FAQ, paket, venue, dan vendor dari database
 Sagita melalui service server-side yang sudah ada. Meski bernama AI, jawabannya
-berbasis aturan dan data, bukan model generatif atau API pihak ketiga. Pesan chat tidak disimpan;
-nama dan nomor WhatsApp tetap di browser dan hanya ditambahkan ke draf WhatsApp
-setelah pengguna menyetujui dan memilih lanjut.
+berbasis aturan dan data, bukan model generatif atau API pihak ketiga.
+
+Pemahaman pesan memakai NLU lokal di `src/services/sitaNlu.ts` (dipakai bersama oleh
+server dan widget browser):
+
+- normalisasi bahasa gaul/typo (mis. `pket`/`hrga`/`venu`) dan akhiran Indonesia
+  (`paketnya` → `paket`) plus fuzzy match levenshtein ≤ 1 untuk FAQ;
+- deteksi topik bertingkat (skor strong/weak) sehingga "harga venue" tetap dianggap
+  pertanyaan venue, dan pertanyaan campuran seperti "paket sama venue" memberi chip
+  topik kedua;
+- sapaan/terima kasih singkat dijawab dengan menu topik, bukan fallback;
+- setiap jawaban menyertakan `confidence` (0.95 sapaan/kontak, 0.8-0.9 topik/FAQ,
+  0.15 fallback) sebagai penanda seberapa yakin pesan tertangkap.
+
+Kriteria sesi (anggaran, jumlah tamu, kota, tanggal, kategori vendor) diingat di
+browser selama percakapan dan dikirim sebagai `context` tanpa menyimpan teks chat.
+Pesan chat tidak disimpan; nama dan nomor WhatsApp tetap di browser dan hanya
+ditambahkan ke draf WhatsApp setelah pengguna menyetujui dan memilih lanjut.
 
 - `POST /api/sita/chat` `{message, locale, context?: {topic, criteria?}}` → jawaban dari
-  data Sagita atau fallback yang mengarahkan pengguna ke admin. Konteks browser
+  data Sagita atau fallback yang mengarahkan pengguna ke admin, lengkap dengan
+  `confidence` dan `suggestions` (chip topik ber-`topic` untuk melanjutkan maksud).
+  Konteks browser
   hanya memuat topik dan kriteria yang diizinkan (anggaran, jumlah tamu, kota,
   tanggal, dan kategori vendor); konteks tidak disimpan sebagai riwayat chat.
   Tautan konsultasi dapat mengisi kriteria terkait melalui `sessionStorage`

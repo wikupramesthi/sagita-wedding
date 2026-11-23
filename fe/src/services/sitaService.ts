@@ -5,6 +5,13 @@ import {
 	type SitaChatTopic,
 } from "../utils/validate.js";
 import { getPageBatch } from "./batchService.js";
+import {
+	detectTopics,
+	hasFuzzyToken,
+	matchesAnyTopicTerm,
+	smallTalkKind,
+	type TopicAnalysis,
+} from "./sitaNlu.js";
 
 export interface SitaCard {
 	title: string;
@@ -19,6 +26,8 @@ export interface SitaCard {
 export interface SitaSuggestion {
 	label: string;
 	action?: "contact";
+	/** Topik tujuan chip (mis. hasil deteksi multi-maksud) untuk tombol pilihan. */
+	topic?: SitaChatTopic;
 }
 
 interface VenueRecord {
@@ -36,6 +45,11 @@ export interface SitaAnswer {
 	offerContact: boolean;
 	unanswered?: true;
 	suggestions?: SitaSuggestion[];
+	/**
+	 * Seberapa yakin NLU memahami maksud pesan (0-1): 0.95 sapaan/kontak,
+	 * 0.8-0.9 jawaban topik/FAQ, 0.15 fallback belum tertangkap.
+	 */
+	confidence?: number;
 }
 
 function venueRecords(payload: unknown): VenueRecord[] {
@@ -147,8 +161,6 @@ const STOP_WORDS = new Set([
 	"your",
 ]);
 
-const PACKAGE_TERMS =
-	/\b(paket|harga|biaya|tarif|budget|anggaran|maksimal|max|dibawah|bawah|murah|termurah|mahal|termahal|package|pricing|wedding|pernikahan|akad)\b/i;
 const PACKAGE_NAME_TERMS = /\b(paket|package)\b/i;
 const WEDDING_SERVICE_TERMS =
 	/\b(layanan(?:\s+wo)?|services?|wedding\s+organizer|wedding\s+planner|jasa\s+wo)\b/i;
@@ -161,15 +173,22 @@ const UNRELATED_CONTENT =
 	/\b(yoga(?:roots)?|wellness|meditation|asana|membership)\b/i;
 const TOKEN_ALIASES: Record<string, string> = {
 	anggaran: "biaya",
+	brapa: "berapa",
+	brp: "berapa",
 	budget: "biaya",
+	catring: "catering",
 	fee: "biaya",
 	gedung: "venue",
 	harga: "biaya",
+	hrg: "biaya",
+	hrga: "biaya",
 	jasa: "layanan",
 	lokasi: "venue",
 	order: "booking",
 	pemesanan: "booking",
 	pesan: "booking",
+	pket: "paket",
+	pkt: "paket",
 	place: "venue",
 	price: "biaya",
 	pricing: "biaya",
@@ -178,6 +197,7 @@ const TOKEN_ALIASES: Record<string, string> = {
 	services: "layanan",
 	tarif: "biaya",
 	tempat: "venue",
+	venu: "venue",
 	vendors: "vendor",
 	wedding: "pernikahan",
 };
@@ -308,8 +328,11 @@ function tokenize(value: string): string[] {
 
 function matchScore(queryTokens: string[], text: string): number {
 	if (queryTokens.length === 0) return 0;
-	const content = new Set(tokenize(text));
-	return queryTokens.filter((token) => content.has(token)).length;
+	const content = tokenize(text);
+	const exact = new Set(content);
+	return queryTokens.filter(
+		(token) => exact.has(token) || hasFuzzyToken(token, content),
+	).length;
 }
 
 function priceFor(option: PackageOption): number | null {
@@ -430,6 +453,7 @@ const PACKAGE_QUERY_NOISE = new Set([
 	"di",
 	"cocok",
 	"dibawah",
+	"dong",
 	"harga",
 	"bawah",
 	"jt",
@@ -446,6 +470,7 @@ const PACKAGE_QUERY_NOISE = new Set([
 	"maksimum",
 	"most",
 	"murah",
+	"nih",
 	"package",
 	"paket",
 	"paling",
@@ -456,6 +481,15 @@ const PACKAGE_QUERY_NOISE = new Set([
 	"ribu",
 	"rb",
 	"rp",
+	"sih",
+	"bgt",
+	"banget",
+	"jg",
+	"lg",
+	"sama",
+	"serta",
+	"atau",
+	"plus",
 	"termurah",
 	"termahal",
 	"tamu",
@@ -472,7 +506,10 @@ const PACKAGE_QUERY_NOISE = new Set([
 
 function packageQueryTokens(message: string): string[] {
 	return tokenize(message).filter(
-		(token) => !PACKAGE_QUERY_NOISE.has(token) && !/^\d+$/.test(token),
+		(token) =>
+			!PACKAGE_QUERY_NOISE.has(token) &&
+			!matchesAnyTopicTerm(token, ["packages", "venues", "vendors"]) &&
+			!/^\d+$/.test(token),
 	);
 }
 
@@ -484,6 +521,45 @@ function packageContactSuggestion(locale: Locale): SitaSuggestion {
 	return {
 		label: locale === "id" ? "Hubungi admin" : "Contact the team",
 		action: "contact",
+	};
+}
+
+/** Menu topik untuk sapaan & fallback; label sengaja sama dengan tombol pilihan. */
+function topicMenuSuggestions(locale: Locale): SitaSuggestion[] {
+	return locale === "id"
+		? [
+				{ label: "Paket & harga", topic: "packages" },
+				{ label: "Venue", topic: "venues" },
+				{ label: "Vendor", topic: "vendors" },
+				{ label: "Cara booking" },
+				{ label: "Hubungi admin", action: "contact" },
+			]
+		: [
+				{ label: "Packages & pricing", topic: "packages" },
+				{ label: "Venues", topic: "venues" },
+				{ label: "Vendors", topic: "vendors" },
+				{ label: "How to book" },
+				{ label: "Contact the team", action: "contact" },
+			];
+}
+
+function smallTalkAnswer(
+	locale: Locale,
+	kind: "greeting" | "thanks",
+): SitaAnswer {
+	return {
+		answer:
+			kind === "thanks"
+				? locale === "id"
+					? "Sama-sama, Kak! Ada lagi yang bisa aku bantu soal paket, venue, vendor, atau booking?"
+					: "You're welcome! Anything else I can help with about packages, venues, vendors, or booking?"
+				: locale === "id"
+					? "Halo Kak! Aku Sita AI, asisten digital Sagita Wedding. Mau tanya soal paket, venue, vendor, atau cara booking?"
+					: "Hi! I'm Sita AI, the Sagita Wedding digital assistant. Want to ask about packages, venues, vendors, or booking?",
+		cards: [],
+		offerContact: false,
+		suggestions: topicMenuSuggestions(locale),
+		confidence: 0.95,
 	};
 }
 
@@ -553,22 +629,8 @@ function fallback(locale: Locale): SitaAnswer {
 		cards: [],
 		offerContact: true,
 		unanswered: true,
-		suggestions:
-			locale === "id"
-				? [
-						{ label: "Paket & harga" },
-						{ label: "Venue" },
-						{ label: "Vendor" },
-						{ label: "Cara booking" },
-						{ label: "Hubungi admin", action: "contact" },
-					]
-				: [
-						{ label: "Packages & pricing" },
-						{ label: "Venues" },
-						{ label: "Vendors" },
-						{ label: "How to book" },
-						{ label: "Contact the team", action: "contact" },
-					],
+		confidence: 0.15,
+		suggestions: topicMenuSuggestions(locale),
 	};
 }
 
@@ -741,7 +803,11 @@ async function answerVendors(
 	const records = vendorRecords(payload);
 	const allTokens = tokenize(`${message} ${criteria?.vendorCategory ?? ""}`);
 	const queryTokens = allTokens.filter(
-		(token) => token !== "vendor" && token !== "vendors",
+		(token) =>
+			token !== "vendor" &&
+			token !== "vendors" &&
+			!PACKAGE_QUERY_NOISE.has(token) &&
+			!matchesAnyTopicTerm(token, ["packages", "venues"]),
 	);
 	const generic = queryTokens.length === 0;
 	const ranked = records
@@ -816,15 +882,8 @@ async function answerVenues(
 	const records = venueRecords(payload);
 	const queryTokens = tokenize(`${message} ${criteria?.city ?? ""}`).filter(
 		(token) =>
-			![
-				"venue",
-				"venues",
-				"gedung",
-				"lokasi",
-				"tempat",
-				"wedding",
-				"pernikahan",
-			].includes(token),
+			!PACKAGE_QUERY_NOISE.has(token) &&
+			!matchesAnyTopicTerm(token, ["packages", "venues", "vendors"]),
 	);
 	const generic = queryTokens.length === 0;
 	const ranked = records
@@ -921,6 +980,7 @@ function venueGuidance(locale: Locale): SitaAnswer {
 		],
 		offerContact: true,
 		unanswered: true,
+		confidence: 0.85,
 		suggestions: [
 			{
 				label: locale === "id" ? "Hubungi admin" : "Contact the team",
@@ -955,6 +1015,7 @@ function weddingServiceGuidance(locale: Locale): SitaAnswer {
 			},
 		],
 		offerContact: false,
+		confidence: 0.9,
 	};
 }
 
@@ -990,6 +1051,7 @@ async function answerFaq(
 		answer: best.record.answer,
 		cards: [],
 		offerContact,
+		confidence: 0.8,
 		...(offerContact
 			? {
 					suggestions: [
@@ -1000,6 +1062,40 @@ async function answerFaq(
 					],
 				}
 			: {}),
+	};
+}
+
+function secondaryChipLabel(topic: SitaChatTopic, locale: Locale): string {
+	if (topic === "venues") {
+		return locale === "id" ? "Lihat venue" : "View venues";
+	}
+	if (topic === "vendors") {
+		return locale === "id" ? "Lihat vendor" : "View vendors";
+	}
+	return locale === "id" ? "Lihat paket & harga" : "View packages";
+}
+
+/**
+ * Lengkapi jawaban dengan confidence (bila belum ada) dan chip topik kedua
+ * ketika pesan memuat dua maksud kuat sekaligus (mis. "paket sama venue").
+ */
+function finalizeAnswer(
+	answer: SitaAnswer,
+	routeConfidence: number,
+	analysis: TopicAnalysis,
+	locale: Locale,
+): SitaAnswer {
+	let suggestions = answer.suggestions ? [...answer.suggestions] : [];
+	if (analysis.secondary && !answer.unanswered) {
+		const label = secondaryChipLabel(analysis.secondary, locale);
+		if (!suggestions.some((suggestion) => suggestion.label === label)) {
+			suggestions = [...suggestions, { label, topic: analysis.secondary }];
+		}
+	}
+	return {
+		...answer,
+		confidence: answer.confidence ?? routeConfidence,
+		...(suggestions.length ? { suggestions } : {}),
 	};
 }
 
@@ -1016,6 +1112,7 @@ export async function answerSitaQuestion(
 					: "To contact the team, select “Contact the team” to open the contact form.",
 			cards: [],
 			offerContact: true,
+			confidence: 0.95,
 			suggestions: [
 				{
 					label: locale === "id" ? "Hubungi admin" : "Contact the team",
@@ -1024,6 +1121,11 @@ export async function answerSitaQuestion(
 			],
 		};
 	}
+
+	const analysis = detectTopics(message);
+
+	const kind = smallTalkKind(message);
+	if (kind) return smallTalkAnswer(locale, kind);
 
 	if (
 		WEDDING_SERVICE_TERMS.test(message) &&
@@ -1034,31 +1136,26 @@ export async function answerSitaQuestion(
 		return weddingServiceGuidance(locale);
 	}
 
-	const explicitTopic: SitaChatTopic | null = PACKAGE_NAME_TERMS.test(message)
-		? "packages"
-		: VENUE_TERMS.test(message)
-			? "venues"
-			: VENDOR_TERMS.test(message)
-				? "vendors"
-				: PACKAGE_TERMS.test(message)
-					? "packages"
-					: null;
+	const explicitTopic: SitaChatTopic | null = analysis.primary ?? null;
 	const topic = explicitTopic ?? context?.topic;
+	const routeConfidence = explicitTopic ? 0.9 : topic ? 0.85 : 0.5;
 
+	let answer: SitaAnswer;
 	if (topic === "packages") {
-		return answerPackages(message, locale, context?.criteria);
-	}
-	if (topic === "venues") {
+		answer = await answerPackages(message, locale, context?.criteria);
+	} else if (topic === "venues") {
 		if (!VENUE_PRICE_TERMS.test(message)) {
-			return answerVenues(message, locale, context?.criteria);
+			answer = await answerVenues(message, locale, context?.criteria);
+		} else {
+			const faqAnswer = await answerFaq(message, locale);
+			answer = faqAnswer
+				? { ...faqAnswer, offerContact: true }
+				: venueGuidance(locale);
 		}
-		const faqAnswer = await answerFaq(message, locale);
-		return faqAnswer
-			? { ...faqAnswer, offerContact: true }
-			: venueGuidance(locale);
+	} else if (topic === "vendors") {
+		answer = await answerVendors(message, locale, context?.criteria);
+	} else {
+		answer = (await answerFaq(message, locale)) ?? fallback(locale);
 	}
-	if (topic === "vendors") {
-		return answerVendors(message, locale, context?.criteria);
-	}
-	return (await answerFaq(message, locale)) ?? fallback(locale);
+	return finalizeAnswer(answer, routeConfidence, analysis, locale);
 }

@@ -1,3 +1,5 @@
+import { detectTopics } from "../../services/sitaNlu.js";
+
 (() => {
 	interface ChatCard {
 		title: string;
@@ -36,6 +38,7 @@
 	interface ChatSuggestion {
 		label: string;
 		action?: "contact";
+		topic?: ChatTopic;
 	}
 
 	interface ChatResult {
@@ -44,7 +47,12 @@
 		cards: ChatCard[];
 		offerContact: boolean;
 		unanswered?: boolean;
+		confidence?: number;
 		suggestions?: ChatSuggestion[];
+	}
+
+	function isChatTopic(value: unknown): value is ChatTopic {
+		return value === "packages" || value === "venues" || value === "vendors";
 	}
 
 	function isChatSuggestion(value: unknown): value is ChatSuggestion {
@@ -54,7 +62,8 @@
 		const suggestion = value as Record<string, unknown>;
 		return (
 			typeof suggestion.label === "string" &&
-			(suggestion.action === undefined || suggestion.action === "contact")
+			(suggestion.action === undefined || suggestion.action === "contact") &&
+			(suggestion.topic === undefined || isChatTopic(suggestion.topic))
 		);
 	}
 
@@ -144,30 +153,12 @@
 	let returnFocus: HTMLElement = chatToggle;
 	let selectedQuestion = "";
 	let activeTopic: ChatTopic | undefined;
-	let activeCriteria: ChatCriteria = {};
+	const activeCriteria: ChatCriteria = {};
 	let isSending = false;
 	const minimumTypingDuration = 1200;
 
 	function topicFromQuestion(question: string): ChatTopic | undefined {
-		if (/\b(paket|packages?|harga paket|package)\b/i.test(question)) {
-			return "packages";
-		}
-		if (/\b(venue|gedung|lokasi|tempat)\b/i.test(question)) return "venues";
-		if (
-			/\b(vendors?|catering|katering|dekor|fotografi|fotografer|makeup|rias|mua)\b/i.test(
-				question,
-			)
-		) {
-			return "vendors";
-		}
-		if (
-			/\b(harga|biaya|tarif|budget|anggaran|maksimal|max|dibawah|bawah|murah|termurah|mahal|price|pricing)\b/i.test(
-				question,
-			)
-		) {
-			return "packages";
-		}
-		return undefined;
+		return detectTopics(question).primary;
 	}
 
 	function isContextualFollowUp(question: string): boolean {
@@ -273,7 +264,7 @@
 			.join(" ");
 		if (
 			candidate.length < 3 ||
-			/\b(ini|itu|tersebut|lebih|murah|mahal|termurah|termahal|besok|hari|layanan|wo|organizer|booking|paket|vendor|admin|harga|biaya|konsultasi|cara|halo|hai|makasih|terima|kasih|iya|oke|cocok|rekomendasi)\b/i.test(
+			/\b(ini|itu|tersebut|lebih|murah|mahal|termurah|termahal|besok|hari|layanan|wo|organizer|booking|paket|vendor|admin|harga|biaya|konsultasi|cara|halo|hai|makasih|terima|kasih|iya|oke|cocok|rekomendasi|gedung|bawah|atas|depan|belakang|sini|sana|situ|bulan|minggu|tahun)\b/i.test(
 				candidate,
 			)
 		) {
@@ -465,6 +456,7 @@
 				const button = document.createElement("button");
 				button.type = "button";
 				button.dataset.sitaSuggestion = suggestion.action || "ask";
+				if (suggestion.topic) button.dataset.sitaTopic = suggestion.topic;
 				button.textContent = suggestion.label;
 				suggestionGroup.append(button);
 			}
@@ -514,26 +506,18 @@
 				: undefined;
 		const explicitTopic = topicFromQuestion(question) || hintedTopic;
 		const isFollowUp = isContextualFollowUp(question);
-		if (explicitTopic && explicitTopic !== activeTopic) activeCriteria = {};
 		if (explicitTopic) activeTopic = explicitTopic;
-		else if (!isFollowUp) {
-			activeTopic = undefined;
-			activeCriteria = {};
-		}
+		else if (!isFollowUp) activeTopic = undefined;
 		const contextTopic =
 			explicitTopic || (isFollowUp ? activeTopic : undefined);
-		if (contextTopic === "packages") {
+		if (contextTopic) {
 			activeCriteria.budgetLimit =
 				parseBudgetLimit(question) ?? activeCriteria.budgetLimit;
 			activeCriteria.guestCount =
 				parseGuestCount(question) ?? activeCriteria.guestCount;
-		} else if (contextTopic === "venues") {
 			activeCriteria.city = parseCity(question) ?? activeCriteria.city;
 			activeCriteria.eventDate =
 				parseEventDate(question) ?? activeCriteria.eventDate;
-			activeCriteria.guestCount =
-				parseGuestCount(question) ?? activeCriteria.guestCount;
-		} else if (contextTopic === "vendors") {
 			activeCriteria.vendorCategory =
 				parseVendorCategory(question) ?? activeCriteria.vendorCategory;
 		}
@@ -591,6 +575,8 @@
 				typeof data.offerContact !== "boolean" ||
 				(data.unanswered !== undefined &&
 					typeof data.unanswered !== "boolean") ||
+				(data.confidence !== undefined &&
+					typeof data.confidence !== "number") ||
 				(data.suggestions !== undefined &&
 					(!Array.isArray(data.suggestions) ||
 						!data.suggestions.every(isChatSuggestion)))
@@ -663,7 +649,7 @@
 			showContactForm(label);
 			return;
 		}
-		void askSita(label);
+		void askSita(label, suggestion.dataset.sitaTopic);
 	});
 
 	chatComposer.addEventListener("submit", (event) => {
@@ -718,5 +704,3 @@
 			chatInput.focus();
 		});
 })();
-
-export {};
