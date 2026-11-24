@@ -461,6 +461,14 @@
 	text-underline-offset: 3px;
 }
 
+.sita-chat-source-updated {
+	display: block;
+	margin-top: 4px;
+	color: #738078;
+	font-size: 11px;
+	line-height: 1.4;
+}
+
 .sita-chat-rate-note {
 	display: block;
 	margin-top: 3px;

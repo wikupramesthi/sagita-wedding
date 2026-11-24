@@ -1,4 +1,10 @@
 import {
+	formatEventDate,
+	formatEventDateInput,
+	isPastEventDate,
+	parseEventDate,
+} from "../utils/eventDate.js";
+import {
 	cleanSlugLoose,
 	type SitaChatContext,
 	type SitaChatCriteria,
@@ -41,11 +47,15 @@ export interface SitaClarify {
 export interface SitaSource {
 	label: string;
 	href: string;
+	updatedAt?: string;
 }
 
 interface SitaServiceOptions {
 	officeAddress?: string;
 }
+
+const VERIFIED_OFFICE_ADDRESS =
+	"De Tridaya Residence 4, Tridaya Sakti, Kec. Tambun Sel., Kabupaten Bekasi, Jawa Barat 17510";
 
 interface VenueRecord {
 	name: string;
@@ -429,10 +439,14 @@ function vendorRecords(payload: unknown): VendorRecord[] {
 	});
 }
 
-function faqRecords(payload: unknown): FaqRecord[] {
-	return readArray(payload, "faqs").flatMap((value) => {
+function faqRecords(payload: unknown, locale: Locale): FaqRecord[] {
+	const values = asRecord(payload)?.faqs;
+	if (!Array.isArray(values)) return [];
+	return values.flatMap((value) => {
 		const item = asRecord(value);
 		if (!item) return [];
+		const itemLocale = asText(item.locale);
+		if (itemLocale && itemLocale !== locale) return [];
 		const question = plainText(item.question);
 		const answer = plainText(item.answer);
 		const category = plainText(item.kategori);
@@ -568,20 +582,6 @@ function hasAmbiguousBudget(message: string): boolean {
 	const match = budgetText.match(/\d[\d.,]*/);
 	const amount = match ? parseLocalizedAmount(match[0]) : null;
 	return amount !== null && amount < 100_000;
-}
-
-function normalizeEventDate(value: string): string {
-	const iso = value.match(/^(20\d{2})-(\d{1,2})-(\d{1,2})$/);
-	const local = value.match(/^(\d{1,2})\/(\d{1,2})\/(20\d{2})$/);
-	if (!iso && !local) return value;
-	const date = iso
-		? `${iso[1]}-${iso[2].padStart(2, "0")}-${iso[3].padStart(2, "0")}`
-		: `${local?.[3]}-${local?.[2].padStart(2, "0")}-${local?.[1].padStart(2, "0")}`;
-	const parsed = new Date(`${date}T00:00:00Z`);
-	return !Number.isNaN(parsed.getTime()) &&
-		parsed.toISOString().slice(0, 10) === date
-		? date
-		: value;
 }
 
 function requestedGuestCount(message: string): number | null {
@@ -765,8 +765,8 @@ function clarifyEventDate(locale: Locale): SitaAnswer {
 					? "Tanggal acara yang diinginkan?"
 					: "Which event date?",
 			options: [
-				futureEventDate(3),
-				futureEventDate(6),
+				formatEventDateInput(futureEventDate(3)),
+				formatEventDateInput(futureEventDate(6)),
 				locale === "id" ? "Hubungi admin" : "Contact the team",
 			],
 		},
@@ -1305,54 +1305,20 @@ async function answerPromotions(locale: Locale): Promise<SitaAnswer> {
 	};
 }
 
-async function answerPayment(locale: Locale): Promise<SitaAnswer> {
-	const payload = await getPageBatch("packages", { per_page: 50 });
-	const records = packageRecords(payload).filter(
-		(record) => record.paymentTerms || record.dpPercentage !== null,
-	);
-	if (!records.length) {
-		const faqAnswer = await answerFaq("pembayaran dp", locale);
-		return faqAnswer
-			? {
-					...faqAnswer,
-					confidence: 0.85,
-					suggestions: [packageContactSuggestion(locale)],
-				}
-			: {
-					answer:
-						locale === "id"
-							? "Ketentuan pembayaran belum tercatat secara lengkap di katalog Sagita. Silakan hubungi admin untuk memastikan besaran DP dan termin yang tersedia."
-							: "Detailed payment terms are not listed in Sagita's catalog. Please contact the team to confirm the available deposit and installment options.",
-					cards: [],
-					offerContact: true,
-					confidence: 0.85,
-					suggestions: [packageContactSuggestion(locale)],
-				};
-	}
-	const dp = records.find(
-		(record) => record.dpPercentage !== null,
-	)?.dpPercentage;
-	const terms = records.find((record) => record.paymentTerms)?.paymentTerms;
-	const dpText =
-		dp !== null && dp !== undefined
-			? locale === "id"
-				? `DP yang tercatat adalah ${dp}%. `
-				: `The recorded deposit is ${dp}%. `
-			: "";
-	const answer = `${dpText}${terms}`.trim();
+function answerPayment(locale: Locale): SitaAnswer {
 	return {
 		answer:
 			locale === "id"
-				? `${answer} Untuk memastikan rincian skema pembayaran, Kakak dapat menghubungi admin.`
-				: `${answer} Please contact the team to confirm the payment plan details.`,
+				? "Pembayaran dilakukan dalam tiga tahap: DP 30% saat penandatanganan kontrak, pembayaran kedua 40% paling lambat H-90, dan pelunasan 30% paling lambat H-30 sebelum acara. Pembayaran dilakukan melalui rekening resmi Sagita Wedding Planner. Kirim bukti pembayaran agar dapat diverifikasi tim. Untuk detail rekening resmi, silakan hubungi admin."
+				: "Payments are made in three stages: a 30% deposit when the contract is signed, a second payment of 40% no later than 90 days before the event, and the final 30% no later than 30 days before the event. Payment must be made to Sagita Wedding Planner's official account. Please send the payment receipt for verification. Contact the team for the official account details.",
 		cards: [
 			{
 				title:
 					locale === "id" ? "Konsultasi pembayaran" : "Payment consultation",
 				description:
 					locale === "id"
-						? "Diskusikan DP, termin, dan metode pembayaran dengan tim Sagita."
-						: "Discuss deposits, installments, and payment methods with the Sagita team.",
+						? "Konfirmasikan detail rekening resmi dan pembayaran dengan tim Sagita."
+						: "Confirm official account details and payment information with the Sagita team.",
 				actions: [
 					{
 						label:
@@ -1368,18 +1334,65 @@ async function answerPayment(locale: Locale): Promise<SitaAnswer> {
 	};
 }
 
+function answerBookingProcess(locale: Locale): SitaAnswer {
+	return {
+		answer:
+			locale === "id"
+				? "Proses pemesanan dimulai dengan konsultasi untuk membahas konsep, tanggal, lokasi, dan kebutuhan pernikahan. Setelah paket dan biaya disepakati, tim Sagita akan memeriksa ketersediaan tanggal serta vendor."
+				: "Booking starts with a consultation about your concept, date, location, and wedding needs. Once the package and fees are agreed, the Sagita team checks date and vendor availability.",
+		cards: [],
+		offerContact: true,
+		confidence: 0.95,
+		suggestions: [packageContactSuggestion(locale)],
+	};
+}
+
+function answerBusinessHours(locale: Locale): SitaAnswer {
+	return {
+		answer:
+			locale === "id"
+				? "Sagita melayani konsultasi setiap hari. Jam operasional spesifik belum dicantumkan, jadi silakan hubungi admin untuk memastikan waktu respons."
+				: "Sagita is available for consultations every day. Specific operating hours have not been provided, so please contact the team to confirm response times.",
+		cards: [],
+		offerContact: true,
+		confidence: 0.95,
+		suggestions: [packageContactSuggestion(locale)],
+	};
+}
+
+function answerDateChangePolicy(locale: Locale): SitaAnswer {
+	return {
+		answer:
+			locale === "id"
+				? "Perubahan tanggal dapat diajukan satu kali tanpa biaya perubahan jadwal, dengan pemberitahuan paling lambat H-60 sebelum tanggal acara semula, dan tetap bergantung pada ketersediaan tim serta vendor. Jika ada biaya tambahan dari vendor atau kebutuhan operasional, biayanya akan diinformasikan terlebih dahulu. Untuk pembatalan, DP yang telah dibayarkan tidak dapat dikembalikan; penyelesaian pembayaran lainnya mengikuti kontrak kerja sama."
+				: "One date change may be requested without a schedule-change fee, with notice no later than 60 days before the original event date, and remains subject to team and vendor availability. Any additional vendor or operational costs will be disclosed in advance. If you cancel, the deposit is non-refundable; other payments are settled according to the contract.",
+		cards: [],
+		offerContact: true,
+		confidence: 0.95,
+		suggestions: [packageContactSuggestion(locale)],
+	};
+}
+
 async function answerAvailability(
 	message: string,
 	locale: Locale,
 	criteria?: SitaChatCriteria,
 ): Promise<SitaAnswer> {
-	const dateFromMessage = message.match(
-		/\b(20\d{2}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/20\d{2})\b/,
-	)?.[1];
-	const date =
-		criteria?.eventDate ??
-		(dateFromMessage ? normalizeEventDate(dateFromMessage) : undefined);
+	const date = criteria?.eventDate
+		? parseEventDate(criteria.eventDate)
+		: parseEventDate(message);
 	if (!date) return clarifyEventDate(locale);
+	if (isPastEventDate(date)) {
+		return {
+			answer:
+				locale === "id"
+					? `Tanggal ${formatEventDate(date, locale)} sudah lewat. Silakan pilih tanggal acara lain.`
+					: `The date ${formatEventDate(date, locale)} has already passed. Please choose another event date.`,
+			cards: [],
+			offerContact: false,
+			confidence: 0.95,
+		};
+	}
 
 	const payload = await getPageBatch("packages", { per_page: 50 });
 	const blocked = packageRecords(payload)
@@ -1456,7 +1469,7 @@ function answerOfficeAddress(
 	locale: Locale,
 	options?: SitaServiceOptions,
 ): SitaAnswer {
-	const address = asText(options?.officeAddress);
+	const address = asText(options?.officeAddress) || VERIFIED_OFFICE_ADDRESS;
 	const base: SitaAnswer = {
 		answer: address
 			? locale === "id"
@@ -1497,7 +1510,7 @@ async function answerFaq(
 	const resolvedAliases =
 		aliases ?? buildAliasLookup(await getDynamicAliases(locale));
 	const payload = await getPageBatch("faq");
-	const records = faqRecords(payload);
+	const records = faqRecords(payload, locale);
 	const queryTokens = tokenize(message, resolvedAliases);
 	const ranked = records
 		.map((record) => {
@@ -1557,6 +1570,22 @@ async function answerFaq(
 				}
 			: {}),
 	};
+}
+
+async function answerPolicyFaq(
+	message: string,
+	locale: Locale,
+	fallback: () => SitaAnswer,
+): Promise<SitaAnswer> {
+	const answer = await answerFaq(message, locale);
+	return answer
+		? {
+				...answer,
+				offerContact: true,
+				confidence: 0.95,
+				suggestions: [packageContactSuggestion(locale)],
+			}
+		: fallback();
 }
 
 function secondaryChipLabel(topic: SitaChatTopic, locale: Locale): string {
@@ -1635,12 +1664,16 @@ const PAYMENT_INTENT =
 	/\b(pembayaran|bayar|dp\b|down\s*payment|cicilan|installments?|termin|pelunasan|payment)\b/i;
 const AVAILABILITY_INTENT =
 	/\b(tersedia\w*|ketersediaan|available|availability|kosong|jadwal|schedule)\b/i;
-const DATE_INTENT =
-	/\b(tanggal\w*|date|20\d{2}-\d{1,2}-\d{1,2}|\d{1,2}\/\d{1,2}\/20\d{2})\b/i;
 const TESTIMONIAL_INTENT =
 	/\b(testimoni|testimonials?|review|ulasan|pengalaman\s+(?:klien|pelanggan)|kata\s+klien)\b/i;
 const OFFICE_INTENT =
 	/\b(alamat\s+(?:kantor|kami|sagita)|kantor\s+(?:sagita|kami|di\s+mana)|lokasi\s+kantor|office(?:\s+address|\s+location)?|where\s+(?:are\s+you|(?:is|are)\s+(?:your|the)\s+office)|dimana\s+kantor)\b/i;
+const BUSINESS_HOURS_INTENT =
+	/\b(jam(?:\s+operasional)?|operating\s+hours|business\s+hours|opening\s+hours|open(?:ing)?|close(?:d|s)?|buka|tutup)\b/i;
+const BOOKING_INTENT =
+	/\b(booking|book(?:ing)?|pemesanan|memesan|reservasi|daftar|mendaftar|cara\s+pesan)\b/i;
+const DATE_CHANGE_INTENT =
+	/\b(?:cancell?ation|cancel(?:led|ling)?|pembatalan|membatalkan|batal(?:kan)?|refund(?:able)?|pengembalian\s+(?:dana|dp)|reschedule|rescheduling)\b|\b(?:ubah|mengubah|perubahan|ganti|pindah|geser)\b.{0,40}\b(?:tanggal|jadwal|acara|event|date|schedule)\b|\b(?:tanggal|jadwal|acara|event|date|schedule)\b.{0,40}\b(?:diubah|diganti|dipindah|berubah|change|reschedule)\b/i;
 
 export async function answerSitaQuestion(
 	message: string,
@@ -1672,6 +1705,43 @@ export async function answerSitaQuestion(
 	const kind = smallTalkKind(message, knowledge.topics);
 	if (kind) return smallTalkAnswer(locale, kind);
 
+	if (DATE_CHANGE_INTENT.test(message)) {
+		return finalizeAnswer(
+			await answerPolicyFaq(message, locale, () =>
+				answerDateChangePolicy(locale),
+			),
+			0.95,
+			analysis,
+			locale,
+		);
+	}
+	if (PAYMENT_INTENT.test(message)) {
+		return finalizeAnswer(
+			await answerPolicyFaq(message, locale, () => answerPayment(locale)),
+			0.95,
+			analysis,
+			locale,
+		);
+	}
+	if (BUSINESS_HOURS_INTENT.test(message)) {
+		return finalizeAnswer(
+			await answerPolicyFaq(message, locale, () => answerBusinessHours(locale)),
+			0.95,
+			analysis,
+			locale,
+		);
+	}
+	if (BOOKING_INTENT.test(message)) {
+		return finalizeAnswer(
+			await answerPolicyFaq(message, locale, () =>
+				answerBookingProcess(locale),
+			),
+			0.95,
+			analysis,
+			locale,
+		);
+	}
+
 	if (
 		WEDDING_SERVICE_TERMS.test(message) &&
 		!PACKAGE_NAME_TERMS.test(message) &&
@@ -1689,12 +1759,11 @@ export async function answerSitaQuestion(
 			locale,
 		);
 	}
-	if (PAYMENT_INTENT.test(message)) {
-		return finalizeAnswer(await answerPayment(locale), 0.9, analysis, locale);
-	}
 	if (
 		AVAILABILITY_INTENT.test(message) &&
-		(DATE_INTENT.test(message) || Boolean(context?.criteria?.eventDate))
+		(parseEventDate(message) !== undefined ||
+			Boolean(context?.criteria?.eventDate) ||
+			!context?.topic)
 	) {
 		return finalizeAnswer(
 			await answerAvailability(message, locale, context?.criteria),

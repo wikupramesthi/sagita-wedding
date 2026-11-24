@@ -40,9 +40,28 @@ interface CachedBatch {
 
 const cache = new Map<string, CachedBatch>();
 const inflight = new Map<string, Promise<BackendPayload>>();
+let latestContentUpdatedAt: string | null = null;
 
 export function clearBatchCache(): void {
 	cache.clear();
+	latestContentUpdatedAt = null;
+}
+
+export function getBatchContentUpdatedAt(): string | null {
+	return latestContentUpdatedAt;
+}
+
+function rememberContentUpdatedAt(value: BackendPayload): void {
+	if (!value || typeof value !== "object" || Array.isArray(value)) {
+		latestContentUpdatedAt = null;
+		return;
+	}
+
+	const updatedAt = (value as Record<string, unknown>).contentUpdatedAt;
+	latestContentUpdatedAt =
+		typeof updatedAt === "string" && Number.isFinite(Date.parse(updatedAt))
+			? updatedAt
+			: null;
 }
 
 function remember(key: string, entry: CachedBatch): void {
@@ -89,6 +108,7 @@ export async function getPageBatch(
 				throw new Error("Backend returned 304 without a cached batch body");
 			}
 			remember(key, cached);
+			rememberContentUpdatedAt(cached.value);
 			return cached.value;
 		}
 
@@ -98,6 +118,7 @@ export async function getPageBatch(
 			data.events = sanitizeEvents(data.events);
 		}
 		remember(key, { etag: result.etag ?? undefined, value: data });
+		rememberContentUpdatedAt(data);
 		return data;
 	})();
 

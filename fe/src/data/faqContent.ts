@@ -161,15 +161,24 @@ function localizeField(
 		: text;
 }
 
+function faqEntriesForLocale(value: unknown, locale: Locale): unknown[] {
+	if (!Array.isArray(value)) return [];
+	return value.filter((item) => {
+		if (!item || typeof item !== "object") return true;
+		const faq = item as Record<string, unknown>;
+		const faqLocale = asText(faq.locale);
+		if (!faqLocale || faqLocale === locale) return true;
+		return locale === "id" && Boolean(faqCopyByUuid[asText(faq.uuid)]);
+	});
+}
+
 function localizeCategory(value: unknown, locale: Locale): string {
 	const text = asText(value);
 	return locale === "en" ? (categoryNames[text]?.en ?? text) : text;
 }
 
 export function localizeFaqs(value: unknown, locale: Locale): unknown[] {
-	if (!Array.isArray(value)) return [];
-
-	return value.map((item) => {
+	return faqEntriesForLocale(value, locale).map((item) => {
 		if (!item || typeof item !== "object") return item;
 		const faq = item as Record<string, unknown>;
 		const uuid = asText(faq.uuid);
@@ -232,12 +241,12 @@ function homeGroupId(category: string): string {
 }
 
 export function getHomeFaqs(value: unknown, locale: Locale): HomeFaqGroup[] {
-	const localized = localizeFaqs(value, locale);
-	if (!Array.isArray(value) || !Array.isArray(localized)) return [];
+	const entries = faqEntriesForLocale(value, locale);
+	const localized = localizeFaqs(entries, locale);
 
 	const groups = new Map<string, HomeFaqGroup>();
 
-	value.forEach((item, index) => {
+	entries.forEach((item, index) => {
 		if (!item || typeof item !== "object") return;
 		const faq = item as Record<string, unknown>;
 		const localizedFaq = (localized[index] ?? {}) as Record<string, unknown>;

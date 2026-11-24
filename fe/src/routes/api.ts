@@ -2,6 +2,7 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { clearSessionCache } from "../middleware/locals.js";
 import { getSessionUser, logoutSession } from "../services/authService.js";
+import { getBatchContentUpdatedAt } from "../services/batchService.js";
 import {
 	getContactCaptcha,
 	sendBooking,
@@ -348,7 +349,15 @@ router.post(
 				officeAddress,
 			});
 			res.set("Cache-Control", "no-store");
-			res.json({ success: true, ...result });
+			const contentUpdatedAt = getBatchContentUpdatedAt();
+			const answer =
+				result.source && contentUpdatedAt
+					? {
+							...result,
+							source: { ...result.source, updatedAt: contentUpdatedAt },
+						}
+					: result;
+			res.json({ success: true, ...answer });
 		} catch (e) {
 			const err = toApiError(e);
 			const status = Number(err.status) || 503;

@@ -255,19 +255,16 @@ describe("Sita database answers", () => {
 	});
 
 	it("answers a matching question with the stored FAQ answer", async () => {
-		getPageBatchMock.mockResolvedValue({
-			faqs: [
-				{
-					question: "Bagaimana cara booking?",
-					answer: "<p>Hubungi admin untuk memulai booking.</p>",
-				},
-			],
-		});
-
+		getPageBatchMock.mockResolvedValue({ faqs: [] });
 		const result = await answerSitaQuestion("Bagaimana cara booking?", "id");
 
-		expect(result.answer).toBe("Hubungi admin untuk memulai booking.");
+		expect(result.answer).toContain("konsep, tanggal, lokasi");
+		expect(result.answer).toContain(
+			"memeriksa ketersediaan tanggal serta vendor",
+		);
 		expect(result.offerContact).toBe(true);
+		expect(getPageBatchMock).toHaveBeenCalledWith("faq");
+		expect(getPageBatchMock).not.toHaveBeenCalledWith("packages");
 	});
 
 	it("shows venue details from Sagita's venue data", async () => {
@@ -427,21 +424,11 @@ describe("Sita database answers", () => {
 		expect(result.cards[0].actions?.[1]?.label).toBe("Peta");
 	});
 
-	it("matches a booking question to the existing FAQ", async () => {
-		getPageBatchMock.mockResolvedValue({
-			faqs: [
-				{
-					question:
-						"Bagaimana cara melakukan pemesanan layanan Sagita Wedding Planner?",
-					answer:
-						"Pemesanan dapat dimulai dengan menghubungi tim kami melalui WhatsApp.",
-				},
-			],
-		});
-
+	it("answers booking questions with the verified process", async () => {
+		getPageBatchMock.mockResolvedValue({ faqs: [] });
 		const result = await answerSitaQuestion("Bagaimana cara booking?", "id");
 
-		expect(result.answer).toContain("Pemesanan dapat dimulai");
+		expect(result.answer).toContain("paket dan biaya disepakati");
 		expect(result.offerContact).toBe(true);
 	});
 
@@ -531,6 +518,39 @@ describe("Sita NLU-local understanding", () => {
 		expect(result.confidence).toBe(0.9);
 	});
 
+	it("rejects a past availability date before querying the catalog", async () => {
+		const result = await answerSitaQuestion(
+			"Apakah tanggal tersedia 01/01/2020?",
+			"id",
+		);
+
+		expect(result.answer).toContain("Tanggal 1 Januari 2020 sudah lewat");
+		expect(result.answer).toContain("pilih tanggal acara lain");
+		expect(getPageBatchMock).not.toHaveBeenCalled();
+	});
+
+	it("uses the locale-matched editable FAQ for policy answers", async () => {
+		getPageBatchMock.mockResolvedValue({
+			faqs: [
+				{
+					locale: "en",
+					question: "How does the wedding booking process work?",
+					answer: "An English admin-maintained booking answer.",
+				},
+				{
+					locale: "id",
+					question: "Bagaimana proses pemesanan pernikahan?",
+					answer: "Jawaban pemesanan yang diperbarui admin.",
+				},
+			],
+		});
+
+		const result = await answerSitaQuestion("Cara booking", "id");
+
+		expect(result.answer).toBe("Jawaban pemesanan yang diperbarui admin.");
+		expect(result.source?.href).toBe("/faq");
+	});
+
 	it("keeps the fallback reply and marks it as low confidence", async () => {
 		getPageBatchMock.mockImplementation(async (page) =>
 			page === "packages" ? { packages: [] } : { faqs: [] },
@@ -554,22 +574,12 @@ describe("Sita NLU-local understanding", () => {
 		});
 	});
 
-	it("scores FAQ matches as confidently understood", async () => {
-		getPageBatchMock.mockResolvedValue({
-			faqs: [
-				{
-					question:
-						"Bagaimana cara melakukan pemesanan layanan Sagita Wedding Planner?",
-					answer:
-						"Pemesanan dapat dimulai dengan menghubungi tim kami melalui WhatsApp.",
-				},
-			],
-		});
-
+	it("answers booking with verified copy and high confidence", async () => {
+		getPageBatchMock.mockResolvedValue({ faqs: [] });
 		const result = await answerSitaQuestion("Bagaimana cara booking?", "id");
 
-		expect(result.answer).toContain("Pemesanan dapat dimulai");
-		expect(result.confidence).toBe(0.8);
+		expect(result.answer).toContain("ketersediaan tanggal serta vendor");
+		expect(result.confidence).toBe(0.95);
 	});
 
 	it("uses session criteria from a context follow-up", async () => {
@@ -618,20 +628,10 @@ describe("Sita NLU-local understanding", () => {
 	});
 
 	it("still answers a booking question that starts with a hello", async () => {
-		getPageBatchMock.mockResolvedValue({
-			faqs: [
-				{
-					question:
-						"Bagaimana cara melakukan pemesanan layanan Sagita Wedding Planner?",
-					answer:
-						"Pemesanan dapat dimulai dengan menghubungi tim kami melalui WhatsApp.",
-				},
-			],
-		});
-
+		getPageBatchMock.mockResolvedValue({ faqs: [] });
 		const result = await answerSitaQuestion("halo cara booking", "id");
 
-		expect(result.answer).toContain("Pemesanan dapat dimulai");
+		expect(result.answer).toContain("Proses pemesanan dimulai");
 		expect(result.answer).not.toContain("belum menangkap");
 	});
 });
@@ -683,23 +683,18 @@ describe("Sita explicit intents", () => {
 		});
 	});
 
-	it("answers payment questions from recorded package terms", async () => {
-		getPageBatchMock.mockResolvedValue({
-			packages: [
-				{
-					name: "Paket Mawar",
-					slug: "paket-mawar",
-					dp_percentage: 30,
-					payment_terms_note: "DP 30% saat kontrak, pelunasan sesuai termin.",
-				},
-			],
-		});
-
+	it("answers payment questions with the verified payment schedule", async () => {
+		getPageBatchMock.mockResolvedValue({ faqs: [] });
 		const result = await answerSitaQuestion("Bagaimana pembayaran DP?", "id");
 
-		expect(result.answer).toContain("DP yang tercatat adalah 30%");
-		expect(result.answer).toContain("pelunasan sesuai termin");
+		expect(result.answer).toContain("DP 30% saat penandatanganan kontrak");
+		expect(result.answer).toContain("pembayaran kedua 40% paling lambat H-90");
+		expect(result.answer).toContain("pelunasan 30% paling lambat H-30");
+		expect(result.answer).toContain("rekening resmi Sagita Wedding Planner");
+		expect(result.answer).toContain("Kirim bukti pembayaran");
 		expect(result.cards[0].actions?.[0]?.href).toBe("/formulir-konsultasi");
+		expect(getPageBatchMock).toHaveBeenCalledWith("faq");
+		expect(getPageBatchMock).not.toHaveBeenCalledWith("packages");
 	});
 
 	it("uses blackout dates for an availability question with a date", async () => {
@@ -722,7 +717,7 @@ describe("Sita explicit intents", () => {
 		expect(result.confidence).toBe(0.9);
 	});
 
-	it("asks for a date when availability intent has no date", async () => {
+	it("asks for a date in a readable format when availability is unknown", async () => {
 		const result = await answerSitaQuestion(
 			"Apakah tanggalnya tersedia?",
 			"id",
@@ -730,8 +725,8 @@ describe("Sita explicit intents", () => {
 
 		expect(result.clarify?.question).toBe("Tanggal acara yang diinginkan?");
 		expect(result.clarify?.options).toHaveLength(3);
-		expect(result.clarify?.options[0]).toMatch(/^20\d{2}-\d{2}-\d{2}$/);
-		expect(result.clarify?.options[1]).toMatch(/^20\d{2}-\d{2}-\d{2}$/);
+		expect(result.clarify?.options[0]).toMatch(/^\d{2}-\d{2}-20\d{2}$/);
+		expect(result.clarify?.options[1]).toMatch(/^\d{2}-\d{2}-20\d{2}$/);
 		expect(result.clarify?.options[2]).toBe("Hubungi admin");
 		expect(result.confidence).toBe(0.85);
 		expect(getPageBatchMock).not.toHaveBeenCalled();
@@ -796,15 +791,55 @@ describe("Sita explicit intents", () => {
 		expect(getPageBatchMock).not.toHaveBeenCalled();
 	});
 
-	it("does not invent an office address when the site has none", async () => {
+	it("uses the verified office address when the site has none", async () => {
 		const result = await answerSitaQuestion("Dimana kantor Sagita?", "id");
 
-		expect(result.answer).toContain("belum tercantum");
-		expect(result.cards).toEqual([]);
+		expect(result.answer).toContain("De Tridaya Residence 4, Tridaya Sakti");
+		expect(result.cards[0].actions?.[0]?.href).toContain("google.com/maps");
 		expect(result.suggestions).toContainEqual({
 			label: "Hubungi admin",
 			action: "contact",
 		});
+	});
+
+	it("answers operating-day questions without inventing exact hours", async () => {
+		getPageBatchMock.mockResolvedValue({ faqs: [] });
+		const result = await answerSitaQuestion("Buka setiap hari?", "id");
+
+		expect(result.answer).toContain("setiap hari");
+		expect(result.answer).toContain(
+			"Jam operasional spesifik belum dicantumkan",
+		);
+		expect(result.answer).not.toMatch(/\b\d{1,2}[:.]\d{2}\b/);
+		expect(getPageBatchMock).toHaveBeenCalledWith("faq");
+		expect(getPageBatchMock).not.toHaveBeenCalledWith("packages");
+	});
+
+	it("answers date changes and cancellations with the verified policy", async () => {
+		getPageBatchMock.mockResolvedValue({ faqs: [] });
+		const result = await answerSitaQuestion(
+			"Bagaimana perubahan tanggal dan pembatalan?",
+			"id",
+		);
+
+		expect(result.answer).toContain("satu kali tanpa biaya perubahan jadwal");
+		expect(result.answer).toContain("paling lambat H-60");
+		expect(result.answer).toContain("ketersediaan tim serta vendor");
+		expect(result.answer).toContain(
+			"biayanya akan diinformasikan terlebih dahulu",
+		);
+		expect(result.answer).toContain(
+			"DP yang telah dibayarkan tidak dapat dikembalikan",
+		);
+		expect(result.answer).toContain("mengikuti kontrak kerja sama");
+	});
+
+	it("provides the verified policy in English", async () => {
+		getPageBatchMock.mockResolvedValue({ faqs: [] });
+		const result = await answerSitaQuestion("How do I book?", "en");
+
+		expect(result.answer).toContain("Booking starts with a consultation");
+		expect(result.answer).toContain("checks date and vendor availability");
 	});
 
 	it("shows promo and quota facts on package cards", async () => {
@@ -874,15 +909,15 @@ describe("Sita explicit intents", () => {
 				: {
 						faqs: [
 							{
-								question: "Bagaimana cara booking?",
-								answer: "Hubungi tim kami melalui WhatsApp.",
+								question: "Berapa biaya venue?",
+								answer: "Biaya venue dikonfirmasi melalui admin.",
 							},
 						],
 					},
 		);
 
 		const packages = await answerSitaQuestion("Paket", "id");
-		const faq = await answerSitaQuestion("Cara booking", "id");
+		const faq = await answerSitaQuestion("harga venue", "id");
 
 		expect(packages.source?.href).toBe("/packages");
 		expect(packages.topic).toBe("packages");
@@ -893,11 +928,12 @@ describe("Sita explicit intents", () => {
 		const result = await answerSitaQuestion("Ketersediaan tanggal?", "id");
 		const [first, second] = result.clarify?.options ?? [];
 
-		expect(first).toMatch(/^20\d{2}-\d{2}-\d{2}$/);
-		expect(second).toMatch(/^20\d{2}-\d{2}-\d{2}$/);
+		expect(first).toMatch(/^\d{2}-\d{2}-20\d{2}$/);
+		expect(second).toMatch(/^\d{2}-\d{2}-20\d{2}$/);
 		expect(first).not.toBe(second);
-		expect(new Date(`${first}T00:00:00Z`).getTime()).toBeGreaterThan(
-			Date.now(),
-		);
+		const [day, month, year] = first!.split("-");
+		expect(
+			new Date(`${year}-${month}-${day}T00:00:00Z`).getTime(),
+		).toBeGreaterThan(Date.now());
 	});
 });

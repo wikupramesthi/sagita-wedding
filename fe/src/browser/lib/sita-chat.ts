@@ -1,5 +1,10 @@
 import { detectTopics, type TopicAliases } from "../../services/sitaNlu.js";
 import { topicAliasesFromPayload } from "../../services/sitaTopicAliases.js";
+import {
+	formatEventDate,
+	isPastEventDate,
+	parseEventDate,
+} from "../../utils/eventDate.js";
 import { sanitizeSitaQuerySample } from "../../utils/sitaQuery.js";
 import { hashSitaQuestion } from "../telemetry.js";
 
@@ -52,6 +57,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 	interface ChatSource {
 		label: string;
 		href: string;
+		updatedAt?: string;
 	}
 
 	interface ChatResult {
@@ -88,7 +94,12 @@ import { hashSitaQuestion } from "../telemetry.js";
 	}
 
 	function isChatSource(value: unknown): value is ChatSource {
-		return isChatCardAction(value);
+		if (!isChatCardAction(value)) return false;
+		const updatedAt = (value as Record<string, unknown>).updatedAt;
+		return (
+			updatedAt === undefined ||
+			(typeof updatedAt === "string" && Number.isFinite(Date.parse(updatedAt)))
+		);
 	}
 
 	function isChatSuggestion(value: unknown): value is ChatSuggestion {
@@ -176,7 +187,13 @@ import { hashSitaQuestion } from "../telemetry.js";
 			retry: "Coba lagi",
 			guideStart:
 				"Aku bantu isi kebutuhanmu dulu, ya. Ini pertanyaan pertamaku.",
-			guideDate: "Kapan rencana acaranya? Tulis tanggal seperti 2026-12-10.",
+			guideDate:
+				"Kapan rencana acaranya? Bisa tulis 10-12-2026, 10 Des 2026, atau 10 Desember 2026.",
+			pastDate:
+				"Tanggal tersebut sudah lewat. Silakan pilih tanggal acara lain.",
+			lowConfidence:
+				"Informasi ini belum cukup terverifikasi. Hubungi admin untuk memastikan.",
+			confirmWithAdmin: "Konfirmasi ke admin",
 			guideCity: "Di kota mana acaranya?",
 			guideBudget: "Berapa perkiraan anggaran maksimalmu? Contoh: 100 juta.",
 			guideGuests: "Berapa perkiraan jumlah tamu? Contoh: 150 tamu.",
@@ -209,7 +226,13 @@ import { hashSitaQuestion } from "../telemetry.js";
 			retry: "Try again",
 			guideStart:
 				"Let me collect a few details first. Here's my first question.",
-			guideDate: "When is the event? Please use a date like 2026-12-10.",
+			guideDate:
+				"When is the event? You can write 10-12-2026, 10 Dec 2026, or December 10, 2026.",
+			pastDate:
+				"That date has already passed. Please choose another event date.",
+			lowConfidence:
+				"This information could not be verified confidently. Contact the team to confirm.",
+			confirmWithAdmin: "Confirm with the team",
 			guideCity: "Which city will the event be in?",
 			guideBudget:
 				"What is your approximate maximum budget? For example: 100 million.",
@@ -426,22 +449,6 @@ import { hashSitaQuestion } from "../telemetry.js";
 		return candidate;
 	}
 
-	function parseEventDate(question: string): string | undefined {
-		const isoDate = question.match(/\b(20\d{2}-\d{2}-\d{2})\b/)?.[1];
-		if (isoDate && isValidDate(isoDate)) return isoDate;
-		const localDate = question.match(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/);
-		if (!localDate) return undefined;
-		const date = `${localDate[3]}-${localDate[2].padStart(2, "0")}-${localDate[1].padStart(2, "0")}`;
-		return isValidDate(date) ? date : undefined;
-	}
-
-	function isValidDate(value: string): boolean {
-		const date = new Date(`${value}T00:00:00Z`);
-		return (
-			!Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
-		);
-	}
-
 	function parseVendorCategory(question: string): string | undefined {
 		if (/\b(catering|katering)\b/i.test(question)) return "Catering";
 		if (/\b(dekor|dekorasi|decoration)\b/i.test(question)) return "Dekorasi";
@@ -491,7 +498,9 @@ import { hashSitaQuestion } from "../telemetry.js";
 		if (activeCriteria.city)
 			lines.push(`${labels.city}: ${activeCriteria.city}`);
 		if (activeCriteria.eventDate) {
-			lines.push(`${labels.date}: ${activeCriteria.eventDate}`);
+			lines.push(
+				`${labels.date}: ${formatEventDate(activeCriteria.eventDate, locale)}`,
+			);
 		}
 		if (activeCriteria.vendorCategory) {
 			lines.push(`${labels.vendor}: ${activeCriteria.vendorCategory}`);
@@ -595,6 +604,10 @@ import { hashSitaQuestion } from "../telemetry.js";
 			const date = parseEventDate(value);
 			if (!date) {
 				askAgain();
+				return;
+			}
+			if (isPastEventDate(date)) {
+				addMessage(copy.sita, `${copy.pastDate}\n${copy.guideDate}`);
 				return;
 			}
 			activeCriteria.eventDate = date;
@@ -827,6 +840,23 @@ import { hashSitaQuestion } from "../telemetry.js";
 				sourceLink.rel = "noopener noreferrer";
 			}
 			bubble.append(sourceLink);
+
+			if (source.updatedAt) {
+				const updatedAt = new Date(source.updatedAt);
+				if (!Number.isNaN(updatedAt.getTime())) {
+					const freshness = document.createElement("span");
+					freshness.className = "sita-chat-source-updated";
+					const formattedDate = new Intl.DateTimeFormat(
+						locale === "id" ? "id-ID" : "en-US",
+						{ dateStyle: "medium", timeStyle: "short" },
+					).format(updatedAt);
+					freshness.textContent =
+						locale === "id"
+							? `Konten situs terakhir diperbarui ${formattedDate}`
+							: `Site content last updated ${formattedDate}`;
+					bubble.append(freshness);
+				}
+			}
 		}
 
 		if (!loading && sender === copy.sita) {
@@ -1122,9 +1152,20 @@ import { hashSitaQuestion } from "../telemetry.js";
 				(suggestion) =>
 					!visibleChoiceLabels.has(suggestion.label.trim().toLocaleLowerCase()),
 			);
+			if (
+				lowConfidence &&
+				!suggestions.some((suggestion) => suggestion.action === "contact")
+			) {
+				suggestions.push({
+					label: copy.confirmWithAdmin,
+					action: "contact",
+				});
+			}
 			const answerBubble = addMessage(
 				copy.sita,
-				data.answer,
+				lowConfidence && !data.unanswered
+					? `${data.answer}\n\n${copy.lowConfidence}`
+					: data.answer,
 				data.cards,
 				undefined,
 				suggestions,

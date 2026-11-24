@@ -79,4 +79,30 @@ describe("FAQ localization", () => {
 		};
 		expect(localizeFaqs([customFaq], "id")).toEqual([customFaq]);
 	});
+
+	it("memilih kebijakan sesuai bahasa tanpa mencampur FAQ bilingual", () => {
+		const policies = [
+			{
+				uuid: "policy-id",
+				locale: "id",
+				kategori: "Pemesanan & Pembayaran",
+				question: "Bagaimana cara booking?",
+				answer: "Jawaban Indonesia.",
+			},
+			{
+				uuid: "policy-en",
+				locale: "en",
+				kategori: "Pemesanan & Pembayaran",
+				question: "How do I book?",
+				answer: "English answer.",
+			},
+		];
+
+		expect(localizeFaqs(policies, "id")).toMatchObject([
+			{ question: "Bagaimana cara booking?" },
+		]);
+		expect(localizeFaqs(policies, "en")).toMatchObject([
+			{ question: "How do I book?" },
+		]);
+	});
 });

@@ -90,8 +90,9 @@ const dataset = {
 	faqs: [
 		{
 			question: "Bagaimana cara booking?",
+			locale: "id",
 			answer:
-				"Pemesanan dapat dimulai dengan menghubungi tim kami melalui WhatsApp.",
+				"Proses pemesanan dimulai dengan konsultasi untuk membahas konsep, tanggal, lokasi, dan kebutuhan pernikahan. Setelah paket dan biaya disepakati, tim Sagita akan memeriksa ketersediaan tanggal serta vendor.",
 		},
 		{
 			question: "Apakah paket custom bisa disesuaikan?",
@@ -123,11 +124,17 @@ interface GoldenQuery {
 	cards?: number;
 	unanswered?: boolean;
 	clarify?: boolean;
+	sourceHref?: string;
 }
 
 const goldenQueries: GoldenQuery[] = [
 	{ message: "Paket", minConfidence: 0.9, cards: 3 },
-	{ message: "Paket wedding", minConfidence: 0.9, cards: 3 },
+	{
+		message: "Paket wedding",
+		minConfidence: 0.9,
+		cards: 3,
+		sourceHref: "/packages",
+	},
 	{ message: "brp hrga pket", minConfidence: 0.9, cards: 3 },
 	{ message: "pketnya brapa?", minConfidence: 0.9, cards: 3 },
 	{ message: "harga paket mulai berapa", minConfidence: 0.9, cards: 3 },
@@ -163,14 +170,26 @@ const goldenQueries: GoldenQuery[] = [
 	{ message: "fotografer", minConfidence: 0.9, cards: 1 },
 	{ message: "vendor makeup", minConfidence: 0.9, cards: 1 },
 	{ message: "vendor Jakarta", minConfidence: 0.9, cards: 1 },
-	{ message: "cara booking", minConfidence: 0.8, contains: "Pemesanan" },
+	{
+		message: "cara booking",
+		minConfidence: 0.8,
+		contains: "pemesanan dimulai",
+	},
 	{
 		message: "Bagaimana cara booking?",
 		minConfidence: 0.8,
-		contains: "Pemesanan",
+		contains: "pemesanan dimulai",
 	},
-	{ message: "cara daftar", minConfidence: 0.8, contains: "Pemesanan" },
-	{ message: "halo cara booking", minConfidence: 0.8, contains: "Pemesanan" },
+	{
+		message: "cara daftar",
+		minConfidence: 0.8,
+		contains: "pemesanan dimulai",
+	},
+	{
+		message: "halo cara booking",
+		minConfidence: 0.8,
+		contains: "pemesanan dimulai",
+	},
 	{
 		message: "bisa custom paket?",
 		minConfidence: 0.8,
@@ -201,6 +220,11 @@ const goldenQueries: GoldenQuery[] = [
 		contains: "libur acara",
 	},
 	{
+		message: "tersedia tanggal 10 Desember 2020",
+		minConfidence: 0.9,
+		contains: "10 Desember 2020 sudah lewat",
+	},
+	{
 		message: "apakah tanggalnya tersedia?",
 		minConfidence: 0.8,
 		clarify: true,
@@ -220,17 +244,17 @@ const goldenQueries: GoldenQuery[] = [
 	{
 		message: "Alamat kantor?",
 		minConfidence: 0.9,
-		contains: "belum tercantum",
+		contains: "de tridaya residence 4",
 	},
 	{
 		message: "Where is your office?",
 		minConfidence: 0.9,
-		contains: "belum tercantum",
+		contains: "de tridaya residence 4",
 	},
 	{
 		message: "Dimana kantor Sagita?",
 		minConfidence: 0.9,
-		contains: "belum tercantum",
+		contains: "de tridaya residence 4",
 	},
 	{ message: "how much is the package", minConfidence: 0.9, cards: 3 },
 	{ message: "venue price", minConfidence: 0.8, contains: "dikonfirmasi" },
@@ -271,6 +295,9 @@ describe("Sita golden queries", () => {
 		}
 		if (query.cards !== undefined) {
 			expect(result.cards).toHaveLength(query.cards);
+		}
+		if (query.sourceHref) {
+			expect(result.source?.href).toBe(query.sourceHref);
 		}
 		if (query.unanswered !== undefined) {
 			expect(result.unanswered).toBe(query.unanswered ? true : undefined);

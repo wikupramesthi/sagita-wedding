@@ -51,6 +51,7 @@ export const IDENTITY_CONTRACT = [
 export const FAQ_ITEM_CONTRACT = [
 	"uuid",
 	"kategori",
+	"locale",
 	"question",
 	"answer",
 ] as const;

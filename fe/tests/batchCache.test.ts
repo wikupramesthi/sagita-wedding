@@ -10,9 +10,8 @@ vi.mock("../src/services/apiClient.js", async (importOriginal) => {
 	return { ...actual, apiEnvelopeRaw: apiEnvelopeRawMock };
 });
 
-const { clearBatchCache, getPageBatch } = await import(
-	"../src/services/batchService.js"
-);
+const { clearBatchCache, getBatchContentUpdatedAt, getPageBatch } =
+	await import("../src/services/batchService.js");
 
 beforeEach(() => {
 	clearBatchCache();
@@ -49,6 +48,24 @@ describe("batch cache dengan revalidasi ETag", () => {
 			"/batch/venues",
 			{ headers: { "If-None-Match": '"v1"' } },
 		]);
+	});
+
+	it("meneruskan kebaruan konten dari payload batch termasuk respons 304", async () => {
+		const updatedAt = "2026-03-10T12:30:00.000000Z";
+		const body = {
+			status: "success",
+			page: "venues",
+			data: { venues: [{ name: "Venue A" }], contentUpdatedAt: updatedAt },
+		};
+		apiEnvelopeRawMock
+			.mockResolvedValueOnce({ status: 200, body, etag: '"v1"' })
+			.mockResolvedValueOnce({ status: 304, body: null, etag: '"v1"' });
+
+		await getPageBatch("venues");
+		expect(getBatchContentUpdatedAt()).toBe(updatedAt);
+
+		await getPageBatch("venues");
+		expect(getBatchContentUpdatedAt()).toBe(updatedAt);
 	});
 
 	it("menggantikan cache begitu ETag berubah setelah perubahan admin", async () => {

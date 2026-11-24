@@ -22,6 +22,7 @@ const html = `
     </div>
     <div id="sitaChatChoices">
       <button type="button" data-sita-topic="packages">Paket &amp; harga</button>
+      <button type="button" data-sita-topic="booking">Cara booking</button>
       <button type="button" data-sita-topic="contact">Hubungi admin</button>
     </div>
     <form id="sitaChatLead">
@@ -53,6 +54,8 @@ describe("SITA chat widget", () => {
 	let dom: InstanceType<typeof JSDOM>;
 	let events: Record<string, Detail[]>;
 	let telemetry: Detail[];
+	let sitaRequests: Detail[];
+	let leadRequests: Detail[];
 	let fetchMock: ReturnType<typeof vi.fn>;
 
 	function setGlobal(key: string, value: unknown): void {
@@ -81,6 +84,7 @@ describe("SITA chat widget", () => {
 			"Element",
 			"CustomEvent",
 			"Event",
+			"FormData",
 			"sessionStorage",
 			"localStorage",
 			"navigator",
@@ -91,6 +95,8 @@ describe("SITA chat widget", () => {
 
 		events = {};
 		telemetry = [];
+		sitaRequests = [];
+		leadRequests = [];
 		for (const name of ["sita:answer", "sita:no-match", "sita:feedback"]) {
 			events[name] = [];
 			dom.window.addEventListener(name, (event) => {
@@ -104,6 +110,10 @@ describe("SITA chat widget", () => {
 				return response({});
 			}
 			if (url === "/api/sita/knowledge") return response({ data: [] });
+			if (url === "/api/sita/leads") {
+				leadRequests.push(JSON.parse(String(init?.body ?? "{}")) as Detail);
+				return response({ success: true });
+			}
 			if (url === "/api/sita/chat") {
 				return response({
 					success: true,
@@ -132,7 +142,7 @@ describe("SITA chat widget", () => {
 		return found;
 	}
 
-	function submitQuestion(question: string): void {
+	function submitQuestion(question: string, source?: Detail): void {
 		setGlobal(
 			"fetch",
 			vi.fn(async (url: string, init?: RequestInit) => {
@@ -141,10 +151,15 @@ describe("SITA chat widget", () => {
 					return response({});
 				}
 				if (url === "/api/sita/knowledge") return response({ data: [] });
+				if (url === "/api/sita/leads") {
+					leadRequests.push(JSON.parse(String(init?.body ?? "{}")) as Detail);
+					return response({ success: true });
+				}
 				if (url === "/api/sita/chat") {
 					const body = JSON.parse(String(init?.body ?? "{}")) as {
 						message?: string;
 					};
+					sitaRequests.push(body);
 					return response({
 						success: true,
 						answer:
@@ -155,6 +170,7 @@ describe("SITA chat widget", () => {
 						offerContact: true,
 						confidence: body.message === "Fotobooth dong" ? 0.35 : 0.9,
 						topic: body.message === "Fotobooth dong" ? "vendors" : "packages",
+						...(source ? { source } : {}),
 					});
 				}
 				throw new Error(`Unexpected fetch: ${url}`);
@@ -163,6 +179,14 @@ describe("SITA chat widget", () => {
 
 		const input = element("#sitaChatInput") as HTMLInputElement;
 		input.value = question;
+		element("#sitaChatComposer").dispatchEvent(
+			new dom.window.Event("submit", { bubbles: true, cancelable: true }),
+		);
+	}
+
+	function submitGuideAnswer(answer: string): void {
+		const input = element("#sitaChatInput") as HTMLInputElement;
+		input.value = answer;
 		element("#sitaChatComposer").dispatchEvent(
 			new dom.window.Event("submit", { bubbles: true, cancelable: true }),
 		);
@@ -193,6 +217,112 @@ describe("SITA chat widget", () => {
 		expect(toggle.getAttribute("aria-expanded")).toBe("false");
 	});
 
+	it("accepts readable event date formats and rejects past dates", () => {
+		const futureYear = new Date().getUTCFullYear() + 2;
+		const futureDate = `10 Desember ${futureYear}`;
+		element("#sitaChatToggle").click();
+		element("[data-sita-topic='booking']").click();
+
+		expect(element("#sitaChatMessages").textContent).toContain(
+			"10-12-2026, 10 Des 2026, atau 10 Desember 2026",
+		);
+
+		submitGuideAnswer("01/01/2020");
+		expect(element("#sitaChatMessages").textContent).toContain(
+			"Tanggal tersebut sudah lewat",
+		);
+
+		submitGuideAnswer(futureDate);
+		expect(element("#sitaChatMessages").textContent).toContain(
+			"Di kota mana acaranya?",
+		);
+	});
+
+	it("carries booking criteria into the admin handoff", async () => {
+		element("#sitaChatToggle").click();
+		element("[data-sita-topic='booking']").click();
+		submitGuideAnswer("10 Desember 2027");
+		submitGuideAnswer("Bekasi");
+		submitGuideAnswer("100 juta");
+		submitGuideAnswer("150 tamu");
+
+		await vi.waitFor(
+			() =>
+				expect(element("#sitaChatMessages").textContent).toContain(
+					"Paket mulai 25 juta.",
+				),
+			{ timeout: 3000 },
+		);
+		element("[data-sita-topic='contact']").click();
+		(element("#sitaChatLead input[name='name']") as HTMLInputElement).value =
+			"Rina";
+		(element("#sitaChatLead input[name='phone']") as HTMLInputElement).value =
+			"08123456789";
+		(
+			element("#sitaChatLead input[name='consent']") as HTMLInputElement
+		).checked = true;
+		element("#sitaChatLead").dispatchEvent(
+			new dom.window.Event("submit", { bubbles: true, cancelable: true }),
+		);
+
+		await vi.waitFor(() => expect(leadRequests).toHaveLength(1), {
+			timeout: 3000,
+		});
+		await vi.waitFor(
+			() =>
+				expect(
+					dom.window.document.querySelector(".sita-chat-handoff"),
+				).not.toBeNull(),
+			{ timeout: 3000 },
+		);
+		expect(leadRequests[0]).toMatchObject({
+			topic: "packages",
+			criteria: {
+				eventDate: "2027-12-10",
+				city: "Bekasi",
+				budgetLimit: 100_000_000,
+				guestCount: 150,
+			},
+		});
+		const handoff = element(".sita-chat-handoff") as HTMLAnchorElement;
+		const handoffText = new URL(handoff.href).searchParams.get("text") || "";
+		expect(handoffText).toContain("10 Desember 2027");
+		expect(handoffText).toContain("Bekasi");
+		expect(handoffText).toContain("100.000.000");
+		expect(handoffText).toContain("150");
+	});
+
+	it("preserves topic and collected filters for a contextual follow-up", async () => {
+		element("#sitaChatToggle").click();
+		submitQuestion("Paket budget 50 juta untuk 200 tamu");
+		await vi.waitFor(() => expect(sitaRequests).toHaveLength(1), {
+			timeout: 5000,
+		});
+		await vi.waitFor(
+			() =>
+				expect((element("#sitaChatInput") as HTMLInputElement).disabled).toBe(
+					false,
+				),
+			{ timeout: 5000 },
+		);
+
+		submitQuestion("yang lebih murah");
+		await vi.waitFor(() => expect(sitaRequests).toHaveLength(2), {
+			timeout: 5000,
+		});
+
+		expect(sitaRequests[1]).toMatchObject({
+			message: "yang lebih murah",
+			context: {
+				topic: "packages",
+				criteria: {
+					budgetLimit: 50_000_000,
+					guestCount: 200,
+				},
+			},
+		});
+	});
+
 	it("answers a submitted question and emits answer telemetry", async () => {
 		element("#sitaChatToggle").click();
 		submitQuestion("Paket pernikahan");
@@ -220,6 +350,23 @@ describe("SITA chat widget", () => {
 		).toBe(true);
 	});
 
+	it("shows the site content update time next to a sourced answer", async () => {
+		element("#sitaChatToggle").click();
+		submitQuestion("Paket pernikahan", {
+			label: "Paket",
+			href: "/paket",
+			updatedAt: "2026-03-10T12:30:00.000Z",
+		});
+
+		await vi.waitFor(
+			() =>
+				expect(element(".sita-chat-source-updated").textContent).toContain(
+					"Konten situs terakhir diperbarui",
+				),
+			{ timeout: 3000 },
+		);
+	});
+
 	it("records low-confidence questions with a sanitized sample", async () => {
 		element("#sitaChatToggle").click();
 		submitQuestion("Fotobooth dong");
@@ -233,6 +380,12 @@ describe("SITA chat widget", () => {
 			fallback: false,
 			sample: "Fotobooth dong",
 		});
+		expect(element("#sitaChatMessages").textContent).toContain(
+			"Informasi ini belum cukup terverifikasi",
+		);
+		expect(
+			dom.window.document.querySelector("[data-sita-suggestion='contact']"),
+		).not.toBeNull();
 		expect(String(events["sita:no-match"][0].queryHash)).toMatch(
 			/^[a-z0-9]{1,32}$/,
 		);

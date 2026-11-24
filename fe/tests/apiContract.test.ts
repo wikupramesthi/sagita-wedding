@@ -68,6 +68,7 @@ describe("API contract", () => {
 		const faq = {
 			uuid: "1",
 			kategori: "Paket & Layanan",
+			locale: "id",
 			question: "Q?",
 			answer: "A.",
 		};
