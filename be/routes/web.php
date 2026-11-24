@@ -340,11 +340,16 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
     Route::prefix('sita')->group(function () {
         Route::get('analytics', [SitaAnalyticsController::class, 'index'])->name('sita.analytics.index');
 
+        Route::get('leads/export', [SitaLeadController::class, 'exportCsv'])->name('sita.leads.export');
         Route::get('leads', [SitaLeadController::class, 'index'])->name('sita.leads.index');
         Route::get('leads/{sitaLead}', [SitaLeadController::class, 'show'])->name('sita.leads.show');
         Route::put('leads/{sitaLead}', [SitaLeadController::class, 'update'])->name('sita.leads.update');
+        Route::post('leads/{sitaLead}/notes', [SitaLeadController::class, 'storeNote'])->name('sita.leads.notes.store');
         Route::delete('leads/{sitaLead}', [SitaLeadController::class, 'destroy'])->name('sita.leads.destroy');
 
+        Route::get('synonyms/export', [SitaSynonymController::class, 'exportCsv'])->name('sita.synonyms.export');
+        Route::post('synonyms/import', [SitaSynonymController::class, 'importCsv'])->name('sita.synonyms.import');
+        Route::post('synonyms/bulk', [SitaSynonymController::class, 'bulkAction'])->name('sita.synonyms.bulk');
         Route::get('synonyms', [SitaSynonymController::class, 'index'])->name('sita.synonyms.index');
         Route::post('synonyms', [SitaSynonymController::class, 'store'])->name('sita.synonyms.store');
         Route::put('synonyms/{sitaSynonym}', [SitaSynonymController::class, 'update'])->name('sita.synonyms.update');

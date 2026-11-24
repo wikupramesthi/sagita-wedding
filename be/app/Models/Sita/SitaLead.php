@@ -25,12 +25,21 @@ class SitaLead extends Model
         'score',
         'message',
         'status',
+        'notes',
+        'contacted_at',
+        'assigned_to',
     ];
 
     protected $casts = [
         'criteria' => 'array',
         'score' => 'integer',
+        'contacted_at' => 'datetime',
     ];
+
+    public function activities()
+    {
+        return $this->hasMany(SitaLeadActivity::class, 'lead_uuid', 'uuid')->latest();
+    }
 
     public const STATUSES = ['new', 'contacted', 'qualified', 'converted', 'closed'];
 

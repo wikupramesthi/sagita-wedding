@@ -119,6 +119,7 @@ class SitaAnalyticsController extends Controller
 
         if ($turnId === null) {
             SitaAnalyticsEvent::create($validated);
+            SitaAnalyticsService::invalidate();
 
             return response()->json([
                 'success' => true,
@@ -144,6 +145,7 @@ class SitaAnalyticsController extends Controller
             }
 
             SitaAnalyticsEvent::create($validated);
+            SitaAnalyticsService::invalidate();
         } finally {
             $lock->release();
         }

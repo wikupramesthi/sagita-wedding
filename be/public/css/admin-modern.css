@@ -7527,3 +7527,24 @@ a {
 #main-content .sita-action-btn {
     min-width: 2.25rem;
 }
+
+#main-content .sita-trend-bars{display:flex;flex-direction:column;gap:3px;min-width:140px}
+#main-content .sita-trend-bar{display:block;height:6px;border-radius:4px;min-width:2px}
+#main-content .sita-trend-bar--a,#main-content .sita-trend-dot.sita-trend-bar--a{background:#5e72e4}
+#main-content .sita-trend-bar--f,#main-content .sita-trend-dot.sita-trend-bar--f{background:#2dce89}
+#main-content .sita-trend-bar--n,#main-content .sita-trend-dot.sita-trend-bar--n{background:#fb6340}
+#main-content .sita-trend-dot{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:middle}
+#main-content .sita-timeline{max-height:420px;overflow:auto}
+#main-content .sita-hero-meta{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:.5rem .85rem;border-radius:.75rem;background:rgba(255,255,255,.7);border:1px solid var(--modern-border);min-width:92px}
+[data-bs-theme="dark"] #main-content .sita-hero-meta{background:rgba(15,23,42,.35)}
+#main-content .sita-meta-value{font-size:1.35rem;font-weight:700;line-height:1;color:var(--modern-text)}
+#main-content .sita-meta-label{font-size:.72rem;color:var(--modern-muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-top:.2rem}
+#main-content .sita-table thead th{font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;color:var(--modern-muted);font-weight:700;white-space:nowrap;background:var(--modern-surface-soft);border-bottom:1px solid var(--modern-border)}
+#main-content .sita-table td{vertical-align:middle;font-size:.875rem}
+#main-content .sita-table tbody tr:hover{background:rgba(94,114,228,.03)}
+#main-content .sita-table-responsive{border-radius:.75rem;border:1px solid var(--modern-border);overflow:auto !important;-webkit-overflow-scrolling:touch}
+#main-content .sita-table-responsive .table{margin-bottom:0}
+#main-content .sita-cell-wrap{white-space:normal !important;min-width:180px;max-width:320px}
+#main-content .sita-stat-card .stat-label{font-size:.78rem;color:var(--modern-muted);font-weight:600}
+#main-content .sita-stat-card .stat-value{font-weight:700;color:var(--modern-text);line-height:1.2}
+@media (max-width:767.98px){#main-content .sita-hero{flex-direction:column;align-items:stretch}#main-content .sita-hero-meta{align-items:flex-start}}

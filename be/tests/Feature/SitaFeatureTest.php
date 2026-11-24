@@ -99,7 +99,7 @@ class SitaFeatureTest extends TestCase
 
         $indexes = collect(DB::select('SHOW INDEX FROM sita_analytics_events'))->pluck('Key_name')->all();
 
-        foreach (['sita_analytics_events_name_occurred_at_index', 'sita_analytics_events_topic_occurred_at_index', 'sita_analytics_events_query_hash_occurred_at_index', 'sita_analytics_events_name_turn_id_index', 'sita_analytics_events_occurred_at_index'] as $index) {
+        foreach (['sita_analytics_events_name_occurred_at_index', 'sita_analytics_events_topic_occurred_at_index', 'sita_analytics_events_query_hash_occurred_at_index', 'sita_analytics_events_name_turn_id_index', 'sita_analytics_events_occurred_at_id_index'] as $index) {
             $this->assertContains($index, $indexes);
         }
     }
