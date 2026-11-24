@@ -59,8 +59,13 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>
-                                <img src="/storage/{{ $item->featured_image }}" class="img-fluid"
-                                    style="max-height:80px" alt="{{ $item->title }}">
+                                @if ($item->featured_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($item->featured_image))
+                                <img src="{{ asset('storage/' . $item->featured_image) }}" class="img-fluid rounded"
+                                    style="width:80px;height:56px;object-fit:cover" alt="{{ $item->title }}">
+                                @else
+                                <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted"
+                                    style="width:80px;height:56px" aria-label="Gambar tidak tersedia"><i class="bi bi-image"></i></span>
+                                @endif
                             </td>
                             <td>{{ $item->title }}</td>
                             <td>{{ $item->slug }}</td>

@@ -56,11 +56,12 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>
-                                @if ($item->foto)
+                                @if ($item->foto && \Illuminate\Support\Facades\Storage::disk('public')->exists($item->foto))
                                 <img src="{{ asset('storage/' . $item->foto) }}" alt="Foto {{ $item->name }}"
                                     width="60" class="img-thumbnail">
                                 @else
-                                <span class="text-muted">-</span>
+                                <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted"
+                                    style="width:60px;height:48px" aria-label="Foto tidak tersedia"><i class="bi bi-person"></i></span>
                                 @endif
                             </td>
                             <td>{{ $item->nama }}</td>

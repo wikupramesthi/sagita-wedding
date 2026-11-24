@@ -120,6 +120,37 @@ class MemberAuthorizationTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_admin_can_open_order_creation_when_route_permission_record_is_missing(): void
+    {
+        DB::table('routes')->where('route', 'orders.create')->delete();
+        Cache::forget('route.permission.orders.create');
+
+        $this->actingAs($this->admin())
+            ->get('/backend/orders/create')
+            ->assertOk()
+            ->assertViewIs('pages.orders.create');
+    }
+
+    public function test_order_verification_redirect_survives_a_missing_route_permission_record(): void
+    {
+        DB::table('routes')->where('route', 'orders.verification')->delete();
+        Cache::forget('route.permission.orders.verification');
+
+        $this->actingAs($this->admin())
+            ->get('/backend/orders/verification')
+            ->assertRedirect(route('orders.index', ['verification' => 'pending']));
+    }
+
+    public function test_member_still_cannot_open_admin_order_creation_without_route_record(): void
+    {
+        DB::table('routes')->where('route', 'orders.create')->delete();
+        Cache::forget('route.permission.orders.create');
+
+        $this->actingAs($this->member())
+            ->get('/backend/orders/create')
+            ->assertForbidden();
+    }
+
     public function test_public_route_without_registration_remains_accessible(): void
     {
         $this->get('/')->assertRedirect();

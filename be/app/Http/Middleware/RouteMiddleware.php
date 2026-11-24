@@ -29,6 +29,8 @@ class RouteMiddleware
         'packages.quotation.preview',
         'orders.documents.*',
         'orders.checklist.update',
+        'orders.create',
+        'orders.verification',
     ];
 
     /**

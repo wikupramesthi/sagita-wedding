@@ -159,12 +159,14 @@
                                     Gambar
                                 </label>
 
-                                @if ($item->gambar)
+                                @if ($item->gambar && \Illuminate\Support\Facades\Storage::disk('public')->exists($item->gambar))
                                 <div class="mb-2">
                                     <img src="{{ $item->gambar() }}" alt="{{ $item->judul }}"
                                         class="img-thumbnail"
                                         style="max-width: 180px; max-height: 100px; object-fit: cover;">
                                 </div>
+                                @elseif ($item->gambar)
+                                <div class="small text-muted mb-2">Gambar saat ini tidak tersedia.</div>
                                 @endif
 
                                 <input type="file" class="form-control-file @error('gambar') is-invalid @enderror"

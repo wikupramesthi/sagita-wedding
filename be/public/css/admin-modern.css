@@ -7646,6 +7646,32 @@ a {
     }
 }
 
+#main-content .card.identity-tip {
+    background: linear-gradient(135deg, #403a34 0%, #6c5a4a 100%) !important;
+    background-color: #403a34 !important;
+    color: #fff !important;
+}
+
+#main-content .identity-tip__glow {
+    right: 0;
+    left: 0;
+}
+
+#main-content .identity-tip__body,
+#main-content .identity-tip__head > div,
+#main-content .identity-tip__list li > div {
+    min-width: 0;
+}
+
+#main-content .identity-tip__list li {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+#main-content .identity-tip__list li > div span {
+    overflow-wrap: anywhere;
+}
+
 /* Sita admin pages — consistent spacing and responsive data layout */
 #main-content .sita-hero {
     min-height: 84px;

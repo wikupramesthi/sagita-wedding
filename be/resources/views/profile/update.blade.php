@@ -9,6 +9,15 @@
 @endsection
 
 @section('content')
+@php
+    $profileAvatar = auth()->user()->avatar;
+    $profileAvatarIsRemote = $profileAvatar && \Illuminate\Support\Str::startsWith($profileAvatar, ['http://', 'https://']);
+    $profileAvatarUrl = $profileAvatarIsRemote
+        ? $profileAvatar
+        : ($profileAvatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($profileAvatar)
+            ? asset('storage/' . $profileAvatar)
+            : asset('dist/assets/images/avatar.jpg'));
+@endphp
 
 {{-- Success Alert --}}
 @if (session('success'))
@@ -67,11 +76,7 @@
 
                 <div class="position-relative">
 
-                    <img src="{{ Auth::user()->avatar
-                            ? (Str::startsWith(Auth::user()->avatar, 'http')
-                                ? Auth::user()->avatar
-                                : asset('storage/' . Auth::user()->avatar))
-                            : asset('dist/assets/images/avatar.jpg') }}"
+                    <img src="{{ $profileAvatarUrl }}"
                         alt="{{ auth()->user()->name }}"
                         class="rounded-circle border border-4 border-white shadow"
                         style="width: 100px; height: 100px; object-fit: cover;">
@@ -191,11 +196,7 @@
                     {{-- Current Avatar --}}
                     <div class="text-center mb-4">
 
-                        <img src="{{ Auth::user()->avatar
-                                ? (Str::startsWith(Auth::user()->avatar, 'http')
-                                    ? Auth::user()->avatar
-                                    : asset('storage/' . Auth::user()->avatar))
-                                : asset('dist/assets/images/avatar.jpg') }}"
+                        <img src="{{ $profileAvatarUrl }}"
                             alt="{{ auth()->user()->name }}"
                             class="rounded-circle border border-4 border-light shadow-sm"
                             style="width: 170px; height: 170px; object-fit: cover;">

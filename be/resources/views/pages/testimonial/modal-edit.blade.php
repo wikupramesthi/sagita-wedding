@@ -23,9 +23,11 @@
                             {{ $message }}
                         </div>
                         @enderror
-                        @if ($item->foto)
+                        @if ($item->foto && \Illuminate\Support\Facades\Storage::disk('public')->exists($item->foto))
                         <img src="{{ asset('storage/' . $item->foto) }}" alt="Foto" class="img-thumbnail mt-2"
                             style="max-width: 150px;">
+                        @elseif ($item->foto)
+                        <div class="small text-muted mt-2">Foto saat ini tidak tersedia.</div>
                         @endif
                     </div>
 

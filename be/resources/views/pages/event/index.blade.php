@@ -73,7 +73,7 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>
-                                @if ($item->gambar)
+                                @if ($item->gambar && \Illuminate\Support\Facades\Storage::disk('public')->exists($item->gambar))
                                 <img src="{{ asset('storage/' . $item->gambar) }}" alt="{{ $item->judul }}" class="rounded" style="width:60px;height:42px;object-fit:cover;" loading="lazy">
                                 @else
                                 <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted" style="width:60px;height:42px;"><i class="bi bi-image"></i></span>

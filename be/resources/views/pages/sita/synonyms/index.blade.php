@@ -81,7 +81,7 @@
       dari <strong>{{ $synonyms->total() }}</strong> sinonim
     </div>
     <nav class="sita-pagination-nav" aria-label="Navigasi halaman sinonim">
-      {{ $synonyms->onEachSide(1)->links('pagination::bootstrap-5') }}
+      {{ $synonyms->onEachSide(1)->links('vendor.pagination.sita') }}
     </nav>
   </div>
   @else

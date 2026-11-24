@@ -164,24 +164,27 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
     Route::resource('role', RoleController::class)->middleware([$superAdmin])->only('index', 'store', 'update', 'destroy');
     Route::resource('menu', MenuGroupController::class)->middleware($superAdmin)->only('index', 'store', 'update', 'destroy');
     Route::resource('menu.item', MenuItemController::class)->middleware($superAdmin)->only('index', 'store', 'update', 'destroy');
-    Route::resource('faq', FaqController::class);
-    Route::resource('testimonial', TestimonialController::class);
+    Route::resource('faq', FaqController::class)->except(['show', 'edit']);
+    Route::resource('testimonial', TestimonialController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
     Route::get('banner/media', [BannerController::class, 'loadMore'])->name('banner.loadMore');
     Route::get('banner/foto-picker', [BannerController::class, 'fotoPicker'])->name('banner.fotoPicker');
     Route::get('banner/album-fotos/{album}', [BannerController::class, 'albumFotos'])->name('banner.albumFotos');
     Route::get('banner/modal/{tipe}/{uuid}', [BannerController::class, 'modal'])->whereIn('tipe', ['foto', 'video', 'album', 'view-album'])->name('banner.modal');
-    Route::resource('banner', BannerController::class);
+    Route::resource('banner', BannerController::class)->except(['show', 'edit']);
     Route::post('banner/album', [BannerController::class, 'storeAlbum'])->name('banner.storeAlbum');
     Route::put('banner/album/{album}', [BannerController::class, 'updateAlbum'])->name('banner.updateAlbum');
     Route::delete('banner/album/{album}', [BannerController::class, 'destroyAlbum'])->name('banner.destroyAlbum');
-    Route::resource('categories', CategoryController::class);
+    Route::resource('categories', CategoryController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
     Route::resource('vendors_categories', VendorsCategoryController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::delete('articles/bulk', [ArticleController::class, 'bulkDestroy'])->name('articles.bulkDestroy');
     Route::resource('articles', ArticleController::class)->except(['show']);
-    Route::resource('account', AccountController::class);
+    Route::resource('account', AccountController::class)
+        ->only(['index', 'update']);
     Route::get('/get-kelurahan/{kecamatan_id}', [AccountController::class, 'getKelurahan']);
-    Route::resource('pages', PagesController::class);
-    Route::resource('events', EventsController::class);
+    Route::resource('pages', PagesController::class)->except(['show']);
+    Route::resource('events', EventsController::class)->except(['edit']);
     Route::get('filedownload/{fileDownload}/download', [FileDownloadController::class, 'download'])->name('filedownload.download');
     Route::resource('filedownload', FileDownloadController::class)->only(['index', 'store', 'update', 'destroy']);
     // Website Identity (singleton: single form, no table CRUD)
@@ -333,7 +336,7 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
     ]);
     Route::get('vendor/arsip', [VendorController::class, 'archive'])->name('vendor.archive');
     Route::post('vendor/restore', [VendorController::class, 'restore'])->name('vendor.restore');
-    Route::resource('vendor', VendorController::class);
+    Route::resource('vendor', VendorController::class)->except(['show']);
     Route::get('/mobile/vendor', [VendorController::class, 'mobile'])
         ->name('vendor.mobile');
 
