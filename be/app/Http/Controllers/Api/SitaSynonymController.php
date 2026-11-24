@@ -23,6 +23,6 @@ class SitaSynonymController extends Controller
             'success' => true,
             'status' => 'success',
             'data' => $synonyms,
-        ])->header('Cache-Control', 'public, max-age=600');
+        ])->header('Cache-Control', 'no-store');
     }
 }

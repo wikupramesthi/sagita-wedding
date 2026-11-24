@@ -13,6 +13,9 @@ import type { SitaChatTopic } from "../utils/validate.js";
 
 export type NluTopic = SitaChatTopic;
 
+/** Kata kunci tambahan per topik dari sinonim aktif di database. */
+export type TopicAliases = Partial<Record<NluTopic, readonly string[]>>;
+
 /** Singkatan umum yang sering diketik user di chat. */
 const SLANG_TERMS: Record<string, string> = {
 	brapa: "berapa",
@@ -332,7 +335,10 @@ export interface TopicAnalysis {
 	secondary?: NluTopic;
 }
 
-export function detectTopics(raw: string): TopicAnalysis {
+export function detectTopics(
+	raw: string,
+	dynamicAliases: TopicAliases = {},
+): TopicAnalysis {
 	const tokens = normalizeNluText(raw).split(" ").filter(Boolean);
 	const scores: Record<NluTopic, number> = {
 		packages: 0,
@@ -353,11 +359,23 @@ export function detectTopics(raw: string): TopicAnalysis {
 	tokens.forEach((token, index) => {
 		(Object.keys(TOPIC_PATTERNS) as NluTopic[]).forEach((topic) => {
 			const pattern = TOPIC_PATTERNS[topic];
-			if (pattern.strong.some((term) => tokenMatches(token, term))) {
+			const builtInStrong = pattern.strong.some((term) =>
+				tokenMatches(token, term),
+			);
+			const builtInWeak = pattern.weak.some((term) =>
+				tokenMatches(token, term),
+			);
+			const dynamicMatch = (dynamicAliases[topic] ?? []).some((term) =>
+				tokenMatches(token, term),
+			);
+			if (builtInStrong) {
 				scores[topic] += 2;
 				if (index < firstStrongIndex[topic]) firstStrongIndex[topic] = index;
-			} else if (pattern.weak.some((term) => tokenMatches(token, term))) {
+			} else if (builtInWeak) {
 				scores[topic] += 1;
+			} else if (dynamicMatch) {
+				scores[topic] += 2;
+				if (index < firstStrongIndex[topic]) firstStrongIndex[topic] = index;
 			} else {
 				return;
 			}
@@ -396,10 +414,13 @@ export type SmallTalkKind = "greeting" | "thanks" | null;
  * harus dijawab dengan sapaan + menu, bukan "belum menangkap maksudnya".
  * Kalau ada kata di luar daftar small talk, pesan diteruskan ke alur biasa.
  */
-export function smallTalkKind(raw: string): SmallTalkKind {
+export function smallTalkKind(
+	raw: string,
+	dynamicAliases: TopicAliases = {},
+): SmallTalkKind {
 	const tokens = normalizeNluText(raw).split(" ").filter(Boolean);
 	if (tokens.length === 0 || tokens.length > 5) return null;
-	if (detectTopics(raw).topics.length > 0) return null;
+	if (detectTopics(raw, dynamicAliases).topics.length > 0) return null;
 	if (!tokens.every((token) => SMALL_TALK_VOCAB.has(token))) return null;
 	return THANKS_START.has(tokens[0]) ? "thanks" : "greeting";
 }

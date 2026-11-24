@@ -7,6 +7,7 @@ import type {
 	BookingPayload,
 	CleanTextOptions,
 	ContactPayload,
+	NewsletterPayload,
 } from "../types/index.js";
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -129,9 +130,9 @@ export function validateContact(
 	return { nama, email, no_telp, isi, captcha_id, captcha_answer };
 }
 
-export function validateNewsletter(body: Record<string, unknown> = {}): {
-	email: string;
-} {
+export function validateNewsletter(
+	body: Record<string, unknown> = {},
+): NewsletterPayload {
 	return { email: cleanEmail(body.email) };
 }
 

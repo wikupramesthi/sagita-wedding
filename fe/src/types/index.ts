@@ -198,6 +198,11 @@ export interface ContactPayload {
 	captcha_answer: string;
 }
 
+/** Payload langganan newsletter setelah validasi (src/utils/validate.ts). */
+export interface NewsletterPayload {
+	email: string;
+}
+
 export interface BookingPayload {
 	nama: string;
 	email: string;

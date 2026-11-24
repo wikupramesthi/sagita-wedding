@@ -1,18 +1,28 @@
+import type { TopicAliases } from "./sitaNlu.js";
+import {
+	isUsableKnowledgeRecord,
+	topicAliasesFromPayload,
+} from "./sitaTopicAliases.js";
+
 export type SitaKnowledgeLocale = "id" | "en";
 export type SitaAliases = Record<string, string[]>;
+
+export interface SitaKnowledge {
+	aliases: SitaAliases;
+	topics: TopicAliases;
+}
 
 interface RuntimeGlobal {
 	location?: { origin?: string };
 	process?: { env?: Record<string, string | undefined> };
 }
 
-interface KnowledgeCacheEntry {
-	aliases: SitaAliases;
+interface KnowledgeCacheEntry extends SitaKnowledge {
 	expiresAt: number;
 }
 
 const KNOWLEDGE_PATH = "/api/sita/knowledge";
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 60 * 1000;
 const FETCH_TIMEOUT_MS = 750;
 const MAX_ALIAS_KEYS = 160;
 const MAX_ALIASES_PER_KEY = 12;
@@ -92,13 +102,19 @@ const BUILT_IN_ALIASES: Record<SitaKnowledgeLocale, SitaAliases> = {
 };
 
 const cache = new Map<SitaKnowledgeLocale, KnowledgeCacheEntry>();
-const inflight = new Map<SitaKnowledgeLocale, Promise<SitaAliases>>();
+const inflight = new Map<SitaKnowledgeLocale, Promise<SitaKnowledge>>();
 
 function cloneAliases(
 	source: Readonly<Record<string, readonly string[]>>,
 ): SitaAliases {
 	return Object.fromEntries(
 		Object.entries(source).map(([key, values]) => [key, [...values]]),
+	);
+}
+
+function cloneTopics(source: TopicAliases): TopicAliases {
+	return Object.fromEntries(
+		Object.entries(source).map(([key, values]) => [key, [...(values ?? [])]]),
 	);
 }
 
@@ -131,21 +147,7 @@ function aliasesFromRecords(
 	const aliases: Record<string, string[]> = {};
 	for (const entry of records) {
 		const record = asRecord(entry);
-		if (!record) continue;
-		const recordLocale =
-			typeof record.locale === "string"
-				? record.locale.toLocaleLowerCase()
-				: "";
-		if (recordLocale && recordLocale !== locale && recordLocale !== "all") {
-			continue;
-		}
-		if (
-			record.is_active === false ||
-			record.is_active === 0 ||
-			record.is_active === "0"
-		) {
-			continue;
-		}
+		if (!record || !isUsableKnowledgeRecord(record, locale)) continue;
 		const term = normalizeKnowledgeToken(
 			record.term ?? record.alias ?? record.value,
 		);
@@ -253,18 +255,28 @@ export function builtInAliases(locale: SitaKnowledgeLocale): SitaAliases {
 	return cloneAliases(BUILT_IN_ALIASES[locale]);
 }
 
-export async function getDynamicAliases(
+function cloneKnowledge(knowledge: SitaKnowledge): SitaKnowledge {
+	return {
+		aliases: cloneAliases(knowledge.aliases),
+		topics: cloneTopics(knowledge.topics),
+	};
+}
+
+export async function getSitaKnowledge(
 	locale: SitaKnowledgeLocale,
-): Promise<SitaAliases> {
+): Promise<SitaKnowledge> {
 	const cached = cache.get(locale);
 	if (cached && cached.expiresAt > Date.now()) {
-		return cloneAliases(cached.aliases);
+		return cloneKnowledge(cached);
 	}
 	const pending = inflight.get(locale);
-	if (pending) return pending;
+	if (pending) return cloneKnowledge(await pending);
 
 	const task = (async () => {
-		let aliases = builtInAliases(locale);
+		let knowledge: SitaKnowledge = {
+			aliases: builtInAliases(locale),
+			topics: {},
+		};
 		const controller = new AbortController();
 		const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 		try {
@@ -274,21 +286,47 @@ export async function getDynamicAliases(
 			});
 			if (response.ok) {
 				const payload: unknown = await response.json();
-				aliases = mergeBackendAliases(aliases, backendAliases(payload, locale));
+				knowledge = {
+					aliases: mergeBackendAliases(
+						knowledge.aliases,
+						backendAliases(payload, locale),
+					),
+					topics: topicAliasesFromPayload(payload, locale),
+				};
 			}
 		} catch {
-			aliases = builtInAliases(locale);
+			knowledge = { aliases: builtInAliases(locale), topics: {} };
 		} finally {
 			clearTimeout(timer);
 		}
-		cache.set(locale, { aliases, expiresAt: Date.now() + CACHE_TTL_MS });
-		return cloneAliases(aliases);
+		cache.set(locale, {
+			...knowledge,
+			expiresAt: Date.now() + CACHE_TTL_MS,
+		});
+		return knowledge;
 	})();
 
 	inflight.set(locale, task);
 	try {
-		return await task;
+		return cloneKnowledge(await task);
 	} finally {
 		inflight.delete(locale);
 	}
+}
+
+export async function getDynamicAliases(
+	locale: SitaKnowledgeLocale,
+): Promise<SitaAliases> {
+	return (await getSitaKnowledge(locale)).aliases;
+}
+
+export async function getDynamicTopicAliases(
+	locale: SitaKnowledgeLocale,
+): Promise<TopicAliases> {
+	return (await getSitaKnowledge(locale)).topics;
+}
+
+export function clearSitaKnowledgeCache(): void {
+	cache.clear();
+	inflight.clear();
 }

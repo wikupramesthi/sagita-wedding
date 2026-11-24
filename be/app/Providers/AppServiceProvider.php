@@ -71,6 +71,13 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        RateLimiter::for('api-newsletter', function (Request $request) {
+            return [
+                Limit::perMinute(10)->by('ip:'.$request->ip()),
+                Limit::perHour(5)->by('email:'.strtolower((string) $request->input('email'))),
+            ];
+        });
+
         RateLimiter::for('api-analytics', function (Request $request) {
             return [
                 Limit::perMinute(30)->by('ip:'.$request->ip()),

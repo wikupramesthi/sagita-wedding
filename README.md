@@ -295,7 +295,7 @@ Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Role`, `Menu`, `Route`, 
 - Login Google (session bersama dengan backend)
 
 > [!NOTE]
-> `POST /api/booking` kini menyimpan permintaan sebagai leads konsultasi via backend `/api/contact`. `POST /api/newsletter` tetap **501 Not Implemented** agar klien tidak mengira data tersimpan.
+> `POST /api/booking` kini menyimpan permintaan sebagai leads konsultasi via backend `/api/contact`. `POST /api/newsletter` menyimpan alamat email ke tabel `newsletter_subscribers` lewat backend `/api/newsletter`; email duplikat dibalas sukses dengan `duplicate: true`.
 
 ### Panel admin (`be/`)
 
@@ -345,6 +345,7 @@ GET  /api/vendors              /api/packages           /api/packages/{slug}
 GET  /api/staff                /api/pegawai            (alias legacy)
 GET  /api/contact/captcha
 POST /api/contact
+POST /api/newsletter
 POST /api/analytics/visits
 ```
 

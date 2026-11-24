@@ -62,10 +62,10 @@ fe/
 - `GET /api/contact/captcha`, `GET /api/booking/captcha` → soal captcha + `captcha_id`
 - `POST /api/contact` `{nama,email,no_telp,isi,captcha_id,captcha_answer}` → teruskan ke backend
 - `POST /api/booking` `{nama,email,no_telp,paket,tanggal,isi,captcha_id,captcha_answer}` → dibuat sebagai leads konsultasi via `/api/contact`
-- `POST /api/newsletter` → **501 Not Implemented** (belum ada fitur newsletter)
+- `POST /api/newsletter` `{email}` → teruskan ke backend, simpan sebagai subscriber
 
-Newsletter sengaja membalas 501, bukan sukses palsu, supaya klien tidak
-mengira aksi tersimpan.
+Langganan newsletter memakai rate limit 10/menit/IP + 5/jam/email di backend
+dan honeypot `website`. Email duplikat dibalas 201 dengan `duplicate: true`.
 
 Widget Sita mencocokkan pertanyaan dengan FAQ, paket, venue, dan vendor dari database
 Sagita melalui service server-side yang sudah ada. Jawabannya berbasis aturan dan
@@ -141,7 +141,10 @@ Tombol 👍/👎 hanya bisa dipilih sekali per jawaban dan memancarkan event bro
   `/backend/sita/synonyms`.
 - `GET /api/sita/knowledge` → sinonim aktif dari `/api/sita/synonyms`; widget
   menggabungkannya dengan alias lokal agar typo/istilah baru tetap dikenali tanpa
-  LLM atau API pihak ketiga.
+  LLM atau API pihak ketiga. Sinonim dengan kolom `topic` (`packages`, `venues`,
+  `vendors`) ikut menentukan deteksi topik di server **dan** widget. Endpoint
+  memakai `Cache-Control: no-store` dan cache FE 60 detik, sehingga perubahan di
+  `/backend/sita/synonyms` tampil maksimal 1 menit kemudian.
 - `POST /api/sita/leads`
   `{name, phone, topic, criteria?, score, message?, website?}` → menyimpan lead
   hasil handoff Sita ke Laravel `/api/sita/leads`. `score` dihitung dari

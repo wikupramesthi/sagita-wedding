@@ -81,4 +81,17 @@ describe("Sita local NLU", () => {
 		expect(smallTalkKind("thanks a lot")).toBe("thanks");
 		expect(smallTalkKind("how much is the package")).toBeNull();
 	});
+
+	it("uses aliases from the database to detect topics", () => {
+		const aliases = { vendors: ["fotobooth", "booth"] };
+
+		expect(detectTopics("fotobooth dong", aliases).primary).toBe("vendors");
+		expect(detectTopics("fotobooth dong").primary).toBeUndefined();
+	});
+
+	it("does not let a dynamic alias override a built-in strong topic", () => {
+		const aliases = { packages: ["harga"] };
+
+		expect(detectTopics("Harga venue", aliases).primary).toBe("venues");
+	});
 });

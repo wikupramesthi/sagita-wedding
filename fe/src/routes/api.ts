@@ -7,6 +7,7 @@ import {
 	sendBooking,
 	sendContact,
 } from "../services/contactService.js";
+import { subscribeNewsletter } from "../services/newsletterService.js";
 import {
 	createSitaLead,
 	fetchSitaAnalytics,
@@ -281,7 +282,7 @@ router.get(
 	sitaKnowledgeLimiter,
 	async (_req: Request, res: Response) => {
 		const synonyms = await fetchSitaSynonyms().catch(() => []);
-		res.set("Cache-Control", "public, max-age=300");
+		res.set("Cache-Control", "no-store");
 		res.json({ success: true, data: synonyms });
 	},
 );
@@ -444,23 +445,26 @@ router.post("/contact", async (req: Request, res: Response) => {
 	}
 });
 
-/**
- * Newsletter belum ada di backend maupun di UI. Balas 501, bukan sukses
- * palsu, supaya klien tidak mengira alamat email tersimpan.
- */
-router.post("/newsletter", (req: Request, res: Response) => {
+// Forward newsletter signups to backend
+router.post("/newsletter", async (req: Request, res: Response) => {
 	try {
-		validateNewsletter(req.body);
+		const result = await subscribeNewsletter(validateNewsletter(req.body));
+		res.status(200).json({
+			success: true,
+			message: result.message || "Email subscribed successfully.",
+		});
 	} catch (e) {
-		return res.status(400).json({
+		const err = toApiError(e);
+		const status = Number(err.status) || 500;
+		const isClientError = status >= 400 && status < 500;
+		res.status(status).json({
 			success: false,
-			message: toApiError(e).message,
+			message: isClientError
+				? err.message || "Failed to subscribe."
+				: "Failed to subscribe.",
+			errors: isClientError ? err.errors || null : null,
 		});
 	}
-	res.status(501).json({
-		success: false,
-		message: "Newsletter signup is not available yet.",
-	});
 });
 
 export default router;

@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
 import { env } from "../config/env.js";
 import type { NextFunction, Request, Response } from "../types/index.js";
@@ -72,7 +72,7 @@ export function writeLimiter() {
 		standardHeaders: "draft-7",
 		legacyHeaders: false,
 		keyGenerator: (req) =>
-			`${req.ip ?? "unknown"}:${req.path === "/telemetry" ? "telemetry" : "api"}`,
+			`${ipKeyGenerator(req.ip ?? "unknown")}:${req.path === "/telemetry" ? "telemetry" : "api"}`,
 		message: {
 			success: false,
 			message: "Too many requests, please try again shortly.",

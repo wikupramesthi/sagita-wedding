@@ -488,13 +488,48 @@ describe("booking publik", () => {
 		const res = await request(app).post("/api/booking").send({ nama: "" });
 		expect(res.status).toBe(400);
 	});
+});
 
-	it("POST /api/newsletter membalas 501, bukan sukses palsu", async () => {
+describe("POST /api/newsletter", () => {
+	const valid = { email: "a@b.co" };
+
+	it("menolak payload tidak valid dengan 400", async () => {
 		const res = await request(app)
 			.post("/api/newsletter")
-			.send({ email: "a@b.co" });
-		expect(res.status).toBe(501);
+			.send({ email: "bukan-email" });
+		expect(res.status).toBe(400);
 		expect(res.body.success).toBe(false);
+		expect(apiRequestMock).not.toHaveBeenCalled();
+	});
+
+	it("meneruskan langganan ke backend", async () => {
+		const res = await request(app).post("/api/newsletter").send(valid);
+
+		expect(res.status).toBe(200);
+		expect(res.body.success).toBe(true);
+		expect(apiRequestMock).toHaveBeenCalledWith(
+			"/newsletter",
+			expect.objectContaining({
+				method: "POST",
+				body: JSON.stringify(valid),
+			}),
+		);
+	});
+
+	it("meneruskan error validasi dari backend", async () => {
+		const err = new Error("Validasi gagal.") as Error & {
+			status: number;
+			errors: Record<string, string[]>;
+		};
+		err.status = 422;
+		err.errors = { email: ["Email sudah terdaftar."] };
+		apiRequestMock.mockRejectedValueOnce(err);
+
+		const res = await request(app).post("/api/newsletter").send(valid);
+
+		expect(res.status).toBe(422);
+		expect(res.body.success).toBe(false);
+		expect(res.body.errors).toEqual(err.errors);
 	});
 });
 

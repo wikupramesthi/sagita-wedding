@@ -266,7 +266,7 @@ describe("GET /api/sita/knowledge", () => {
 		const res = await request(app).get("/api/sita/knowledge");
 		expect(res.status).toBe(200);
 		expect(res.body).toEqual({ success: true, data: synonyms });
-		expect(res.headers["cache-control"]).toBe("public, max-age=300");
+		expect(res.headers["cache-control"]).toBe("no-store");
 	});
 });
 

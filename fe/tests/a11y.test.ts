@@ -1,6 +1,14 @@
-import { JSDOM } from "jsdom";
+import zlib from "node:zlib";
 import request from "supertest";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+
+if (typeof zlib.createZstdDecompress !== "function") {
+	zlib.createZstdDecompress = () => {
+		throw new Error("zstd decompression is unavailable in this Node runtime");
+	};
+}
+
+const { JSDOM } = await import("jsdom");
 
 const { apiRequestMock } = vi.hoisted(() => ({ apiRequestMock: vi.fn() }));
 vi.mock("../src/services/apiClient.js", () => ({ default: apiRequestMock }));

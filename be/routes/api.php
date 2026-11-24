@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BatchController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FaqController;
+use App\Http\Controllers\Api\NewsletterController;
 use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\PegawaiController;
@@ -39,6 +40,7 @@ Route::get('/testimonials', [TestimonialController::class, 'index']);
 Route::get('/categories', [ArticleController::class, 'category']);
 Route::get('/contact/captcha', [ContactController::class, 'captcha'])->middleware('throttle:api-captcha');
 Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:api-contact');
+Route::post('/newsletter', [NewsletterController::class, 'store'])->middleware('throttle:api-newsletter');
 Route::get('/banners', [BannerController::class, 'index']);
 
 // Identitas website publik (nama, kontak, sosmed, SEO, branding) — untuk frontend

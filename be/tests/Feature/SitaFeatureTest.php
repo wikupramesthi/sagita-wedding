@@ -303,6 +303,8 @@ class SitaFeatureTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonStructure(['data' => [['locale', 'term', 'canonical', 'topic', 'sort_order']]]);
 
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+
         $synonyms = collect($response->json('data'));
         $this->assertTrue($synonyms->contains(fn (array $item): bool => $item['locale'] === 'id' && $item['term'] === 'photographer' && $item['canonical'] === 'fotografi'));
         $this->assertTrue($synonyms->contains(fn (array $item): bool => $item['locale'] === 'en' && $item['term'] === 'photographer' && $item['canonical'] === 'photography'));

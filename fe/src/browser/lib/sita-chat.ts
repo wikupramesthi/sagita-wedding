@@ -1,4 +1,5 @@
-import { detectTopics } from "../../services/sitaNlu.js";
+import { detectTopics, type TopicAliases } from "../../services/sitaNlu.js";
+import { topicAliasesFromPayload } from "../../services/sitaTopicAliases.js";
 import { hashSitaQuestion } from "../telemetry.js";
 
 (() => {
@@ -285,8 +286,31 @@ import { hashSitaQuestion } from "../telemetry.js";
 		}
 	}
 
-	function topicFromQuestion(question: string): ChatTopic | undefined {
-		return detectTopics(question).primary;
+	let topicAliasesCache: { aliases: TopicAliases; expiresAt: number } | null =
+		null;
+
+	async function dynamicTopicAliases(): Promise<TopicAliases> {
+		if (topicAliasesCache && topicAliasesCache.expiresAt > Date.now()) {
+			return topicAliasesCache.aliases;
+		}
+		try {
+			const response = await fetch("/api/sita/knowledge", {
+				headers: { Accept: "application/json" },
+				cache: "no-store",
+			});
+			if (!response.ok) return {};
+			const aliases = topicAliasesFromPayload(await response.json(), locale);
+			topicAliasesCache = { aliases, expiresAt: Date.now() + 60_000 };
+			return aliases;
+		} catch {
+			return {};
+		}
+	}
+
+	async function topicFromQuestion(
+		question: string,
+	): Promise<ChatTopic | undefined> {
+		return detectTopics(question, await dynamicTopicAliases()).primary;
 	}
 
 	function isContextualFollowUp(question: string): boolean {
@@ -937,7 +961,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 			topicHint === "vendors"
 				? topicHint
 				: undefined;
-		const explicitTopic = topicFromQuestion(question) || hintedTopic;
+		const explicitTopic = (await topicFromQuestion(question)) || hintedTopic;
 		const isFollowUp = isContextualFollowUp(question);
 		if (explicitTopic) activeTopic = explicitTopic;
 		else if (!isFollowUp) activeTopic = undefined;

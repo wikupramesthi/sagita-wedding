@@ -5,7 +5,7 @@ import {
 	type SitaChatTopic,
 } from "../utils/validate.js";
 import { getPageBatch } from "./batchService.js";
-import { getDynamicAliases } from "./sitaKnowledge.js";
+import { getDynamicAliases, getSitaKnowledge } from "./sitaKnowledge.js";
 import {
 	detectTopics,
 	hasExplicitVendorCategory,
@@ -1663,9 +1663,10 @@ export async function answerSitaQuestion(
 		};
 	}
 
-	const analysis = detectTopics(message);
+	const knowledge = await getSitaKnowledge(locale);
+	const analysis = detectTopics(message, knowledge.topics);
 
-	const kind = smallTalkKind(message);
+	const kind = smallTalkKind(message, knowledge.topics);
 	if (kind) return smallTalkAnswer(locale, kind);
 
 	if (
@@ -1716,7 +1717,7 @@ export async function answerSitaQuestion(
 		);
 	}
 
-	const aliases = buildAliasLookup(await getDynamicAliases(locale));
+	const aliases = buildAliasLookup(knowledge.aliases);
 	const forcedVendor =
 		hasExplicitVendorCategory(message) &&
 		!PACKAGE_NAME_TERMS.test(message) &&
