@@ -23,6 +23,7 @@ class SitaAnalyticsController extends Controller
     private const ALIASES = [
         'turnId' => 'turn_id',
         'queryHash' => 'query_hash',
+        'querySample' => 'query_sample',
         'responseMs' => 'response_ms',
     ];
 
@@ -31,6 +32,7 @@ class SitaAnalyticsController extends Controller
         'name',
         'topic',
         'query_hash',
+        'query_sample',
         'turn_id',
         'confidence',
         'fallback',
@@ -64,6 +66,7 @@ class SitaAnalyticsController extends Controller
             'name' => ['required', 'string', Rule::in(self::NAMES)],
             'topic' => ['nullable', 'string', Rule::in(self::TOPICS)],
             'query_hash' => ['nullable', 'string', 'max:32', 'regex:/\A[a-z0-9]+\z/'],
+            'query_sample' => ['nullable', 'string', 'max:500'],
             'turn_id' => ['nullable', 'string', 'max:80', 'regex:/\A[A-Za-z0-9_-]+\z/'],
             'confidence' => ['nullable', 'numeric', 'between:0,1'],
             'fallback' => ['nullable', 'boolean'],
@@ -80,6 +83,7 @@ class SitaAnalyticsController extends Controller
             'occurred_at' => ['nullable', 'date'],
             'turnId' => ['nullable', 'string', 'max:80'],
             'queryHash' => ['nullable', 'string', 'max:32'],
+            'querySample' => ['nullable', 'string', 'max:500'],
             'responseMs' => ['nullable'],
         ])->validate();
 
@@ -100,6 +104,13 @@ class SitaAnalyticsController extends Controller
 
         if (isset($validated['response_ms'])) {
             $validated['response_ms'] = (int) $validated['response_ms'];
+        }
+
+        $sample = $this->cleanSample($validated['query_sample'] ?? null);
+        if ($sample !== null) {
+            $validated['query_sample'] = $sample;
+        } else {
+            unset($validated['query_sample']);
         }
 
         $turnId = $validated['turn_id'] ?? null;
@@ -140,6 +151,21 @@ class SitaAnalyticsController extends Controller
             'status' => 'success',
             'deduplicated' => false,
         ], 202);
+    }
+
+    private function cleanSample(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $sample = preg_replace('~https?://\S+~i', '[tautan]', $value) ?? '';
+        $sample = preg_replace('~\S+@\S+\.\S+~', '[email]', $sample) ?? '';
+        $sample = preg_replace('~\b\d(?:[\s().-]?\d){9,}\b~', '[nomor]', $sample) ?? '';
+        $sample = preg_replace('~[\x00-\x1F\x7F]~', ' ', $sample) ?? '';
+        $sample = trim(preg_replace('~\s+~u', ' ', $sample) ?? '');
+
+        return $sample !== '' ? mb_substr($sample, 0, 160) : null;
     }
 
     public function index(): JsonResponse

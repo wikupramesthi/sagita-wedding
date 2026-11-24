@@ -20,6 +20,7 @@ import { answerSitaQuestion } from "../services/sitaService.js";
 import type { Request, Response } from "../types/index.js";
 import { toApiError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
+import { sanitizeSitaQuerySample } from "../utils/sitaQuery.js";
 import {
 	validateBooking,
 	validateContact,
@@ -98,6 +99,8 @@ export type TelemetryPayload =
 			path: "/";
 			topic?: SitaTopic;
 			queryHash?: string;
+			sample?: string;
+			fallback?: boolean;
 	  }
 	| {
 			kind: "event";
@@ -108,6 +111,7 @@ export type TelemetryPayload =
 			fallback: boolean;
 			clarify: boolean;
 			responseMs: number;
+			queryHash?: string;
 			turnId?: string;
 	  }
 	| {
@@ -143,12 +147,20 @@ export function parseTelemetry(value: unknown): TelemetryPayload | null {
 				/^[a-z0-9]{1,32}$/.test(item.queryHash)
 					? item.queryHash
 					: undefined;
+			const sample =
+				typeof item.sample === "string"
+					? sanitizeSitaQuerySample(item.sample)
+					: "";
 			return {
 				kind: "event",
 				name: "sita.no_match",
 				path: "/",
 				...(topic ? { topic } : {}),
 				...(queryHash ? { queryHash } : {}),
+				...(sample ? { sample } : {}),
+				...(typeof item.fallback === "boolean"
+					? { fallback: item.fallback }
+					: {}),
 			};
 		}
 		if (item.name === "sita.answer") {
@@ -175,6 +187,10 @@ export function parseTelemetry(value: unknown): TelemetryPayload | null {
 				clarify: item.clarify,
 				responseMs,
 				...(topic ? { topic } : {}),
+				...(typeof item.queryHash === "string" &&
+				/^[a-z0-9]{1,32}$/.test(item.queryHash)
+					? { queryHash: item.queryHash }
+					: {}),
 				...(turnId ? { turnId } : {}),
 			};
 		}

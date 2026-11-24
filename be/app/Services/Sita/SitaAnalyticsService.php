@@ -79,11 +79,14 @@ class SitaAnalyticsService
             ->map(function (Collection $group, string $queryHash): array {
                 $last = $group->sortByDesc('occurred_at')->first();
                 $topic = $group->last(fn (SitaAnalyticsEvent $event): bool => $event->topic !== null);
+                $sample = $group->last(fn (SitaAnalyticsEvent $event): bool => $event->query_sample !== null);
 
                 return [
                     'queryHash' => $queryHash,
                     'count' => $group->count(),
                     'topic' => $topic?->topic,
+                    'sample' => $sample?->query_sample,
+                    'fallback' => (bool) $last->fallback,
                     'lastAt' => $this->iso($last->occurred_at),
                 ];
             })
@@ -108,6 +111,7 @@ class SitaAnalyticsService
             'helpful' => 'helpful',
             'response_ms' => 'responseMs',
             'query_hash' => 'queryHash',
+            'query_sample' => 'sample',
         ] as $column => $key) {
             if ($event->{$column} !== null) {
                 $data[$key] = $event->{$column};

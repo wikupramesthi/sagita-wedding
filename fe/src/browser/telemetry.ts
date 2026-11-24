@@ -1,3 +1,5 @@
+import { sanitizeSitaQuerySample } from "../utils/sitaQuery.js";
+
 type TelemetryPayload =
 	| {
 			kind: "error";
@@ -17,6 +19,8 @@ type TelemetryPayload =
 			path: "/";
 			topic?: string;
 			queryHash?: string;
+			sample?: string;
+			fallback?: boolean;
 	  }
 	| {
 			kind: "event";
@@ -27,6 +31,7 @@ type TelemetryPayload =
 			fallback: boolean;
 			clarify: boolean;
 			responseMs: number;
+			queryHash?: string;
 			turnId?: string;
 	  }
 	| {
@@ -124,6 +129,8 @@ window.addEventListener("sita:no-match", (event) => {
 		event as CustomEvent<{
 			topic?: unknown;
 			queryHash?: unknown;
+			sample?: unknown;
+			fallback?: unknown;
 		}>
 	).detail;
 	const topic = cleanTopic(detail?.topic);
@@ -132,6 +139,10 @@ window.addEventListener("sita:no-match", (event) => {
 		/^[a-z0-9]{1,32}$/.test(detail.queryHash)
 			? detail.queryHash
 			: undefined;
+	const sample =
+		typeof detail?.sample === "string"
+			? sanitizeSitaQuerySample(detail.sample)
+			: "";
 	if (!once(`event:sita.no_match:${queryHash ?? "unknown"}`)) return;
 	send({
 		kind: "event",
@@ -139,6 +150,10 @@ window.addEventListener("sita:no-match", (event) => {
 		path: "/",
 		...(topic ? { topic } : {}),
 		...(queryHash ? { queryHash } : {}),
+		...(sample ? { sample } : {}),
+		...(typeof detail?.fallback === "boolean"
+			? { fallback: detail.fallback }
+			: {}),
 	});
 });
 
@@ -150,6 +165,7 @@ window.addEventListener("sita:answer", (event) => {
 			fallback?: unknown;
 			clarify?: unknown;
 			responseMs?: unknown;
+			queryHash?: unknown;
 			turnId?: unknown;
 		}>
 	).detail;
@@ -162,6 +178,11 @@ window.addEventListener("sita:answer", (event) => {
 	}
 	const turnId =
 		typeof detail.turnId === "string" ? cleanName(detail.turnId) : undefined;
+	const queryHash =
+		typeof detail.queryHash === "string" &&
+		/^[a-z0-9]{1,32}$/.test(detail.queryHash)
+			? detail.queryHash
+			: undefined;
 	if (turnId && !once(`event:sita.answer:${turnId}`)) return;
 	send({
 		kind: "event",
@@ -172,6 +193,7 @@ window.addEventListener("sita:answer", (event) => {
 		fallback: detail.fallback === true,
 		clarify: detail.clarify === true,
 		responseMs: detail.responseMs,
+		...(queryHash ? { queryHash } : {}),
 		...(turnId ? { turnId } : {}),
 	});
 });

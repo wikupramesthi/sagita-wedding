@@ -12,6 +12,7 @@ class SitaAnalyticsEvent extends Model
         'name',
         'topic',
         'query_hash',
+        'query_sample',
         'turn_id',
         'confidence',
         'fallback',

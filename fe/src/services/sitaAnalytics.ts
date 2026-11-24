@@ -25,6 +25,7 @@ interface StoredSitaEvent {
 	helpful?: boolean;
 	responseMs?: number;
 	queryHash?: string;
+	sample?: string;
 }
 
 interface QueryHashStat {
@@ -32,6 +33,8 @@ interface QueryHashStat {
 	count: number;
 	topic?: SitaTopic;
 	lastAt: string;
+	sample?: string;
+	fallback?: boolean;
 }
 
 const MAX_EVENTS = 500;
@@ -157,6 +160,9 @@ export function recordSitaTelemetry(payload: TelemetryPayload): void {
 	if ("queryHash" in payload && typeof payload.queryHash === "string") {
 		stored.queryHash = payload.queryHash;
 	}
+	if ("sample" in payload && typeof payload.sample === "string") {
+		stored.sample = payload.sample;
+	}
 
 	events.push(stored);
 	if (events.length > MAX_EVENTS) events.shift();
@@ -170,6 +176,16 @@ export function recordSitaTelemetry(payload: TelemetryPayload): void {
 				? { topic: stored.topic }
 				: previous?.topic
 					? { topic: previous.topic }
+					: {}),
+			...(stored.sample
+				? { sample: stored.sample }
+				: previous?.sample
+					? { sample: previous.sample }
+					: {}),
+			...(typeof stored.fallback === "boolean"
+				? { fallback: stored.fallback }
+				: previous?.fallback !== undefined
+					? { fallback: previous.fallback }
 					: {}),
 			lastAt: stored.at,
 		});

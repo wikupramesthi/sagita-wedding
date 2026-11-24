@@ -53,6 +53,8 @@ describe("Sita analytics", () => {
 			path: "/",
 			topic: "packages",
 			queryHash: "abc123",
+			sample: "fotobooth dong",
+			fallback: true,
 		});
 		recordSitaTelemetry({
 			kind: "event",
@@ -60,6 +62,8 @@ describe("Sita analytics", () => {
 			path: "/",
 			topic: "packages",
 			queryHash: "abc123",
+			sample: "fotobooth dong",
+			fallback: true,
 		});
 
 		const analytics = getSitaAnalytics();
@@ -82,8 +86,43 @@ describe("Sita analytics", () => {
 		expect(analytics.noMatchPatterns[0]).toMatchObject({
 			queryHash: "abc123",
 			count: 2,
+			sample: "fotobooth dong",
+			fallback: true,
 		});
 		expect(JSON.stringify(analytics)).not.toContain("rahasia");
+	});
+
+	it("tracks low-confidence questions separately from hard fallbacks", () => {
+		recordSitaTelemetry({
+			kind: "event",
+			name: "sita.answer",
+			path: "/",
+			topic: "vendors",
+			confidence: 0.35,
+			fallback: false,
+			clarify: false,
+			responseMs: 200,
+			queryHash: "low123",
+		});
+		recordSitaTelemetry({
+			kind: "event",
+			name: "sita.no_match",
+			path: "/",
+			topic: "vendors",
+			queryHash: "low123",
+			sample: "fotobooth dong",
+			fallback: false,
+		});
+
+		const analytics = getSitaAnalytics();
+
+		expect(analytics.totals.lowConfidence).toBe(1);
+		expect(analytics.noMatchPatterns[0]).toMatchObject({
+			queryHash: "low123",
+			count: 1,
+			sample: "fotobooth dong",
+			fallback: false,
+		});
 	});
 
 	it("ignores error/vital telemetry and unknown event names", () => {

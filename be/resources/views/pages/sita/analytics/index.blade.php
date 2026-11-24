@@ -85,17 +85,21 @@
     <h6 class="fw-semibold mb-3">Pola tanpa jawaban</h6>
     <div class="table-responsive">
       <table class="table align-middle mb-0">
-        <thead class="table-light"><tr><th>Query hash</th><th>Jumlah</th><th>Topik</th><th>Terakhir</th></tr></thead>
+        <thead class="table-light"><tr><th>Contoh pertanyaan</th><th>Jumlah</th><th>Topik</th><th>Jenis</th><th>Terakhir</th></tr></thead>
         <tbody>
           @forelse($summary['noMatchPatterns'] as $pattern)
           <tr>
-            <td><code>{{ $pattern['queryHash'] }}</code></td>
+            <td>
+              <div>{{ $pattern['sample'] ?? '-' }}</div>
+              <code class="small text-muted">{{ $pattern['queryHash'] }}</code>
+            </td>
             <td>{{ $pattern['count'] }}</td>
             <td>{{ $pattern['topic'] ?? '-' }}</td>
+            <td>{{ $pattern['fallback'] ? 'Tanpa jawaban' : 'Keyakinan rendah' }}</td>
             <td>{{ $pattern['lastAt'] }}</td>
           </tr>
           @empty
-          <tr><td colspan="4" class="text-center text-muted py-3">Belum ada pola.</td></tr>
+          <tr><td colspan="5" class="text-center text-muted py-3">Belum ada pola.</td></tr>
           @endforelse
         </tbody>
       </table>

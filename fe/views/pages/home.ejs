@@ -321,7 +321,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <% (articles || []).slice(0, 3).forEach((article, i) => { %>
           <a href="/blog/<%= article.slug %>" class="reveal group relative overflow-hidden rounded-2xl aspect-[4/5] text-left w-full shadow-lg ring-1 ring-sand-900/5 hover:-translate-y-1 transition-transform duration-300" data-delay="<%= i * 100 %>">
-            <img src="<%= article.image || '/img/Sagita Wedding_about1.jpg' %>" alt="" aria-hidden="true" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105">
+            <img src="<%= article.image || heroImage %>" data-fallback="<%= heroImage %>" alt="" aria-hidden="true" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105">
             <div class="approach-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10"></div>
             <span class="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-full bg-sand-50/15 backdrop-blur-sm text-[9px] font-bold tracking-[0.15em] text-sand-50"><%= t.homeArticleLabel %></span>
             <div class="relative h-full flex flex-col justify-end p-6">

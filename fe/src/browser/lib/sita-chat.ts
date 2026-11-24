@@ -1,5 +1,6 @@
 import { detectTopics, type TopicAliases } from "../../services/sitaNlu.js";
 import { topicAliasesFromPayload } from "../../services/sitaTopicAliases.js";
+import { sanitizeSitaQuerySample } from "../../utils/sitaQuery.js";
 import { hashSitaQuestion } from "../telemetry.js";
 
 (() => {
@@ -1101,12 +1102,16 @@ import { hashSitaQuestion } from "../telemetry.js";
 			}
 
 			loadingMessage.remove();
-			if (data.unanswered) {
+			const lowConfidence =
+				typeof data.confidence === "number" && data.confidence < 0.6;
+			if (data.unanswered || lowConfidence) {
 				window.dispatchEvent(
 					new CustomEvent("sita:no-match", {
 						detail: {
 							topic: data.topic ?? contextTopic,
 							queryHash: hashSitaQuestion(question),
+							sample: sanitizeSitaQuerySample(question),
+							fallback: Boolean(data.unanswered),
 						},
 					}),
 				);
@@ -1134,6 +1139,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 						fallback: Boolean(data.unanswered),
 						clarify: Boolean(data.clarify),
 						responseMs: Date.now() - requestStartedAt,
+						queryHash: hashSitaQuestion(question),
 						turnId: answerBubble.dataset.sitaTurnId,
 					},
 				}),

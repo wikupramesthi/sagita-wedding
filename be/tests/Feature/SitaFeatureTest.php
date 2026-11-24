@@ -213,6 +213,8 @@ class SitaFeatureTest extends TestCase
                 'name' => 'sita.no_match',
                 'topic' => 'packages',
                 'queryHash' => 'abc123',
+                'querySample' => 'fotobooth dong 081234567890',
+                'fallback' => true,
             ])->assertAccepted();
         }
 
@@ -228,7 +230,7 @@ class SitaFeatureTest extends TestCase
                 'rates' => ['helpful', 'fallback', 'noMatch', 'clarify'],
                 'performance' => ['avgResponseMs'],
                 'topics' => [['topic', 'answers', 'helpful', 'unhelpful']],
-                'noMatchPatterns' => [['queryHash', 'count', 'topic', 'lastAt']],
+                'noMatchPatterns' => [['queryHash', 'count', 'topic', 'sample', 'fallback', 'lastAt']],
                 'recent' => [['at', 'name']],
             ]);
 
@@ -246,7 +248,9 @@ class SitaFeatureTest extends TestCase
             ->assertJsonPath('rates.fallback', 50)
             ->assertJsonPath('performance.avgResponseMs', 250)
             ->assertJsonPath('noMatchPatterns.0.queryHash', 'abc123')
-            ->assertJsonPath('noMatchPatterns.0.count', 2);
+            ->assertJsonPath('noMatchPatterns.0.count', 2)
+            ->assertJsonPath('noMatchPatterns.0.sample', 'fotobooth dong [nomor]')
+            ->assertJsonPath('noMatchPatterns.0.fallback', true);
 
         $this->assertCount(3, $response->json('topics'));
         $this->assertCount(6, $response->json('recent'));

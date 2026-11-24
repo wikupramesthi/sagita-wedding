@@ -844,10 +844,14 @@ describe("pageScript wiring", () => {
 	});
 
 	it("beranda menampilkan maksimal tiga artikel dengan layout kartu yang sama", async () => {
+		homeSliderBanners = [
+			{ posisi: "slider", gambar: "https://example.test/wedding-hero.webp" },
+		];
 		homeArticles = Array.from({ length: 4 }, (_, index) => ({
 			slug: `artikel-${index + 1}`,
 			title: `Artikel Pernikahan ${index + 1}`,
-			featured_image: `https://example.test/article-${index + 1}.webp`,
+			featured_image:
+				index === 1 ? "" : `https://example.test/article-${index + 1}.webp`,
 			created_at: "2026-11-20 12:00:00",
 		}));
 		homeTestimonials = [
@@ -924,6 +928,9 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain("Inspirasi Pernikahan");
 		expect(res.text).toContain('href="/blog/artikel-1"');
 		expect(res.text).toContain("https://example.test/article-1.webp");
+		expect(res.text).toContain(
+			'src="https://example.test/wedding-hero.webp" data-fallback="https://example.test/wedding-hero.webp"',
+		);
 		expect(res.text).toContain("Baca artikel");
 		expect(res.text).toContain('href="/blog"');
 		expect(res.text.match(/href="\/blog\/artikel-\d+"/g)).toHaveLength(3);
