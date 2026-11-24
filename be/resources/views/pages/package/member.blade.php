@@ -7,6 +7,13 @@
         (array) session('package_compare', []),
         'is_string'
     ));
+    $packageCount = $packages->count();
+    $desktopColumnWidth = match ($packageCount) {
+        0, 1 => 12,
+        2 => 6,
+        3 => 4,
+        default => 3,
+    };
 @endphp
 
 <style>
@@ -145,6 +152,57 @@
     .package-cover img { height: 150px; }
     .compare-table th, .compare-table td { min-width: 150px; }
 }
+
+/* Compact pricing cards */
+.package-catalog-card { padding: 22px 18px 18px; border-radius: 18px; box-shadow: 0 8px 26px rgba(43, 35, 38, .05); }
+.package-catalog-card.popular { color: #29242a; background: linear-gradient(180deg, #fff 0%, #fff5f7 100%); border: 1.5px solid #e11d48; box-shadow: 0 14px 32px rgba(225, 29, 72, .12); transform: none; }
+.package-catalog-card.popular:hover { transform: translateY(-4px); }
+.popular-badge { top: 14px; right: 14px; left: auto; transform: none; padding: 5px 10px; border-radius: 999px; background: #e11d48; font-size: 9px; letter-spacing: .04em; }
+.package-name { margin-bottom: 5px; font-size: 20px; line-height: 1.25; }
+.package-catalog-card.popular .package-name { padding-right: 88px; color: #29242a; }
+.package-description { display: -webkit-box; min-height: 54px; margin-bottom: 13px; overflow: hidden; color: #77727a; font-size: 12px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.package-catalog-card.popular .package-description { color: #77727a; }
+.package-cover { margin: -5px 0 12px; border-radius: 12px; }
+.package-cover img { height: 110px; }
+.package-divider { margin-bottom: 12px; }
+.package-catalog-card.popular .package-divider { border-color: #f2dce2; }
+.package-price-box { min-height: 77px; margin-bottom: 12px; padding-bottom: 12px; border-color: #f0ebed; }
+.package-price-label { margin-bottom: 3px; font-size: 10px; }
+.package-price-range { font-size: 24px; }
+.package-price-range span { font-size: 14px; }
+.package-price-original { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; margin: 0 0 4px; font-size: 10px; }
+.package-price-original-value { color: #969097; text-decoration: line-through; }
+.package-saving-badge { display: inline-flex; padding: 2px 6px; border-radius: 999px; background: #fff0f3; color: #c4163a; font-size: 9px; font-weight: 700; text-decoration: none !important; }
+.package-catalog-card.popular .package-price-range { color: #29242a; }
+.features-title { margin-bottom: 8px; color: #77727a; font-size: 10px; }
+.package-features { margin-bottom: 10px; }
+.package-features li { gap: 8px; margin-bottom: 7px; color: #5f5a62; font-size: 12px; line-height: 1.45; }
+.package-features li i { color: #e11d48; font-size: 14px; }
+.package-catalog-card.popular .package-features li { color: #5f5a62; }
+.package-catalog-card.popular .package-features li i { color: #e11d48; }
+.package-features-more { margin: -2px 0 12px; }
+.package-features-more summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #d71942; cursor: pointer; font-size: 11px; font-weight: 700; list-style: none; }
+.package-features-more summary::-webkit-details-marker { display: none; }
+.package-features-more summary::after { content: "\f282"; font-family: "bootstrap-icons"; font-size: 10px; transition: transform .2s ease; }
+.package-features-more[open] summary::after { transform: rotate(180deg); }
+.package-features-more .package-features { margin: 8px 0 0; }
+.package-card-tools { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+.package-tool-form { flex: 0 0 auto; }
+.package-tool-btn { display: inline-grid; width: 34px; min-height: 34px; padding: 0; place-items: center; border-radius: 50%; }
+.package-tool-btn i { font-size: 15px; }
+.package-catalog-card.popular .package-tool-btn { border-color: #f0d7de; background: #fff; color: #6b6470; }
+.package-catalog-card.popular .package-tool-btn.active { border-color: #f4c3ce; background: #fff0f3; color: #c4163a; }
+.package-card-actions { gap: 7px; }
+.choose-package { padding: 10px 16px; border: 1px solid #e6e1e4; border-radius: 999px; background: #fff; color: #302a30; font-size: 12px; }
+.choose-package:hover { border-color: #cfc7cc; background: #faf8f9; color: #302a30; }
+.package-catalog-card.popular .choose-package { border-color: #e11d48; background: #e11d48; color: #fff; box-shadow: 0 5px 12px rgba(225, 29, 72, .15); }
+.package-catalog-card.popular .choose-package:hover { border-color: #c4163a; background: #c4163a; }
+.package-details-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 2px 0 4px; color: #d71942; font-size: 11px; font-weight: 600; text-decoration: none; }
+.package-details-link:hover { color: #a90f31; text-decoration: underline; }
+@media (max-width: 767px) {
+    .package-catalog-card { padding: 20px 16px 16px; }
+    .package-description { min-height: 0; }
+}
 </style>
 
 <div class="package-catalog-page">
@@ -238,9 +296,9 @@
             </div>
         </form>
 
-        <div class="row g-4 align-items-stretch">
+        <div class="row g-3 align-items-stretch package-catalog-grid">
             @forelse ($packages as $package)
-            <div class="col-xl-4 col-lg-4 col-md-6">
+            <div class="col-xl-{{ $desktopColumnWidth }} col-lg-4 col-md-6">
                 <div class="package-catalog-card {{ $package->is_popular ? 'popular' : '' }}">
 
                     @php
@@ -258,10 +316,14 @@
                         if (request('event_date')) {
                             $quotationParams['event_date'] = request('event_date');
                         }
+
+                        $features = $package->features;
+                        $visibleFeatures = $features->take(5);
+                        $remainingFeatures = $features->slice($visibleFeatures->count());
                     @endphp
 
                     @if ($package->is_popular)
-                    <div class="popular-badge"><i class="bi bi-star-fill me-1"></i>Paling Dipilih</div>
+                    <div class="popular-badge"><i class="bi bi-star-fill me-1"></i>REKOMENDASI</div>
                     @endif
 
                     @if ($package->cover_url)
@@ -292,74 +354,83 @@
                     <div class="package-divider"></div>
 
                     @php
-                        $regularPrices = $package->options->pluck('price');
                         $finalPrices = $package->options->map(fn ($o) => $o->discount_price !== null && $o->discount_price < $o->price ? $o->discount_price : $o->price);
+                        $discountedOptions = $package->options->filter(fn ($o) => $o->price > 0 && $o->discount_price !== null && $o->discount_price < $o->price);
+                        $regularPrices = $discountedOptions->isNotEmpty() ? $discountedOptions->pluck('price') : $package->options->pluck('price');
                         $minRegular = $regularPrices->min();
                         $maxRegular = $regularPrices->max();
                         $minFinal = $finalPrices->min();
                         $maxFinal = $finalPrices->max();
-                        $hasDiscount = $package->options->contains(fn ($o) => $o->discount_price !== null && $o->discount_price < $o->price);
+                        $hasDiscount = $discountedOptions->isNotEmpty();
+                        $discountPercent = (int) round($discountedOptions->map(function ($option) {
+                            return (($option->price - $option->discount_price) / $option->price) * 100;
+                        })->max() ?? 0);
                     @endphp
 
                     <div class="package-price-box">
                         @if ($finalPrices->isNotEmpty())
+                            @if ($hasDiscount)
+                            <div class="package-price-original">
+                                <span>Harga normal</span>
+                                <span class="package-price-original-value">
+                                    Rp {{ number_format($minRegular, 0, ',', '.') }}@if ($minRegular != $maxRegular) - Rp {{ number_format($maxRegular, 0, ',', '.') }}@endif
+                                </span>
+                                @if ($discountPercent > 0)
+                                <span class="package-saving-badge">Hemat hingga {{ $discountPercent }}%</span>
+                                @endif
+                            </div>
+                            @else
                             <div class="package-price-label">Mulai dari</div>
+                            @endif
                             <div class="package-price-range {{ $hasDiscount ? 'discounted' : '' }}">
                                 Rp {{ number_format($minFinal, 0, ',', '.') }}
                                 @if ($minFinal != $maxFinal)
-                                <span>-</span> Rp {{ number_format($maxFinal, 0, ',', '.') }}
+                                <span>–</span> Rp {{ number_format($maxFinal, 0, ',', '.') }}
                                 @endif
                             </div>
-                            @if ($hasDiscount)
-                            <div class="package-price-original">
-                                dari <span>Rp {{ number_format($minRegular, 0, ',', '.') }}@if ($minRegular != $maxRegular) - Rp {{ number_format($maxRegular, 0, ',', '.') }}@endif</span>
-                            </div>
-                            @endif
                         @else
                             <div class="package-price-label">Informasi harga</div>
                             <div class="package-price-range">Harga belum tersedia</div>
                         @endif
                     </div>
 
-                    <div class="features-title">Yang Termasuk</div>
-                    @forelse ($package->features->groupBy(fn ($feature) => trim((string) $feature->category)) as $category => $features)
-                    @if ($category !== '')
-                    <h6 class="fw-semibold mt-3 mb-2">{{ $category }}</h6>
-                    @endif
+                    <div class="features-title">Fitur paket</div>
+                    @if ($features->isNotEmpty())
                     <ul class="package-features">
-                        @foreach ($features as $feature)
-                        <li>
-                            <i class="bi bi-check-circle-fill"></i>
-                            <span>{{ $feature->feature }}</span>
-                        </li>
+                        @foreach ($visibleFeatures as $feature)
+                        <li><i class="bi bi-check-lg"></i><span>{{ $feature->feature }}</span></li>
                         @endforeach
                     </ul>
-                    @empty
+                    @if ($remainingFeatures->isNotEmpty())
+                    <details class="package-features-more">
+                        <summary>Lihat semua {{ $features->count() }} fitur</summary>
+                        <ul class="package-features">
+                            @foreach ($remainingFeatures as $feature)
+                            <li><i class="bi bi-check-lg"></i><span>{{ $feature->feature }}</span></li>
+                            @endforeach
+                        </ul>
+                    </details>
+                    @endif
+                    @else
                     <ul class="package-features">
-                        <li>
-                            <i class="bi bi-check-circle-fill"></i>
-                            <span>Akses ke layanan Sagita Wedding Organizer</span>
-                        </li>
+                        <li><i class="bi bi-check-lg"></i><span>Akses ke layanan Sagita Wedding Organizer</span></li>
                     </ul>
-                    @endforelse
+                    @endif
 
                     @if (\Illuminate\Support\Facades\Route::has('packages.wishlist.toggle') && \Illuminate\Support\Facades\Route::has('packages.compare.add') && \Illuminate\Support\Facades\Route::has('packages.quotation'))
                     <div class="package-card-tools">
                         <form method="POST" action="{{ route('packages.wishlist.toggle', $package->uuid) }}" class="package-tool-form">
                             @csrf
-                            <button type="submit" class="package-tool-btn {{ $isWishlisted ? 'active' : '' }}">
-                                <i class="bi bi-heart{{ $isWishlisted ? '-fill' : '' }}"></i>{{ $isWishlisted ? 'Simpan' : 'Wishlist' }}
+                            <button type="submit" class="package-tool-btn {{ $isWishlisted ? 'active' : '' }}" aria-label="{{ $isWishlisted ? 'Hapus dari Favorit' : 'Simpan ke Favorit' }}" aria-pressed="{{ $isWishlisted ? 'true' : 'false' }}" title="{{ $isWishlisted ? 'Hapus dari Favorit' : 'Simpan ke Favorit' }}">
+                                <i class="bi bi-heart{{ $isWishlisted ? '-fill' : '' }}"></i><span class="visually-hidden">{{ $isWishlisted ? 'Tersimpan di Favorit' : 'Simpan ke Favorit' }}</span>
                             </button>
                         </form>
                         <form method="POST" action="{{ route('packages.compare.add', $package->uuid) }}" class="package-tool-form">
                             @csrf
-                            <button type="submit" class="package-tool-btn {{ $isCompared ? 'active' : '' }}">
-                                <i class="bi bi-list-check"></i>Bandingkan
+                            <button type="submit" class="package-tool-btn {{ $isCompared ? 'active' : '' }}" aria-label="Bandingkan {{ $package->name }}" aria-pressed="{{ $isCompared ? 'true' : 'false' }}" title="Bandingkan paket">
+                                <i class="bi bi-list-check"></i><span class="visually-hidden">Bandingkan</span>
                             </button>
                         </form>
-                        <a href="{{ route('packages.quotation', $quotationParams) }}" class="package-tool-link">
-                            <i class="bi bi-file-earmark-pdf"></i>Penawaran
-                        </a>
                     </div>
                     @endif
 
@@ -378,7 +449,11 @@
                         </button>
                         @endif
 
-                        <div class="saving-text"><i class="bi bi-heart-fill me-1"></i>Wujudkan pernikahan impian Anda</div>
+                        @if (\Illuminate\Support\Facades\Route::has('packages.quotation'))
+                        <a href="{{ route('packages.quotation', $quotationParams) }}" class="package-details-link" target="_blank" rel="noopener noreferrer">
+                            <i class="bi bi-file-earmark-text"></i>Lihat Penawaran
+                        </a>
+                        @endif
                     </div>
 
                 </div>

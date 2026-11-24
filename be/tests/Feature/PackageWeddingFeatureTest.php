@@ -226,14 +226,29 @@ class PackageWeddingFeatureTest extends TestCase
 
     public function test_member_catalog_shows_wedding_copy_and_filters_guests_and_budget(): void
     {
-        $this->createPackage('Paket Intimate', 'paket-intimate', 5000000, 4500000, 100, true);
+        $intimate = $this->createPackage('Paket Intimate', 'paket-intimate', 5000000, 4500000, 100, true);
         $this->createPackage('Paket Grand', 'paket-grand', 15000000, null, 500);
+
+        foreach (range(1, 6) as $index) {
+            PackageFeature::create([
+                'package_uuid' => $intimate->uuid,
+                'category' => 'Dekorasi',
+                'feature' => 'Fitur '.$index,
+                'sort_order' => $index,
+            ]);
+        }
 
         $this->actingAs($this->member)
             ->get(route('packages.member', ['view' => 'desktop']))
             ->assertOk()
             ->assertViewIs('pages.package.member')
             ->assertSee('Paling Dipilih')
+            ->assertSee('REKOMENDASI')
+            ->assertSee('Harga normal')
+            ->assertSee('Hemat hingga 10%')
+            ->assertSee('Lihat semua 6 fitur')
+            ->assertSee('Pilih Paket')
+            ->assertSee('target="_blank" rel="noopener noreferrer"', false)
             ->assertSee('Kapasitas Tamu')
             ->assertSee('Durasi Acara')
             ->assertSee('Lokasi Acara')
@@ -833,16 +848,23 @@ class PackageWeddingFeatureTest extends TestCase
         WebsiteIdentity::singleton()->update(['site_name' => 'Sagita Wedding Organizer']);
 
         $package = $this->createPackage('Paket Pratinjau', 'paket-pratinjau', 5000000, null, 150);
+        PackageFeature::create([
+            'package_uuid' => $package->uuid,
+            'category' => 'Dekorasi',
+            'feature' => 'Dekorasi premium',
+            'sort_order' => 1,
+        ]);
 
         $view = (new QuotationController)->preview(Request::create('/'), $package->uuid);
         $data = $view->getData();
+        $pdfHtml = view('pages.package.quotation', $data)->render();
 
         $this->assertSame('pages.package.quotation-preview', $view->name());
         $this->assertSame('Sagita Wedding Organizer', $data['siteName']);
-        $this->assertStringContainsString(
-            'Sagita Wedding Organizer',
-            view('pages.package.quotation', $data)->render()
-        );
+        $this->assertStringContainsString('Sagita Wedding Organizer', $pdfHtml);
+        $this->assertStringContainsString('Ringkasan pilihan Anda', $pdfHtml);
+        $this->assertStringContainsString('Rincian biaya', $pdfHtml);
+        $this->assertStringContainsString('Dekorasi premium', $pdfHtml);
         $this->assertStringContainsString('packages/'.$package->uuid.'/quotation', $view->render());
         $this->assertStringContainsString('packages/'.$package->uuid.'/quotation/download', $view->render());
     }
