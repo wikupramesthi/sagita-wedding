@@ -17,8 +17,8 @@
 
 <div class="card shadow-sm border-0 mb-4"><div class="card-body"><div class="sita-hero"><div class="sita-hero-icon"><i class="bi bi-person-lines-fill"></i></div><div class="flex-grow-1"><h5 class="mb-1">Prospek Sita</h5><p class="text-muted small mb-0">Calon klien dari percakapan Sita. Data kontak hanya untuk tindak lanjut tim.</p></div><div class="sita-hero-meta"><span class="sita-meta-value">{{ $leads->total() }}</span><span class="sita-meta-label">Total prospek</span></div><a href="{{ route('sita.leads.export', request()->query()) }}" class="btn btn-outline-secondary"><i class="bi bi-download me-1"></i>Export CSV</a></div></div></div>
 
-<div class="card shadow-sm border-0 mb-4"><div class="card-body">
-  <form method="GET" class="row g-2 align-items-end">
+<div class="card shadow-sm border-0 mb-4 sita-filter-card"><div class="card-body">
+  <form method="GET" class="row g-3 align-items-end sita-filter-grid">
     <div class="col-md-3"><label class="form-label small fw-semibold">Cari</label><input type="search" name="search" value="{{ $filters['search'] }}" class="form-control" placeholder="Nama atau telepon"></div>
     <div class="col-md-2"><label class="form-label small fw-semibold">Status</label><select name="status" class="form-select"><option value="">Semua</option>@foreach($statuses as $v=>[$l])<option value="{{ $v }}" @selected($filters['status']===$v)>{{ $l }}</option>@endforeach</select></div>
     <div class="col-md-2"><label class="form-label small fw-semibold">Topik</label><select name="topic" class="form-select"><option value="">Semua</option>@foreach(['packages','venues','vendors'] as $t)<option value="{{ $t }}" @selected($filters['topic']===$t)>{{ $t }}</option>@endforeach</select></div>

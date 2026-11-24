@@ -24,8 +24,8 @@
 
 <div class="card shadow-sm border-0 mb-4"><div class="card-body"><div class="sita-hero"><div class="sita-hero-icon"><i class="bi bi-robot"></i></div><div class="flex-grow-1"><h5 class="mb-1">Ringkasan Sita</h5><p class="text-muted small mb-0">Jendela {{ $summary['window']['events'] }} dari maks {{ $summary['window']['maxEvents'] }}. Dibuat {{ $formatTime($summary['generatedAt']) }}. Retensi {{ config('sita.analytics.retention_days') }} hari / maks {{ number_format(config('sita.analytics.max_rows')) }} baris. Cache 30s.</p></div></div></div></div>
 
-<div class="card shadow-sm border-0 mb-4"><div class="card-body">
-  <form method="GET" class="row g-2 align-items-end">
+<div class="card shadow-sm border-0 mb-4 sita-filter-card"><div class="card-body">
+  <form method="GET" class="row g-3 align-items-end sita-filter-grid">
     <div class="col-md-3"><label class="form-label small fw-semibold">Dari</label><input type="date" name="from" value="{{ $filters['from'] }}" class="form-control"></div>
     <div class="col-md-3"><label class="form-label small fw-semibold">Sampai</label><input type="date" name="to" value="{{ $filters['to'] }}" class="form-control"></div>
     <div class="col-md-2"><label class="form-label small fw-semibold">Topik</label><select name="topic" class="form-select"><option value="">Semua</option>@foreach(['packages','venues','vendors'] as $t)<option value="{{ $t }}" @selected($filters['topic']===$t)>{{ $t }}</option>@endforeach</select></div>

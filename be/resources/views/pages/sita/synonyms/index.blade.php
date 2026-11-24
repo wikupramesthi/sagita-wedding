@@ -11,7 +11,7 @@
     $editAction = route('sita.synonyms.update', '__UUID__');
 @endphp
 
-<div class="card shadow-sm border-0 mb-4">
+<div class="card shadow-sm border-0 mb-4 sita-filter-card">
   <div class="card-body">
     <div class="sita-hero">
       <div class="sita-hero-icon"><i class="bi bi-diagram-3"></i></div>
@@ -74,7 +74,25 @@
       </tbody>
     </table>
   </div>
-  @if($synonyms->hasPages())<div class="card-footer">{{ $synonyms->links() }}</div>@endif
+  @if($synonyms->hasPages())
+  <div class="card-footer sita-pagination-footer">
+    <div class="sita-pagination-summary">
+      Menampilkan <strong>{{ $synonyms->firstItem() }}</strong>–<strong>{{ $synonyms->lastItem() }}</strong>
+      dari <strong>{{ $synonyms->total() }}</strong> sinonim
+    </div>
+    <nav class="sita-pagination-nav" aria-label="Navigasi halaman sinonim">
+      {{ $synonyms->onEachSide(1)->links('pagination::bootstrap-5') }}
+    </nav>
+  </div>
+  @else
+  @if($synonyms->total() > 0)
+  <div class="card-footer sita-pagination-footer">
+    <div class="sita-pagination-summary">
+      Menampilkan <strong>{{ $synonyms->total() }}</strong> sinonim
+    </div>
+  </div>
+  @endif
+  @endif
 </div>
 
 <div class="modal fade" id="synonymEditModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">

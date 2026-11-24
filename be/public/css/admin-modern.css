@@ -7548,3 +7548,226 @@ a {
 #main-content .sita-stat-card .stat-label{font-size:.78rem;color:var(--modern-muted);font-weight:600}
 #main-content .sita-stat-card .stat-value{font-weight:700;color:var(--modern-text);line-height:1.2}
 @media (max-width:767.98px){#main-content .sita-hero{flex-direction:column;align-items:stretch}#main-content .sita-hero-meta{align-items:flex-start}}
+
+#main-content .sita-pagination-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 72px;
+    padding: 0.75rem 1.25rem !important;
+}
+
+#main-content .sita-pagination-summary {
+    color: var(--modern-muted);
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+#main-content .sita-pagination-summary strong {
+    color: var(--modern-heading);
+    font-weight: 700;
+}
+
+#main-content .sita-pagination-nav {
+    min-width: 0;
+}
+
+#main-content .sita-pagination-nav nav {
+    display: block;
+}
+
+#main-content .sita-pagination-nav .pagination {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    margin: 0;
+}
+
+#main-content .sita-pagination-nav .page-item {
+    flex: 0 0 auto;
+}
+
+#main-content .sita-pagination-nav .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    margin: 0;
+    padding: 0.45rem 0.65rem !important;
+    border: 1px solid var(--modern-border) !important;
+    border-radius: 0.55rem !important;
+    color: var(--modern-body) !important;
+    background: var(--modern-surface) !important;
+    box-shadow: none !important;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+#main-content .sita-pagination-nav .page-item.active .page-link {
+    border-color: transparent !important;
+    color: #fff !important;
+    background: var(--brand-gradient, linear-gradient(135deg, #75542b, #a6814f)) !important;
+}
+
+#main-content .sita-pagination-nav .page-item.disabled .page-link {
+    color: var(--modern-muted) !important;
+    background: var(--modern-surface-soft) !important;
+    opacity: 0.72;
+}
+
+@media (max-width: 575.98px) {
+    #main-content .sita-pagination-footer {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.85rem 1rem !important;
+    }
+
+    #main-content .sita-pagination-summary {
+        text-align: center;
+    }
+
+    #main-content .sita-pagination-nav {
+        overflow-x: auto;
+        padding-bottom: 0.15rem;
+    }
+
+    #main-content .sita-pagination-nav .pagination {
+        justify-content: center;
+        width: max-content;
+        min-width: 100%;
+    }
+
+    #main-content .sita-pagination-nav .page-link {
+        min-width: 34px;
+        height: 34px;
+        padding: 0.35rem 0.5rem !important;
+    }
+}
+
+/* Sita admin pages — consistent spacing and responsive data layout */
+#main-content .sita-hero {
+    min-height: 84px;
+}
+
+#main-content .sita-filter-card .card-body {
+    padding: 1.25rem 1.35rem !important;
+}
+
+#main-content .sita-filter-grid .form-label {
+    margin-bottom: 0.4rem;
+}
+
+#main-content .sita-filter-grid .form-control,
+#main-content .sita-filter-grid .form-select {
+    min-height: 42px;
+}
+
+#main-content .sita-filter-grid .btn {
+    min-height: 42px;
+}
+
+#main-content .sita-table-responsive {
+    background: var(--modern-surface);
+}
+
+#main-content .sita-table-responsive .sita-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    height: 46px;
+}
+
+#main-content .sita-table-responsive .sita-table tbody td {
+    height: 64px;
+    border-bottom: 1px solid var(--modern-border) !important;
+}
+
+#main-content .sita-table-responsive .sita-table tbody tr:last-child td {
+    border-bottom: 0 !important;
+}
+
+#main-content .sita-stat-card .card-body {
+    min-height: 82px;
+}
+
+#main-content .sita-stat-card .stat-label {
+    margin-bottom: 0.15rem;
+}
+
+#main-content .sita-rate-row {
+    padding: 0.15rem 0;
+}
+
+#main-content .sita-meta-value {
+    color: var(--modern-heading);
+}
+
+#main-content .card-header form {
+    margin: 0;
+}
+
+#main-content .sita-inline-status {
+    min-width: 145px;
+}
+
+#main-content .sita-inline-status select {
+    min-width: 132px;
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    #main-content .sita-hero {
+        flex-wrap: wrap;
+    }
+
+    #main-content .sita-filter-grid > [class*="col-md-"] {
+        margin-bottom: 0.15rem;
+    }
+
+    #main-content .sita-table-responsive .sita-table {
+        min-width: 760px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    #main-content .sita-hero {
+        align-items: flex-start;
+        padding: 1rem;
+    }
+
+    #main-content .sita-filter-card .card-body {
+        padding: 1rem !important;
+    }
+
+    #main-content .sita-filter-grid {
+        row-gap: 0.75rem !important;
+    }
+
+    #main-content .sita-filter-grid > [class*="col-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    #main-content .sita-filter-grid .d-flex {
+        width: 100%;
+    }
+
+    #main-content .sita-table-responsive {
+        border-left: 0;
+        border-right: 0;
+        border-radius: 0.75rem;
+    }
+
+    #main-content .sita-stat-card .card-body {
+        min-height: 74px;
+    }
+
+    #main-content .card-header form {
+        width: 100%;
+    }
+
+    #main-content .card-header form .form-select {
+        flex: 1;
+    }
+}
