@@ -93,12 +93,23 @@ class OrderWorkflowProvisioningService
 
     private function documentSnapshot(Order $order, Payment $payment, ?string $contractTemplate = null): array
     {
-        $order->loadMissing(['user', 'package', 'packageOption']);
+        $order->loadMissing(['user', 'package', 'packageOption', 'customPackageOffer.items']);
+        $customOffer = data_get($order->approval_snapshot, 'custom_package_offer');
+        $offerTitle = data_get($customOffer, 'title') ?? $order->customPackageOffer?->title;
+        $offerVersion = data_get($customOffer, 'version') ?? $order->customPackageOffer?->version;
+        $offerItems = data_get($customOffer, 'items')
+            ?? $order->customPackageOffer?->items?->map(fn ($item) => [
+                'name' => $item->name,
+                'price' => $item->unit_price,
+                'quantity' => $item->quantity,
+                'line_total' => $item->line_total,
+            ])->all();
         $snapshot = [
             'order_number' => $order->order_number,
             'customer_name' => $order->user?->name ?? '-',
-            'package_name' => $order->package?->name ?? '-',
-            'option_name' => $order->packageOption?->name ?? '-',
+            'package_name' => $offerTitle ?? $order->package?->name ?? '-',
+            'option_name' => $order->packageOption?->name
+                ?? ($offerTitle ? 'Penawaran khusus · Versi '.$offerVersion : '-'),
             'event_date' => $order->event_date?->translatedFormat('d F Y') ?? 'Belum ditentukan',
             'total_amount' => (float) $order->full_amount,
             'amount_paid' => (float) $order->amount_paid_value,
@@ -107,6 +118,17 @@ class OrderWorkflowProvisioningService
             'payment_date' => ($payment->paid_at ?: $payment->verified_at ?: now())->translatedFormat('d F Y H:i'),
             'issued_at' => now()->translatedFormat('d F Y'),
         ];
+
+        if ($offerTitle) {
+            $snapshot['custom_package_offer'] = [
+                'title' => $offerTitle,
+                'version' => $offerVersion,
+                'items' => $offerItems ?? [],
+                'subtotal_amount' => data_get($customOffer, 'subtotal_amount', $order->customPackageOffer?->subtotal_amount),
+                'discount_amount' => data_get($customOffer, 'discount_amount', $order->customPackageOffer?->discount_amount),
+                'payment_terms_note' => data_get($customOffer, 'payment_terms_note', $order->customPackageOffer?->payment_terms_note),
+            ];
+        }
 
         if ($contractTemplate !== null) {
             $snapshot['contract_template'] = $contractTemplate;

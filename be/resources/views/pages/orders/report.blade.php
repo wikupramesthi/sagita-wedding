@@ -178,8 +178,8 @@
                                 @endif
                                 @if ($hasColumn('package'))
                                     <td>
-                                        <span class="d-block">{{ $order->package?->name ?? '-' }}</span>
-                                        <small class="text-muted">{{ $order->packageOption?->name ?? '' }}</small>
+                                        <span class="d-block">{{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}</span>
+                                        <small class="text-muted">{{ $order->customPackageOffer ? 'Penawaran khusus · Versi '.$order->customPackageOffer->version : ($order->packageOption?->name ?? '') }}</small>
                                     </td>
                                 @endif
                                 @if ($hasColumn('amount'))

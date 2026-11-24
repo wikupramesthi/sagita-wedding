@@ -3,6 +3,7 @@
 namespace App\Models\Payment;
 
 use App\Models\Consultation;
+use App\Models\Package\CustomPackageOffer;
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
 use App\Models\User;
@@ -31,6 +32,8 @@ class Order extends Model
         'type',
         'package_uuid',
         'package_option_uuid',
+        'custom_package_offer_uuid',
+        'custom_package_offer_option_uuid',
         'event_date',
         'amount',
         'payment_scheme',
@@ -156,6 +159,20 @@ class Order extends Model
         return $this->belongsTo(PackageOption::class, 'package_option_uuid', 'uuid');
     }
 
+    public function customPackageOffer(): BelongsTo
+    {
+        return $this->belongsTo(CustomPackageOffer::class, 'custom_package_offer_uuid', 'uuid');
+    }
+
+    public function customPackageOfferOption(): BelongsTo
+    {
+        return $this->belongsTo(
+            \App\Models\Package\CustomPackageOfferOption::class,
+            'custom_package_offer_option_uuid',
+            'uuid'
+        );
+    }
+
     public function consultation(): BelongsTo
     {
         return $this->belongsTo(Consultation::class, 'consultation_uuid', 'uuid');
@@ -211,7 +228,7 @@ class Order extends Model
     {
         $scheme = $value ?: (string) data_get($this->promo_snapshot, 'payment_scheme', 'full');
 
-        return in_array($scheme, ['no_dp', 'booking_fee', 'dp30', 'dp50', 'full'], true) ? $scheme : 'full';
+        return in_array($scheme, ['no_dp', 'booking_fee', 'dp30', 'dp50', 'custom_dp', 'full'], true) ? $scheme : 'full';
     }
 
     public function getSchemeLabelAttribute(): string

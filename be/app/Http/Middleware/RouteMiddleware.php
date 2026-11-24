@@ -27,6 +27,13 @@ class RouteMiddleware
         'packages.quotation',
         'packages.quotation.download',
         'packages.quotation.preview',
+        'package-offers.mine',
+        'package-offers.show',
+        'package-offers.respond',
+        'package-offers.checkout',
+        'package-offers.checkout.store',
+        'package-offers.pdf',
+        'package-offer-requests.show',
         'orders.documents.*',
         'orders.checklist.update',
         'orders.create',
@@ -56,6 +63,14 @@ class RouteMiddleware
         $user = $request->user();
 
         if ($request->routeIs('keep-alive') || $request->routeIs('logout') || $request->routeIs('logout.confirm') || $request->routeIs('auth.me.logout')) {
+            return $next($request);
+        }
+
+        if (
+            ! $user &&
+            $request->is('backend/*') &&
+            in_array('auth', $request->route()?->gatherMiddleware() ?? [], true)
+        ) {
             return $next($request);
         }
 
@@ -183,6 +198,16 @@ class RouteMiddleware
             'packages.quotation',
             'packages.quotation.preview',
             'packages.quotation.download',
+            'package-offers.mine',
+            'package-offers.show',
+            'package-offers.respond',
+            'package-offers.checkout',
+            'package-offers.checkout.store',
+            'package-offers.pdf',
+            'package-offer-requests.mine',
+            'package-offer-requests.create',
+            'package-offer-requests.store',
+            'package-offer-requests.show',
             'checkout.*',
             'vendor.mobile',
             'orders.*',

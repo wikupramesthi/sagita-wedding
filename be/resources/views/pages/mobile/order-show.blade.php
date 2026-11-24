@@ -243,12 +243,32 @@
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom order-detail-row">
                 <span class="text-muted2 text-small">{{ __('mobile.package') }}</span>
                 <span class="small fw-semibold text-end" style="max-width:60%;">
-                    {{ $order->package?->name ?? '-' }}
+                    {{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}
+                    @if ($order->customPackageOffer)
+                        <small class="d-block text-muted2 fw-normal">Penawaran khusus · Versi {{ $order->customPackageOffer->version }}</small>
+                    @endif
                     @if ($order->packageOption?->name)
                         <small class="d-block text-muted2 fw-normal">{{ $order->packageOption->name }}</small>
                     @endif
                 </span>
             </div>
+            @if ($order->customPackageOffer)
+            <div class="py-2 border-bottom">
+                <div class="text-muted2 text-small mb-1">Rincian layanan</div>
+                @foreach ($order->customPackageOffer->items as $item)
+                <div class="d-flex justify-content-between gap-2 small py-1">
+                    <span>{{ $item->name }} × {{ number_format($item->quantity, 0, ',', '.') }}</span>
+                    <span class="text-nowrap">Rp {{ number_format($item->line_total, 0, ',', '.') }}</span>
+                </div>
+                @endforeach
+                @if ($order->customPackageOffer->discount_amount > 0)
+                <div class="d-flex justify-content-between gap-2 small pt-2">
+                    <span>Diskon khusus</span>
+                    <span class="text-nowrap">− Rp {{ number_format($order->customPackageOffer->discount_amount, 0, ',', '.') }}</span>
+                </div>
+                @endif
+            </div>
+            @endif
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom order-detail-row">
                 <span class="text-muted2 text-small">Skema</span>
                 <span class="small fw-semibold">{{ $schemeLabel }}</span>

@@ -365,7 +365,7 @@
                 <td>{{ $order->user?->name ?? '-' }}<br><small style="color:#6b7280;">{{ $order->user?->email ?? '-' }}</small></td>
                 @endif
                 @if ($hasColumn('package'))
-                <td>{{ $order->package?->name ?? '-' }}<br><small style="color:#6b7280;">{{ $order->packageOption?->name ?? '' }}</small></td>
+                <td>{{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}<br><small style="color:#6b7280;">{{ $order->customPackageOffer ? 'Penawaran khusus · Versi '.$order->customPackageOffer->version : ($order->packageOption?->name ?? '') }}</small></td>
                 @endif
                 @if ($hasColumn('amount'))
                 <td style="text-align:right;">Rp {{ number_format($order->amount, 0, ',', '.') }}</td>

@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CheckoutController;
 use App\Http\Controllers\Admin\ConsultationController;
+use App\Http\Controllers\Admin\CustomPackageOfferController;
+use App\Http\Controllers\Admin\CustomPackageOfferRequestController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmailSettingController;
 use App\Http\Controllers\Admin\EventsController;
@@ -235,6 +237,27 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
         '/packages/{package}/compare',
         [PackageInteractionController::class, 'compareRemove']
     )->name('packages.compare.remove');
+    Route::get('/package-offers/mine', [CustomPackageOfferController::class, 'mine'])->name('package-offers.mine');
+    Route::get('/package-offers/create', [CustomPackageOfferController::class, 'create'])->name('package-offers.create');
+    Route::post('/package-offers', [CustomPackageOfferController::class, 'store'])->name('package-offers.store');
+    Route::get('/package-offers/{offer}/checkout', [CustomPackageOfferController::class, 'checkout'])->name('package-offers.checkout');
+    Route::post('/package-offers/{offer}/checkout', [CustomPackageOfferController::class, 'createOrder'])->name('package-offers.checkout.store');
+    Route::post('/package-offers/{offer}/respond', [CustomPackageOfferController::class, 'respond'])->name('package-offers.respond');
+    Route::post('/package-offers/{offer}/revise', [CustomPackageOfferController::class, 'revise'])->name('package-offers.revise');
+    Route::get('/package-offers/{offer}/edit', [CustomPackageOfferController::class, 'edit'])->name('package-offers.edit');
+    Route::put('/package-offers/{offer}', [CustomPackageOfferController::class, 'update'])->name('package-offers.update');
+    Route::post('/package-offers/{offer}/send', [CustomPackageOfferController::class, 'sendDraft'])->name('package-offers.send');
+    Route::post('/package-offers/{offer}/discard', [CustomPackageOfferController::class, 'discardDraft'])->name('package-offers.discard');
+    Route::get('/package-offers/{offer}/pdf', [CustomPackageOfferController::class, 'downloadPdf'])->name('package-offers.pdf');
+    Route::get('/package-offer-requests/mine', [CustomPackageOfferRequestController::class, 'mine'])->name('package-offer-requests.mine');
+    Route::get('/package-offer-requests/create', [CustomPackageOfferRequestController::class, 'create'])->name('package-offer-requests.create');
+    Route::post('/package-offer-requests', [CustomPackageOfferRequestController::class, 'store'])->name('package-offer-requests.store');
+    Route::get('/package-offer-requests', [CustomPackageOfferRequestController::class, 'index'])->name('package-offer-requests.index');
+    Route::post('/package-offer-requests/{packageOfferRequest}/status', [CustomPackageOfferRequestController::class, 'updateStatus'])->name('package-offer-requests.status');
+    Route::post('/package-offer-requests/{packageOfferRequest}/convert', [CustomPackageOfferRequestController::class, 'convert'])->name('package-offer-requests.convert');
+    Route::get('/package-offer-requests/{packageOfferRequest}', [CustomPackageOfferRequestController::class, 'show'])->name('package-offer-requests.show');
+    Route::get('/package-offers/{offer}', [CustomPackageOfferController::class, 'show'])->name('package-offers.show');
+    Route::get('/package-offers', [CustomPackageOfferController::class, 'index'])->name('package-offers.index');
     Route::post(
         '/packages/bulk',
         [PackageController::class, 'bulkAction']

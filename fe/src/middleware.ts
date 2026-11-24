@@ -57,6 +57,24 @@ async function withMinifiedHtml(response: Response): Promise<Response> {
 	}
 }
 
+async function withScriptNonce(
+	response: Response,
+	nonce: string,
+): Promise<Response> {
+	const contentType = response.headers.get("content-type") ?? "";
+	if (!contentType.includes("text/html")) return response;
+	try {
+		const html = await response.text();
+		if (!html.includes("<html")) return new Response(html, response);
+		return new Response(
+			html.replace(/<script(?![^>]*\bnonce\s*=)/g, `<script nonce="${nonce}"`),
+			response,
+		);
+	} catch {
+		return response;
+	}
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
 	const { request, cookies, locals, url } = context;
 	const pathname = url.pathname;
@@ -164,5 +182,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		void submitVisit(buildVisitPayload(visitorId, visitPath, visitAgent));
 	}
 
-	return env.HTML_MINIFY === "0" ? response : await withMinifiedHtml(response);
+	const nonced = await withScriptNonce(response, nonce);
+	return env.HTML_MINIFY === "0" ? nonced : await withMinifiedHtml(nonced);
 });

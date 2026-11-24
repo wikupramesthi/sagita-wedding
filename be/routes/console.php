@@ -11,6 +11,7 @@ Artisan::command('inspire', function () {
 
 Schedule::command('records:expire')->hourly();
 Schedule::command('consultations:remind-followups')->everyThirtyMinutes();
+Schedule::command('package-offers:remind-expiry')->hourly();
 Schedule::command('orders:remind-sla')->everyThirtyMinutes();
 Schedule::command('orders:remind-balance-due')->dailyAt('08:00');
 Schedule::command('checklists:remind-due')->dailyAt('08:15');

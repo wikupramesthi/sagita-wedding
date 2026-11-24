@@ -72,6 +72,8 @@ class MenuSeeder extends Seeder
                 ['name' => 'Data Paket', 'route' => 'packages.index', 'permission_name' => 'package.index', 'position' => 1],
                 ['name' => 'Paket Organizer', 'route' => 'packages.member', 'permission_name' => 'package.member', 'position' => 2],
                 ['name' => 'Promo', 'route' => 'package-promos.index', 'permission_name' => 'package.promo.index', 'position' => 3],
+                ['name' => 'Permintaan Paket Saya', 'route' => 'package-offer-requests.mine', 'permission_name' => 'package.member', 'position' => 4],
+                ['name' => 'Penawaran Saya', 'route' => 'package-offers.mine', 'permission_name' => 'package.member', 'position' => 5],
             ],
             'venues.index' => [
                 ['name' => 'Data Venue', 'route' => 'venues.index', 'permission_name' => 'venues.index', 'position' => 1],

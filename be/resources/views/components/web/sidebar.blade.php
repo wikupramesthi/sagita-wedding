@@ -70,6 +70,27 @@
                 <!-- end can menu -->
                 @endforeach
 
+                @can('package.index')
+                <li class="sidebar-title">Penawaran Khusus</li>
+                <li class="sidebar-item {{ request()->routeIs('package-offers.*') ? 'active' : '' }}">
+                    <a class="sidebar-link nav-link" href="{{ route('package-offers.index') }}">
+                        <div class="icon icon-shape icon-sm"><i class="bx bx-file"></i></div>
+                        <span class="nav-link-text ms-1">Penawaran Khusus</span>
+                        @if ($pendingPackageOfferCount > 0)
+                        <span class="badge rounded-pill text-bg-danger ms-auto">{{ $pendingPackageOfferCount }}</span>
+                        @endif
+                    </a>
+                </li>
+                <li class="sidebar-item {{ request()->routeIs('package-offer-requests.*') ? 'active' : '' }}">
+                    <a class="sidebar-link nav-link" href="{{ route('package-offer-requests.index') }}">
+                        <div class="icon icon-shape icon-sm"><i class="bx bx-message-square-detail"></i></div>
+                        <span class="nav-link-text ms-1">Permintaan Pelanggan</span>
+                        @if ($pendingPackageRequestCount > 0)
+                        <span class="badge rounded-pill text-bg-danger ms-auto">{{ $pendingPackageRequestCount }}</span>
+                        @endif
+                    </a>
+                </li>
+                @endcan
 
                 @role('user')
                 <li class="sidebar-title">Menu Lainnya</li>

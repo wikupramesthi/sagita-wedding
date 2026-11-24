@@ -236,6 +236,11 @@
             <a href="{{ route('packages.compare.index') }}" class="package-quick-link">
                 <i class="bi bi-list-check"></i>Bandingkan ({{ count($compareUuids) }})
             </a>
+            @if (auth()->user()?->hasRole('user') && \Illuminate\Support\Facades\Route::has('package-offers.mine'))
+            <a href="{{ route('package-offers.mine') }}" class="package-quick-link">
+                <i class="bi bi-file-earmark-check"></i>Penawaran Saya
+            </a>
+            @endif
         </div>
         @endif
 

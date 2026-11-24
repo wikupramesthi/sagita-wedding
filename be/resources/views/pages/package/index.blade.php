@@ -77,6 +77,19 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
 
 <section class="section package-page">
 
+    @if (auth()->user()?->can('package.index') && \Illuminate\Support\Facades\Route::has('package-offers.index'))
+    <div class="d-flex flex-wrap justify-content-end gap-2 mb-3">
+        <a href="{{ route('package-offers.index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-file-earmark-text me-1"></i>Penawaran Khusus
+        </a>
+        @if (auth()->user()?->can('package.store') && \Illuminate\Support\Facades\Route::has('package-offers.create'))
+        <a href="{{ route('package-offers.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Buat Penawaran Khusus
+        </a>
+        @endif
+    </div>
+    @endif
+
     <div class="row mb-4 g-3 ml-stats package-stats">
         @foreach ($statCards as $stat)
         <div class="col-6 col-md-4 col-xl">

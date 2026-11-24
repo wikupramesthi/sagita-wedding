@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Package\CustomPackageOffer;
+use App\Models\Package\CustomPackageOfferRequest;
 use App\Models\Package\Package;
 use App\Models\Payment\Order;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -372,6 +374,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(
             Order::class,
+            'user_uuid',
+            'uuid'
+        );
+    }
+
+    public function customPackageOffers()
+    {
+        return $this->hasMany(
+            CustomPackageOffer::class,
+            'user_uuid',
+            'uuid'
+        );
+    }
+
+    public function customPackageOfferRequests()
+    {
+        return $this->hasMany(
+            CustomPackageOfferRequest::class,
             'user_uuid',
             'uuid'
         );

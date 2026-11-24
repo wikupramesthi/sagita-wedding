@@ -16,7 +16,7 @@
             </div>
             <div class="col-6">
                 <div class="text-muted">Paket</div>
-                <div class="fw-semibold">{{ $order->package?->name ?? '-' }}</div>
+                <div class="fw-semibold">{{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}</div>
             </div>
             <div class="col-6">
                 <div class="text-muted">Dibuat</div>

@@ -10,6 +10,7 @@ export default defineConfig({
 		env: {
 			// Dipakai src/config/env.ts yang di-import transitif.
 			BACKEND_URL: "http://127.0.0.1:8000",
+			GOOGLE_AUTH_URL: "http://127.0.0.1:8000/auth/google",
 			API_PREFIX: "v1",
 			API_KEY: "test-key",
 			SITE_URL: "http://localhost:3000",

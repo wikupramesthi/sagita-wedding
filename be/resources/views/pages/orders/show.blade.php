@@ -17,7 +17,7 @@
     $fullAmount = (float) ($order->total_amount ?: $order->amount);
     $amountPaid = (float) ($order->amount_paid_value ?? ($order->status === 'paid' ? $fullAmount : 0));
     $remainingAmount = (float) ($order->remaining_amount_value ?? max(0, $fullAmount - $amountPaid));
-    $isDp = in_array($order->payment_scheme, ['dp30','dp50'], true);
+    $isDp = in_array($order->payment_scheme, ['dp30','dp50','custom_dp'], true);
     $orderTimeline = collect();
     if ($order->created_at) {
         $orderTimeline->push(['label' => 'Pesanan dibuat', 'at' => $order->created_at]);
@@ -510,8 +510,14 @@
                         <div class="membership-info">
 
                             <h4>
-                                {{ $order->package?->name ?? '-' }}
+                                {{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}
                             </h4>
+
+                            @if ($order->customPackageOffer)
+                            <div class="membership-meta">
+                                <span>Penawaran khusus · Versi {{ $order->customPackageOffer->version }}</span>
+                            </div>
+                            @endif
 
                             @if ($order->packageOption)
 
@@ -550,6 +556,24 @@
                         </div>
 
                     </div>
+
+                    @if ($order->customPackageOffer)
+                    <div class="mt-3 border-top pt-3">
+                        <div class="fw-semibold mb-2">Rincian layanan</div>
+                        @foreach ($order->customPackageOffer->items as $item)
+                        <div class="d-flex justify-content-between gap-3 small py-1">
+                            <span>{{ $item->name }} × {{ number_format($item->quantity, 0, ',', '.') }}</span>
+                            <span class="text-nowrap">Rp {{ number_format($item->line_total, 0, ',', '.') }}</span>
+                        </div>
+                        @endforeach
+                        @if ($order->customPackageOffer->discount_amount > 0)
+                        <div class="d-flex justify-content-between gap-3 small pt-2 mt-1 border-top">
+                            <span>Diskon khusus</span>
+                            <span class="text-nowrap">− Rp {{ number_format($order->customPackageOffer->discount_amount, 0, ',', '.') }}</span>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
 
                 </div>
 
@@ -731,7 +755,7 @@
                     <div class="card-header bg-white fw-semibold">Info Pesanan</div>
                     <div class="card-body small">
                         <div class="d-flex justify-content-between align-items-start mb-3"><span class="text-muted">Pelanggan</span><span class="fw-semibold text-end ms-3">{{ $order->user?->name ?? '-' }}</span></div>
-                        <div class="d-flex justify-content-between align-items-start mb-3"><span class="text-muted">Paket</span><span class="fw-semibold text-end ms-3">{{ $order->package?->name ?? '-' }}</span></div>
+                        <div class="d-flex justify-content-between align-items-start mb-3"><span class="text-muted">Paket</span><span class="fw-semibold text-end ms-3">{{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}</span></div>
                         <div class="d-flex justify-content-between align-items-start mb-3"><span class="text-muted">Tanggal acara</span><span class="fw-semibold text-end ms-3">{{ $order->event_date?->translatedFormat('d M Y') ?? '-' }}</span></div>
                         <div class="d-flex justify-content-between align-items-center pt-3 border-top"><span class="text-muted">Status</span><span class="badge {{ $order->status==='paid'?'bg-success':($order->status==='partially_paid'?'bg-primary':($order->status==='pending'?'bg-warning text-dark':'bg-secondary')) }}">{{ $statusLabels[$order->status] ?? $order->status }}</span></div>
                     </div>

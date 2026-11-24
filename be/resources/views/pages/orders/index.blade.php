@@ -553,7 +553,10 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                 </td>
                                 @endif
                                 <td class="order-detail" data-col="package" data-label="Paket">
-                                    <span class="d-block fw-semibold">{{ $order->package?->name ?? '-' }}</span>
+                                    <span class="d-block fw-semibold">{{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}</span>
+                                @if ($order->customPackageOffer)
+                                <small class="log-muted">Penawaran khusus · Versi {{ $order->customPackageOffer->version }}</small>
+                                @endif
                                 @if ($order->packageOption?->name)
                                 <small class="log-muted">{{ $order->packageOption->name }}</small>
                                 @endif
@@ -754,7 +757,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                 </button>
                             </div>
                             <div class="order-kanban-meta">{{ $order->user?->name ?? '-' }}</div>
-                            <div class="order-kanban-meta">{{ $order->package?->name ?? '-' }}</div>
+                            <div class="order-kanban-meta">{{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}</div>
                             @if ($isAdmin && $order->status === 'pending')
                             <div class="order-flags mt-2">
                                 @if ($order->assigned_admin_uuid)

@@ -3,6 +3,8 @@
 namespace App\View\Components;
 
 use App\Models\ManagementAccess\MenuGroup;
+use App\Models\Package\CustomPackageOffer;
+use App\Models\Package\CustomPackageOfferRequest;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
@@ -30,6 +32,18 @@ class Menu extends Component
             ->orderBy('position')
             ->get();
 
-        return view('components.web.sidebar', compact('menus'));
+        $pendingPackageOfferCount = 0;
+        $pendingPackageRequestCount = 0;
+
+        if (auth()->user()?->hasAnyRole(['super-admin', 'admin'])) {
+            $pendingPackageOfferCount = CustomPackageOffer::whereIn('status', ['draft', 'revision_requested'])->count();
+            $pendingPackageRequestCount = CustomPackageOfferRequest::whereIn('status', ['submitted', 'in_review'])->count();
+        }
+
+        return view('components.web.sidebar', compact(
+            'menus',
+            'pendingPackageOfferCount',
+            'pendingPackageRequestCount'
+        ));
     }
 }
