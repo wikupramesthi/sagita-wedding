@@ -192,8 +192,8 @@ describe("Sita database answers", () => {
 		});
 
 		expect(result.cards.map((card) => card.title)).toEqual(["Gedung Jakarta"]);
-		expect(result.answer).toContain("untuk Jakarta");
-		expect(result.answer).toContain("perlu dikonfirmasi langsung");
+		expect(result.answer).toContain("di sekitar Jakarta");
+		expect(result.answer).toContain("dapat dikonfirmasi bersama tim Sagita");
 	});
 
 	it("does not invent an answer when no FAQ matches", async () => {
@@ -211,7 +211,7 @@ describe("Sita database answers", () => {
 			"id",
 		);
 
-		expect(result.answer).toContain("belum menangkap maksudnya");
+		expect(result.answer).toContain("belum memahami pertanyaan");
 		expect(result.cards).toEqual([]);
 		expect(result.offerContact).toBe(true);
 		expect(result.unanswered).toBe(true);
@@ -310,7 +310,7 @@ describe("Sita database answers", () => {
 
 		const result = await answerSitaQuestion("Harga venue", "id");
 
-		expect(result.answer).toContain("biaya venue perlu dikonfirmasi");
+		expect(result.answer).toContain("biaya venue akan dikonfirmasi oleh tim");
 		expect(result.cards[0].actions?.[0]?.href).toBe("/formulir-konsultasi");
 		expect(result.offerContact).toBe(true);
 	});
@@ -541,7 +541,7 @@ describe("Sita NLU-local understanding", () => {
 			"id",
 		);
 
-		expect(result.answer).toContain("belum menangkap maksudnya");
+		expect(result.answer).toContain("belum memahami pertanyaan");
 		expect(result.confidence).toBe(0.15);
 		expect(result.unanswered).toBe(true);
 		expect(result.suggestions).toContainEqual({
@@ -697,7 +697,7 @@ describe("Sita explicit intents", () => {
 
 		const result = await answerSitaQuestion("Bagaimana pembayaran DP?", "id");
 
-		expect(result.answer).toContain("DP yang tercatat 30%");
+		expect(result.answer).toContain("DP yang tercatat adalah 30%");
 		expect(result.answer).toContain("pelunasan sesuai termin");
 		expect(result.cards[0].actions?.[0]?.href).toBe("/formulir-konsultasi");
 	});
@@ -728,7 +728,7 @@ describe("Sita explicit intents", () => {
 			"id",
 		);
 
-		expect(result.clarify?.question).toBe("Tanggal berapa?");
+		expect(result.clarify?.question).toBe("Tanggal acara yang diinginkan?");
 		expect(result.clarify?.options).toHaveLength(3);
 		expect(result.clarify?.options[0]).toMatch(/^20\d{2}-\d{2}-\d{2}$/);
 		expect(result.clarify?.options[1]).toMatch(/^20\d{2}-\d{2}-\d{2}$/);
@@ -743,9 +743,9 @@ describe("Sita explicit intents", () => {
 			"id",
 		);
 
-		expect(result.answer).toContain("Boleh sebutkan batas anggaran");
+		expect(result.answer).toContain("boleh sebutkan batas anggaran");
 		expect(result.clarify).toMatchObject({
-			question: "Batas anggaran berapa, Kak?",
+			question: "Berapa batas anggaran yang Kakak rencanakan?",
 			options: expect.arrayContaining(["50 juta"]),
 		});
 	});
@@ -762,7 +762,7 @@ describe("Sita explicit intents", () => {
 
 		const result = await answerSitaQuestion("Ada testimoni?", "id");
 
-		expect(result.answer).toContain("Belum ada testimoni pernikahan");
+		expect(result.answer).toContain("Saat ini belum ada testimoni pernikahan");
 		expect(result.cards).toEqual([]);
 	});
 
@@ -799,7 +799,7 @@ describe("Sita explicit intents", () => {
 	it("does not invent an office address when the site has none", async () => {
 		const result = await answerSitaQuestion("Dimana kantor Sagita?", "id");
 
-		expect(result.answer).toContain("belum tercatat");
+		expect(result.answer).toContain("belum tercantum");
 		expect(result.cards).toEqual([]);
 		expect(result.suggestions).toContainEqual({
 			label: "Hubungi admin",

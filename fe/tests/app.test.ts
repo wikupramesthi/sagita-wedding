@@ -876,14 +876,16 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain(
 			"Di detail pesanan, kamu bisa melihat daftar tugas persiapan dari tim Sagita.",
 		);
+		expect(res.text).toContain("lg:grid-cols-[1.55fr_1fr]");
 		expect(res.text).not.toContain("81 tugas");
+		expect(res.text).not.toContain("2/5 Selesai");
 		expect(res.text).not.toContain("Unduh PDF checklist");
 		expect(res.text).not.toContain("Filter berdasarkan kategori");
 		expect(
 			res.text.match(
 				/class="flex items-start gap-3 rounded-2xl bg-white px-4 py-3\.5"/g,
 			),
-		).toHaveLength(5);
+		).toHaveLength(4);
 		expect(
 			res.text.match(
 				/class="home-checklist-checkbox home-checklist-checkbox--done"/g,
@@ -895,6 +897,11 @@ describe("pageScript wiring", () => {
 		expect(english.text).toContain(
 			"Your order details include a preparation checklist from the Sagita team.",
 		);
+		expect(
+			english.text.match(
+				/class="flex items-start gap-3 rounded-2xl bg-white px-4 py-3\.5"/g,
+			),
+		).toHaveLength(4);
 		expect(english.text).not.toContain("download as PDF");
 		expect(res.text).toContain("Pantau semuanya dari");
 		expect(res.text).toContain("satu</span>");

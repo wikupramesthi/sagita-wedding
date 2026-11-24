@@ -835,8 +835,8 @@
 		right: 10px;
 		bottom: 8px;
 		width: calc(100vw - 20px);
-		height: min(620px, calc(100dvh - 120px));
-		min-height: 300px;
+		height: min(620px, calc(100dvh - 24px));
+		min-height: min(300px, calc(100dvh - 24px));
 	}
 
 	.sita-chat-messages {
@@ -860,6 +860,81 @@
 		padding-left: 12px;
 		font-size: 11px;
 	}
+}
+
+@media (max-width: 360px) {
+	.sita-chat-header {
+		gap: 8px;
+		padding: 10px;
+	}
+
+	.sita-chat-avatar {
+		width: 32px;
+		height: 32px;
+	}
+
+	.sita-chat-avatar svg {
+		width: 24px;
+		height: 24px;
+	}
+
+	.sita-chat-heading h2 {
+		font-size: 16px;
+	}
+
+	.sita-chat-status {
+		display: none;
+	}
+
+	.sita-chat-reset {
+		padding: 5px 8px;
+	}
+
+	.sita-chat-close {
+		width: 30px;
+		height: 30px;
+	}
+}
+
+.sita-chat-panel--lead-open {
+	height: auto;
+	max-height: min(620px, calc(100dvh - 24px));
+	min-height: 0;
+	grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.sita-chat-panel--lead-open #sitaChatMessages,
+.sita-chat-panel--lead-open #sitaChatOnboarding,
+.sita-chat-panel--lead-open #sitaChatChoices,
+.sita-chat-panel--lead-open #sitaChatComposer {
+	display: none;
+}
+
+.sita-chat-panel--lead-open .sita-chat-lead {
+	min-height: 0;
+	gap: 4px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 8px 14px;
+}
+
+.sita-chat-panel--lead-open .sita-chat-lead input:not([type="checkbox"]) {
+	padding: 7px 10px;
+}
+
+.sita-chat-panel--lead-open .sita-chat-lead button {
+	min-height: 36px;
+}
+
+.sita-chat-panel--lead-open .sita-chat-lead .sita-chat-skip {
+	min-height: 28px;
+}
+
+.sita-chat-panel--lead-open .sita-chat-note {
+	padding-top: 6px;
+	padding-bottom: max(8px, env(safe-area-inset-bottom));
+	font-size: 11px;
+	line-height: 1.4;
 }
 
 @media (prefers-reduced-motion: reduce) {

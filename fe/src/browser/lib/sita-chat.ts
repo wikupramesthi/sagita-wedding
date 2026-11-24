@@ -907,6 +907,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 	function hideLeadForm() {
 		chatLeadForm.classList.add("hidden");
 		chatLeadForm.reset();
+		chatPanel.classList.remove("sita-chat-panel--lead-open");
 	}
 
 	function resetSession() {
@@ -944,6 +945,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 		if (!selectedQuestion) selectedQuestion = label;
 		addMessage(copy.sita, copy.contact);
 		chatLeadForm.classList.remove("hidden");
+		chatPanel.classList.add("sita-chat-panel--lead-open");
 		chatLeadForm.querySelector<HTMLInputElement>("input[name='name']")?.focus();
 	}
 

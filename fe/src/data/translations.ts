@@ -328,27 +328,22 @@ const rawTranslations = {
 		homeChecklistRows: [
 			{
 				task: "Confirm event details",
-				description: "Check the venue, schedule, and event contacts.",
+				description: "Verify the venue, schedule, and main contacts.",
 				done: true,
 			},
 			{
 				task: "Finalize guest count",
-				description: "Update guest estimates and catering needs.",
+				description: "Update the guest estimate and align catering needs.",
 				done: true,
 			},
 			{
 				task: "Confirm event schedule",
-				description: "Review the event flow with your wedding team.",
+				description: "Align the event flow with your wedding planning team.",
 				done: false,
 			},
 			{
 				task: "Finalize vendor requirements",
-				description: "Confirm decor, documentation, and additional vendors.",
-				done: false,
-			},
-			{
-				task: "Final event confirmation",
-				description: "Review the final event details and schedule.",
+				description: "Confirm decor, photography, and other vendors are ready.",
 				done: false,
 			},
 		],
@@ -843,27 +838,23 @@ const rawTranslations = {
 		homeChecklistRows: [
 			{
 				task: "Konfirmasi detail acara",
-				description: "Pastikan lokasi, waktu, dan kontak acara sudah benar.",
+				description: "Pastikan lokasi, waktu, dan kontak utama sudah sesuai.",
 				done: true,
 			},
 			{
 				task: "Finalisasi jumlah tamu",
-				description: "Perbarui perkiraan jumlah tamu dan kebutuhan konsumsi.",
+				description: "Perbarui jumlah tamu dan sesuaikan kebutuhan konsumsi.",
 				done: true,
 			},
 			{
 				task: "Konfirmasi susunan acara",
-				description: "Tinjau susunan acara bersama tim wedding organizer.",
+				description: "Selaraskan alur acara bersama tim wedding organizer.",
 				done: false,
 			},
 			{
 				task: "Finalisasi kebutuhan vendor",
-				description: "Pastikan kebutuhan dekorasi, dokumentasi, dan vendor.",
-				done: false,
-			},
-			{
-				task: "Konfirmasi akhir acara",
-				description: "Periksa kembali detail dan jadwal acara.",
+				description:
+					"Pastikan dekorasi, dokumentasi, dan vendor pendukung siap.",
 				done: false,
 			},
 		],

@@ -217,16 +217,20 @@ const goldenQueries: GoldenQuery[] = [
 		contains: "testimoni",
 		cards: 1,
 	},
-	{ message: "Alamat kantor?", minConfidence: 0.9, contains: "belum tercatat" },
+	{
+		message: "Alamat kantor?",
+		minConfidence: 0.9,
+		contains: "belum tercantum",
+	},
 	{
 		message: "Where is your office?",
 		minConfidence: 0.9,
-		contains: "belum tercatat",
+		contains: "belum tercantum",
 	},
 	{
 		message: "Dimana kantor Sagita?",
 		minConfidence: 0.9,
-		contains: "belum tercatat",
+		contains: "belum tercantum",
 	},
 	{ message: "how much is the package", minConfidence: 0.9, cards: 3 },
 	{ message: "venue price", minConfidence: 0.8, contains: "dikonfirmasi" },
@@ -236,13 +240,13 @@ const goldenQueries: GoldenQuery[] = [
 	{
 		message: "Berapa jumlah jerapah di bulan?",
 		minConfidence: 0.1,
-		contains: "belum menangkap",
+		contains: "belum memahami",
 		unanswered: true,
 	},
 	{
 		message: "asdf qwerty",
 		minConfidence: 0.1,
-		contains: "belum menangkap",
+		contains: "belum memahami",
 		unanswered: true,
 	},
 ];

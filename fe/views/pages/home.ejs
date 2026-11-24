@@ -244,11 +244,10 @@
 
   <!-- ======================= WEDDING CHECKLIST ======================= -->
   <% const checklistRows = t.homeChecklistRows; %>
-  <% const completedChecklistTasks = checklistRows.filter((row) => row.done).length; %>
   <section id="home-checklist" class="py-14 sm:py-16 lg:py-20">
     <div class="site-container">
-      <div class="grid items-center gap-8 rounded-[2rem] bg-white p-6 shadow-[0_12px_42px_rgba(66,48,44,0.08)] ring-1 ring-sand-900/5 sm:p-10 lg:grid-cols-3 lg:gap-12 lg:p-12">
-        <div class="lg:col-span-2">
+      <div class="grid items-center gap-8 rounded-[2rem] bg-white p-6 shadow-[0_12px_42px_rgba(66,48,44,0.08)] ring-1 ring-sand-900/5 sm:p-10 lg:grid-cols-[1.55fr_1fr] lg:gap-12 lg:p-12">
+        <div>
           <p class="inline-flex rounded-full bg-pink-100 px-4 py-2 text-xs font-bold tracking-wide text-pink-700">
             <%= t.homeChecklistEyebrow %>
           </p>
@@ -271,14 +270,6 @@
         </div>
 
         <div class="rounded-[1.75rem] bg-stone-50 p-4 sm:p-5" role="group" aria-label="<%= t.homeChecklistPreviewLabel %>">
-          <div class="mb-3 flex items-center justify-between gap-3 px-1">
-            <p class="text-[11px] font-bold uppercase tracking-wide text-stone-500">
-              <%= t.homeChecklistPreviewLabel %>
-            </p>
-            <span class="whitespace-nowrap text-[11px] text-stone-400">
-              <%= completedChecklistTasks %>/<%= checklistRows.length %> <%= t.homeChecklistDoneLabel %>
-            </span>
-          </div>
           <div class="space-y-3">
             <% checklistRows.forEach((row) => { %>
               <div class="flex items-start gap-3 rounded-2xl bg-white px-4 py-3.5">

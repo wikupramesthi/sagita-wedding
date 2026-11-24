@@ -178,10 +178,16 @@ describe("SITA chat widget", () => {
 
 		element("[data-sita-topic='contact']").click();
 		expect(element("#sitaChatLead").classList.contains("hidden")).toBe(false);
+		expect(panel.classList.contains("sita-chat-panel--lead-open")).toBe(true);
 		expect(element("#sitaChatMessages").textContent).toContain(
 			"Silakan isi nama",
 		);
 
+		element("[data-sita-skip]").click();
+		expect(element("#sitaChatLead").classList.contains("hidden")).toBe(true);
+		expect(panel.classList.contains("sita-chat-panel--lead-open")).toBe(false);
+
+		element("[data-sita-topic='contact']").click();
 		element("#sitaChatClose").click();
 		expect(panel.classList.contains("hidden")).toBe(true);
 		expect(toggle.getAttribute("aria-expanded")).toBe("false");

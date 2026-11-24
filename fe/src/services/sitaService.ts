@@ -709,11 +709,11 @@ function smallTalkAnswer(
 		answer:
 			kind === "thanks"
 				? locale === "id"
-					? "Sama-sama, Kak! Ada lagi yang bisa aku bantu soal paket, venue, vendor, atau booking?"
-					: "You're welcome! Anything else I can help with about packages, venues, vendors, or booking?"
+					? "Sama-sama, Kak. Jika ada informasi lain tentang paket, venue, vendor, atau pemesanan yang ingin diketahui, aku siap membantu."
+					: "You're very welcome. I'm happy to help with any other questions about packages, venues, vendors, or booking."
 				: locale === "id"
-					? "Halo Kak! Aku Sita, asisten digital Sagita Wedding. Mau tanya soal paket, venue, vendor, atau cara booking?"
-					: "Hi! I'm Sita, the Sagita Wedding digital assistant. Want to ask about packages, venues, vendors, or booking?",
+					? "Selamat datang, Kak. Aku Sita, asisten virtual Sagita Wedding. Dengan senang hati aku bantu mencari informasi tentang paket, venue, vendor, atau proses pemesanan."
+					: "Welcome! I'm Sita, Sagita Wedding's virtual assistant. I'd be happy to help with packages, venues, vendors, or the booking process.",
 		cards: [],
 		offerContact: false,
 		suggestions: topicMenuSuggestions(locale),
@@ -725,15 +725,15 @@ function clarifyPackageBudget(locale: Locale): SitaAnswer {
 	return {
 		answer:
 			locale === "id"
-				? "Boleh sebutkan batas anggarannya dengan satuan, misalnya Rp50.000.000 atau 50 juta?"
-				: "Could you include a currency or unit for the budget, such as IDR 50,000,000 or 50 million?",
+				? "Agar aku dapat menyaring pilihan dengan tepat, boleh sebutkan batas anggaran beserta satuannya? Contohnya Rp50.000.000 atau 50 juta."
+				: "To narrow the options accurately, could you share your budget and currency, such as IDR 50,000,000?",
 		cards: [],
 		offerContact: false,
 		clarify: {
 			question:
 				locale === "id"
-					? "Batas anggaran berapa, Kak?"
-					: "What is your budget limit?",
+					? "Berapa batas anggaran yang Kakak rencanakan?"
+					: "What budget range are you considering?",
 			options:
 				locale === "id"
 					? ["Rp50.000.000", "50 juta", "Hubungi admin"]
@@ -754,13 +754,16 @@ function clarifyEventDate(locale: Locale): SitaAnswer {
 	return {
 		answer:
 			locale === "id"
-				? "Tanggal acara yang ingin dicek kapan, Kak? Ketersediaan perlu dikonfirmasi tim Sagita."
-				: "Which event date should we check? The Sagita team needs to confirm availability.",
+				? "Tanggal berapa yang ingin Kakak tanyakan? Ketersediaan acara perlu dikonfirmasi oleh tim Sagita."
+				: "Which date would you like to ask about? The Sagita team will need to confirm availability.",
 		cards: [],
 		offerContact: false,
 		confidence: 0.85,
 		clarify: {
-			question: locale === "id" ? "Tanggal berapa?" : "Which date?",
+			question:
+				locale === "id"
+					? "Tanggal acara yang diinginkan?"
+					: "Which event date?",
 			options: [
 				futureEventDate(3),
 				futureEventDate(6),
@@ -774,8 +777,8 @@ function noPackageMatch(locale: Locale): SitaAnswer {
 	return {
 		answer:
 			locale === "id"
-				? "Aku belum menemukan paket dengan harga dan kapasitas yang tercatat sesuai kriteria itu. Coba ubah anggaran atau jumlah tamu, atau hubungi admin untuk memastikan pilihan lainnya."
-				: "I couldn't find a package with recorded pricing and capacity that matches those criteria. Try changing the budget or guest count, or contact the team to check other options.",
+				? "Maaf, Kak, belum ada paket di katalog yang sesuai dengan anggaran dan jumlah tamu tersebut. Kakak dapat menyesuaikan kriterianya atau menghubungi admin untuk menanyakan pilihan lainnya."
+				: "I'm sorry, but no package in the catalog matches that budget and guest count. You can adjust your criteria or contact the team to explore other options.",
 		cards: [],
 		offerContact: true,
 		unanswered: true,
@@ -820,8 +823,8 @@ function fallback(locale: Locale): SitaAnswer {
 	return {
 		answer:
 			locale === "id"
-				? "Maaf Kak, aku belum menangkap maksudnya. Kakak ingin tanya soal paket, venue, vendor, atau cara booking?"
-				: "Sorry, I couldn't match that question. Are you asking about packages, venues, vendors, or booking?",
+				? "Maaf, Kak, aku belum memahami pertanyaan tersebut. Apakah Kakak ingin mengetahui paket, venue, vendor, atau proses pemesanan?"
+				: "I'm sorry, I didn't quite understand your question. Would you like information about packages, venues, vendors, or booking?",
 		cards: [],
 		offerContact: true,
 		unanswered: true,
@@ -914,14 +917,14 @@ async function answerPackages(
 	const comparisonAnswer =
 		comparison && ranked.length < 2
 			? locale === "id"
-				? "Aku hanya menemukan satu paket yang cocok untuk dibandingkan:"
-				: "I found only one matching package to compare:"
+				? "Saat ini hanya ada satu paket yang sesuai untuk dibandingkan:"
+				: "At the moment, only one package matches your criteria for comparison:"
 			: comparisonDetails
-				? `${comparisonDetails}. ${locale === "id" ? "Detail tiap paket ada di kartu berikut." : "See each card for package details."}`
+				? `${comparisonDetails}. ${locale === "id" ? "Rincian setiap paket dapat Kakak lihat pada kartu berikut." : "Please see the cards below for details of each package."}`
 				: comparison
 					? locale === "id"
-						? "Berikut paket yang bisa dibandingkan berdasarkan detail yang tersedia:"
-						: "Here are the packages to compare using the available details:"
+						? "Berikut paket yang dapat Kakak bandingkan berdasarkan informasi yang tersedia:"
+						: "Here are the packages you can compare based on the available information:"
 					: "";
 	const filterReasons = [
 		budget !== null
@@ -941,11 +944,11 @@ async function answerPackages(
 			comparisonAnswer ||
 			(filterReasons.length
 				? locale === "id"
-					? `Paket di bawah ini disaring berdasarkan ${filterReasons.join(" dan ")}:`
-					: `These packages are filtered by ${filterReasons.join(" and ")}:`
+					? `Berikut pilihan paket yang telah disaring berdasarkan ${filterReasons.join(" dan ")}:`
+					: `Here are the package options filtered by ${filterReasons.join(" and ")}:`
 				: locale === "id"
-					? "Berikut beberapa paket yang tercatat di katalog Sagita. Harga mengikuti opsi paket yang tersedia. Sebutkan anggaran maksimum atau jumlah tamu jika ingin hasilnya disaring lebih lanjut:"
-					: "Here are some packages listed in Sagita's catalog. Prices reflect the available package options. Share a maximum budget or guest count to narrow the results:"),
+					? "Berikut beberapa paket yang tercatat di katalog Sagita. Harga mengikuti opsi yang tersedia. Jika Kakak berkenan, sampaikan anggaran maksimum atau jumlah tamu agar aku dapat menyaring pilihan yang sesuai:"
+					: "Here are some packages listed in Sagita's catalog. Prices follow the available options. Share your maximum budget or guest count, and I'll narrow down the choices for you:"),
 		cards: ranked.map(({ record, price }) => {
 			const quotaValues = record.options
 				.map((option) => Number(option.quota))
@@ -1054,11 +1057,11 @@ async function answerVendors(
 	return {
 		answer: criteria?.vendorCategory
 			? locale === "id"
-				? `Berikut vendor kategori ${criteria.vendorCategory} yang tercatat di data Sagita:`
-				: `Here are the ${criteria.vendorCategory} vendors listed in Sagita's data:`
+				? `Berikut vendor kategori ${criteria.vendorCategory} yang tercatat di katalog Sagita:`
+				: `Here are the ${criteria.vendorCategory} vendors listed in Sagita's catalog:`
 			: locale === "id"
-				? "Berikut beberapa vendor yang tercatat di data Sagita. Sebutkan kategori vendor yang kamu cari agar hasilnya lebih spesifik:"
-				: "Here are some vendors listed in Sagita's data. Share the vendor category you need to narrow the results:",
+				? "Berikut beberapa vendor yang tercatat di katalog Sagita. Sebutkan kategori yang Kakak butuhkan agar aku dapat menyaring pilihan dengan lebih tepat:"
+				: "Here are some vendors listed in Sagita's catalog. Share the category you need, and I'll narrow down the options:",
 		cards: ranked.map(({ record }) => ({
 			title: record.name,
 			description:
@@ -1136,11 +1139,11 @@ async function answerVenues(
 	return {
 		answer: criteria?.city
 			? locale === "id"
-				? `Berikut venue dengan informasi lokasi yang cocok untuk ${criteria.city}. Ketersediaan tanggal perlu dikonfirmasi langsung:`
-				: `Here are venues with location information matching ${criteria.city}. Date availability must be confirmed directly:`
+				? `Berikut venue di sekitar ${criteria.city} berdasarkan informasi lokasi yang tersedia. Ketersediaan tanggal dapat dikonfirmasi bersama tim Sagita:`
+				: `Here are venues around ${criteria.city}, based on the available location information. The Sagita team can confirm date availability:`
 			: locale === "id"
-				? "Berikut beberapa venue yang tercatat di data Sagita. Sebutkan kota untuk menyaring lokasi; ketersediaan tanggal perlu dikonfirmasi langsung:"
-				: "Here are some venues listed in Sagita's data. Share a city to filter by location; date availability must be confirmed directly:",
+				? "Berikut beberapa venue yang tercatat di katalog Sagita. Sebutkan kota yang diinginkan agar aku dapat menyaring lokasi. Ketersediaan tanggal perlu dikonfirmasi oleh tim:"
+				: "Here are some venues listed in Sagita's catalog. Share your preferred city to narrow the locations. The team will need to confirm date availability:",
 		cards: ranked.map(({ record }) => {
 			const slug = cleanSlugLoose(record.slug);
 			const mapQuery = [record.name, record.address].filter(Boolean).join(" ");
@@ -1180,15 +1183,15 @@ function venueGuidance(locale: Locale): SitaAnswer {
 	return {
 		answer:
 			locale === "id"
-				? "Sagita bisa membantu membahas kebutuhan venue sesuai konsep acara. Untuk rekomendasi yang tepat, sampaikan kota atau lokasi, tanggal, dan perkiraan jumlah tamu kepada admin. Ketersediaan serta biaya venue perlu dikonfirmasi langsung."
-				: "Sagita can help discuss venue needs for your event concept. For a relevant recommendation, share the city or location, event date, and estimated guest count with the team. Venue availability and pricing must be confirmed directly.",
+				? "Tim Sagita dapat membantu mencarikan venue yang sesuai dengan konsep acara Kakak. Untuk rekomendasi yang lebih tepat, sampaikan kota, tanggal acara, dan perkiraan jumlah tamu. Ketersediaan serta biaya venue akan dikonfirmasi oleh tim."
+				: "The Sagita team can help find a venue suited to your event. For a more tailored recommendation, share your city, event date, and estimated guest count. The team will confirm venue availability and pricing.",
 		cards: [
 			{
 				title: locale === "id" ? "Konsultasi venue" : "Venue consultation",
 				description:
 					locale === "id"
-						? "Diskusikan lokasi, tanggal, dan jumlah tamu dengan tim Sagita."
-						: "Discuss location, date, and guest count with the Sagita team.",
+						? "Bahas lokasi, tanggal, dan jumlah tamu bersama tim Sagita."
+						: "Discuss the location, date, and guest count with the Sagita team.",
 				actions: [
 					{
 						label: locale === "id" ? "Konsultasi venue" : "Venue consultation",
@@ -1213,14 +1216,14 @@ function weddingServiceGuidance(locale: Locale): SitaAnswer {
 	return {
 		answer:
 			locale === "id"
-				? "Untuk konsultasi layanan Wedding Organizer, silakan isi formulir konsultasi. Tim Sagita dapat membantu membahas kebutuhan acaramu."
-				: "To discuss Wedding Organizer services, please fill out the consultation form. The Sagita team can help talk through your event needs.",
+				? "Untuk membahas layanan Wedding Organizer, silakan isi formulir konsultasi. Tim Sagita siap membantu memahami kebutuhan acara Kakak."
+				: "To discuss Wedding Organizer services, please complete the consultation form. The Sagita team will be happy to learn about your event needs.",
 		cards: [
 			{
 				title: locale === "id" ? "Formulir konsultasi" : "Consultation form",
 				description:
 					locale === "id"
-						? "Ceritakan kebutuhan acara dan layanan WO yang kamu cari."
+						? "Ceritakan kebutuhan acara dan layanan WO yang Kakak perlukan."
 						: "Tell us about your event and the Wedding Organizer services you need.",
 				actions: [
 					{
@@ -1258,8 +1261,8 @@ async function answerPromotions(locale: Locale): Promise<SitaAnswer> {
 		return {
 			answer:
 				locale === "id"
-					? "Saat ini belum ada promo aktif yang tercatat di katalog Sagita. Cek katalog lagi nanti atau hubungi admin untuk info terbaru."
-					: "There are no active promotions recorded in Sagita's catalog right now. Check back later or contact the team for the latest offers.",
+					? "Saat ini belum ada promo aktif yang tercatat di katalog Sagita. Untuk informasi terbaru, Kakak dapat menghubungi admin atau memeriksa kembali katalog secara berkala."
+					: "There are no active promotions listed in Sagita's catalog at the moment. Please contact the team or check the catalog again for the latest offers.",
 			cards: [],
 			offerContact: true,
 			confidence: 0.9,
@@ -1274,8 +1277,8 @@ async function answerPromotions(locale: Locale): Promise<SitaAnswer> {
 	return {
 		answer:
 			locale === "id"
-				? `Promo aktif yang tercatat di katalog Sagita: ${promos.join(", ")}. Syarat dan ketentuan mengikuti detail paket.`
-				: `Active promotions recorded in Sagita's catalog: ${promos.join(", ")}. Terms follow each package detail.`,
+				? `Promo aktif yang tercatat di katalog Sagita: ${promos.join(", ")}. Syarat dan ketentuan dapat Kakak lihat pada detail masing-masing paket.`
+				: `Active promotions listed in Sagita's catalog: ${promos.join(", ")}. Please see each package for its terms and conditions.`,
 		cards: records.slice(0, 4).map((record) => {
 			const slug = cleanSlugLoose(record.slug);
 			return {
@@ -1318,8 +1321,8 @@ async function answerPayment(locale: Locale): Promise<SitaAnswer> {
 			: {
 					answer:
 						locale === "id"
-							? "Ketentuan pembayaran belum tercatat rinci di katalog Sagita. Hubungi admin untuk info DP dan termin yang tersedia."
-							: "Detailed payment terms are not recorded in Sagita's catalog. Contact the team for available deposits and installments.",
+							? "Ketentuan pembayaran belum tercatat secara lengkap di katalog Sagita. Silakan hubungi admin untuk memastikan besaran DP dan termin yang tersedia."
+							: "Detailed payment terms are not listed in Sagita's catalog. Please contact the team to confirm the available deposit and installment options.",
 					cards: [],
 					offerContact: true,
 					confidence: 0.85,
@@ -1333,15 +1336,15 @@ async function answerPayment(locale: Locale): Promise<SitaAnswer> {
 	const dpText =
 		dp !== null && dp !== undefined
 			? locale === "id"
-				? `DP yang tercatat ${dp}%. `
-				: `Recorded deposit is ${dp}%. `
+				? `DP yang tercatat adalah ${dp}%. `
+				: `The recorded deposit is ${dp}%. `
 			: "";
 	const answer = `${dpText}${terms}`.trim();
 	return {
 		answer:
 			locale === "id"
-				? `${answer} Detail skema pembayaran bisa dikonfirmasi langsung dengan admin.`
-				: `${answer} Payment scheme details can be confirmed directly with the team.`,
+				? `${answer} Untuk memastikan rincian skema pembayaran, Kakak dapat menghubungi admin.`
+				: `${answer} Please contact the team to confirm the payment plan details.`,
 		cards: [
 			{
 				title:
@@ -1384,8 +1387,8 @@ async function answerAvailability(
 		.find((entry) => entry.date === date);
 	const prefix = locale === "id" ? `Untuk tanggal ${date}, ` : `For ${date}, `;
 	const answer = blocked
-		? `${prefix}${locale === "id" ? "tanggal itu tercatat sebagai tanggal libur paket" : "that date is recorded as a package blackout date"}${blocked.reason ? ` (${blocked.reason})` : ""}. ${locale === "id" ? "Hubungi admin untuk alternatif tanggal." : "Contact the team for alternative dates."}`
-		: `${prefix}${locale === "id" ? "data Sagita belum menyimpan status ketersediaan otomatis. Tim perlu mengonfirmasi ketersediaan venue, vendor, dan paket." : "Sagita data does not include automatic availability status. The team needs to confirm venue, vendor, and package availability."}`;
+		? `${prefix}${locale === "id" ? "tanggal tersebut tercatat sebagai tanggal libur paket" : "that date is recorded as a package blackout date"}${blocked.reason ? ` (${blocked.reason})` : ""}. ${locale === "id" ? "Silakan hubungi admin untuk menanyakan alternatif tanggal." : "Please contact the team to ask about alternative dates."}`
+		: `${prefix}${locale === "id" ? "status ketersediaan belum tercatat secara otomatis. Tim Sagita perlu mengonfirmasi ketersediaan venue, vendor, dan paket." : "availability is not automatically recorded in Sagita's data. The team will need to confirm venue, vendor, and package availability."}`;
 	return {
 		answer,
 		cards: [
@@ -1393,8 +1396,8 @@ async function answerAvailability(
 				title: locale === "id" ? "Cek ketersediaan" : "Check availability",
 				description:
 					locale === "id"
-						? "Kirim tanggal dan detail acara untuk konfirmasi tim Sagita."
-						: "Send the date and event details for Sagita team confirmation.",
+						? "Sampaikan tanggal dan detail acara agar tim Sagita dapat membantu melakukan konfirmasi."
+						: "Share the date and event details so the Sagita team can help confirm availability.",
 				actions: [
 					{
 						label:
@@ -1417,8 +1420,8 @@ async function answerTestimonials(locale: Locale): Promise<SitaAnswer> {
 		return {
 			answer:
 				locale === "id"
-					? "Belum ada testimoni pernikahan yang bisa ditampilkan dari data Sagita saat ini. Untuk referensi pengalaman klien, silakan hubungi admin."
-					: "There are no wedding testimonials available in Sagita's data right now. Contact the team for client references.",
+					? "Saat ini belum ada testimoni pernikahan yang tersedia di data Sagita. Untuk mengetahui pengalaman klien, Kakak dapat menghubungi admin."
+					: "There are no wedding testimonials listed in Sagita's data at the moment. Please contact the team for client references.",
 			cards: [],
 			offerContact: true,
 			confidence: 0.9,
@@ -1429,7 +1432,7 @@ async function answerTestimonials(locale: Locale): Promise<SitaAnswer> {
 		answer:
 			locale === "id"
 				? "Berikut testimoni yang tercatat di data Sagita:"
-				: "Here are testimonials recorded in Sagita's data:",
+				: "Here are the testimonials listed in Sagita's data:",
 		cards: records.slice(0, 3).map((record) => ({
 			title: record.name,
 			description:
@@ -1460,8 +1463,8 @@ function answerOfficeAddress(
 				? `Alamat kantor Sagita: ${address}. Untuk petunjuk arah, silakan hubungi admin.`
 				: `Sagita office address: ${address}. Contact the team for directions.`
 			: locale === "id"
-				? "Alamat kantor belum tercatat di data situs Sagita. Silakan hubungi admin untuk alamat dan petunjuk arah."
-				: "The office address is not listed in Sagita's site data. Contact the team for the address and directions.",
+				? "Alamat kantor belum tercantum dalam data situs Sagita. Silakan hubungi admin untuk memperoleh alamat dan petunjuk arah."
+				: "The office address is not listed in Sagita's site data. Please contact the team for the address and directions.",
 		cards: [],
 		offerContact: true,
 		confidence: 0.9,
@@ -1649,8 +1652,8 @@ export async function answerSitaQuestion(
 		return {
 			answer:
 				locale === "id"
-					? "Untuk menghubungi admin, pilih tombol “Hubungi admin” agar formulir kontak terbuka."
-					: "To contact the team, select “Contact the team” to open the contact form.",
+					? "Untuk terhubung dengan admin, silakan pilih tombol “Hubungi admin” agar formulir kontak terbuka."
+					: "To reach the team, please select “Contact the team” to open the contact form.",
 			cards: [],
 			offerContact: true,
 			confidence: 0.95,
