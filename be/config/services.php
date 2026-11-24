@@ -43,6 +43,7 @@ return [
 
     'frontend_api' => [
         'key' => env('FRONTEND_API_KEY'),
+        'keys' => env('FRONTEND_API_KEYS'),
     ],
 
 ];

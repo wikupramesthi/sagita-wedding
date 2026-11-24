@@ -64,6 +64,7 @@ export async function submitVisit(payload: {
 				Accept: "application/json",
 				"Content-Type": "application/json",
 				"X-Api-Key": env.API_KEY,
+				Authorization: `Bearer ${env.API_KEY}`,
 			},
 			body: JSON.stringify(payload),
 			signal: AbortSignal.timeout(3000),

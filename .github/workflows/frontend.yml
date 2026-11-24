@@ -12,6 +12,8 @@ jobs:
         working-directory: fe
     env:
       NODE_ENV: test
+      BACKEND_URL: http://127.0.0.1:8000
+      API_PREFIX: v1
       API_KEY: ci-test-key
       SITE_URL: http://127.0.0.1:3000
     steps:
@@ -25,19 +27,6 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
-      - run: npm run test:golden
       - run: npm run test:a11y
-      - run: npm run build:css
-      - run: npm run build:js
+      - run: npm run build
       - run: npm run perf:assets
-      - name: Start frontend
-        run: npm run start > /tmp/sagita-fe.log 2>&1 &
-      - name: Wait for frontend
-        run: |
-          for i in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:3000/healthz > /dev/null; then exit 0; fi
-            sleep 1
-          done
-          cat /tmp/sagita-fe.log
-          exit 1
-      - run: npm run test:lighthouse

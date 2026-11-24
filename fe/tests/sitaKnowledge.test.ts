@@ -75,6 +75,22 @@ describe("Sita knowledge dari backend", () => {
 		expect(knowledge.topics.vendors).not.toContain("photobooth");
 	});
 
+	it("memakai daftar alias topik dan bentuk baku yang lebih lengkap", async () => {
+		const extendedSynonyms = Array.from({ length: 40 }, (_, index) => ({
+			locale: "id",
+			term: `photoboothalias${index}`,
+			canonical: "fotografi",
+			topic: "vendors",
+			is_active: true,
+		}));
+		stubKnowledge({ success: true, data: extendedSynonyms });
+
+		const knowledge = await getSitaKnowledge("id");
+
+		expect(knowledge.topics.vendors).toContain("photoboothalias39");
+		expect(knowledge.aliases.fotografi).toContain("photoboothalias39");
+	});
+
 	it("tetap memakai alias bawaan saat backend gagal", async () => {
 		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
 

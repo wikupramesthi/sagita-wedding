@@ -4,7 +4,7 @@
     <label class="form-label">Bahasa <span class="text-danger">*</span></label>
     <select name="locale" class="form-select" required>
       <option value="id" @selected(old('locale', $s?->locale ?? 'id') === 'id')>Indonesia</option>
-      <option value="en" @selected(old('locale', $s?->locale) === 'en')>English</option>
+      <option value="en" @selected(old('locale', $s?->locale) === 'en')>Inggris</option>
     </select>
   </div>
   <div class="col-md-4">
@@ -19,8 +19,8 @@
     <label class="form-label">Topik</label>
     <select name="topic" class="form-select">
       <option value="">Tanpa topik</option>
-      @foreach(['packages', 'venues', 'vendors'] as $topic)
-      <option value="{{ $topic }}" @selected(old('topic', $s?->topic) === $topic)>{{ $topic }}</option>
+      @foreach(\App\Models\Sita\SitaSynonym::TOPIC_LABELS as $topic => $label)
+      <option value="{{ $topic }}" @selected(old('topic', $s?->topic) === $topic)>{{ $label }}</option>
       @endforeach
     </select>
   </div>

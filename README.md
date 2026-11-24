@@ -3,7 +3,7 @@
 Panduan lengkap untuk developer baru: arsitektur, instalasi, konfigurasi, alur kerja, dan perintah yang sering dipakai.
 
 - **Backend:** Laravel 13 · PHP 8.3 · MySQL · Blade · Tailwind 3 · Vite
-- **Frontend:** Express 5 · EJS · TypeScript · Tailwind 4 · esbuild
+- **Frontend:** Astro 5 · EJS · TypeScript · Tailwind 4 · esbuild
 - **Port:** `3000` (website publik) · `8000` (panel admin & API)
 
 ## Daftar Isi
@@ -30,13 +30,13 @@ Proyek ini adalah **monorepo** dengan dua aplikasi yang berjalan terpisah:
 | Folder | Peran                            | Teknologi                                       | Port default |
 | ------ | -------------------------------- | ----------------------------------------------- | ------------ |
 | `be/`  | Backend + panel admin + JSON API | Laravel 13 (PHP 8.3), Blade, Tailwind 3, Vite   | `8000`       |
-| `fe/`  | Website publik (front-end)       | Express 5, EJS, TypeScript, Tailwind 4, esbuild | `3000`       |
+| `fe/`  | Website publik (front-end)       | Astro 5, EJS, TypeScript, Tailwind 4, esbuild | `3000`       |
 
 Alurnya:
 
 ```mermaid
 flowchart LR
-    Visitor[Pengunjung] --> FE["fe/ Express :3000"]
+    Visitor[Pengunjung] --> FE["fe/ Astro :3000"]
     Admin["Admin / CMS"] --> BE["be/ Laravel Blade :8000/backend"]
     FE -->|"GET /api/batch/{page}"| API["be/ Laravel API :8000/api"]
     BE --> DB[("MySQL: sagita")]
@@ -46,7 +46,7 @@ flowchart LR
 
 Poin penting:
 
-- **Backend hanya menyajikan panel admin dan API.** Halaman publik disajikan oleh Express.
+- **Backend hanya menyajikan panel admin dan API.** Halaman publik disajikan oleh Astro.
 - **Frontend memakai pola BFF (Backend for Frontend)**: setiap halaman publik mengambil semua datanya lewat **satu** request `GET /api/batch/{page}` ke Laravel, bukan puluhan request per resource.
 - Kedua aplikasi **harus berjalan bersamaan** agar website publik menampilkan data.
 - Repo masih dalam masa transisi branding: sebagian konten/kode masih memakai nama **Sagita Wedding / yoga** (kelas, vendor, jadwal), sementara migrasi terbaru mengarah ke **venue & vendor wedding** (`studios` → `venues`, `specializations` → `vendors_categories`).
@@ -65,7 +65,7 @@ Poin penting:
 
 ### Frontend (`fe/`)
 
-- Node.js **`>=22`** (wajib), TypeScript, Express 5, EJS
+- Node.js **`>=22`** (wajib), TypeScript, Astro 5, EJS
 - Tailwind CSS 4, esbuild (bundle JS browser)
 - Helmet, `express-rate-limit`, `sanitize-html`, `compression`, `html-minifier-terser`
 - Vitest + Supertest (test), Biome (lint/format)
@@ -96,7 +96,7 @@ sagita-wedding/
 │   ├── routes/{web,api,auth,console}.php
 │   ├── sagita (3).sql               # dump database MariaDB (55 tabel)
 │   └── .env / .env.example
-└── fe/                              # Express (website publik)
+└── fe/                              # Astro (website publik)
     ├── server.ts                    # bootstrap tipis
     ├── src/
     │   ├── app.ts                   # rakit middleware + router
@@ -216,7 +216,8 @@ npm run dev            # http://localhost:3000
 Isi `fe/.env`:
 
 ```dotenv
-API_URL=http://127.0.0.1:8000/api
+BACKEND_URL=http://localhost:8000
+API_PREFIX=v1
 API_KEY=secret-bersama-anda      # HARUS sama dengan FRONTEND_API_KEY di be/.env
 SITE_URL=http://localhost:3000
 GOOGLE_AUTH_URL=http://localhost:8000/auth/google
@@ -236,7 +237,7 @@ Untuk mode produksi: `npm run build` lalu `npm start`.
 | `http://localhost:3000`                             | Website publik            |
 | `http://localhost:8000/backend/dashboard`           | Panel admin (butuh login) |
 | `http://localhost:8000/auth/login`                  | Login admin               |
-| `http://localhost:8000/api/batch/home`              | Contoh respons API        |
+| `http://localhost:8000/api/v1/batch/home`              | Contoh respons API        |
 | `http://localhost:3000/healthz` / `/readyz`         | Health check              |
 | `http://localhost:3000/sitemap.xml` / `/robots.txt` | SEO                       |
 
@@ -254,13 +255,13 @@ Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Role`, `Menu`, `Route`, 
 ## 6. Konfigurasi Lintas Aplikasi
 
 > [!IMPORTANT]
-> `API_KEY` di `fe/.env` **harus identik** dengan `FRONTEND_API_KEY` di `be/.env`. Jika berbeda, semua request `/api/*` akan ditolak.
+> `API_KEY` di `fe/.env` **harus identik** dengan `FRONTEND_API_KEY` di `be/.env`. Jika berbeda, semua request `/api/v1/*` akan ditolak.
 
 | Variabel                                    | Lokasi    | Aturan                                                                                                |
 | ------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------- |
-| `FRONTEND_API_KEY`                          | `be/.env` | Shared secret untuk middleware `VerifyApiKey` pada semua `/api/*`                                     |
+| `FRONTEND_API_KEY`                          | `be/.env` | Shared secret untuk middleware `VerifyApiKey` pada semua `/api/v1/*`                                     |
 | `API_KEY`                                   | `fe/.env` | **Nilainya harus identik** dengan `FRONTEND_API_KEY`                                                  |
-| `API_URL`                                   | `fe/.env` | Base URL API Laravel, contoh `http://127.0.0.1:8000/api`                                              |
+| `BACKEND_URL` + `API_PREFIX`                | `fe/.env` | Base URL Laravel + prefix API, contoh `http://localhost:8000` + `v1`                                  |
 | `SESSION_COOKIE`                            | `be/.env` | Nama cookie session Laravel; default `sagita_session`                                                 |
 | `SESSION_COOKIE_NAME`                       | `fe/.env` | **Nilainya harus identik** dengan `SESSION_COOKIE`                                                    |
 | `SESSION_SECURE_COOKIE`                     | `be/.env` | `true` di produksi HTTPS agar cookie tidak dikirim lewat HTTP                                        |
@@ -351,7 +352,7 @@ POST /api/analytics/visits
 
 `GET /api/faqs` menerima `?kategori=<nama kategori>` dan mengembalikan `data` berisi `uuid`, `kategori`, `question`, `answer` serta `meta` berisi `total`, `kategori`, dan daftar `categories`.
 
-Endpoint internal Express (dipanggil browser) ada di `fe/src/routes/api.ts`, antara lain `/api/contact/captcha`, `/api/contact`, dan passthrough `/api/batch/{page}`. Endpoint lama `/api/classes`, `/api/class-schedules`, dan `/api/batch/schedules` sengaja membalas `410 Gone`.
+Endpoint internal Astro (dipanggil browser) ada di `fe/src/routes/api.ts`, antara lain `/api/contact/captcha`, `/api/contact`, dan passthrough `/api/batch/{page}`. Endpoint lama `/api/classes`, `/api/class-schedules`, dan `/api/batch/schedules` sengaja membalas `410 Gone`.
 
 Error API memakai amplop konsisten: `{ "success": false, "status": "error", "message": "...", "errors": { ... } }` (field `errors` hanya untuk 422). `POST /api/contact` punya honeypot `website`; `POST /api/analytics/visits` dibatasi 30/menit/IP + 10/menit/visitor dan deduplikasi per menit.
 
@@ -427,15 +428,15 @@ npm run dev                   # aset Vite panel admin (atau: npm run build)
 
 | Gejala                                       | Penyebab umum & solusi                                                                                                           |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Halaman publik kosong / error fetch          | Backend belum jalan, atau `API_URL` salah. Cek `http://127.0.0.1:8000/api/batch/home`.                                           |
-| Respons API `401/403` dari `/api/*`          | `API_KEY` (fe) tidak sama dengan `FRONTEND_API_KEY` (be). Samakan, lalu restart kedua server.                                    |
+| Halaman publik kosong / error fetch          | Backend belum jalan, atau `BACKEND_URL` salah. Cek `http://localhost:8000/api/v1/batch/home`.                                           |
+| Respons API `401/403` dari `/api/v1/*`          | `API_KEY` (fe) tidak sama dengan `FRONTEND_API_KEY` (be). Samakan, lalu restart kedua server.                                    |
 | Error CORS di browser                        | `CORS_ALLOWED_ORIGINS` belum memasukkan origin `fe`, atau port berbeda.                                                          |
 | Login Google gagal / `redirect_uri_mismatch` | `GOOGLE_REDIRECT_URL` tidak persis sama dengan Authorized Redirect URI di Google Console. Perhatikan `localhost` vs `127.0.0.1`. |
 | Gambar upload tidak tampil                   | Jalankan `php artisan storage:link` dan pastikan `FILESYSTEM_DISK=public` / izin folder `storage`.                               |
 | Tabel tidak ada setelah import SQL           | Pastikan database bernama `sagita` dan `DB_DATABASE` di `.env` sesuai, lalu `php artisan migrate`.                               |
 | CSS/JS tidak berubah setelah deploy          | Naikkan `ASSET_V` di `fe/.env`, lalu `npm run build:css && npm run build:js`.                                                    |
 | Error `Class "PDO" not found` / ekstensi PHP | Aktifkan ekstensi PHP yang dibutuhkan di `php.ini` XAMPP, restart Apache.                                                        |
-| Port 3000/8000 sudah dipakai                 | Ubah `PORT` di `fe/.env` atau jalankan `php artisan serve --port=8080` (sesuaikan `API_URL`).                                    |
+| Port 3000/8000 sudah dipakai                 | Ubah `PORT` di `fe/.env` atau jalankan `php artisan serve --port=8080` (sesuaikan `BACKEND_URL`).                                    |
 
 ---
 

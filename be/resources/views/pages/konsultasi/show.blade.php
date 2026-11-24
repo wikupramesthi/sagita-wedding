@@ -208,6 +208,46 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card lead-journey-card">
+                <div class="lead-journey-head">
+                    <div class="lead-journey-heading">
+                        <span class="lead-journey-icon"><i class="bi bi-signpost-split"></i></span>
+                        <div>
+                            <h5>Riwayat Lead</h5>
+                            <small>Perjalanan calon pelanggan dari masuk hingga konversi</small>
+                        </div>
+                    </div>
+                    <div class="lead-journey-progress-summary">
+                        <div class="lead-journey-progress-value">{{ $consultation->lead_journey_progress }}%</div>
+                        <div class="lead-journey-progress-label">{{ $consultation->lead_journey_done }} dari {{ count($consultation->lead_journey) }} tahap</div>
+                    </div>
+                </div>
+                <div class="lead-journey-bar" role="progressbar" aria-label="Progres perjalanan lead" aria-valuenow="{{ $consultation->lead_journey_progress }}" aria-valuemin="0" aria-valuemax="100">
+                    <span style="width: {{ $consultation->lead_journey_progress }}%"></span>
+                </div>
+                <div class="card-body lead-journey-body">
+                    <ol class="lead-journey-steps">
+                        @foreach ($consultation->lead_journey as $step)
+                            <li class="lead-journey-step is-{{ $step['state'] }}">
+                                <span class="lead-journey-step-icon"><i class="bx {{ $step['icon'] }}"></i></span>
+                                <div class="lead-journey-step-body">
+                                    <strong>{{ $step['title'] }}</strong>
+                                    <time>{{ $step['time'] }}</time>
+                                    <p>{{ $step['description'] }}</p>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ol>
+                    <div class="lead-journey-next is-{{ $consultation->lead_journey_next_action['tone'] }}">
+                        <span class="lead-journey-next-icon"><i class="bx bx-bolt-circle"></i></span>
+                        <div>
+                            <strong>Langkah berikutnya</strong>
+                            <div>{{ $consultation->lead_journey_next_action['message'] }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="col-12 col-xl-4">
@@ -317,45 +357,6 @@
                 </div>
             </div>
 
-            <div class="card lead-journey-card">
-                <div class="lead-journey-head">
-                    <div class="lead-journey-heading">
-                        <span class="lead-journey-icon"><i class="bi bi-signpost-split"></i></span>
-                        <div>
-                            <h5>Riwayat Lead</h5>
-                            <small>Perjalanan calon pelanggan dari masuk hingga konversi</small>
-                        </div>
-                    </div>
-                    <div class="lead-journey-progress-summary">
-                        <div class="lead-journey-progress-value">{{ $consultation->lead_journey_progress }}%</div>
-                        <div class="lead-journey-progress-label">{{ $consultation->lead_journey_done }} dari {{ count($consultation->lead_journey) }} tahap</div>
-                    </div>
-                </div>
-                <div class="lead-journey-bar" role="progressbar" aria-label="Progres perjalanan lead" aria-valuenow="{{ $consultation->lead_journey_progress }}" aria-valuemin="0" aria-valuemax="100">
-                    <span style="width: {{ $consultation->lead_journey_progress }}%"></span>
-                </div>
-                <div class="card-body lead-journey-body">
-                    <ol class="lead-journey-steps">
-                        @foreach ($consultation->lead_journey as $step)
-                            <li class="lead-journey-step is-{{ $step['state'] }}">
-                                <span class="lead-journey-step-icon"><i class="bx {{ $step['icon'] }}"></i></span>
-                                <div class="lead-journey-step-body">
-                                    <strong>{{ $step['title'] }}</strong>
-                                    <time>{{ $step['time'] }}</time>
-                                    <p>{{ $step['description'] }}</p>
-                                </div>
-                            </li>
-                        @endforeach
-                    </ol>
-                    <div class="lead-journey-next is-{{ $consultation->lead_journey_next_action['tone'] }}">
-                        <span class="lead-journey-next-icon"><i class="bx bx-bolt-circle"></i></span>
-                        <div>
-                            <strong>Langkah berikutnya</strong>
-                            <div>{{ $consultation->lead_journey_next_action['message'] }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </section>
@@ -446,8 +447,9 @@
         overflow: hidden;
     }
 
-    .lead-section-header {
+    #main-content .card .lead-section-header {
         display: flex;
+        flex-direction: row;
         align-items: center;
         gap: 0.75rem;
         padding: 0.85rem 1.15rem;

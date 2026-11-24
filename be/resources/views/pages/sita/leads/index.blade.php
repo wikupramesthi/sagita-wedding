@@ -21,7 +21,10 @@
   <form method="GET" class="row g-3 align-items-end sita-filter-grid">
     <div class="col-md-3"><label class="form-label small fw-semibold">Cari</label><input type="search" name="search" value="{{ $filters['search'] }}" class="form-control" placeholder="Nama atau telepon"></div>
     <div class="col-md-2"><label class="form-label small fw-semibold">Status</label><select name="status" class="form-select"><option value="">Semua</option>@foreach($statuses as $v=>[$l])<option value="{{ $v }}" @selected($filters['status']===$v)>{{ $l }}</option>@endforeach</select></div>
-    <div class="col-md-2"><label class="form-label small fw-semibold">Topik</label><select name="topic" class="form-select"><option value="">Semua</option>@foreach(['packages','venues','vendors'] as $t)<option value="{{ $t }}" @selected($filters['topic']===$t)>{{ $t }}</option>@endforeach</select></div>
+    @php
+      $topikLabels = ['packages' => 'Paket', 'venues' => 'Venue', 'vendors' => 'Vendor'];
+    @endphp
+    <div class="col-md-2"><label class="form-label small fw-semibold">Topik</label><select name="topic" class="form-select"><option value="">Semua</option>@foreach($topikLabels as $nilai => $label)<option value="{{ $nilai }}" @selected($filters['topic']===$nilai)>{{ $label }}</option>@endforeach</select></div>
     <div class="col-md-1"><label class="form-label small fw-semibold">Skor min</label><input type="number" name="score_min" min="0" max="100" value="{{ $filters['score_min'] }}" class="form-control"></div>
     <div class="col-md-1"><label class="form-label small fw-semibold">Skor max</label><input type="number" name="score_max" min="0" max="100" value="{{ $filters['score_max'] }}" class="form-control"></div>
     <div class="col-md-1"><label class="form-label small fw-semibold">Dari</label><input type="date" name="from" value="{{ $filters['from'] }}" class="form-control"></div>

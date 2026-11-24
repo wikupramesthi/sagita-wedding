@@ -10,7 +10,11 @@ export const GET: APIRoute = async () => {
 	try {
 		const r = await fetch(`${env.API_URL}/site-stats`, {
 			signal: controller.signal,
-			headers: { Accept: "application/json", "X-Api-Key": env.API_KEY },
+			headers: {
+				Accept: "application/json",
+				"X-Api-Key": env.API_KEY,
+				Authorization: `Bearer ${env.API_KEY}`,
+			},
 		});
 		return json(
 			{ status: r.ok ? "ok" : "degraded", backend: r.ok },

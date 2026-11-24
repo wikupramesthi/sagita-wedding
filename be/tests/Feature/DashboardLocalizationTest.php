@@ -42,6 +42,8 @@ class DashboardLocalizationTest extends TestCase
             ->withSession(['locale' => 'en'])
             ->get(route('dashboard.index'))
             ->assertOk()
+            ->assertSee('dist/assets/bundles/admin.css')
+            ->assertSee('dist/assets/bundles/admin.js')
             ->assertSee('Aksi cepat')
             ->assertSee('Perlu tindakan')
             ->assertSee('Ringkasan admin')

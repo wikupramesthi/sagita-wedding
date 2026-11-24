@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { env } from "../src/lib/config/env.js";
 import {
 	assertBatchPagesMatchContract,
 	BATCH_CONTRACT,
@@ -11,6 +12,15 @@ import {
 } from "../src/lib/services/apiContract.js";
 import { SUPPORTED_BATCH_PAGES } from "../src/lib/services/batchService.js";
 import { parseTelemetry } from "../src/lib/telemetry.js";
+
+describe("API base configuration", () => {
+	it("uses one backend URL and the /api/v1 prefix", () => {
+		expect(env.BACKEND_URL).toBe("http://127.0.0.1:8000");
+		expect(env.API_PREFIX).toBe("v1");
+		expect(env.API_URL).toBe("http://127.0.0.1:8000/api/v1");
+		expect(env.GOOGLE_AUTH_URL).toBe("http://127.0.0.1:8000/auth/google");
+	});
+});
 
 describe("API contract", () => {
 	it("only exposes batch pages implemented by the backend", () => {

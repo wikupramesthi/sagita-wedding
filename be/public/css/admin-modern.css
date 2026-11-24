@@ -58,7 +58,7 @@ body {
 
 body {
     font-family:
-        "Plus Jakarta Sans",
+        "Nunito",
         "Segoe UI",
         system-ui,
         -apple-system,
@@ -5485,7 +5485,7 @@ html[data-bs-theme="dark"] .site-analytics-range .btn.active {
 /* Preserve the light-theme layout while changing only the palette. */
 html[data-bs-theme="dark"] body {
     font-family:
-        "Plus Jakarta Sans",
+        "Nunito",
         "Segoe UI",
         system-ui,
         -apple-system,
@@ -7401,15 +7401,16 @@ a {
 }
 
 .sita-hero-icon {
-    width: 52px;
-    height: 52px;
-    flex: 0 0 52px;
+    width: 68px;
+    height: 42px;
+    flex: 0 0 68px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 0.9rem;
+    border-radius: 999px;
     color: #fff;
-    font-size: 1.5rem;
+    font-size: 1.35rem;
+    line-height: 1;
     background: linear-gradient(135deg, #5e72e4, #0d9488);
     box-shadow: 0 8px 18px rgba(94, 114, 228, 0.28);
 }

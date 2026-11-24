@@ -9,7 +9,8 @@ export default defineConfig({
 		globals: false,
 		env: {
 			// Dipakai src/config/env.ts yang di-import transitif.
-			API_URL: "http://127.0.0.1:8000/api",
+			BACKEND_URL: "http://127.0.0.1:8000",
+			API_PREFIX: "v1",
 			API_KEY: "test-key",
 			SITE_URL: "http://localhost:3000",
 			NODE_ENV: "test",

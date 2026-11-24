@@ -45,12 +45,12 @@ const gallery = Array.isArray(data?.gallery) ? data.gallery : [];
 		<div id="lightbox" class="fixed inset-0 z-[70] hidden bg-black/80 backdrop-blur-sm grid place-items-center p-4">
 			<button type="button" data-action="close-lightbox" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/20 text-white grid place-items-center text-xl">✕</button>
 			<button type="button" data-action="lightbox-nav" data-dir="-1" class="absolute left-6 w-10 h-10 rounded-full bg-white grid place-items-center">‹</button>
-			<img src="" alt="" class="max-h-[80vh] max-w-[90vw] rounded-2xl object-contain" />
+			<img alt="" class="max-h-[80vh] max-w-[90vw] rounded-2xl object-contain" />
 			<button type="button" data-action="lightbox-nav" data-dir="1" class="absolute right-6 w-10 h-10 rounded-full bg-white grid place-items-center">›</button>
 		</div>
 	</main>
 </BaseLayout>
 
-<script>
+<script nonce={Astro.locals.nonce}>
 	import "../lib/browser/pages/gallery";
 </script>

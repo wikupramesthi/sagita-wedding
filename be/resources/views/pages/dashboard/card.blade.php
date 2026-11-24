@@ -149,7 +149,7 @@
                                     $orderProgress = $orderTotal > 0 ? min(100, (int) round($orderPaid / $orderTotal * 100)) : 0;
                                     $orderStatusLabels = [
                                         'pending' => 'Menunggu pembayaran',
-                                        'partially_paid' => 'Dibayar sebagian',
+                                        'partially_paid' => 'DP terverifikasi',
                                         'paid' => 'Lunas',
                                     ];
                                 @endphp
@@ -494,7 +494,17 @@
                                                         default => 'bg-light-danger',
                                                     };
                                                 @endphp
-                                                <span class="badge {{ $badge }}">{{ ucfirst($order->status) }}</span>
+                                                @php
+                                                    $statutPesanan = [
+                                                        'pending' => 'Menunggu pembayaran',
+                                                        'partially_paid' => 'DP terverifikasi',
+                                                        'paid' => 'Lunas',
+                                                        'failed' => 'Gagal',
+                                                        'expired' => 'Kedaluwarsa',
+                                                        'cancelled' => 'Dibatalkan',
+                                                    ];
+                                                @endphp
+                                                <span class="badge {{ $badge }}">{{ $statutPesanan[$order->status] ?? 'Tidak diketahui' }}</span>
                                             </td>
                                         </tr>
                                     @endforeach

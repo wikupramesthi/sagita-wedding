@@ -25,7 +25,7 @@ const KNOWLEDGE_PATH = "/api/sita/knowledge";
 const CACHE_TTL_MS = 60 * 1000;
 const FETCH_TIMEOUT_MS = 750;
 const MAX_ALIAS_KEYS = 160;
-const MAX_ALIASES_PER_KEY = 12;
+const MAX_ALIASES_PER_KEY = 64;
 
 const BASE_ALIASES: SitaAliases = {
 	biaya: [

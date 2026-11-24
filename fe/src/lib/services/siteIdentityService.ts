@@ -130,6 +130,7 @@ async function fetchIdentity(etag?: string): Promise<IdentityFetchResult> {
 	const headers: Record<string, string> = {
 		Accept: "application/json",
 		"X-Api-Key": env.API_KEY,
+		Authorization: `Bearer ${env.API_KEY}`,
 	};
 	if (etag) headers["If-None-Match"] = etag;
 

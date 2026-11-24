@@ -40,9 +40,7 @@ use App\Http\Controllers\Admin\VendorsCategoryController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\WebsiteIdentityController;
 use App\Http\Controllers\Admin\WeddingChecklistController;
-use App\Http\Controllers\ConsultationFormController;
 use App\Http\Controllers\GoogleController;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ManagementAccess\MenuGroupController;
 use App\Http\Controllers\ManagementAccess\MenuItemController;
 use App\Http\Controllers\ManagementAccess\PermissionController;
@@ -57,9 +55,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/formulir-konsultasi', [ConsultationFormController::class, 'create'])->name('consultation.form');
-Route::post('/formulir-konsultasi', [ConsultationFormController::class, 'store'])
+Route::get('/', fn () => redirect(config('frontend.url')))->name('home');
+Route::get('/formulir-konsultasi', fn () => redirect(config('frontend.url').'/formulir-konsultasi'))->name('consultation.form');
+Route::post('/formulir-konsultasi', fn () => redirect(config('frontend.url').'/formulir-konsultasi'))
     ->middleware('throttle:api-contact')
     ->name('consultation.form.submit');
 
@@ -69,7 +67,7 @@ Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallb
 
 /*
 |--------------------------------------------------------------------------
-| Integrasi frontend publik (Express)
+| Integrasi frontend publik (Astro)
 |--------------------------------------------------------------------------
 | Frontend di port/domain lain meneruskan cookie session browser ke
 | endpoint ini lewat server-to-server, jadi tidak ada CORS di sini.

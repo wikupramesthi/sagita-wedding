@@ -384,6 +384,8 @@ class SitaFeatureTest extends TestCase
         $synonyms = collect($response->json('data'));
         $this->assertTrue($synonyms->contains(fn (array $item): bool => $item['locale'] === 'id' && $item['term'] === 'photographer' && $item['canonical'] === 'fotografi'));
         $this->assertTrue($synonyms->contains(fn (array $item): bool => $item['locale'] === 'en' && $item['term'] === 'photographer' && $item['canonical'] === 'photography'));
+        $this->assertTrue($synonyms->contains(fn (array $item): bool => $item['locale'] === 'id' && $item['term'] === 'photobooth' && $item['canonical'] === 'fotografi'));
+        $this->assertTrue($synonyms->contains(fn (array $item): bool => $item['locale'] === 'en' && $item['term'] === 'ballroom' && $item['canonical'] === 'venue'));
         $this->assertTrue(Cache::has(SitaSynonym::CACHE_KEY));
 
         SitaSynonym::create([
@@ -411,6 +413,16 @@ class SitaFeatureTest extends TestCase
             $this->actingAs($member)->get($url)->assertNotFound();
             $this->actingAs($this->admin)->get($url)->assertOk();
         }
+
+        $this->actingAs($this->admin)
+            ->get(route('sita.synonyms.index'))
+            ->assertOk()
+            ->assertSee('Impor CSV')
+            ->assertSee('Ekspor CSV')
+            ->assertSee('Inggris')
+            ->assertSee('Paket dan harga')
+            ->assertSee('Lokasi acara')
+            ->assertSee('Vendor dan jasa');
 
         $lead = SitaLead::create([
             'name' => 'Lead',

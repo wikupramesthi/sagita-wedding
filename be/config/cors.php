@@ -15,21 +15,21 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/v1/*', 'api/*'],
 
-    'allowed_methods' => ['GET', 'POST', 'OPTIONS'],
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
     'allowed_origins' => array_values(array_filter(array_map(
         'trim',
         explode(',', env(
             'CORS_ALLOWED_ORIGINS',
-            'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173'
+            'http://localhost:3000,http://127.0.0.1:3000,http://sagita.test'
         ))
     ))),
 
     'allowed_origins_patterns' => [],
-    'allowed_headers' => ['Accept', 'Content-Type', 'X-Requested-With', 'X-Api-Key', 'X-XSRF-TOKEN'],
-    'exposed_headers' => [],
+    'allowed_headers' => ['Accept', 'Authorization', 'Content-Type', 'X-Requested-With', 'X-Api-Key', 'X-XSRF-TOKEN'],
+    'exposed_headers' => ['ETag', 'X-Api-Version'],
     'max_age' => 3600,
     'supports_credentials' => false,
 

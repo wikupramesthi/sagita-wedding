@@ -14,10 +14,31 @@ class VerifyApiKey
             return $next($request);
         }
 
-        $expected = (string) config('services.frontend_api.key');
-        $provided = (string) $request->header('X-Api-Key', '');
+        $configured = array_values(array_unique(array_filter(array_map(
+            'trim',
+            [
+                (string) config('services.frontend_api.key'),
+                ...explode(',', (string) config('services.frontend_api.keys')),
+            ],
+        ))));
 
-        if ($expected === '' || $provided === '' || ! hash_equals($expected, $provided)) {
+        $provided = trim((string) $request->header('X-Api-Key', ''));
+        if ($provided === '') {
+            $authorization = (string) $request->header('Authorization', '');
+            if (preg_match('/^Bearer\s+(.+)$/i', $authorization, $matches) === 1) {
+                $provided = trim($matches[1]);
+            }
+        }
+
+        $valid = false;
+        foreach ($configured as $key) {
+            if (hash_equals($key, $provided)) {
+                $valid = true;
+                break;
+            }
+        }
+
+        if ($configured === [] || $provided === '' || ! $valid) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized.',

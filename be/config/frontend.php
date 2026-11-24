@@ -6,8 +6,8 @@ return [
     | Frontend URL
     |--------------------------------------------------------------------------
     |
-    | Base URL of the public website (the Express app living in /fe). The
-    | backend only serves the admin panel, so canonical URLs for public
+    | Base URL of the public website (the Astro SSR app living in /fe). The
+    | backend only serves the API and admin panel, so canonical URLs for public
     | content (articles, pages, events, ...) must point to this host.
     |
     */

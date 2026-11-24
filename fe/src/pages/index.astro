@@ -751,6 +751,7 @@ const testimonialsJson = JSON.stringify(
 														loading="lazy"
 														decoding="async"
 														class="home-testimonial-panel__image"
+														data-img-error="remove"
 													/>
 												)}
 											</span>
@@ -1059,6 +1060,6 @@ const testimonialsJson = JSON.stringify(
 	</main>
 </BaseLayout>
 
-<script>
+<script nonce={Astro.locals.nonce}>
 	import "../lib/browser/pages/home";
 </script>

@@ -18,7 +18,12 @@ function optional(name: string, fallback = ""): string {
 }
 
 const NODE_ENV = optional("NODE_ENV", "development");
-const rawApiUrl = required("API_URL", "http://127.0.0.1:8000/api");
+const backendUrl = required("BACKEND_URL", "http://localhost:8000").replace(
+	/\/+$/,
+	"",
+);
+const apiPrefix = required("API_PREFIX", "v1").replace(/^\/+|\/+$/g, "");
+if (!apiPrefix) throw new Error("Invalid API_PREFIX: expected e.g. v1");
 const rawSiteUrl = optional(
 	"SITE_URL",
 	NODE_ENV === "production" ? "" : "http://localhost:3000",
@@ -43,18 +48,14 @@ if (
 	throw new Error("Invalid SITE_URL: production requires a public HTTPS URL");
 }
 
-// API_URL berakhiran /api; endpoint web backend (auth) berada di root-nya.
-const apiBase = rawApiUrl.replace(/\/+$/, "").replace(/\/api$/, "");
-
 export const env = {
 	NODE_ENV,
 	IS_PROD: NODE_ENV === "production",
 	PORT: Number(optional("PORT", "3000")) || 3000,
 
-	// No trailing slash for consistent endpoint concat
-	API_URL: rawApiUrl.replace(/\/+$/, ""),
-	// Root backend Laravel — untuk endpoint web non-/api (mis. /auth/me)
-	API_BASE: apiBase,
+	BACKEND_URL: backendUrl,
+	API_PREFIX: apiPrefix,
+	API_URL: `${backendUrl}/api/${apiPrefix}`,
 	// Nama cookie session Laravel. Hanya dipakai sebagai petunjuk cepat untuk
 	// deciding apakah perlu memanggil backend; seluruh header Cookie tetap
 	// diteruskan apa adanya supaya tidak perlu tahu nama ini di FE.
@@ -62,10 +63,7 @@ export const env = {
 	API_KEY: required("API_KEY"),
 	SITE_URL: rawSiteUrl.replace(/\/+$/, ""),
 
-	GOOGLE_AUTH_URL: optional(
-		"GOOGLE_AUTH_URL",
-		`${rawApiUrl.replace(/\/api$/, "")}/auth/google`,
-	),
+	GOOGLE_AUTH_URL: optional("GOOGLE_AUTH_URL", `${backendUrl}/auth/google`),
 	WHATSAPP_NUMBER: optional("WHATSAPP_NUMBER", "6281380760095"),
 	WHATSAPP_NUMBERS: optional("WHATSAPP_NUMBERS", "6281380760095,6281288569002"),
 	// Cache-busting untuk /css/* dan /js/* (?v=) — naikkan tiap rilis statis

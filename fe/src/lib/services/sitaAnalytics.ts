@@ -57,6 +57,7 @@ async function backendFetch(
 			headers: {
 				Accept: "application/json",
 				"X-Api-Key": env.API_KEY,
+				Authorization: `Bearer ${env.API_KEY}`,
 				...(init.body ? { "Content-Type": "application/json" } : {}),
 			},
 			signal: controller.signal,

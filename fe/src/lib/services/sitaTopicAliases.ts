@@ -2,7 +2,7 @@ import type { TopicAliases } from "./sitaNlu.js";
 
 export type KnowledgeLocale = "id" | "en";
 
-const MAX_ALIASES_PER_TOPIC = 24;
+const MAX_ALIASES_PER_TOPIC = 96;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
 	if (!value || typeof value !== "object" || Array.isArray(value)) return null;

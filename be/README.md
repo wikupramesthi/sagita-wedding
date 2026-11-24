@@ -1,6 +1,6 @@
 # Sagita Wedding — Backend
 
-Aplikasi Laravel untuk panel admin dan API publik yang dikonsumsi oleh `fe/` (Express). Panduan gabungan ada di `../README.md`.
+Aplikasi Laravel untuk panel admin dan API publik yang dikonsumsi oleh `fe/` (Astro). Panduan gabungan ada di `../README.md`.
 
 ## Menjalankan
 
@@ -18,7 +18,7 @@ php artisan serve
 
 ## API
 
-Semua route `/api/*` memakai `ApiSecurityHeaders`, `throttle:api`, dan `VerifyApiKey` (header `X-Api-Key`). Ringkasan endpoint dan kontrak batch ada di `../README.md`.
+Semua route `/api/v1/*` memakai `ApiSecurityHeaders`, `throttle:api`, dan `VerifyApiKey` (header `X-Api-Key`). Ringkasan endpoint dan kontrak batch ada di `../README.md`.
 
 Error API memakai `{ "success": false, "status": "error", "message": "...", "errors": {...} }`. Field `errors` hanya muncul untuk 422.
 

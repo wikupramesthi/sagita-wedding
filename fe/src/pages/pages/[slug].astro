@@ -138,5 +138,5 @@ if (isNotFound) Astro.response.status = 404;
 			<a href="/" class="btn-primary mt-8 inline-flex text-sm px-6 py-3">{t.notFoundBack}</a>
 		</main>
 	)}
-	<script>import "../../lib/browser/pages/page-detail";</script>
+	<script nonce={Astro.locals.nonce}>import "../../lib/browser/pages/page-detail";</script>
 </BaseLayout>

@@ -45,7 +45,7 @@ const { lang } = Astro.locals;
 		{showNavbar && <Navbar heroNav={headProps.heroNav} heroNavLight={headProps.heroNavLight} />}
 		<slot />
 		{showFooter && <Footer />}
-		<script>
+		<script nonce={Astro.locals.nonce}>
 			import "../lib/browser/telemetry";
 			import "../lib/browser/main";
 			import "../lib/browser/accessibility";

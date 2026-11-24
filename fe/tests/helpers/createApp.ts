@@ -142,9 +142,9 @@ async function buildLocals(
 		contactLinks: {
 			...getAlternatingWhatsAppContact(0),
 			googleAuthUrl: siteContact.googleAuthUrl,
-			loginUrl: `${env.API_BASE}/auth/login`,
-			backendBaseUrl: env.API_BASE,
-			dashboardUrl: `${env.API_BASE}/backend/dashboard`,
+			loginUrl: `${env.BACKEND_URL}/auth/login`,
+			backendBaseUrl: env.BACKEND_URL,
+			dashboardUrl: `${env.BACKEND_URL}/backend/dashboard`,
 		},
 		currentPath: url.pathname,
 		currentUrl: `${env.SITE_URL}${url.pathname}${lang === DEFAULT_LOCALE ? "" : `?lang=${lang}`}`,

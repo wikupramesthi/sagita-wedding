@@ -114,9 +114,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	locals.contactLinks = {
 		...getAlternatingWhatsAppContact(whatsappRenderIndex++),
 		googleAuthUrl: siteContact.googleAuthUrl,
-		loginUrl: `${env.API_BASE}/auth/login`,
-		backendBaseUrl: env.API_BASE,
-		dashboardUrl: `${env.API_BASE}/backend/dashboard`,
+		loginUrl: `${env.BACKEND_URL}/auth/login`,
+		backendBaseUrl: env.BACKEND_URL,
+		dashboardUrl: `${env.BACKEND_URL}/backend/dashboard`,
 	};
 	locals.currentPath = pathname;
 	locals.currentUrl = `${env.SITE_URL}${pathname}${lang === DEFAULT_LOCALE ? "" : `?lang=${lang}`}`;

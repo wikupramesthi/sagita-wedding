@@ -21,8 +21,8 @@
       </div>
       <div class="sita-hero-meta"><span class="sita-meta-value">{{ $synonyms->total() }}</span><span class="sita-meta-label">Total sinonim</span></div>
       <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('sita.synonyms.export', request()->query()) }}" class="btn btn-outline-secondary"><i class="bi bi-download me-1"></i>Export CSV</a>
-        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#synonymImportModal"><i class="bi bi-upload me-1"></i>Import CSV</button>
+        <a href="{{ route('sita.synonyms.export', request()->query()) }}" class="btn btn-outline-secondary"><i class="bi bi-download me-1"></i>Ekspor CSV</a>
+        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#synonymImportModal"><i class="bi bi-upload me-1"></i>Impor CSV</button>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#synonymCreateModal"><i class="bi bi-plus-lg me-1"></i>Tambah</button>
       </div>
     </div>
@@ -33,8 +33,8 @@
   <div class="card-body">
     <form method="GET" class="row g-2 align-items-end">
       <div class="col-md-4"><label class="form-label small fw-semibold" for="sitaSynonymSearch">Cari</label><div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span><input id="sitaSynonymSearch" type="search" name="q" value="{{ $filters['search'] }}" class="form-control" placeholder="Istilah atau bentuk baku"></div></div>
-      <div class="col-md-2"><label class="form-label small fw-semibold" for="sitaSynonymLocale">Bahasa</label><select id="sitaSynonymLocale" name="locale" class="form-select"><option value="">Semua</option><option value="id" @selected($filters['locale']==='id')>Indonesia</option><option value="en" @selected($filters['locale']==='en')>English</option></select></div>
-      <div class="col-md-2"><label class="form-label small fw-semibold" for="sitaSynonymTopic">Topik</label><select id="sitaSynonymTopic" name="topic" class="form-select"><option value="">Semua</option>@foreach(['packages','venues','vendors'] as $topic)<option value="{{ $topic }}" @selected($filters['topic']===$topic)>{{ $topic }}</option>@endforeach</select></div>
+      <div class="col-md-2"><label class="form-label small fw-semibold" for="sitaSynonymLocale">Bahasa</label><select id="sitaSynonymLocale" name="locale" class="form-select"><option value="">Semua</option><option value="id" @selected($filters['locale']==='id')>Indonesia</option><option value="en" @selected($filters['locale']==='en')>Inggris</option></select></div>
+      <div class="col-md-2"><label class="form-label small fw-semibold" for="sitaSynonymTopic">Topik</label><select id="sitaSynonymTopic" name="topic" class="form-select"><option value="">Semua</option>@foreach(\App\Models\Sita\SitaSynonym::TOPIC_LABELS as $topic => $label)<option value="{{ $topic }}" @selected($filters['topic']===$topic)>{{ $label }}</option>@endforeach</select></div>
       <div class="col-md-2"><label class="form-label small fw-semibold" for="sitaSynonymActive">Status</label><select id="sitaSynonymActive" name="is_active" class="form-select"><option value="">Semua</option><option value="1" @selected($filters['active']==='1')>Aktif</option><option value="0" @selected($filters['active']==='0')>Nonaktif</option></select></div>
       <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-primary w-100" type="submit"><i class="bi bi-funnel me-1"></i>Filter</button>@if($hasFilters)<a href="{{ route('sita.synonyms.index') }}" class="btn btn-light w-100">Reset</a>@endif</div>
     </form>
@@ -60,7 +60,7 @@
           <td><span class="badge bg-light text-dark">{{ strtoupper($synonym->locale) }}</span></td>
           <td class="fw-semibold">{{ $synonym->term }}</td>
           <td>{{ $synonym->canonical }}</td>
-          <td>{{ $synonym->topic ?: '-' }}</td>
+          <td>{{ \App\Models\Sita\SitaSynonym::TOPIC_LABELS[$synonym->topic] ?? '—' }}</td>
           <td>{{ $synonym->sort_order }}</td>
           <td><span class="badge {{ $synonym->is_active ? 'bg-success-subtle text-success-emphasis' : 'bg-secondary-subtle text-secondary-emphasis' }}">{{ $synonym->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
           <td class="text-end"><div class="d-flex justify-content-end gap-1">
@@ -97,7 +97,7 @@
 
 <div class="modal fade" id="synonymEditModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
   <form id="synonymEditForm" method="POST" action="{{ $editAction }}" data-base-action="{{ $editAction }}">@csrf @method('PUT')
-    <div class="modal-header"><h5 class="modal-title" id="synonymEditTitle">Edit Sinonim</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-header"><h5 class="modal-title" id="synonymEditTitle">Ubah Sinonim</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">@include('pages.sita.synonyms._form', ['synonym' => null, 'prefix' => 'edit'])</div>
     <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div>
   </form>
@@ -135,7 +135,7 @@
         document.querySelectorAll('.sita-edit-synonym').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 editForm.action = baseAction.replace('__UUID__', encodeURIComponent(btn.dataset.uuid || ''));
-                if (title) title.textContent = 'Edit ' + (btn.dataset.term || 'Sinonim');
+                if (title) title.textContent = 'Ubah ' + (btn.dataset.term || 'Sinonim');
                 setField('locale', btn.dataset.locale || 'id'); setField('term', btn.dataset.term || ''); setField('canonical', btn.dataset.canonical || '');
                 setField('topic', btn.dataset.topic || ''); setField('sort_order', btn.dataset.sortOrder || '0'); setField('is_active', btn.dataset.isActive || '0');
             });

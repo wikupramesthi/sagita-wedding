@@ -33,6 +33,7 @@ export async function apiEnvelopeRaw(
 				...options.headers,
 				Accept: "application/json",
 				"X-Api-Key": env.API_KEY,
+				Authorization: `Bearer ${env.API_KEY}`,
 			},
 		});
 

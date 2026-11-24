@@ -37,7 +37,7 @@ async function callBackend(
 	const cookie = cookieHeaderOf(cookieHeader);
 
 	try {
-		return await fetch(`${env.API_BASE}${path}`, {
+		return await fetch(`${env.BACKEND_URL}${path}`, {
 			...init,
 			signal: controller.signal,
 			headers: {

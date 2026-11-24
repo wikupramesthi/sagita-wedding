@@ -1,4 +1,4 @@
-# Sagita Wedding FE — Theme (Tailwind CSS v4 + EJS + Express)
+# Sagita Wedding FE — Theme (Tailwind CSS v4 + EJS + Astro)
 
 Theme frontend Sagita Wedding. Konten dinamis diambil dari backend Laravel via `src/services/`.
 
@@ -7,7 +7,7 @@ Theme frontend Sagita Wedding. Konten dinamis diambil dari backend Laravel via `
 Butuh Node.js >= 22.
 
 ```bash
-cp .env.example .env   # sesuaikan API_URL, SITE_URL, WHATSAPP_NUMBER
+cp .env.example .env   # sesuaikan BACKEND_URL, API_PREFIX, SITE_URL, WHATSAPP_NUMBER
 npm install
 npm run build:css      # build sekali
 npm run dev            # server http://localhost:3000
@@ -18,7 +18,7 @@ npm run dev            # server http://localhost:3000
 ```
 fe/
 ├── server.ts                 # bootstrap tipis (tidak ada logika route di sini)
-├── .env / .env.example       # API_URL, SITE_URL, GOOGLE_AUTH_URL, WHATSAPP_NUMBER, ASSET_V, HTML_MINIFY, PORT
+├── .env / .env.example       # BACKEND_URL, API_PREFIX, SITE_URL, GOOGLE_AUTH_URL, WHATSAPP_NUMBER, ASSET_V, HTML_MINIFY, PORT
 ├── src/
 │   ├── config/env.ts         # env tervalidasi + link terpusat (WA, OAuth) + ASSET_V + HTML_MINIFY
 │   ├── config/locales.ts     # sumber tunggal locale (en|id), label, flag, format tanggal

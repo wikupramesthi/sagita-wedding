@@ -200,6 +200,6 @@ const venues: VenueItem[] = Array.isArray(data?.venues)
 	</main>
 </BaseLayout>
 
-<script>
+<script nonce={Astro.locals.nonce}>
 	import "../lib/browser/pages/venues";
 </script>

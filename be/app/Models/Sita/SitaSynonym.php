@@ -19,6 +19,12 @@ class SitaSynonym extends Model
 
     public const CACHE_KEY = 'sita.synonyms.active.v1';
 
+    public const TOPIC_LABELS = [
+        'packages' => 'Paket dan harga',
+        'venues' => 'Lokasi acara',
+        'vendors' => 'Vendor dan jasa',
+    ];
+
     protected $fillable = [
         'locale',
         'term',

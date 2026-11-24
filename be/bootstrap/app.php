@@ -39,7 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->throttleApi('api');
         $middleware->prependToGroup('api', ApiSecurityHeaders::class);
         $middleware->appendToGroup('api', VerifyApiKey::class);
-        // Logout yang dipanggil frontend publik (Express) tidak mengirim
+        // Logout yang dipanggil frontend publik (Astro) tidak mengirim
         // token CSRF; endpoint ini tetap butuh cookie session yang valid.
         $middleware->validateCsrfTokens(except: [
             'auth/me/logout',
@@ -55,7 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (ValidationException $e, Request $request) {
-            if (! $request->is('api/*')) {
+            if (! $request->is('api/*', 'api/v1/*')) {
                 return null;
             }
 
@@ -68,7 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
-            if (! $request->is('api/*')) {
+            if (! $request->is('api/*', 'api/v1/*')) {
                 return null;
             }
 
@@ -92,7 +92,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (Throwable $e, Request $request) {
-            if (! $request->is('api/*')) {
+            if (! $request->is('api/*', 'api/v1/*')) {
                 return null;
             }
 

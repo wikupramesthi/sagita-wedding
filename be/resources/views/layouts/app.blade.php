@@ -16,26 +16,7 @@
     @stack('before-style')
     {{-- @include('components.includes.style') --}}
 
-    <link rel="stylesheet" href="{{ asset('dist/assets/extensions/sweetalert2/sweetalert2.min.css') }}">
-    <link rel="stylesheet"
-        href="{{ asset('dist/assets/extensions/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}">
-    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-    <link rel="stylesheet" href="{{ asset('dist/assets/compiled/css/table-datatable-jquery.css') }}">
-    <link rel="stylesheet" href="{{ asset('dist/assets/compiled/css/app.css') }}" />
-    <link rel="stylesheet" href="{{ asset('dist/assets/compiled/css/app-dark.css') }}" />
-    <link rel="stylesheet" href="{{ asset('dist/assets/compiled/css/iconly.css') }}" />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link
-        href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
-        rel="stylesheet" />
-    <link rel="stylesheet" href="{{ asset('css/admin-modern.css') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('css/admin-modern.css')) ? filemtime(public_path('css/admin-modern.css')) : '1' }}" />
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="{{ asset('dist/assets/bundles/admin.css') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('dist/assets/bundles/admin.css')) ? filemtime(public_path('dist/assets/bundles/admin.css')) : '1' }}">
 
 
     @stack('after-style')
@@ -198,17 +179,7 @@
     <!-- Script -->
     @stack('before-script')
     {{-- @include('components.includes.script') --}}
-    <script src="{{ asset('dist/assets/static/js/components/dark.js') }}"></script>
-    <script src="{{ asset('dist/assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
-    <script src="{{ asset('dist/assets/compiled/js/app.js') }}"></script>
-
-    <script src="{{ asset('dist/assets/extensions/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('dist/assets/extensions/datatables.net/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('dist/assets/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
-    <script src="{{ asset('dist/assets/static/js/pages/datatables.js') }}"></script>
-
-    <script src="{{ asset('dist/assets/extensions/sweetalert2/sweetalert2.min.js') }}"></script>
-    <script src="{{ asset('js/sagita-confirm.js') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('js/sagita-confirm.js')) ? filemtime(public_path('js/sagita-confirm.js')) : '1' }}"></script>
+    <script src="{{ asset('dist/assets/bundles/admin.js') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('dist/assets/bundles/admin.js')) ? filemtime(public_path('dist/assets/bundles/admin.js')) : '1' }}"></script>
 
     @stack('after-script')
 
@@ -353,9 +324,6 @@
     <!-- /Script -->
 
     <!-- include summernote css/js -->
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote.min.js"></script>
-
     <script>
         $(document).ready(function() {
             // ID lama (halaman sebelumnya) — jangan dihapus agar editor lama tetap berfungsi
@@ -401,8 +369,6 @@
             });
         });
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         $(document).ready(function() {

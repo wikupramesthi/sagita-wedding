@@ -39,7 +39,7 @@ class ApiSecurityTest extends TestCase
     public function test_vendor_validation_failure_returns_422_not_500(): void
     {
         $this->api()
-            ->getJson('/api/vendors?per_page=999')
+            ->getJson('/api/v1/vendors?per_page=999')
             ->assertUnprocessable()
             ->assertJsonPath('success', false)
             ->assertJsonStructure(['message', 'errors' => ['per_page']]);
@@ -54,14 +54,14 @@ class ApiSecurityTest extends TestCase
         ];
 
         $this->api()
-            ->postJson('/api/analytics/visits', $payload)
+            ->postJson('/api/v1/analytics/visits', $payload)
             ->assertAccepted()
-            ->assertJsonPath('deduplicated', false);
+            ->assertJsonPath('data.deduplicated', false);
 
         $this->api()
-            ->postJson('/api/analytics/visits', $payload)
+            ->postJson('/api/v1/analytics/visits', $payload)
             ->assertAccepted()
-            ->assertJsonPath('deduplicated', true);
+            ->assertJsonPath('data.deduplicated', true);
 
         $this->assertDatabaseCount('site_visits', 1);
     }
@@ -203,7 +203,7 @@ class ApiSecurityTest extends TestCase
     public function test_unknown_api_route_uses_the_consistent_error_envelope(): void
     {
         $this->api()
-            ->getJson('/api/entah')
+            ->getJson('/api/v1/entah')
             ->assertNotFound()
             ->assertJsonPath('success', false)
             ->assertJsonPath('status', 'error')
@@ -212,10 +212,29 @@ class ApiSecurityTest extends TestCase
 
     public function test_api_key_is_still_required_for_new_security_endpoints(): void
     {
-        $this->postJson('/api/analytics/visits', [
+        $this->postJson('/api/v1/analytics/visits', [
             'visitor_hash' => str_repeat('b', 64),
             'path' => '/',
             'device' => 'mobile',
         ])->assertUnauthorized();
+    }
+
+    public function test_bearer_token_is_accepted_for_api_v1(): void
+    {
+        $this->withHeader('Authorization', 'Bearer '.self::API_KEY)
+            ->getJson('/api/v1/site-stats')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 'success')
+            ->assertJsonStructure(['message', 'data']);
+    }
+
+    public function test_rotated_api_key_is_accepted(): void
+    {
+        config(['services.frontend_api.keys' => 'rotated-key']);
+
+        $this->withHeader('X-Api-Key', 'rotated-key')
+            ->getJson('/api/v1/site-stats')
+            ->assertOk();
     }
 }

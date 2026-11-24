@@ -29,7 +29,7 @@
     <div class="col-md-3"><label class="form-label small fw-semibold">Dari</label><input type="date" name="from" value="{{ $filters['from'] }}" class="form-control"></div>
     <div class="col-md-3"><label class="form-label small fw-semibold">Sampai</label><input type="date" name="to" value="{{ $filters['to'] }}" class="form-control"></div>
     <div class="col-md-2"><label class="form-label small fw-semibold">Topik</label><select name="topic" class="form-select"><option value="">Semua</option>@foreach(['packages','venues','vendors'] as $t)<option value="{{ $t }}" @selected($filters['topic']===$t)>{{ $t }}</option>@endforeach</select></div>
-    <div class="col-md-2"><label class="form-label small fw-semibold">Bahasa</label><select name="locale" class="form-select"><option value="">Semua</option><option value="id" @selected($filters['locale']==='id')>ID</option><option value="en" @selected($filters['locale']==='en')>EN</option></select></div>
+    <div class="col-md-2"><label class="form-label small fw-semibold">Bahasa</label><select name="locale" class="form-select"><option value="">Semua</option><option value="id" @selected($filters['locale']==='id')>Bahasa Indonesia</option><option value="en" @selected($filters['locale']==='en')>Bahasa Inggris</option></select></div>
     <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-primary w-100" type="submit">Filter</button><a href="{{ route('sita.analytics.index') }}" class="btn btn-light w-100">Reset</a></div>
   </form>
 </div></div>
