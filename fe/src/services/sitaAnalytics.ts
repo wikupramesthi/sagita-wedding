@@ -3,6 +3,7 @@ import type { TelemetryPayload } from "../routes/api.js";
 import type { SitaChatCriteria } from "../utils/validate.js";
 
 type SitaTopic = "packages" | "venues" | "vendors";
+type SitaLocale = "id" | "en";
 type SitaLeadTopic = SitaTopic | "services" | "other";
 
 export interface SitaLeadPayload {
@@ -19,6 +20,7 @@ interface StoredSitaEvent {
 	at: string;
 	name: "sita.answer" | "sita.feedback" | "sita.no_match";
 	topic?: SitaTopic;
+	locale?: SitaLocale;
 	confidence?: number;
 	fallback?: boolean;
 	clarify?: boolean;
@@ -142,6 +144,9 @@ export function recordSitaTelemetry(payload: TelemetryPayload): void {
 	};
 	if ("topic" in payload && isTopic(payload.topic))
 		stored.topic = payload.topic;
+	if ("locale" in payload && (payload.locale === "id" || payload.locale === "en")) {
+		stored.locale = payload.locale;
+	}
 	if ("confidence" in payload && typeof payload.confidence === "number") {
 		stored.confidence = payload.confidence;
 	}
@@ -239,6 +244,25 @@ export function getSitaAnalytics() {
 				unhelpful: topicFeedback.length - topicHelpful,
 			};
 		}),
+		feedbackSegments: (["id", "en", undefined] as const).flatMap((locale) =>
+			TOPICS.flatMap((topic) => {
+				const segment = feedback.filter(
+					(event) => event.locale === locale && event.topic === topic,
+				);
+				if (segment.length === 0) return [];
+				const segmentHelpful = segment.filter((event) => event.helpful).length;
+				return [
+					{
+						locale: locale ?? "unknown",
+						topic,
+						feedback: segment.length,
+						helpful: segmentHelpful,
+						unhelpful: segment.length - segmentHelpful,
+						helpfulRate: percent(segmentHelpful, segment.length),
+					},
+				];
+			}),
+		),
 		noMatchPatterns: [...queryHashes.values()]
 			.sort((a, b) => b.count - a.count || b.lastAt.localeCompare(a.lastAt))
 			.slice(0, 10),

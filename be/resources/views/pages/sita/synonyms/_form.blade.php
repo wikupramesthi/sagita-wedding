@@ -18,7 +18,7 @@
   <div class="col-md-4">
     <label class="form-label">Topik</label>
     <select name="topic" class="form-select">
-      <option value="">Semua</option>
+      <option value="">Tanpa topik</option>
       @foreach(['packages', 'venues', 'vendors'] as $topic)
       <option value="{{ $topic }}" @selected(old('topic', $s?->topic) === $topic)>{{ $topic }}</option>
       @endforeach

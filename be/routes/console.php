@@ -15,6 +15,7 @@ Schedule::command('orders:remind-sla')->everyThirtyMinutes();
 Schedule::command('orders:remind-balance-due')->dailyAt('08:00');
 Schedule::command('checklists:remind-due')->dailyAt('08:15');
 Schedule::command('orders:prune-audit')->weeklyOn(0, '03:15');
+Schedule::command('sita:prune-analytics')->dailyAt('03:30');
 Schedule::call(fn () => DB::table('site_visits')->where('visited_at', '<', now()->subMonths(13))->delete())
     ->dailyAt('02:30')
     ->name('site-visits:prune');

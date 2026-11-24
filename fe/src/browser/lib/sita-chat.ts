@@ -169,7 +169,16 @@ import { hashSitaQuestion } from "../telemetry.js";
 				"Silakan isi nama dan nomor WhatsApp untuk menyiapkan pesan ke admin Sagita.",
 			whatsapp: "Lanjut ke WhatsApp",
 			handoff:
-				"Pesan sudah disiapkan. Periksa kembali sebelum mengirimnya melalui WhatsApp.",
+				"Pesan sudah disiapkan. Kirim melalui WhatsApp untuk menghubungi tim Sagita; waktu balasan dapat berbeda.",
+			savePackage: "Simpan pilihan",
+			removePackage: "Hapus dari pilihan",
+			shareShortlist: (count: number) => `Bagikan shortlist (${count})`,
+			shortlistContact: "Bagikan shortlist ke admin",
+			shortlistPrompt: "Saya ingin konsultasi tentang paket pilihan:",
+			shortlistSaved: "Paket disimpan di shortlist perangkat ini.",
+			shortlistRemoved: "Paket dihapus dari shortlist.",
+			shortlistUnavailable:
+				"Shortlist tidak dapat disimpan di perangkat ini. Coba lagi atau hubungi admin.",
 			invalidContact:
 				"Periksa nama, nomor WhatsApp, dan persetujuan kamu terlebih dahulu.",
 			invalidLink:
@@ -209,7 +218,16 @@ import { hashSitaQuestion } from "../telemetry.js";
 				"Enter your name and WhatsApp number to prepare a message for the Sagita team.",
 			whatsapp: "Continue to WhatsApp",
 			handoff:
-				"Your message is ready. Review it before sending it through WhatsApp.",
+				"Your message is ready. Send it through WhatsApp to contact the Sagita team; response times may vary.",
+			savePackage: "Save package",
+			removePackage: "Remove from shortlist",
+			shareShortlist: (count: number) => `Share shortlist (${count})`,
+			shortlistContact: "Share shortlist with the team",
+			shortlistPrompt: "I'd like to discuss these selected packages:",
+			shortlistSaved: "Package saved to this device's shortlist.",
+			shortlistRemoved: "Package removed from the shortlist.",
+			shortlistUnavailable:
+				"Shortlist could not be saved on this device. Try again or contact the team.",
 			invalidContact:
 				"Check your name, WhatsApp number, and consent before continuing.",
 			invalidLink:
@@ -253,8 +271,71 @@ import { hashSitaQuestion } from "../telemetry.js";
 	let rateLimitedUntil = 0;
 	const minimumTypingDuration = 1200;
 	const historyKey = "sita-chat-history-v1";
+	const shortlistKey = "sita-package-shortlist-v1";
 	const maxHistoryMessages = 20;
 	let turnCounter = 0;
+	interface SavedPackage {
+		title: string;
+		href: string;
+	}
+
+	function isShortlistHref(value: string): boolean {
+		return /^\/packages\/[a-z0-9][a-z0-9-]*$/i.test(value);
+	}
+
+	function readSavedPackages(): SavedPackage[] {
+		try {
+			const raw = localStorage.getItem(shortlistKey);
+			if (!raw) return [];
+			const parsed: unknown = JSON.parse(raw);
+			if (!Array.isArray(parsed)) return [];
+			return parsed.flatMap((item) => {
+				if (!item || typeof item !== "object" || Array.isArray(item)) {
+					return [];
+				}
+				const record = item as Record<string, unknown>;
+				return typeof record.title === "string" &&
+					record.title.trim() &&
+					typeof record.href === "string" &&
+					isShortlistHref(record.href)
+					? [{ title: record.title.trim().slice(0, 120), href: record.href }]
+					: [];
+			});
+		} catch (error) {
+			console.error("Could not read Sita package shortlist", error);
+			return [];
+		}
+	}
+
+	let savedPackages = readSavedPackages();
+
+	function persistSavedPackages(): boolean {
+		try {
+			localStorage.setItem(shortlistKey, JSON.stringify(savedPackages));
+			return true;
+		} catch (error) {
+			console.error("Could not save Sita package shortlist", error);
+			return false;
+		}
+	}
+
+	function renderShortlistShareButton(): void {
+		const current = chatChoices.querySelector<HTMLButtonElement>(
+			"[data-sita-share-shortlist]",
+		);
+		if (!savedPackages.length) {
+			current?.remove();
+			return;
+		}
+		const button = current ?? document.createElement("button");
+		button.type = "button";
+		button.className = "sita-chat-shortlist-share";
+		button.dataset.sitaShareShortlist = "true";
+		button.textContent = copy.shareShortlist(savedPackages.length);
+		if (!current) chatChoices.append(button);
+	}
+
+	renderShortlistShareButton();
 
 	function createTurnId(): string {
 		turnCounter += 1;
@@ -814,6 +895,51 @@ import { hashSitaQuestion } from "../telemetry.js";
 					}
 					if (actions.childElementCount) cardContent.append(actions);
 				}
+
+				const packageHref = card.actions?.find((action) =>
+					isShortlistHref(action.href),
+				)?.href;
+				if (packageHref) {
+					const isSaved = savedPackages.some(
+						(saved) => saved.href === packageHref,
+					);
+					const saveButton = document.createElement("button");
+					saveButton.type = "button";
+					saveButton.className = "sita-chat-card__save";
+					saveButton.dataset.sitaShortlistSave = packageHref;
+					saveButton.setAttribute("aria-pressed", String(isSaved));
+					saveButton.textContent = isSaved
+						? copy.removePackage
+						: copy.savePackage;
+					saveButton.addEventListener("click", () => {
+						const previous = savedPackages;
+						const existing = previous.some(
+							(saved) => saved.href === packageHref,
+						);
+						savedPackages = existing
+							? previous.filter((saved) => saved.href !== packageHref)
+							: [
+									...previous,
+									{ title: card.title.trim().slice(0, 120), href: packageHref },
+								].slice(-10);
+						if (!persistSavedPackages()) {
+							savedPackages = previous;
+							addMessage(copy.sita, copy.shortlistUnavailable);
+							return;
+						}
+						const nowSaved = !existing;
+						saveButton.setAttribute("aria-pressed", String(nowSaved));
+						saveButton.textContent = nowSaved
+							? copy.removePackage
+							: copy.savePackage;
+						renderShortlistShareButton();
+						addMessage(
+							copy.sita,
+							nowSaved ? copy.shortlistSaved : copy.shortlistRemoved,
+						);
+					});
+					cardContent.append(saveButton);
+				}
 				cardElement.append(cardContent);
 				cardList.append(cardElement);
 			}
@@ -1141,6 +1267,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 					new CustomEvent("sita:no-match", {
 						detail: {
 							topic: data.topic ?? contextTopic,
+							locale,
 							queryHash: hashSitaQuestion(question),
 							sample: sanitizeSitaQuerySample(question),
 							fallback: Boolean(data.unanswered),
@@ -1178,6 +1305,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 				new CustomEvent("sita:answer", {
 					detail: {
 						topic: data.topic ?? contextTopic,
+						locale,
 						confidence: data.confidence ?? 0,
 						fallback: Boolean(data.unanswered),
 						clarify: Boolean(data.clarify),
@@ -1237,6 +1365,21 @@ import { hashSitaQuestion } from "../telemetry.js";
 	chatChoices.addEventListener("click", (event) => {
 		const target = event.target;
 		if (!(target instanceof Element)) return;
+		const shareButton = target.closest<HTMLButtonElement>(
+			"[data-sita-share-shortlist]",
+		);
+		if (shareButton) {
+			if (!savedPackages.length) return;
+			selectedQuestion = `${copy.shortlistPrompt} ${savedPackages
+				.map(
+					(saved) =>
+						`${saved.title} (${window.location.origin}${saved.href})`,
+				)
+				.join("; ")}`;
+			activeTopic = "packages";
+			showContactForm(copy.shortlistContact);
+			return;
+		}
 		const choice = target.closest<HTMLButtonElement>("[data-sita-topic]");
 		if (!choice) return;
 		const label = choice.textContent?.trim() || "";
@@ -1284,6 +1427,7 @@ import { hashSitaQuestion } from "../telemetry.js";
 						helpful: feedbackButton.dataset.sitaFeedback === "true",
 						turnId: bubble?.dataset.sitaTurnId,
 						topic: bubble?.dataset.sitaTopic,
+						locale,
 					},
 				}),
 			);

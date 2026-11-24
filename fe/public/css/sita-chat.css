@@ -584,6 +584,31 @@
 	outline-offset: 2px;
 }
 
+.sita-chat-card__save {
+	width: 100%;
+	min-height: 34px;
+	margin-top: 6px;
+	border: 1px solid #d6e3d8;
+	border-radius: 10px;
+	background: #f5faf6;
+	padding: 6px 8px;
+	color: #315a4c;
+	cursor: pointer;
+	font: inherit;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.sita-chat-card__save:hover {
+	border-color: var(--sita-pink);
+	background: #fff4f6;
+}
+
+.sita-chat-card__save:focus-visible {
+	outline: 3px solid var(--color-gold-light, #d9bf92);
+	outline-offset: 2px;
+}
+
 .sita-chat-handoff {
 	display: inline-flex;
 	margin-top: 10px;

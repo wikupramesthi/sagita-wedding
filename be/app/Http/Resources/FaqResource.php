@@ -17,6 +17,7 @@ class FaqResource extends JsonResource
         return [
             'uuid' => $this->uuid,
             'kategori' => $this->kategori,
+            'locale' => $this->locale,
             'question' => $this->pertanyaan,
             'answer' => $this->jawaban,
         ];

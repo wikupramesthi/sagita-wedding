@@ -19,7 +19,7 @@
                             @error('pertanyaan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <label for="faq-kategori-{{ $item->uuid }}" class="form-label mb-1">Kategori <span class="text-danger">*</span></label>
                             <select id="faq-kategori-{{ $item->uuid }}" name="kategori"
                                 class="form-select @error('kategori') is-invalid @enderror" required>
@@ -31,6 +31,16 @@
                         </div>
 
                         <div class="col-md-3">
+                            <label for="faq-locale-{{ $item->uuid }}" class="form-label mb-1">Bahasa <span class="text-danger">*</span></label>
+                            <select id="faq-locale-{{ $item->uuid }}" name="locale"
+                                class="form-select @error('locale') is-invalid @enderror" required>
+                                <option value="id" @selected(old('locale', $item->locale) === 'id')>Bahasa Indonesia</option>
+                                <option value="en" @selected(old('locale', $item->locale) === 'en')>English</option>
+                            </select>
+                            @error('locale')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="col-md-2">
                             <label for="faq-urutan-{{ $item->uuid }}" class="form-label mb-1">Urutan <span class="text-danger">*</span></label>
                             <input type="number" id="faq-urutan-{{ $item->uuid }}" name="urutan" min="1"
                                 class="form-control @error('urutan') is-invalid @enderror"
@@ -38,7 +48,7 @@
                             @error('urutan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label for="faq-status-{{ $item->uuid }}" class="form-label mb-1">Status <span class="text-danger">*</span></label>
                             <select id="faq-status-{{ $item->uuid }}" name="status" class="form-select @error('status') is-invalid @enderror" required>
                                 <option value="active" @selected(old('status', $item->status) === 'active')>Aktif</option>

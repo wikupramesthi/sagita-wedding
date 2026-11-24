@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\PegawaiController;
 use App\Http\Controllers\Api\SitaAnalyticsController;
+use App\Http\Controllers\Api\SitaAvailabilityController;
 use App\Http\Controllers\Api\SitaLeadController;
 use App\Http\Controllers\Api\SitaSynonymController;
 use App\Http\Controllers\Api\SiteAnalyticsController;
@@ -100,5 +101,6 @@ Route::get('/packages/{slug}', [
 // Sita chat telemetry, leads, and normalization maps (API key protected).
 Route::post('/sita/events', [SitaAnalyticsController::class, 'storeEvent'])->middleware('throttle:api');
 Route::get('/sita/analytics', [SitaAnalyticsController::class, 'index']);
+Route::get('/sita/availability', [SitaAvailabilityController::class, 'show'])->middleware('throttle:api');
 Route::post('/sita/leads', [SitaLeadController::class, 'store'])->middleware('throttle:api');
 Route::get('/sita/synonyms', [SitaSynonymController::class, 'index']);

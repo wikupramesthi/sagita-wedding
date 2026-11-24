@@ -31,12 +31,22 @@ $totalInactive = (int) $statusCounts->get('inactive', 0);
         <div class="d-flex gap-3 align-items-start">
             <i class="bi bi-question-circle-fill fs-4 flex-shrink-0 mt-1"></i>
             <div class="flex-grow-1">
-                Kelola pertanyaan dan jawaban yang ditampilkan di halaman Kontak dan halaman login.
-                Pengelompokan FAQ per kategori membantu pengunjung menemukan informasi pernikahan lebih cepat.
+                Kelola FAQ yang dipakai Sita dan ditampilkan di situs. Pisahkan Bahasa Indonesia dan English agar jawaban Sita sesuai bahasa percakapan.
             </div>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     </div>
+
+    @if ($draftQuestion !== '')
+    @can('faq.store')
+    <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2" role="status">
+        <span>Draft dari pertanyaan Sita. Lengkapi jawaban yang sudah diverifikasi; FAQ baru akan disimpan nonaktif.</span>
+        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modal-form-add-faq">
+            Lanjutkan draft
+        </button>
+    </div>
+    @endcan
+    @endif
 
     <div class="row mb-4 g-3 ml-stats">
         <div class="col-6 col-xl-3">
@@ -111,6 +121,14 @@ $totalInactive = (int) $statusCounts->get('inactive', 0);
                             @endforeach
                         </select>
                     </div>
+                    <div style="flex:1 1 150px;min-width:0;max-width:200px;">
+                        <label class="form-label small mb-1" for="faq-locale-filter">Bahasa</label>
+                        <select id="faq-locale-filter" name="locale" class="form-select form-select-sm w-100">
+                            <option value="">Semua bahasa</option>
+                            <option value="id" @selected($locale === 'id')>Bahasa Indonesia</option>
+                            <option value="en" @selected($locale === 'en')>English</option>
+                        </select>
+                    </div>
                     <div class="d-flex gap-1">
                         <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-funnel me-1"></i>Filter</button>
                         <a href="{{ route('faq.index') }}" class="btn btn-sm btn-light">Atur ulang</a>
@@ -149,6 +167,7 @@ $totalInactive = (int) $statusCounts->get('inactive', 0);
                         <tr>
                             <th style="width:60px">No</th>
                             <th>Pertanyaan</th>
+                            <th style="width:130px">Bahasa</th>
                             <th style="width:110px">Status</th>
                             <th class="text-end" style="width:140px">Aksi</th>
                         </tr>
@@ -170,6 +189,7 @@ $totalInactive = (int) $statusCounts->get('inactive', 0);
                             </td>
                             <td></td>
                             <td></td>
+                            <td></td>
                         </tr>
                         @php
                             $previousKategori = $item->kategori;
@@ -178,6 +198,7 @@ $totalInactive = (int) $statusCounts->get('inactive', 0);
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td class="text-wrap">{{ $item->pertanyaan }}</td>
+                            <td>{{ $item->locale === 'id' ? 'Bahasa Indonesia' : 'English' }}</td>
                             <td>
                                 <span class="badge {{ $item->status === 'active' ? 'bg-success' : 'bg-secondary' }}">
                                     {{ $item->status === 'active' ? 'Aktif' : 'Nonaktif' }}
@@ -213,7 +234,7 @@ $totalInactive = (int) $statusCounts->get('inactive', 0);
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">
+                            <td colspan="5" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox d-block fs-1 mb-2"></i>
                                 @if ($kategori !== '' || $search !== '')
                                 Tidak ada FAQ yang cocok dengan pencarian.<br>

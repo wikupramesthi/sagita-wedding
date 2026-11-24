@@ -89,6 +89,8 @@ class BatchController extends Controller
             ], 404);
         }
 
+        $data['contentUpdatedAt'] = BatchVersionService::contentUpdatedAt();
+
         $response = response()->json([
             'status' => 'success',
             'message' => 'Batch data retrieved successfully',

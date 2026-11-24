@@ -3,11 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../src/services/batchService.js", () => ({
 	getPageBatch: vi.fn(),
 }));
+vi.mock("../src/services/sitaAvailability.js", () => ({
+	fetchSitaDateAvailability: vi.fn(),
+}));
 
 import { getPageBatch } from "../src/services/batchService.js";
+import { fetchSitaDateAvailability } from "../src/services/sitaAvailability.js";
 import { answerSitaQuestion } from "../src/services/sitaService.js";
 
 const getPageBatchMock = vi.mocked(getPageBatch);
+const fetchSitaDateAvailabilityMock = vi.mocked(fetchSitaDateAvailability);
 
 const dataset = {
 	packages: [
@@ -278,6 +283,13 @@ const goldenQueries: GoldenQuery[] = [
 describe("Sita golden queries", () => {
 	beforeEach(() => {
 		getPageBatchMock.mockResolvedValue(dataset);
+		fetchSitaDateAvailabilityMock.mockImplementation(async (date) => ({
+			reserved: false,
+			blackouts:
+				date === "2027-06-20"
+					? [{ packageName: "Paket Mawar", reason: "libur acara" }]
+					: [],
+		}));
 	});
 
 	it("has at least fifty regression queries", () => {

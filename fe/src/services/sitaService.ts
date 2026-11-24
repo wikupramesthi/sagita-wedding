@@ -11,6 +11,7 @@ import {
 	type SitaChatTopic,
 } from "../utils/validate.js";
 import { getPageBatch } from "./batchService.js";
+import { fetchSitaDateAvailability } from "./sitaAvailability.js";
 import { getDynamicAliases, getSitaKnowledge } from "./sitaKnowledge.js";
 import {
 	detectTopics,
@@ -953,6 +954,18 @@ async function answerPackages(
 			const quotaValues = record.options
 				.map((option) => Number(option.quota))
 				.filter((quota) => Number.isFinite(quota) && quota >= 0);
+			const fitReasons = [
+				budget !== null && price !== null
+					? locale === "id"
+						? `harga mulai ${formatPrice(price, locale)} sesuai anggaran maksimal ${formatPrice(budget, locale)}`
+						: `starting price ${formatPrice(price, locale)} is within the ${formatPrice(budget, locale)} budget`
+					: "",
+				guestCount !== null && record.guestCapacityValue !== null
+					? locale === "id"
+						? `kapasitas ${record.guestCapacity} memenuhi kebutuhan ${new Intl.NumberFormat("id-ID").format(guestCount)} tamu`
+						: `capacity of ${record.guestCapacity} meets the ${new Intl.NumberFormat("en-US").format(guestCount)}-guest requirement`
+					: "",
+			].filter(Boolean);
 			const details = [
 				record.description,
 				record.guestCapacity
@@ -966,6 +979,9 @@ async function answerPackages(
 					: "",
 				quotaValues.length
 					? `${locale === "id" ? "Kuota tercatat" : "Recorded quota"}: ${new Intl.NumberFormat(locale === "id" ? "id-ID" : "en-US").format(Math.max(...quotaValues))}`
+					: "",
+				fitReasons.length
+					? `${locale === "id" ? "Alasan cocok" : "Why it fits"}: ${fitReasons.join("; ")}`
 					: "",
 			].filter(Boolean);
 			const slug = cleanSlugLoose(record.slug);
@@ -1394,14 +1410,26 @@ async function answerAvailability(
 		};
 	}
 
-	const payload = await getPageBatch("packages", { per_page: 50 });
-	const blocked = packageRecords(payload)
-		.flatMap((record) => record.blackoutDates)
-		.find((entry) => entry.date === date);
-	const prefix = locale === "id" ? `Untuk tanggal ${date}, ` : `For ${date}, `;
-	const answer = blocked
-		? `${prefix}${locale === "id" ? "tanggal tersebut tercatat sebagai tanggal libur paket" : "that date is recorded as a package blackout date"}${blocked.reason ? ` (${blocked.reason})` : ""}. ${locale === "id" ? "Silakan hubungi admin untuk menanyakan alternatif tanggal." : "Please contact the team to ask about alternative dates."}`
-		: `${prefix}${locale === "id" ? "status ketersediaan belum tercatat secara otomatis. Tim Sagita perlu mengonfirmasi ketersediaan venue, vendor, dan paket." : "availability is not automatically recorded in Sagita's data. The team will need to confirm venue, vendor, and package availability."}`;
+	const availability = await fetchSitaDateAvailability(date);
+	const readableDate = formatEventDate(date, locale);
+	const blackoutDetails = availability.blackouts
+		.slice(0, 5)
+		.map(
+			(blackout) =>
+				`${blackout.packageName}${blackout.reason ? ` (${blackout.reason})` : ""}`,
+		)
+		.join(", ");
+	const answer = availability.reserved
+		? locale === "id"
+			? `Tanggal ${readableDate} sudah memiliki reservasi aktif di sistem Sagita. Silakan pilih tanggal lain atau hubungi admin untuk memeriksa opsi.`
+			: `${readableDate} already has an active reservation in Sagita's system. Choose another date or contact the team to check other options.`
+		: availability.blackouts.length
+			? locale === "id"
+				? `Belum ada reservasi aktif tercatat untuk ${readableDate}, tetapi tanggal itu ditandai tidak tersedia untuk paket: ${blackoutDetails}${availability.blackouts.length > 5 ? ", dan lainnya" : ""}. Admin perlu mengonfirmasi pilihan yang masih tersedia.`
+				: `No active reservation is recorded for ${readableDate}, but that date is marked unavailable for these packages: ${blackoutDetails}${availability.blackouts.length > 5 ? ", and others" : ""}. The team needs to confirm which options remain available.`
+			: locale === "id"
+				? `Belum ada reservasi aktif tercatat di sistem untuk ${readableDate}. Ini belum menjamin ketersediaan vendor atau venue; admin perlu mengonfirmasinya.`
+				: `No active reservation is recorded in the system for ${readableDate}. This does not guarantee vendor or venue availability; the team needs to confirm those details.`;
 	return {
 		answer,
 		cards: [

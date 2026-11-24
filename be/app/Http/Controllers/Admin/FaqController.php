@@ -19,8 +19,14 @@ class FaqController extends Controller
             $kategori = '';
         }
 
+        $locale = (string) $request->query('locale', '');
+        if (! in_array($locale, Faq::LOCALES, true)) {
+            $locale = '';
+        }
+
         $items = Faq::query()
             ->when($kategori !== '', fn ($query) => $query->where('kategori', $kategori))
+            ->when($locale !== '', fn ($query) => $query->where('locale', $locale))
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('pertanyaan', 'like', "%{$search}%")
@@ -46,21 +52,27 @@ class FaqController extends Controller
             'categories' => Faq::CATEGORIES,
             'defaultKategori' => Faq::KATEGORI_DEFAULT,
             'kategori' => $kategori,
+            'locale' => $locale,
             'search' => $search,
+            'draftQuestion' => '',
             'counts' => $counts,
             'statusCounts' => $statusCounts,
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $draftQuestion = mb_substr(trim((string) $request->query('pertanyaan', '')), 0, 255);
+
         return view('pages.faq.index', [
             'title' => 'Master Data',
             'items' => Faq::orderByKategori()->get(),
             'categories' => Faq::CATEGORIES,
             'defaultKategori' => Faq::KATEGORI_DEFAULT,
             'kategori' => '',
+            'locale' => 'id',
             'search' => '',
+            'draftQuestion' => $draftQuestion,
             'counts' => collect(),
             'statusCounts' => collect(),
         ]);
@@ -132,6 +144,7 @@ class FaqController extends Controller
         return $request->validate([
             'pertanyaan' => ['required', 'string', 'max:255'],
             'kategori' => ['required', Rule::in(Faq::CATEGORIES)],
+            'locale' => ['required', Rule::in(Faq::LOCALES)],
             'jawaban' => ['required', 'string'],
             'urutan' => ['required', 'integer', 'min:1', $urutanRule],
             'status' => ['required', Rule::in(['active', 'inactive'])],

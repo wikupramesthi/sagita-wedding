@@ -26,6 +26,8 @@ class BatchVersionService
 {
     private const KEY = 'batch:content-version';
 
+    private const UPDATED_AT_KEY = 'batch:content-updated-at';
+
     private const WATCHED_MODELS = [
         Article::class,
         Banner::class,
@@ -64,6 +66,8 @@ class BatchVersionService
 
     public static function bump(): void
     {
+        Cache::forever(self::UPDATED_AT_KEY, now()->utc()->format('Y-m-d\TH:i:s.u\Z'));
+
         if (! Cache::has(self::KEY)) {
             Cache::forever(self::KEY, 1);
 
@@ -71,5 +75,12 @@ class BatchVersionService
         }
 
         Cache::increment(self::KEY);
+    }
+
+    public static function contentUpdatedAt(): ?string
+    {
+        $updatedAt = Cache::get(self::UPDATED_AT_KEY);
+
+        return is_string($updatedAt) ? $updatedAt : null;
     }
 }

@@ -104,6 +104,7 @@ describe("Sita telemetry allowlist", () => {
 				kind: "event",
 				name: "sita.no_match",
 				topic: "packages",
+				locale: "id",
 				queryHash: "abc123",
 				message: "rahasia",
 			}),
@@ -112,6 +113,7 @@ describe("Sita telemetry allowlist", () => {
 			name: "sita.no_match",
 			path: "/",
 			topic: "packages",
+			locale: "id",
 			queryHash: "abc123",
 		});
 		expect(
@@ -135,12 +137,14 @@ describe("Sita telemetry allowlist", () => {
 				responseMs: 342,
 				turnId: "turn-4",
 				answer: "rahasia",
+				locale: "id",
 			}),
 		).toEqual({
 			kind: "event",
 			name: "sita.answer",
 			path: "/",
 			topic: "vendors",
+			locale: "id",
 			confidence: 0.15,
 			fallback: true,
 			clarify: false,
@@ -167,6 +171,7 @@ describe("Sita telemetry allowlist", () => {
 				helpful: true,
 				turnId: "turn-123",
 				topic: "vendors",
+				locale: "en",
 				answer: "rahasia",
 			}),
 		).toEqual({
@@ -176,6 +181,7 @@ describe("Sita telemetry allowlist", () => {
 			helpful: true,
 			turnId: "turn-123",
 			topic: "vendors",
+			locale: "en",
 		});
 		expect(
 			parseTelemetry({
@@ -190,6 +196,7 @@ describe("Sita telemetry allowlist", () => {
 				name: "sita.feedback",
 				helpful: false,
 				topic: "unknown",
+				locale: "fr",
 			}),
 		).toEqual({
 			kind: "event",

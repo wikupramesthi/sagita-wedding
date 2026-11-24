@@ -170,6 +170,9 @@ class BatchApiTest extends TestCase
         $first = $this->api()->getJson('/api/batch/venues');
         $etag = $first->headers->get('ETag');
         $this->assertNotEmpty($etag);
+        $contentUpdatedAt = BatchVersionService::contentUpdatedAt();
+        $this->assertNotNull($contentUpdatedAt);
+        $first->assertJsonPath('data.contentUpdatedAt', $contentUpdatedAt);
 
         $venue->update(['name' => 'Garden Hall Revisi']);
 

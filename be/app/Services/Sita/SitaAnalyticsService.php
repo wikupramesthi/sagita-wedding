@@ -66,9 +66,39 @@ class SitaAnalyticsService
                 'helpful' => $feedback->where('topic', $topic)->where('helpful', true)->count(),
                 'unhelpful' => $feedback->where('topic', $topic)->count() - $feedback->where('topic', $topic)->where('helpful', true)->count(),
             ])->all(),
+            'feedbackSegments' => $this->feedbackSegments($feedback),
             'noMatchPatterns' => $this->noMatchPatterns($noMatch),
             'recent' => $events->slice(-20)->reverse()->map(fn (SitaAnalyticsEvent $event): array => $this->sanitizeEvent($event))->values()->all(),
         ];
+    }
+
+    private function feedbackSegments(Collection $feedback): array
+    {
+        $segments = [];
+
+        foreach (['id', 'en', null] as $locale) {
+            foreach (self::TOPICS as $topic) {
+                $group = $feedback->filter(
+                    fn (SitaAnalyticsEvent $event): bool => $event->locale === $locale
+                        && $event->topic === $topic,
+                );
+                if ($group->isEmpty()) {
+                    continue;
+                }
+
+                $helpful = $group->where('helpful', true)->count();
+                $segments[] = [
+                    'locale' => $locale ?? 'unknown',
+                    'topic' => $topic,
+                    'feedback' => $group->count(),
+                    'helpful' => $helpful,
+                    'unhelpful' => $group->count() - $helpful,
+                    'helpfulRate' => $this->percent($helpful, $group->count()),
+                ];
+            }
+        }
+
+        return $segments;
     }
 
     private function noMatchPatterns(Collection $events): array
@@ -105,6 +135,7 @@ class SitaAnalyticsService
 
         foreach ([
             'topic' => 'topic',
+            'locale' => 'locale',
             'confidence' => 'confidence',
             'fallback' => 'fallback',
             'clarify' => 'clarify',

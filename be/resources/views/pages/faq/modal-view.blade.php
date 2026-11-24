@@ -9,6 +9,7 @@
             <div class="modal-body">
                 <div class="faq-detail-meta">
                     <span class="badge bg-light-primary text-primary">{{ $item->kategori }}</span>
+                    <span class="badge bg-light">{{ $item->locale === 'id' ? 'Bahasa Indonesia' : 'English' }}</span>
                     <span class="badge {{ $item->status === 'active' ? 'bg-success' : 'bg-secondary' }}">
                         {{ $item->status === 'active' ? 'Aktif' : 'Nonaktif' }}
                     </span>

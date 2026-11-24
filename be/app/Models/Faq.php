@@ -21,13 +21,15 @@ class Faq extends Model
 
     public const KATEGORI_DEFAULT = self::CATEGORIES[0];
 
+    public const LOCALES = ['id', 'en'];
+
     protected $primaryKey = 'uuid';
 
     public $incrementing = false;
 
     protected $keyType = 'string';
 
-    protected $fillable = ['uuid', 'pertanyaan', 'kategori', 'jawaban', 'urutan', 'status'];
+    protected $fillable = ['uuid', 'pertanyaan', 'kategori', 'locale', 'jawaban', 'urutan', 'status'];
 
     public function scopeKategori($query, ?string $kategori)
     {

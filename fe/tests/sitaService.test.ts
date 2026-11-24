@@ -4,14 +4,28 @@ vi.mock("../src/services/batchService.js", () => ({
 	getPageBatch: vi.fn(),
 }));
 
+vi.mock("../src/services/sitaAvailability.js", () => ({
+	fetchSitaDateAvailability: vi.fn(),
+}));
+
 import { getPageBatch } from "../src/services/batchService.js";
+import { fetchSitaDateAvailability } from "../src/services/sitaAvailability.js";
 import { answerSitaQuestion } from "../src/services/sitaService.js";
 
 const getPageBatchMock = vi.mocked(getPageBatch);
+const fetchSitaDateAvailabilityMock = vi.mocked(fetchSitaDateAvailability);
 
 describe("Sita database answers", () => {
 	beforeEach(() => {
 		getPageBatchMock.mockReset();
+		fetchSitaDateAvailabilityMock.mockReset();
+		fetchSitaDateAvailabilityMock.mockImplementation(async (date) => ({
+			reserved: false,
+			blackouts:
+				date === "2027-06-20"
+					? [{ packageName: "Paket Mawar", reason: "libur acara" }]
+					: [],
+		}));
 	});
 
 	it("shows package facts and prices from the Sagita catalog", async () => {
@@ -518,7 +532,7 @@ describe("Sita NLU-local understanding", () => {
 		expect(result.confidence).toBe(0.9);
 	});
 
-	it("rejects a past availability date before querying the catalog", async () => {
+	it("rejects a past availability date before querying the live calendar", async () => {
 		const result = await answerSitaQuestion(
 			"Apakah tanggal tersedia 01/01/2020?",
 			"id",
@@ -527,6 +541,7 @@ describe("Sita NLU-local understanding", () => {
 		expect(result.answer).toContain("Tanggal 1 Januari 2020 sudah lewat");
 		expect(result.answer).toContain("pilih tanggal acara lain");
 		expect(getPageBatchMock).not.toHaveBeenCalled();
+		expect(fetchSitaDateAvailabilityMock).not.toHaveBeenCalled();
 	});
 
 	it("uses the locale-matched editable FAQ for policy answers", async () => {
@@ -698,23 +713,31 @@ describe("Sita explicit intents", () => {
 	});
 
 	it("uses blackout dates for an availability question with a date", async () => {
-		getPageBatchMock.mockResolvedValue({
-			packages: [
-				{
-					name: "Paket Mawar",
-					blackout_dates: [{ date: "2027-06-20", reason: "libur acara" }],
-				},
-			],
-		});
-
 		const result = await answerSitaQuestion(
 			"Apakah venue tersedia 20/06/2027?",
 			"id",
 		);
 
-		expect(result.answer).toContain("2027-06-20");
+		expect(result.answer).toContain("20 Juni 2027");
+		expect(result.answer).toContain("Paket Mawar");
 		expect(result.answer).toContain("libur acara");
 		expect(result.confidence).toBe(0.9);
+		expect(fetchSitaDateAvailabilityMock).toHaveBeenCalledWith("2027-06-20");
+	});
+
+	it("reports an active date reservation without exposing order details", async () => {
+		fetchSitaDateAvailabilityMock.mockResolvedValue({
+			reserved: true,
+			blackouts: [],
+		});
+		const result = await answerSitaQuestion(
+			"Apakah tanggal tersedia 10 Desember 2027?",
+			"id",
+		);
+
+		expect(result.answer).toContain("sudah memiliki reservasi aktif");
+		expect(result.answer).not.toContain("order");
+		expect(fetchSitaDateAvailabilityMock).toHaveBeenCalledWith("2027-12-10");
 	});
 
 	it("asks for a date in a readable format when availability is unknown", async () => {

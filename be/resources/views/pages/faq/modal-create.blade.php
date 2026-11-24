@@ -8,17 +8,22 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
+                    @if ($draftQuestion !== '')
+                    <div class="alert alert-info small" role="status">
+                        Isi jawaban berdasarkan kebijakan Sagita yang telah diverifikasi sebelum mengaktifkan FAQ ini.
+                    </div>
+                    @endif
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="faq-pertanyaan-create" class="form-label mb-1">Pertanyaan <span class="text-danger">*</span></label>
                             <input type="text" id="faq-pertanyaan-create" name="pertanyaan"
                                 class="form-control @error('pertanyaan') is-invalid @enderror"
-                                value="{{ old('pertanyaan') }}" placeholder="Contoh: Bagaimana cara memesan paket?"
+                                value="{{ old('pertanyaan', $draftQuestion) }}" placeholder="Contoh: Bagaimana cara memesan paket?"
                                 maxlength="255" required>
                             @error('pertanyaan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <label for="faq-kategori-create" class="form-label mb-1">Kategori <span class="text-danger">*</span></label>
                             <select id="faq-kategori-create" name="kategori" class="form-select @error('kategori') is-invalid @enderror" required>
                                 @foreach ($categories as $category)
@@ -29,6 +34,15 @@
                         </div>
 
                         <div class="col-md-3">
+                            <label for="faq-locale-create" class="form-label mb-1">Bahasa <span class="text-danger">*</span></label>
+                            <select id="faq-locale-create" name="locale" class="form-select @error('locale') is-invalid @enderror" required>
+                                <option value="id" @selected(old('locale', $locale) === 'id')>Bahasa Indonesia</option>
+                                <option value="en" @selected(old('locale', $locale) === 'en')>English</option>
+                            </select>
+                            @error('locale')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="col-md-2">
                             <label for="faq-urutan-create" class="form-label mb-1">Urutan <span class="text-danger">*</span></label>
                             <input type="number" id="faq-urutan-create" name="urutan" min="1"
                                 class="form-control @error('urutan') is-invalid @enderror"
@@ -36,11 +50,11 @@
                             @error('urutan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label for="faq-status-create" class="form-label mb-1">Status <span class="text-danger">*</span></label>
                             <select id="faq-status-create" name="status" class="form-select @error('status') is-invalid @enderror" required>
-                                <option value="active" @selected(old('status', 'active') === 'active')>Aktif</option>
-                                <option value="inactive" @selected(old('status') === 'inactive')>Nonaktif</option>
+                                <option value="active" @selected(old('status', $draftQuestion !== '' ? 'inactive' : 'active') === 'active')>Aktif</option>
+                                <option value="inactive" @selected(old('status', $draftQuestion !== '' ? 'inactive' : 'active') === 'inactive')>Nonaktif</option>
                             </select>
                             @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>

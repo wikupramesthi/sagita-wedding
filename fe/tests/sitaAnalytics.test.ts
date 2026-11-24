@@ -21,6 +21,7 @@ describe("Sita analytics", () => {
 			clarify: false,
 			responseMs: 320,
 			turnId: "turn-1",
+			locale: "id",
 		});
 		recordSitaTelemetry({
 			kind: "event",
@@ -32,6 +33,7 @@ describe("Sita analytics", () => {
 			clarify: false,
 			responseMs: 180,
 			turnId: "turn-2",
+			locale: "en",
 		});
 		recordSitaTelemetry({
 			kind: "event",
@@ -39,6 +41,7 @@ describe("Sita analytics", () => {
 			path: "/",
 			helpful: true,
 			topic: "packages",
+			locale: "id",
 		});
 		recordSitaTelemetry({
 			kind: "event",
@@ -46,6 +49,7 @@ describe("Sita analytics", () => {
 			path: "/",
 			helpful: false,
 			topic: "vendors",
+			locale: "en",
 		});
 		recordSitaTelemetry({
 			kind: "event",
@@ -78,6 +82,24 @@ describe("Sita analytics", () => {
 			lowConfidence: 1,
 		});
 		expect(analytics.rates.helpful).toBe(50);
+		expect(analytics.feedbackSegments).toEqual([
+			{
+				locale: "id",
+				topic: "packages",
+				feedback: 1,
+				helpful: 1,
+				unhelpful: 0,
+				helpfulRate: 100,
+			},
+			{
+				locale: "en",
+				topic: "vendors",
+				feedback: 1,
+				helpful: 0,
+				unhelpful: 1,
+				helpfulRate: 0,
+			},
+		]);
 		expect(analytics.rates.fallback).toBe(50);
 		expect(analytics.performance.avgResponseMs).toBe(250);
 		expect(

@@ -11,6 +11,7 @@ class SitaAnalyticsEvent extends Model
     protected $fillable = [
         'name',
         'topic',
+        'locale',
         'query_hash',
         'query_sample',
         'turn_id',

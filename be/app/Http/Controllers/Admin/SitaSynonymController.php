@@ -10,18 +10,34 @@ use Illuminate\Validation\Rule;
 
 class SitaSynonymController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_unless(auth()->user()?->can('sita.synonyms.manage'), 404);
 
+        $search = trim((string) $request->query('q', ''));
+        $locale = (string) $request->query('locale', '');
+        $topic = (string) $request->query('topic', '');
+        $active = (string) $request->query('is_active', '');
+
         $synonyms = SitaSynonym::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('term', 'like', '%'.$search.'%')
+                        ->orWhere('canonical', 'like', '%'.$search.'%');
+                });
+            })
+            ->when(in_array($locale, ['id', 'en'], true), fn ($query) => $query->where('locale', $locale))
+            ->when(in_array($topic, ['packages', 'venues', 'vendors'], true), fn ($query) => $query->where('topic', $topic))
+            ->when($active === '1' || $active === '0', fn ($query) => $query->where('is_active', (int) $active))
             ->orderBy('locale')
             ->orderBy('term')
             ->orderBy('sort_order')
             ->paginate(20)
             ->withQueryString();
 
-        return view('pages.sita.synonyms.index', compact('synonyms'));
+        $filters = compact('search', 'locale', 'topic', 'active');
+
+        return view('pages.sita.synonyms.index', compact('synonyms', 'filters'));
     }
 
     public function store(Request $request)

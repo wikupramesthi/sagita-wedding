@@ -28,6 +28,7 @@ class FaqCategoryTest extends TestCase
     public function test_faqs_table_has_kategori_column_and_expected_categories(): void
     {
         $this->assertTrue(Schema::hasColumn('faqs', 'kategori'));
+        $this->assertTrue(Schema::hasColumn('faqs', 'locale'));
 
         $this->assertSame([
             'Perencanaan Pernikahan',
@@ -42,7 +43,10 @@ class FaqCategoryTest extends TestCase
             $this->assertDatabaseHas('faqs', ['kategori' => $category]);
         }
 
-        $this->assertSame(Faq::CATEGORIES, Faq::orderByKategori()->pluck('kategori')->all());
+        $this->assertSame(
+            Faq::CATEGORIES,
+            Faq::orderByKategori()->pluck('kategori')->unique()->values()->all(),
+        );
     }
 
     public function test_public_api_can_filter_faqs_by_kategori(): void
@@ -70,7 +74,7 @@ class FaqCategoryTest extends TestCase
             ->assertJsonStructure([
                 'status',
                 'message',
-                'data' => [['uuid', 'kategori', 'question', 'answer']],
+                'data' => [['uuid', 'kategori', 'locale', 'question', 'answer']],
                 'meta' => ['total', 'kategori', 'categories'],
             ])
             ->assertJsonPath('meta.kategori', 'Vendor & Mitra');
@@ -124,6 +128,24 @@ class FaqCategoryTest extends TestCase
             ->assertSee('Apakah bisa mengubah tanggal acara?');
     }
 
+    public function test_admin_can_prepare_an_inactive_faq_draft_from_a_sita_question(): void
+    {
+        $user = User::factory()->create();
+        $role = Role::findOrCreate('admin', 'web');
+        $role->givePermissionTo(Permission::findOrCreate('faq.index', 'web'));
+        $role->givePermissionTo(Permission::findOrCreate('faq.create', 'web'));
+        $role->givePermissionTo(Permission::findOrCreate('faq.store', 'web'));
+        $user->assignRole($role);
+
+        $this->actingAs($user)
+            ->get(route('faq.create', ['pertanyaan' => 'Apakah ada layanan dekorasi?']))
+            ->assertOk()
+            ->assertSee('Draft dari pertanyaan Sita')
+            ->assertSee('value="Apakah ada layanan dekorasi?"', false)
+            ->assertSee('value="inactive" selected', false)
+            ->assertSee('Isi jawaban berdasarkan kebijakan Sagita yang telah diverifikasi');
+    }
+
     public function test_admin_can_create_faq_with_kategori(): void
     {
         $user = User::factory()->create();
@@ -135,6 +157,7 @@ class FaqCategoryTest extends TestCase
             ->post(route('faq.store'), [
                 'pertanyaan' => 'Bagaimana saya bisa memesan paket?',
                 'kategori' => 'Paket & Layanan',
+                'locale' => 'id',
                 'jawaban' => 'Pilih paket lalu kirim formulir pemesanan.',
                 'urutan' => 1,
                 'status' => 'active',
@@ -144,6 +167,7 @@ class FaqCategoryTest extends TestCase
         $this->assertDatabaseHas('faqs', [
             'pertanyaan' => 'Bagaimana saya bisa memesan paket?',
             'kategori' => 'Paket & Layanan',
+            'locale' => 'id',
             'urutan' => 1,
             'status' => 'active',
         ]);
@@ -157,5 +181,69 @@ class FaqCategoryTest extends TestCase
                 'status' => 'active',
             ])
             ->assertSessionHasErrors('kategori');
+    }
+
+    public function test_verified_policies_are_seeded_as_editable_faqs_in_both_languages(): void
+    {
+        $this->assertDatabaseHas('faqs', [
+            'uuid' => 'e1a00001-1111-4aaa-8aaa-000000000003',
+            'locale' => 'id',
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('faqs', [
+            'uuid' => 'e1a00001-1111-4aaa-8aaa-000000000004',
+            'locale' => 'en',
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('faqs', [
+            'uuid' => '9f25d34e-2a60-42cf-8379-ed069dc50ac0',
+            'status' => 'inactive',
+        ]);
+        $this->assertDatabaseHas('faqs', [
+            'uuid' => '95b200f1-69c7-4f1b-a76b-172bcf5fcc55',
+            'status' => 'inactive',
+        ]);
+    }
+
+    public function test_admin_can_filter_faqs_by_language(): void
+    {
+        $user = User::factory()->create();
+        $role = Role::findOrCreate('admin', 'web');
+        $role->givePermissionTo(Permission::findOrCreate('faq.index', 'web'));
+        $user->assignRole($role);
+
+        $this->actingAs($user)
+            ->get(route('faq.index', ['locale' => 'id']))
+            ->assertOk()
+            ->assertSee('Bahasa Indonesia')
+            ->assertDontSee('What are Sagita’s operating hours?');
+    }
+
+    public function test_admin_can_edit_a_verified_sita_policy_without_a_deploy(): void
+    {
+        $user = User::factory()->create();
+        $role = Role::findOrCreate('admin', 'web');
+        $role->givePermissionTo(Permission::findOrCreate('faq.update', 'web'));
+        $user->assignRole($role);
+
+        $uuid = 'e1a00001-1111-4aaa-8aaa-000000000003';
+        $faq = Faq::query()->findOrFail($uuid);
+
+        $this->actingAs($user)
+            ->put(route('faq.update', $uuid), [
+                'pertanyaan' => $faq->pertanyaan,
+                'kategori' => $faq->kategori,
+                'locale' => 'id',
+                'jawaban' => 'Jawaban yang diperbarui admin.',
+                'urutan' => $faq->urutan,
+                'status' => 'active',
+            ])
+            ->assertRedirect(route('faq.index'));
+
+        $this->assertDatabaseHas('faqs', [
+            'uuid' => $uuid,
+            'locale' => 'id',
+            'jawaban' => 'Jawaban yang diperbarui admin.',
+        ]);
     }
 }

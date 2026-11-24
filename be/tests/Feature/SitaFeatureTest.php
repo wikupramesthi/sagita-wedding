@@ -2,6 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Package\Package;
+use App\Models\Package\PackageBlackoutDate;
+use App\Models\Payment\EventDateReservation;
+use App\Models\Payment\Order;
+use App\Models\Sita\SitaAnalyticsEvent;
 use App\Models\Sita\SitaLead;
 use App\Models\Sita\SitaSynonym;
 use App\Models\User;
@@ -9,6 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
@@ -93,7 +99,7 @@ class SitaFeatureTest extends TestCase
 
         $indexes = collect(DB::select('SHOW INDEX FROM sita_analytics_events'))->pluck('Key_name')->all();
 
-        foreach (['sita_analytics_events_name_occurred_at_index', 'sita_analytics_events_topic_occurred_at_index', 'sita_analytics_events_query_hash_occurred_at_index', 'sita_analytics_events_name_turn_id_index'] as $index) {
+        foreach (['sita_analytics_events_name_occurred_at_index', 'sita_analytics_events_topic_occurred_at_index', 'sita_analytics_events_query_hash_occurred_at_index', 'sita_analytics_events_name_turn_id_index', 'sita_analytics_events_occurred_at_index'] as $index) {
             $this->assertContains($index, $indexes);
         }
     }
@@ -106,6 +112,7 @@ class SitaFeatureTest extends TestCase
         ])->assertUnauthorized();
 
         $this->getJson('/api/sita/analytics')->assertUnauthorized();
+        $this->getJson('/api/sita/availability?date=2027-06-20')->assertUnauthorized();
 
         $this->postJson('/api/sita/leads', [
             'name' => 'Client',
@@ -136,6 +143,7 @@ class SitaFeatureTest extends TestCase
             'kind' => 'event',
             'name' => 'sita.answer',
             'topic' => 'packages',
+            'locale' => 'id',
             'confidence' => 0.9,
             'fallback' => false,
             'clarify' => false,
@@ -173,6 +181,7 @@ class SitaFeatureTest extends TestCase
             'kind' => 'event',
             'name' => 'sita.answer',
             'topic' => 'packages',
+            'locale' => 'id',
             'confidence' => 0.9,
             'fallback' => false,
             'clarify' => false,
@@ -184,6 +193,7 @@ class SitaFeatureTest extends TestCase
             'kind' => 'event',
             'name' => 'sita.answer',
             'topic' => 'vendors',
+            'locale' => 'en',
             'confidence' => 0.15,
             'fallback' => true,
             'clarify' => false,
@@ -195,6 +205,7 @@ class SitaFeatureTest extends TestCase
             'kind' => 'event',
             'name' => 'sita.feedback',
             'topic' => 'packages',
+            'locale' => 'id',
             'helpful' => true,
             'turnId' => 'turn-1',
         ])->assertAccepted();
@@ -203,6 +214,7 @@ class SitaFeatureTest extends TestCase
             'kind' => 'event',
             'name' => 'sita.feedback',
             'topic' => 'vendors',
+            'locale' => 'en',
             'helpful' => false,
             'turnId' => 'turn-3',
         ])->assertAccepted();
@@ -212,6 +224,7 @@ class SitaFeatureTest extends TestCase
                 'kind' => 'event',
                 'name' => 'sita.no_match',
                 'topic' => 'packages',
+                'locale' => 'id',
                 'queryHash' => 'abc123',
                 'querySample' => 'fotobooth dong 081234567890',
                 'fallback' => true,
@@ -230,6 +243,7 @@ class SitaFeatureTest extends TestCase
                 'rates' => ['helpful', 'fallback', 'noMatch', 'clarify'],
                 'performance' => ['avgResponseMs'],
                 'topics' => [['topic', 'answers', 'helpful', 'unhelpful']],
+                'feedbackSegments' => [['locale', 'topic', 'feedback', 'helpful', 'unhelpful', 'helpfulRate']],
                 'noMatchPatterns' => [['queryHash', 'count', 'topic', 'sample', 'fallback', 'lastAt']],
                 'recent' => [['at', 'name']],
             ]);
@@ -244,6 +258,12 @@ class SitaFeatureTest extends TestCase
             ->assertJsonPath('totals.fallback', 1)
             ->assertJsonPath('totals.clarify', 0)
             ->assertJsonPath('totals.lowConfidence', 1)
+            ->assertJsonPath('feedbackSegments.0.locale', 'id')
+            ->assertJsonPath('feedbackSegments.0.topic', 'packages')
+            ->assertJsonPath('feedbackSegments.0.helpfulRate', 100)
+            ->assertJsonPath('feedbackSegments.1.locale', 'en')
+            ->assertJsonPath('feedbackSegments.1.topic', 'vendors')
+            ->assertJsonPath('feedbackSegments.1.unhelpful', 1)
             ->assertJsonPath('rates.helpful', 50)
             ->assertJsonPath('rates.fallback', 50)
             ->assertJsonPath('performance.avgResponseMs', 250)
@@ -298,6 +318,58 @@ class SitaFeatureTest extends TestCase
             'eventDate' => '2027-06-20',
             'vendorCategory' => 'fotografi',
         ], $lead->criteria);
+    }
+
+    public function test_sita_availability_uses_reservations_and_package_blackouts(): void
+    {
+        $date = today()->addMonths(6)->toDateString();
+        $package = Package::create([
+            'name' => 'Paket Availability Test',
+            'slug' => 'paket-availability-test',
+            'price' => 10000000,
+            'is_active' => 'active',
+            'is_published' => true,
+            'published_at' => now(),
+        ]);
+        PackageBlackoutDate::create([
+            'package_uuid' => $package->uuid,
+            'date' => $date,
+            'reason' => 'Jadwal vendor penuh',
+        ]);
+
+        $this->api()->getJson('/api/sita/availability?date='.$date)
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertJsonPath('data.date', $date)
+            ->assertJsonPath('data.reserved', false)
+            ->assertJsonPath('data.blackouts.0.packageName', $package->name)
+            ->assertJsonPath('data.blackouts.0.reason', 'Jadwal vendor penuh');
+
+        $order = Order::create([
+            'user_uuid' => $this->admin->uuid,
+            'order_number' => 'ORD-SITA-AVAILABILITY',
+            'type' => 'package',
+            'package_uuid' => $package->uuid,
+            'event_date' => $date,
+            'amount' => 10000000,
+            'total_amount' => 10000000,
+            'amount_paid' => 10000000,
+            'remaining_amount' => 0,
+            'status' => 'paid',
+        ]);
+        EventDateReservation::create([
+            'event_date' => $date,
+            'order_uuid' => $order->uuid,
+            'status' => 'confirmed',
+        ]);
+
+        $this->api()->getJson('/api/sita/availability?date='.$date)
+            ->assertOk()
+            ->assertJsonPath('data.reserved', true)
+            ->assertJsonMissingPath('data.order_uuid');
+
+        $this->api()->getJson('/api/sita/availability?date=not-a-date')
+            ->assertUnprocessable();
     }
 
     public function test_synonyms_are_seeded_and_listed_without_inactive_rows(): void
@@ -390,5 +462,127 @@ class SitaFeatureTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseMissing('sita_leads', ['uuid' => $lead->uuid]);
+    }
+
+    public function test_no_match_patterns_link_to_manual_faq_and_synonym_review(): void
+    {
+        Role::findByName('admin', 'web')
+            ->givePermissionTo(Permission::findOrCreate('faq.store', 'web'));
+
+        SitaAnalyticsEvent::query()->create([
+            'name' => 'sita.no_match',
+            'topic' => 'vendors',
+            'query_hash' => 'fotobooth',
+            'query_sample' => 'fotobooth untuk acara',
+            'fallback' => true,
+            'path' => '/',
+            'occurred_at' => now(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('sita.analytics.index'))
+            ->assertOk()
+            ->assertSee('Retensi '.config('sita.analytics.retention_days').' hari')
+            ->assertSee('Tinjau FAQ')
+            ->assertSee(route('faq.index', ['q' => 'fotobooth untuk acara']), false)
+            ->assertSee('Buat draft FAQ')
+            ->assertSee(route('faq.create', ['pertanyaan' => 'fotobooth untuk acara']), false)
+            ->assertSee('Kelola sinonim')
+            ->assertSee(route('sita.synonyms.index'), false);
+    }
+
+    public function test_admin_synonym_filters_are_applied(): void
+    {
+        SitaSynonym::create([
+            'locale' => 'id',
+            'term' => 'zzfilterpaket',
+            'canonical' => 'paket',
+            'topic' => 'packages',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        SitaSynonym::create([
+            'locale' => 'en',
+            'term' => 'zzfiltervendor',
+            'canonical' => 'vendor',
+            'topic' => 'vendors',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('sita.synonyms.index', [
+                'q' => 'zzfilterpaket',
+                'locale' => 'id',
+                'topic' => 'packages',
+                'is_active' => '1',
+            ]))
+            ->assertOk()
+            ->assertSee('zzfilterpaket')
+            ->assertDontSee('zzfiltervendor');
+
+        $this->actingAs($this->admin)
+            ->get(route('sita.synonyms.index', ['is_active' => '0']))
+            ->assertOk()
+            ->assertDontSee('zzfilterpaket');
+    }
+
+    public function test_sita_analytics_prune_command_enforces_retention_and_row_cap(): void
+    {
+        foreach ([100, 95] as $daysAgo) {
+            SitaAnalyticsEvent::query()->create([
+                'name' => 'sita.answer',
+                'topic' => 'packages',
+                'path' => '/',
+                'occurred_at' => now()->subDays($daysAgo),
+            ]);
+        }
+
+        foreach ([1, 2] as $turn) {
+            SitaAnalyticsEvent::query()->create([
+                'name' => 'sita.answer',
+                'topic' => 'packages',
+                'turn_id' => "retention-turn-{$turn}",
+                'path' => '/',
+                'occurred_at' => now(),
+            ]);
+        }
+
+        $this->artisan('sita:prune-analytics', ['--days' => 90, '--keep' => 2])
+            ->assertExitCode(0);
+
+        $this->assertDatabaseCount('sita_analytics_events', 2);
+        $this->assertSame(0, SitaAnalyticsEvent::query()
+            ->where('occurred_at', '<', now()->subDays(90))
+            ->count());
+    }
+
+    public function test_sita_analytics_prune_command_caps_recent_rows(): void
+    {
+        foreach (range(1, 5) as $turn) {
+            SitaAnalyticsEvent::query()->create([
+                'name' => 'sita.answer',
+                'topic' => 'vendors',
+                'turn_id' => "cap-turn-{$turn}",
+                'path' => '/',
+                'occurred_at' => now(),
+            ]);
+        }
+
+        $keepIds = SitaAnalyticsEvent::query()
+            ->orderByDesc('id')
+            ->limit(2)
+            ->pluck('id')
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->artisan('sita:prune-analytics', ['--days' => 90, '--keep' => 2])
+            ->assertExitCode(0);
+
+        $remainingIds = SitaAnalyticsEvent::query()->orderBy('id')->pluck('id')->all();
+
+        $this->assertSame($keepIds, $remainingIds);
     }
 }

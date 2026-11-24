@@ -80,6 +80,7 @@ const sitaLeadLimiter = rateLimit({
 });
 
 type SitaTopic = "packages" | "venues" | "vendors";
+type SitaLocale = "id" | "en";
 
 export type TelemetryPayload =
 	| {
@@ -99,6 +100,7 @@ export type TelemetryPayload =
 			name: "sita.no_match";
 			path: "/";
 			topic?: SitaTopic;
+			locale?: SitaLocale;
 			queryHash?: string;
 			sample?: string;
 			fallback?: boolean;
@@ -108,6 +110,7 @@ export type TelemetryPayload =
 			name: "sita.answer";
 			path: "/";
 			topic?: SitaTopic;
+			locale?: SitaLocale;
 			confidence: number;
 			fallback: boolean;
 			clarify: boolean;
@@ -122,12 +125,17 @@ export type TelemetryPayload =
 			helpful: boolean;
 			turnId?: string;
 			topic?: SitaTopic;
+			locale?: SitaLocale;
 	  };
 
 function cleanSitaTopic(value: unknown): SitaTopic | undefined {
 	return value === "packages" || value === "venues" || value === "vendors"
 		? value
 		: undefined;
+}
+
+function cleanSitaLocale(value: unknown): SitaLocale | undefined {
+	return value === "id" || value === "en" ? value : undefined;
 }
 
 function cleanTurnId(value: unknown): string | undefined {
@@ -141,6 +149,7 @@ export function parseTelemetry(value: unknown): TelemetryPayload | null {
 	const item = value as Record<string, unknown>;
 	if (item.kind === "event") {
 		const topic = cleanSitaTopic(item.topic);
+		const locale = cleanSitaLocale(item.locale);
 		const turnId = cleanTurnId(item.turnId);
 		if (item.name === "sita.no_match") {
 			const queryHash =
@@ -157,6 +166,7 @@ export function parseTelemetry(value: unknown): TelemetryPayload | null {
 				name: "sita.no_match",
 				path: "/",
 				...(topic ? { topic } : {}),
+				...(locale ? { locale } : {}),
 				...(queryHash ? { queryHash } : {}),
 				...(sample ? { sample } : {}),
 				...(typeof item.fallback === "boolean"
@@ -188,6 +198,7 @@ export function parseTelemetry(value: unknown): TelemetryPayload | null {
 				clarify: item.clarify,
 				responseMs,
 				...(topic ? { topic } : {}),
+				...(locale ? { locale } : {}),
 				...(typeof item.queryHash === "string" &&
 				/^[a-z0-9]{1,32}$/.test(item.queryHash)
 					? { queryHash: item.queryHash }
@@ -203,6 +214,7 @@ export function parseTelemetry(value: unknown): TelemetryPayload | null {
 				helpful: item.helpful,
 				...(turnId ? { turnId } : {}),
 				...(topic ? { topic } : {}),
+				...(locale ? { locale } : {}),
 			};
 		}
 		return null;

@@ -122,6 +122,25 @@ class EventDateReservationService
             ->values();
     }
 
+    public function isUnavailable(CarbonInterface|string $date): bool
+    {
+        $dateValue = $date instanceof CarbonInterface ? $date->toDateString() : $date;
+
+        $activeReservation = EventDateReservation::query()
+            ->whereDate('event_date', $dateValue)
+            ->whereNotNull('order_uuid')
+            ->where(function ($query) {
+                $query->where('status', 'confirmed')
+                    ->orWhere(function ($heldQuery) {
+                        $heldQuery->where('status', 'held')
+                            ->where('expires_at', '>', now());
+                    });
+            })
+            ->exists();
+
+        return $activeReservation || $this->activeOrdersForDate($dateValue)->exists();
+    }
+
     private function activeOrdersForDate(string $date, ?string $excludeOrderUuid = null)
     {
         return Order::packageOnly()

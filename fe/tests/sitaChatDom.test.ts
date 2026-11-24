@@ -142,7 +142,11 @@ describe("SITA chat widget", () => {
 		return found;
 	}
 
-	function submitQuestion(question: string, source?: Detail): void {
+	function submitQuestion(
+		question: string,
+		source?: Detail,
+		cards: Detail[] = [],
+	): void {
 		setGlobal(
 			"fetch",
 			vi.fn(async (url: string, init?: RequestInit) => {
@@ -166,7 +170,7 @@ describe("SITA chat widget", () => {
 							body.message === "Fotobooth dong"
 								? "Aku belum punya data vendor itu."
 								: "Paket mulai 25 juta.",
-						cards: [],
+						cards,
 						offerContact: true,
 						confidence: body.message === "Fotobooth dong" ? 0.35 : 0.9,
 						topic: body.message === "Fotobooth dong" ? "vendors" : "packages",
@@ -321,6 +325,22 @@ describe("SITA chat widget", () => {
 				},
 			},
 		});
+
+		await vi.waitFor(
+			() =>
+				expect((element("#sitaChatInput") as HTMLInputElement).disabled).toBe(
+					false,
+				),
+			{ timeout: 5000 },
+		);
+		submitQuestion("vendor dekorasi");
+		await vi.waitFor(() => expect(sitaRequests).toHaveLength(3), {
+			timeout: 5000,
+		});
+		expect(sitaRequests[2]).toMatchObject({
+			message: "vendor dekorasi",
+			context: { topic: "vendors" },
+		});
 	});
 
 	it("answers a submitted question and emits answer telemetry", async () => {
@@ -340,6 +360,7 @@ describe("SITA chat widget", () => {
 			topic: "packages",
 			confidence: 0.9,
 			fallback: false,
+			locale: "id",
 		});
 		expect(events["sita:no-match"]).toHaveLength(0);
 		expect(
@@ -379,6 +400,7 @@ describe("SITA chat widget", () => {
 			topic: "vendors",
 			fallback: false,
 			sample: "Fotobooth dong",
+			locale: "id",
 		});
 		expect(element("#sitaChatMessages").textContent).toContain(
 			"Informasi ini belum cukup terverifikasi",
@@ -416,7 +438,69 @@ describe("SITA chat widget", () => {
 		helpful.click();
 
 		expect(events["sita:feedback"]).toHaveLength(1);
-		expect(events["sita:feedback"][0]).toMatchObject({ helpful: true });
+		expect(events["sita:feedback"][0]).toMatchObject({
+			helpful: true,
+			locale: "id",
+		});
 		expect(helpful.disabled).toBe(true);
+	});
+
+	it("saves package cards locally and shares the shortlist through lead contact", async () => {
+		element("#sitaChatToggle").click();
+		submitQuestion("Paket pernikahan", undefined, [
+			{
+				title: "Paket Mawar",
+				description: "Paket pernikahan",
+				actions: [{ label: "Lihat paket", href: "/packages/paket-mawar" }],
+			},
+		]);
+
+		await vi.waitFor(
+			() =>
+				expect(
+					dom.window.document.querySelector("[data-sita-shortlist-save]"),
+				).not.toBeNull(),
+			{ timeout: 3000 },
+		);
+
+		const saveButton = element(
+			"[data-sita-shortlist-save]",
+		) as HTMLButtonElement;
+		saveButton.click();
+		expect(saveButton.getAttribute("aria-pressed")).toBe("true");
+		expect(
+			JSON.parse(
+				dom.window.localStorage.getItem("sita-package-shortlist-v1") ?? "[]",
+			),
+		).toEqual([{ title: "Paket Mawar", href: "/packages/paket-mawar" }]);
+
+		element("[data-sita-share-shortlist]").click();
+		expect(element("#sitaChatLead").classList.contains("hidden")).toBe(false);
+		(element("#sitaChatLead input[name='name']") as HTMLInputElement).value =
+			"Dewi";
+		(element("#sitaChatLead input[name='phone']") as HTMLInputElement).value =
+			"081234567890";
+		(
+			element("#sitaChatLead input[name='consent']") as HTMLInputElement
+		).checked = true;
+		element("#sitaChatLead").dispatchEvent(
+			new dom.window.Event("submit", { bubbles: true, cancelable: true }),
+		);
+
+		await vi.waitFor(
+			() =>
+				expect(
+					dom.window.document.querySelector(".sita-chat-handoff"),
+				).not.toBeNull(),
+			{ timeout: 3000 },
+		);
+		const handoff = element(".sita-chat-handoff") as HTMLAnchorElement;
+		expect(decodeURIComponent(handoff.href)).toContain(
+			"Paket Mawar (http://localhost:3000/packages/paket-mawar)",
+		);
+		expect(leadRequests[0]).toMatchObject({
+			name: "Dewi",
+			topic: "packages",
+		});
 	});
 });
