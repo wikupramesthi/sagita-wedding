@@ -12,7 +12,7 @@
         <p class="text-muted mb-0">Tim Sagita akan meninjau kebutuhan ini dan menyiapkan penawaran khusus yang hanya dapat Anda lihat.</p>
     </div>
 
-    <form method="POST" action="{{ route('package-offer-requests.store') }}" class="card">
+    <form method="POST" action="{{ route('package-offer-requests.store') }}" enctype="multipart/form-data" class="card">
         @csrf
         <div class="card-body">
             <div class="row g-3">
@@ -46,6 +46,13 @@
                     <textarea id="request_details" name="request_details" rows="7" maxlength="5000" minlength="20" required class="form-control @error('request_details') is-invalid @enderror" placeholder="Ceritakan layanan yang dibutuhkan, konsep acara, hal yang penting bagi Anda, dan permintaan lainnya.">{{ old('request_details') }}</textarea>
                     @error('request_details')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <div class="form-text">Jelaskan sedetail mungkin agar penawaran yang dibuat lebih sesuai.</div>
+                </div>
+                <div class="col-12">
+                    <label for="attachments" class="form-label">Lampiran pendukung <span class="text-muted">(opsional)</span></label>
+                    <input id="attachments" type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" class="form-control @error('attachments') is-invalid @enderror @error('attachments.*') is-invalid @enderror">
+                    @error('attachments')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    @error('attachments.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="form-text">Maksimal 5 berkas JPG, PNG, atau PDF; ukuran setiap berkas paling besar 10 MB.</div>
                 </div>
             </div>
         </div>

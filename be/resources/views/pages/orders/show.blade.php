@@ -515,7 +515,7 @@
 
                             @if ($order->customPackageOffer)
                             <div class="membership-meta">
-                                <span>Penawaran khusus · Versi {{ $order->customPackageOffer->version }}</span>
+                                <span>Penawaran khusus · {{ $order->customPackageOfferOption?->label ?? 'Versi '.$order->customPackageOffer->version }}</span>
                             </div>
                             @endif
 
@@ -560,16 +560,16 @@
                     @if ($order->customPackageOffer)
                     <div class="mt-3 border-top pt-3">
                         <div class="fw-semibold mb-2">Rincian layanan</div>
-                        @foreach ($order->customPackageOffer->items as $item)
+                        @foreach ($order->customPackageOfferOption?->items ?? collect() as $item)
                         <div class="d-flex justify-content-between gap-3 small py-1">
                             <span>{{ $item->name }} × {{ number_format($item->quantity, 0, ',', '.') }}</span>
                             <span class="text-nowrap">Rp {{ number_format($item->line_total, 0, ',', '.') }}</span>
                         </div>
                         @endforeach
-                        @if ($order->customPackageOffer->discount_amount > 0)
+                        @if (($order->customPackageOfferOption?->discount_amount ?? 0) > 0)
                         <div class="d-flex justify-content-between gap-3 small pt-2 mt-1 border-top">
                             <span>Diskon khusus</span>
-                            <span class="text-nowrap">− Rp {{ number_format($order->customPackageOffer->discount_amount, 0, ',', '.') }}</span>
+                            <span class="text-nowrap">− Rp {{ number_format($order->customPackageOfferOption->discount_amount, 0, ',', '.') }}</span>
                         </div>
                         @endif
                     </div>

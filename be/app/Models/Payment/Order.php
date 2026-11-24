@@ -198,6 +198,11 @@ class Order extends Model
         return $this->hasMany(OrderDocument::class, 'order_uuid', 'uuid')->orderBy('issued_at');
     }
 
+    public function feedback(): HasOne
+    {
+        return $this->hasOne(OrderFeedback::class, 'order_uuid', 'uuid');
+    }
+
     public function checklistItems(): HasMany
     {
         return $this->hasMany(WeddingChecklistItem::class, 'order_uuid', 'uuid')

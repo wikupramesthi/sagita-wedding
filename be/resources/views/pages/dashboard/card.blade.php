@@ -119,6 +119,79 @@
             </div>
         </section>
 
+    @if (isset($packageOfferDashboard))
+        <section class="card my-4" aria-labelledby="packageOfferDashboardTitle">
+            <div class="card-header bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h2 id="packageOfferDashboardTitle" class="card-title h6 mb-1">Penawaran privat</h2>
+                    <p class="small text-muted mb-0">Pantau permintaan pelanggan dan tanggapan atas penawaran.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('package-offers.analytics') }}" class="btn btn-sm btn-outline-primary">Analitik</a>
+                    <a href="{{ route('package-offer-requests.index') }}" class="btn btn-sm btn-primary">Buka antrean</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-lg-4">
+                        <div class="border rounded-3 p-3 h-100">
+                            <div class="small text-muted">Permintaan terbuka</div>
+                            <div class="fs-4 fw-bold">{{ number_format($packageOfferDashboard['openRequestCount'], 0, ',', '.') }}</div>
+                            <div class="small {{ $packageOfferDashboard['overdueRequestCount'] ? 'text-danger' : 'text-muted' }}">
+                                {{ number_format($packageOfferDashboard['overdueRequestCount'], 0, ',', '.') }} melewati tenggat tinjauan
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-4">
+                        <div class="border rounded-3 p-3 h-100">
+                            <div class="small text-muted">Menunggu tanggapan pelanggan</div>
+                            <div class="fs-4 fw-bold">{{ number_format($packageOfferDashboard['awaitingResponseCount'], 0, ',', '.') }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <a href="{{ route('package-offers.create') }}" class="border rounded-3 p-3 h-100 d-flex align-items-center justify-content-between text-decoration-none">
+                            <span><strong>Buat penawaran</strong><small class="d-block text-muted">Untuk pelanggan yang dituju</small></span>
+                            <i class="bi bi-arrow-up-right fs-5"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <h3 class="h6 fw-semibold">Permintaan terbaru</h3>
+                        @forelse ($packageOfferDashboard['recentRequests'] as $packageRequest)
+                        <a href="{{ route('package-offer-requests.show', $packageRequest->uuid) }}" class="d-flex justify-content-between gap-2 py-2 border-bottom text-decoration-none">
+                            <span class="min-w-0">
+                                <span class="fw-semibold d-block text-truncate">{{ $packageRequest->user?->name ?? 'Pelanggan' }}</span>
+                                <small class="text-muted">{{ \Illuminate\Support\Str::limit($packageRequest->request_details, 70) }}</small>
+                            </span>
+                            <span class="text-end small flex-shrink-0">
+                                <span class="badge text-bg-{{ $packageRequest->status === 'submitted' ? 'warning' : ($packageRequest->status === 'in_review' ? 'info' : 'success') }}">{{ ['submitted' => 'Menunggu', 'in_review' => 'Ditinjau', 'quoted' => 'Ditawarkan', 'closed' => 'Ditutup'][$packageRequest->status] ?? 'Dalam proses' }}</span>
+                                <small class="d-block text-muted mt-1">{{ $packageRequest->assignedAdmin?->name ?? 'Belum ditugaskan' }}</small>
+                            </span>
+                        </a>
+                        @empty
+                        <div class="small text-muted py-2">Belum ada permintaan paket.</div>
+                        @endforelse
+                    </div>
+                    <div class="col-lg-6">
+                        <h3 class="h6 fw-semibold">Penawaran terbaru</h3>
+                        @forelse ($packageOfferDashboard['recentOffers'] as $offer)
+                        <a href="{{ route('package-offers.show', $offer->uuid) }}" class="d-flex justify-content-between gap-2 py-2 border-bottom text-decoration-none">
+                            <span class="min-w-0">
+                                <span class="fw-semibold d-block text-truncate">{{ $offer->title }}</span>
+                                <small class="text-muted">{{ $offer->user?->name ?? 'Pelanggan' }} · {{ $offer->options->count() }} pilihan</small>
+                            </span>
+                            <small class="text-muted text-nowrap">{{ $offer->created_at?->translatedFormat('d M Y') }}</small>
+                        </a>
+                        @empty
+                        <div class="small text-muted py-2">Belum ada penawaran.</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </section>
+    @endif
+
     @if (auth()->user()->hasAnyRole(['admin', 'super-admin']))
         <section class="card" aria-labelledby="upcomingWeddingOrdersTitle">
             <div class="card-header bg-transparent d-flex justify-content-between align-items-center gap-3">
@@ -159,8 +232,8 @@
                                         <div class="small text-muted">{{ $order->order_number }}</div>
                                     </td>
                                     <td>
-                                        <div class="fw-semibold">{{ $order->package?->name ?? 'Paket wedding' }}</div>
-                                        <div class="small text-muted">{{ $order->packageOption?->name ?? '' }}</div>
+                                        <div class="fw-semibold">{{ $order->customPackageOffer?->title ?? $order->package?->name ?? 'Paket wedding' }}</div>
+                                        <div class="small text-muted">{{ $order->packageOption?->name ?? $order->customPackageOfferOption?->label ?? '' }}</div>
                                     </td>
                                     <td class="text-nowrap">{{ $order->event_date?->translatedFormat('d M Y') ?? '-' }}</td>
                                     <td>

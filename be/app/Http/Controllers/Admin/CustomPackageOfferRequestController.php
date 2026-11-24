@@ -75,19 +75,24 @@ class CustomPackageOfferRequestController extends Controller
         $attachmentFiles = $request->file('attachments', []);
         unset($data['attachments']);
         $fingerprint = $this->requestFingerprint($data);
-        $duplicate = CustomPackageOfferRequest::where('user_uuid', $user->uuid)
-            ->where('fingerprint_hash', $fingerprint)
-            ->whereIn('status', ['submitted', 'in_review', 'quoted'])
-            ->latest()
-            ->first();
 
-        if ($duplicate) {
-            return redirect()
-                ->route('package-offer-requests.show', $duplicate->uuid)
-                ->with('warning', 'Permintaan serupa masih aktif. Buka permintaan tersebut untuk melihat perkembangannya.');
-        }
+        $storeResult = DB::transaction(function () use ($data, $attachmentFiles, $user, $fingerprint, $audit) {
+            User::where('uuid', $user->uuid)->lockForUpdate()->firstOrFail();
+            $duplicate = CustomPackageOfferRequest::where('user_uuid', $user->uuid)
+                ->where('fingerprint_hash', $fingerprint)
+                ->whereIn('status', ['submitted', 'in_review', 'quoted'])
+                ->latest()
+                ->first();
+            if ($duplicate) {
+                return ['duplicate' => $duplicate];
+            }
+            $todayCount = CustomPackageOfferRequest::where('user_uuid', $user->uuid)
+                ->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])
+                ->count();
+            if ($todayCount >= 3) {
+                return ['limit_reached' => true];
+            }
 
-        $customRequest = DB::transaction(function () use ($data, $attachmentFiles, $user, $fingerprint, $audit) {
             $customRequest = CustomPackageOfferRequest::create([
                 ...$data,
                 'user_uuid' => $user->uuid,
@@ -125,9 +130,21 @@ class CustomPackageOfferRequestController extends Controller
                 ['attachment_count' => count($attachmentFiles)]
             );
 
-            return $customRequest;
+            return ['request' => $customRequest];
         });
 
+        if (isset($storeResult['duplicate'])) {
+            return redirect()
+                ->route('package-offer-requests.show', $storeResult['duplicate']->uuid)
+                ->with('warning', 'Permintaan serupa masih aktif. Buka permintaan tersebut untuk melihat perkembangannya.');
+        }
+        if (! empty($storeResult['limit_reached'])) {
+            return back()
+                ->withErrors(['request_details' => 'Batas pengajuan tercapai. Maksimal 3 permintaan paket dapat dikirim dalam sehari.'])
+                ->withInput();
+        }
+
+        $customRequest = $storeResult['request'];
         $admins = User::role(['super-admin', 'admin'])->get();
         if ($admins->isNotEmpty()) {
             Notification::send($admins, new CustomPackageRequestNotification(
@@ -313,10 +330,10 @@ class CustomPackageOfferRequestController extends Controller
         $normalize = static fn ($value) => Str::lower(preg_replace('/\s+/u', ' ', trim((string) $value)) ?? '');
         $payload = [
             'event_date' => $data['event_date'] ?? null,
-            'guest_count' => $data['guest_count'] ?? null,
+            'guest_count' => isset($data['guest_count']) ? (int) $data['guest_count'] : null,
             'venue_note' => $normalize($data['venue_note'] ?? ''),
-            'budget_min' => $data['budget_min'] ?? null,
-            'budget_max' => $data['budget_max'] ?? null,
+            'budget_min' => isset($data['budget_min']) ? (int) $data['budget_min'] : null,
+            'budget_max' => isset($data['budget_max']) ? (int) $data['budget_max'] : null,
             'request_details' => $normalize($data['request_details'] ?? ''),
         ];
 

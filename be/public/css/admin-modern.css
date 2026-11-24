@@ -6864,17 +6864,20 @@ a {
 #main-content .btn-primary,
 .modal .btn-primary,
 #auth .btn-primary {
-    background: var(--ui-brand-soft) !important;
-    border-color: rgba(138, 106, 69, 0.2) !important;
-    color: var(--ui-brand-strong) !important;
+    background: #ead9c3 !important;
+    border-color: #dcc6a7 !important;
+    color: #6f5233 !important;
 }
 
 #main-content .btn-secondary,
 #main-content .btn-light,
-.modal .btn-light {
-    background: var(--ui-surface-soft) !important;
-    border-color: var(--ui-border) !important;
-    color: var(--ui-text) !important;
+.modal .btn-secondary,
+.modal .btn-light,
+#auth .btn-secondary,
+#auth .btn-light {
+    background: #ebe7de !important;
+    border-color: #d8d0c3 !important;
+    color: #51493f !important;
 }
 
 #main-content .btn-success,
@@ -6913,53 +6916,282 @@ a {
 }
 
 #main-content .btn-outline-primary,
-.modal .btn-outline-primary {
-    background: transparent !important;
-    border-color: rgba(138, 106, 69, 0.35) !important;
-    color: var(--ui-brand-strong) !important;
+.modal .btn-outline-primary,
+#auth .btn-outline-primary {
+    background: #f0e3ce !important;
+    border-color: #dcc6a7 !important;
+    color: #6f5233 !important;
+}
+
+#main-content .btn-primary:hover,
+.modal .btn-primary:hover,
+#auth .btn-primary:hover {
+    background: #dfc7a6 !important;
+    border-color: #d2b58e !important;
+    color: #5d4328 !important;
+}
+
+#main-content .btn-secondary:hover,
+#main-content .btn-light:hover,
+.modal .btn-secondary:hover,
+.modal .btn-light:hover,
+#auth .btn-secondary:hover,
+#auth .btn-light:hover {
+    background: #e1dbcf !important;
+    border-color: #c9bead !important;
+    color: #453b30 !important;
 }
 
 #main-content .btn-outline-secondary,
 #main-content .btn-outline-light,
-.modal .btn-outline-secondary {
-    background: transparent !important;
-    border-color: var(--ui-border-strong) !important;
-    color: var(--ui-text) !important;
+.modal .btn-outline-secondary,
+.modal .btn-outline-light,
+#auth .btn-outline-secondary,
+#auth .btn-outline-light {
+    background: #ebe8f7 !important;
+    border-color: #d2cbed !important;
+    color: #574a82 !important;
 }
 
 #main-content .btn-outline-success,
-.modal .btn-outline-success {
-    background: transparent !important;
-    border-color: rgba(47, 125, 84, 0.35) !important;
-    color: var(--ui-success) !important;
+.modal .btn-outline-success,
+#auth .btn-outline-success {
+    background: #e8f5ee !important;
+    border-color: #bfe2cb !important;
+    color: #2f7d54 !important;
 }
 
 #main-content .btn-outline-info,
-.modal .btn-outline-info {
-    background: transparent !important;
-    border-color: rgba(53, 111, 140, 0.35) !important;
-    color: var(--ui-info) !important;
+.modal .btn-outline-info,
+#auth .btn-outline-info {
+    background: #e9f2f7 !important;
+    border-color: #c5dce8 !important;
+    color: #356f8c !important;
 }
 
 #main-content .btn-outline-warning,
-.modal .btn-outline-warning {
-    background: transparent !important;
-    border-color: rgba(154, 101, 29, 0.35) !important;
-    color: var(--ui-warning) !important;
+.modal .btn-outline-warning,
+#auth .btn-outline-warning {
+    background: #fbf1df !important;
+    border-color: #ead4ac !important;
+    color: #865718 !important;
 }
 
 #main-content .btn-outline-danger,
-.modal .btn-outline-danger {
-    background: transparent !important;
-    border-color: rgba(163, 74, 74, 0.35) !important;
-    color: var(--ui-danger) !important;
+.modal .btn-outline-danger,
+#auth .btn-outline-danger {
+    background: #fbeaea !important;
+    border-color: #ebc4c4 !important;
+    color: #a34a4a !important;
+}
+
+#main-content .btn-outline-dark,
+.modal .btn-outline-dark,
+#auth .btn-outline-dark {
+    background: #e9e5de !important;
+    border-color: #d8d0c3 !important;
+    color: #51493f !important;
+}
+
+#main-content .btn-outline-primary:hover,
+#main-content .btn-outline-secondary:hover,
+#main-content .btn-outline-light:hover,
+#main-content .btn-outline-success:hover,
+#main-content .btn-outline-info:hover,
+#main-content .btn-outline-warning:hover,
+#main-content .btn-outline-danger:hover,
+#main-content .btn-outline-dark:hover,
+.modal .btn-outline-primary:hover,
+.modal .btn-outline-secondary:hover,
+.modal .btn-outline-light:hover,
+.modal .btn-outline-success:hover,
+.modal .btn-outline-info:hover,
+.modal .btn-outline-warning:hover,
+.modal .btn-outline-danger:hover,
+.modal .btn-outline-dark:hover,
+#auth .btn-outline-primary:hover,
+#auth .btn-outline-secondary:hover,
+#auth .btn-outline-light:hover,
+#auth .btn-outline-success:hover,
+#auth .btn-outline-info:hover,
+#auth .btn-outline-warning:hover,
+#auth .btn-outline-danger:hover,
+#auth .btn-outline-dark:hover {
+    filter: brightness(0.96);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(70, 50, 90, 0.12) !important;
 }
 
 #main-content .btn-outline-secondary.active,
-#main-content .btn-outline-primary.active {
-    background: var(--ui-brand-soft) !important;
-    border-color: rgba(138, 106, 69, 0.35) !important;
-    color: var(--ui-brand-strong) !important;
+#main-content .btn-outline-primary.active,
+#main-content .btn-outline-success.active,
+#main-content .btn-outline-info.active,
+#main-content .btn-outline-warning.active,
+#main-content .btn-outline-danger.active,
+#main-content .btn-outline-dark.active {
+    filter: brightness(0.94);
+    box-shadow: inset 0 2px 4px rgba(70, 50, 90, 0.12) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-outline-primary,
+html[data-bs-theme="dark"] .modal .btn-outline-primary,
+html[data-bs-theme="dark"] #auth .btn-outline-primary {
+    background: #4a3c2c !important;
+    border-color: #725b3c !important;
+    color: #f0d7b6 !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-primary,
+html[data-bs-theme="dark"] .modal .btn-primary,
+html[data-bs-theme="dark"] #auth .btn-primary {
+    background: #4a3c2c !important;
+    border-color: #725b3c !important;
+    color: #f0d7b6 !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-secondary,
+html[data-bs-theme="dark"] #main-content .btn-light,
+html[data-bs-theme="dark"] .modal .btn-secondary,
+html[data-bs-theme="dark"] .modal .btn-light,
+html[data-bs-theme="dark"] #auth .btn-secondary,
+html[data-bs-theme="dark"] #auth .btn-light {
+    background: #303747 !important;
+    border-color: #495267 !important;
+    color: #d6d5d0 !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-success,
+html[data-bs-theme="dark"] .modal .btn-success,
+html[data-bs-theme="dark"] #auth .btn-success {
+    background: #263f33 !important;
+    border-color: #396248 !important;
+    color: #a7e0be !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-info,
+html[data-bs-theme="dark"] .modal .btn-info,
+html[data-bs-theme="dark"] #auth .btn-info {
+    background: #293e4b !important;
+    border-color: #3d6073 !important;
+    color: #a8d9ed !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-warning,
+html[data-bs-theme="dark"] .modal .btn-warning,
+html[data-bs-theme="dark"] #auth .btn-warning {
+    background: #4a3b28 !important;
+    border-color: #715c34 !important;
+    color: #f3d29d !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-danger,
+html[data-bs-theme="dark"] .modal .btn-danger,
+html[data-bs-theme="dark"] #auth .btn-danger {
+    background: #4b3034 !important;
+    border-color: #70434a !important;
+    color: #f2b4b4 !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-primary:hover,
+html[data-bs-theme="dark"] #main-content .btn-secondary:hover,
+html[data-bs-theme="dark"] #main-content .btn-light:hover,
+html[data-bs-theme="dark"] #main-content .btn-success:hover,
+html[data-bs-theme="dark"] #main-content .btn-info:hover,
+html[data-bs-theme="dark"] #main-content .btn-warning:hover,
+html[data-bs-theme="dark"] #main-content .btn-danger:hover,
+html[data-bs-theme="dark"] .modal .btn-primary:hover,
+html[data-bs-theme="dark"] .modal .btn-secondary:hover,
+html[data-bs-theme="dark"] .modal .btn-light:hover,
+html[data-bs-theme="dark"] .modal .btn-success:hover,
+html[data-bs-theme="dark"] .modal .btn-info:hover,
+html[data-bs-theme="dark"] .modal .btn-warning:hover,
+html[data-bs-theme="dark"] .modal .btn-danger:hover,
+html[data-bs-theme="dark"] #auth .btn-primary:hover,
+html[data-bs-theme="dark"] #auth .btn-secondary:hover,
+html[data-bs-theme="dark"] #auth .btn-light:hover,
+html[data-bs-theme="dark"] #auth .btn-success:hover,
+html[data-bs-theme="dark"] #auth .btn-info:hover,
+html[data-bs-theme="dark"] #auth .btn-warning:hover,
+html[data-bs-theme="dark"] #auth .btn-danger:hover {
+    filter: brightness(1.12);
+}
+
+html[data-bs-theme="dark"] #main-content .btn-outline-secondary,
+html[data-bs-theme="dark"] #main-content .btn-outline-light,
+html[data-bs-theme="dark"] .modal .btn-outline-secondary,
+html[data-bs-theme="dark"] .modal .btn-outline-light,
+html[data-bs-theme="dark"] #auth .btn-outline-secondary,
+html[data-bs-theme="dark"] #auth .btn-outline-light {
+    background: #303747 !important;
+    border-color: #495267 !important;
+    color: #d6d5d0 !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-outline-success,
+html[data-bs-theme="dark"] .modal .btn-outline-success,
+html[data-bs-theme="dark"] #auth .btn-outline-success {
+    background: #263f33 !important;
+    border-color: #396248 !important;
+    color: #a7e0be !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-outline-info,
+html[data-bs-theme="dark"] .modal .btn-outline-info,
+html[data-bs-theme="dark"] #auth .btn-outline-info {
+    background: #293e4b !important;
+    border-color: #3d6073 !important;
+    color: #a8d9ed !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-outline-warning,
+html[data-bs-theme="dark"] .modal .btn-outline-warning,
+html[data-bs-theme="dark"] #auth .btn-outline-warning {
+    background: #4a3b28 !important;
+    border-color: #715c34 !important;
+    color: #f3d29d !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-outline-danger,
+html[data-bs-theme="dark"] .modal .btn-outline-danger,
+html[data-bs-theme="dark"] #auth .btn-outline-danger {
+    background: #4b3034 !important;
+    border-color: #70434a !important;
+    color: #f2b4b4 !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-outline-dark,
+html[data-bs-theme="dark"] .modal .btn-outline-dark,
+html[data-bs-theme="dark"] #auth .btn-outline-dark {
+    background: #33343a !important;
+    border-color: #56565e !important;
+    color: #ece8e1 !important;
+}
+
+html[data-bs-theme="dark"] #main-content .btn-outline-primary:hover,
+html[data-bs-theme="dark"] #main-content .btn-outline-secondary:hover,
+html[data-bs-theme="dark"] #main-content .btn-outline-light:hover,
+html[data-bs-theme="dark"] #main-content .btn-outline-success:hover,
+html[data-bs-theme="dark"] #main-content .btn-outline-info:hover,
+html[data-bs-theme="dark"] #main-content .btn-outline-warning:hover,
+html[data-bs-theme="dark"] #main-content .btn-outline-danger:hover,
+html[data-bs-theme="dark"] #main-content .btn-outline-dark:hover,
+html[data-bs-theme="dark"] .modal .btn-outline-primary:hover,
+html[data-bs-theme="dark"] .modal .btn-outline-secondary:hover,
+html[data-bs-theme="dark"] .modal .btn-outline-light:hover,
+html[data-bs-theme="dark"] .modal .btn-outline-success:hover,
+html[data-bs-theme="dark"] .modal .btn-outline-info:hover,
+html[data-bs-theme="dark"] .modal .btn-outline-warning:hover,
+html[data-bs-theme="dark"] .modal .btn-outline-danger:hover,
+html[data-bs-theme="dark"] .modal .btn-outline-dark:hover,
+html[data-bs-theme="dark"] #auth .btn-outline-primary:hover,
+html[data-bs-theme="dark"] #auth .btn-outline-secondary:hover,
+html[data-bs-theme="dark"] #auth .btn-outline-light:hover,
+html[data-bs-theme="dark"] #auth .btn-outline-success:hover,
+html[data-bs-theme="dark"] #auth .btn-outline-info:hover,
+html[data-bs-theme="dark"] #auth .btn-outline-warning:hover,
+html[data-bs-theme="dark"] #auth .btn-outline-danger:hover,
+html[data-bs-theme="dark"] #auth .btn-outline-dark:hover {
+    filter: brightness(1.12);
 }
 
 #main-content .btn-link,

@@ -159,6 +159,72 @@ class CustomPackageOfferFeatureTest extends TestCase
             ->assertRedirect(route('package-offer-requests.index'));
     }
 
+    public function test_member_package_catalog_shows_only_their_current_sent_offer(): void
+    {
+        $this->actingAs($this->admin)
+            ->post(route('package-offers.store'), $this->offerPayload())
+            ->assertRedirect();
+
+        $firstVersion = CustomPackageOffer::firstOrFail();
+        $this->actingAs($this->admin)
+            ->post(route('package-offers.send', $firstVersion->uuid))
+            ->assertRedirect();
+
+        $this->actingAs($this->member)
+            ->post(route('package-offers.respond', $firstVersion->uuid), [
+                'action' => 'request_revision',
+                'revision_note' => 'Mohon sesuaikan pilihan layanan.',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($this->admin)
+            ->post(route('package-offers.revise', $firstVersion->uuid), $this->offerPayload([
+                'title' => 'Penawaran Revisi Eksklusif',
+            ]))
+            ->assertRedirect();
+
+        $draftVersion = CustomPackageOffer::where('thread_uuid', $firstVersion->thread_uuid)
+            ->where('version', 2)
+            ->firstOrFail();
+
+        $this->actingAs($this->member)
+            ->get(route('packages.member'))
+            ->assertOk()
+            ->assertSee($firstVersion->title)
+            ->assertDontSee($draftVersion->title)
+            ->assertSee('Lihat status revisi');
+
+        $this->actingAs($this->admin)
+            ->post(route('package-offers.send', $draftVersion->uuid))
+            ->assertRedirect();
+
+        $this->actingAs($this->admin)
+            ->post(route('package-offers.store'), $this->offerPayload([
+                'user_uuid' => $this->otherMember->uuid,
+                'title' => 'Penawaran Rahasia Pelanggan Lain',
+            ]))
+            ->assertRedirect();
+
+        $otherOffer = CustomPackageOffer::where('user_uuid', $this->otherMember->uuid)->firstOrFail();
+        $this->actingAs($this->admin)
+            ->post(route('package-offers.send', $otherOffer->uuid))
+            ->assertRedirect();
+
+        $this->actingAs($this->member)
+            ->get(route('packages.member'))
+            ->assertOk()
+            ->assertSee($draftVersion->title)
+            ->assertDontSee('<h3 class="h5 fw-bold mb-1">'.$firstVersion->title.'</h3>', false)
+            ->assertDontSee('Penawaran Rahasia Pelanggan Lain');
+
+        $this->actingAs($this->member)
+            ->get(route('packages.member', ['view' => 'mobile']))
+            ->assertOk()
+            ->assertSee($draftVersion->title)
+            ->assertDontSee('<h3 class="h6 fw-semibold mb-1">'.$firstVersion->title.'</h3>', false)
+            ->assertDontSee('Penawaran Rahasia Pelanggan Lain');
+    }
+
     public function test_revision_creates_a_new_version_and_notifies_the_same_recipient(): void
     {
         Notification::fake();
@@ -218,6 +284,14 @@ class CustomPackageOfferFeatureTest extends TestCase
 
         Notification::assertSentTo($this->member, CustomPackageOfferNotification::class);
         Notification::assertNotSentTo($this->otherMember, CustomPackageOfferNotification::class);
+
+        $this->actingAs($this->member)
+            ->get(route('package-offers.show', $draftVersion->uuid))
+            ->assertOk()
+            ->assertSee('Perbandingan versi penawaran')
+            ->assertSee('Paket Acara Privat')
+            ->assertSee('Paket Acara Privat Revisi')
+            ->assertSee('Dokumentasi acara');
     }
 
     public function test_custom_dp_verification_confirms_the_date_without_activating_a_membership(): void
@@ -449,6 +523,40 @@ class CustomPackageOfferFeatureTest extends TestCase
         $this->actingAs($this->otherMember)
             ->get(route('package-offers.pdf', $offer->uuid))
             ->assertNotFound();
+    }
+
+    public function test_offer_analytics_tracks_checkout_and_verified_payments(): void
+    {
+        $this->actingAs($this->admin)
+            ->post(route('package-offers.store'), $this->offerPayload())
+            ->assertRedirect();
+        $offer = CustomPackageOffer::firstOrFail();
+
+        $this->actingAs($this->admin)
+            ->post(route('package-offers.send', $offer->uuid))
+            ->assertRedirect();
+        $this->actingAs($this->member)
+            ->post(route('package-offers.respond', $offer->uuid), ['action' => 'accept'])
+            ->assertRedirect();
+        $this->actingAs($this->member)
+            ->post(route('package-offers.checkout.store', $offer->uuid))
+            ->assertRedirect();
+
+        $order = Order::firstOrFail();
+        $order->update([
+            'status' => 'partially_paid',
+            'amount_paid' => 150000,
+            'remaining_amount' => 850000,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('package-offers.analytics'))
+            ->assertOk()
+            ->assertSee('Pesanan dibuat')
+            ->assertSee('Pesanan dengan pembayaran')
+            ->assertSee('Penawaran menjadi pesanan')
+            ->assertSee('Pembayaran yang sudah diterima')
+            ->assertSee('Rp 150.000');
     }
 
     private function offerPayload(array $overrides = []): array

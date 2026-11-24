@@ -10,7 +10,8 @@
             <p class="text-muted mb-0">Kelola penawaran privat untuk setiap pelanggan.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ route('package-offer-requests.index') }}" class="btn btn-outline-primary">
+            <a href="{{ route('package-offers.analytics') }}" class="btn btn-outline-info">Analitik</a>
+            <a href="{{ route('package-offer-requests.index') }}" class="btn btn-outline-success">
                 Permintaan pelanggan
             </a>
             <a href="{{ route('packages.index') }}" class="btn btn-outline-secondary">Kembali ke Paket</a>
@@ -32,7 +33,7 @@
                 </select>
             </div>
             <div class="col-sm-6 col-md-2">
-                <button class="btn btn-outline-primary w-100" type="submit">Terapkan</button>
+                <button class="btn btn-outline-warning w-100" type="submit">Terapkan</button>
             </div>
         </div>
     </form>
@@ -75,6 +76,7 @@
                         <td>
                             <span class="fw-semibold">{{ $offer->title }}</span>
                             <small class="d-block text-muted">Versi {{ $offer->version }}</small>
+                            <small class="d-block text-muted">{{ $offer->options->count() }} pilihan</small>
                         </td>
                         <td>
                             <span class="fw-semibold">{{ $offer->user?->name ?? '-' }}</span>

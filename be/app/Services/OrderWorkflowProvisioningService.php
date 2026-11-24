@@ -93,12 +93,19 @@ class OrderWorkflowProvisioningService
 
     private function documentSnapshot(Order $order, Payment $payment, ?string $contractTemplate = null): array
     {
-        $order->loadMissing(['user', 'package', 'packageOption', 'customPackageOffer.items']);
+        $order->loadMissing([
+            'user',
+            'package',
+            'packageOption',
+            'customPackageOffer.items',
+            'customPackageOfferOption.items',
+        ]);
         $customOffer = data_get($order->approval_snapshot, 'custom_package_offer');
         $offerTitle = data_get($customOffer, 'title') ?? $order->customPackageOffer?->title;
         $offerVersion = data_get($customOffer, 'version') ?? $order->customPackageOffer?->version;
+        $offerOptionLabel = data_get($customOffer, 'option_label') ?? $order->customPackageOfferOption?->label;
         $offerItems = data_get($customOffer, 'items')
-            ?? $order->customPackageOffer?->items?->map(fn ($item) => [
+            ?? $order->customPackageOfferOption?->items?->map(fn ($item) => [
                 'name' => $item->name,
                 'price' => $item->unit_price,
                 'quantity' => $item->quantity,
@@ -109,7 +116,7 @@ class OrderWorkflowProvisioningService
             'customer_name' => $order->user?->name ?? '-',
             'package_name' => $offerTitle ?? $order->package?->name ?? '-',
             'option_name' => $order->packageOption?->name
-                ?? ($offerTitle ? 'Penawaran khusus · Versi '.$offerVersion : '-'),
+                ?? ($offerTitle ? 'Penawaran khusus · '.($offerOptionLabel ?: 'Versi '.$offerVersion) : '-'),
             'event_date' => $order->event_date?->translatedFormat('d F Y') ?? 'Belum ditentukan',
             'total_amount' => (float) $order->full_amount,
             'amount_paid' => (float) $order->amount_paid_value,
@@ -123,10 +130,11 @@ class OrderWorkflowProvisioningService
             $snapshot['custom_package_offer'] = [
                 'title' => $offerTitle,
                 'version' => $offerVersion,
+                'option_label' => $offerOptionLabel,
                 'items' => $offerItems ?? [],
-                'subtotal_amount' => data_get($customOffer, 'subtotal_amount', $order->customPackageOffer?->subtotal_amount),
-                'discount_amount' => data_get($customOffer, 'discount_amount', $order->customPackageOffer?->discount_amount),
-                'payment_terms_note' => data_get($customOffer, 'payment_terms_note', $order->customPackageOffer?->payment_terms_note),
+                'subtotal_amount' => data_get($customOffer, 'subtotal_amount', $order->customPackageOfferOption?->subtotal_amount ?? $order->customPackageOffer?->subtotal_amount),
+                'discount_amount' => data_get($customOffer, 'discount_amount', $order->customPackageOfferOption?->discount_amount ?? $order->customPackageOffer?->discount_amount),
+                'payment_terms_note' => data_get($customOffer, 'payment_terms_note', $order->customPackageOfferOption?->payment_terms_note ?? $order->customPackageOffer?->payment_terms_note),
             ];
         }
 

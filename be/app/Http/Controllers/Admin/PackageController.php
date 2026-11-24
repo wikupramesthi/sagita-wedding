@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Package\CustomPackageOffer;
 use App\Models\Package\Package;
 use App\Models\Package\PackageAddon;
 use App\Models\Package\PackageBlackoutDate;
@@ -1216,6 +1217,27 @@ class PackageController extends Controller
         }
 
         $packages = $packages->values();
+        $customOffers = collect();
+        if (auth()->user()?->hasRole('user')) {
+            $customOffers = CustomPackageOffer::with(['options.items'])
+                ->where('user_uuid', auth()->id())
+                ->whereNotExists(function ($query) {
+                    $query->selectRaw('1')
+                        ->from('custom_package_offers as newer')
+                        ->whereColumn('newer.thread_uuid', 'custom_package_offers.thread_uuid')
+                        ->whereColumn('newer.version', '>', 'custom_package_offers.version')
+                        ->where('newer.status', '!=', 'draft');
+                })
+                ->where(function ($query) {
+                    $query->whereIn('status', ['accepted', 'revision_requested'])
+                        ->orWhere(function ($sentQuery) {
+                            $sentQuery->where('status', 'sent')
+                                ->where('expires_at', '>', now());
+                        });
+                })
+                ->latest('sent_at')
+                ->get();
+        }
         $packageUuids = $packages->pluck('uuid')->all();
         $wishlistedUuids = auth()->check() && $packageUuids
             ? PackageWishlist::query()
@@ -1236,7 +1258,7 @@ class PackageController extends Controller
         ) {
             return view(
                 'pages.mobile.package',
-                compact('packages', 'guests', 'budgetMax', 'wishlistedUuids')
+                compact('packages', 'customOffers', 'guests', 'budgetMax', 'wishlistedUuids')
             );
         }
 
@@ -1246,7 +1268,7 @@ class PackageController extends Controller
 
         return view(
             'pages.package.member',
-            compact('packages', 'guests', 'budgetMax', 'wishlistedUuids')
+            compact('packages', 'customOffers', 'guests', 'budgetMax', 'wishlistedUuids')
         );
     }
 
@@ -1420,6 +1442,7 @@ class PackageController extends Controller
 
         return view('pages.package.member', [
             'packages' => collect([$package]),
+            'customOffers' => collect(),
             'wishlistedUuids' => [],
             'previewMode' => true,
             'previewPackage' => $package,

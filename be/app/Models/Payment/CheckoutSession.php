@@ -3,6 +3,7 @@
 namespace App\Models\Payment;
 
 use App\Models\Package\Package;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,14 +24,17 @@ class CheckoutSession extends Model
         'visitor_key',
         'package_uuid',
         'order_uuid',
+        'user_uuid',
         'status',
         'started_at',
         'completed_at',
+        'reminder_sent_at',
     ];
 
     protected $casts = [
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'reminder_sent_at' => 'datetime',
     ];
 
     public function package(): BelongsTo
@@ -41,5 +45,10 @@ class CheckoutSession extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, 'order_uuid', 'uuid');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_uuid', 'uuid');
     }
 }

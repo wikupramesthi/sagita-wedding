@@ -12,8 +12,11 @@ Artisan::command('inspire', function () {
 Schedule::command('records:expire')->hourly();
 Schedule::command('consultations:remind-followups')->everyThirtyMinutes();
 Schedule::command('package-offers:remind-expiry')->hourly();
+Schedule::command('package-offers:remind-response')->everyThirtyMinutes();
+Schedule::command('package-offer-requests:remind-sla')->everyThirtyMinutes();
 Schedule::command('orders:remind-sla')->everyThirtyMinutes();
 Schedule::command('orders:remind-balance-due')->dailyAt('08:00');
+Schedule::command('checkouts:remind-abandoned')->everyThirtyMinutes()->withoutOverlapping();
 Schedule::command('checklists:remind-due')->dailyAt('08:15');
 Schedule::command('orders:prune-audit')->weeklyOn(0, '03:15');
 Schedule::command('sita:prune-analytics')->dailyAt('03:30');

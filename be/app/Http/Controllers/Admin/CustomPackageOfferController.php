@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Package\CustomPackageOffer;
+use App\Models\Package\CustomPackageOfferOption;
 use App\Models\Package\CustomPackageOfferRequest;
 use App\Models\Package\Package;
 use App\Models\Package\PackageBlackoutDate;
@@ -14,6 +15,7 @@ use App\Models\WebsiteIdentity;
 use App\Notifications\CustomPackageOfferNotification;
 use App\Notifications\OrderBaruNotification;
 use App\Services\EventDateReservationService;
+use App\Services\CustomPackageWorkflowAudit;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -34,7 +36,7 @@ class CustomPackageOfferController extends Controller
 
         $status = (string) $request->query('status', '');
         $offers = $this->latestOffersQuery()
-            ->with(['user', 'items', 'basedPackage', 'sourceRequest'])
+            ->with(['user', 'items', 'options', 'basedPackage', 'sourceRequest'])
             ->when(in_array($status, ['draft', 'sent', 'revision_requested', 'accepted', 'rejected', 'expired', 'superseded'], true), fn ($query) => $query->where('status', $status))
             ->latest('sent_at')
             ->paginate(20)
@@ -53,7 +55,7 @@ class CustomPackageOfferController extends Controller
         $selectedOption = null;
 
         if ($request->filled('revision_of')) {
-            $previous = CustomPackageOffer::with('items')
+            $previous = CustomPackageOffer::with(['items', 'options.items'])
                 ->where('uuid', $request->query('revision_of'))
                 ->firstOrFail();
 
@@ -106,6 +108,7 @@ class CustomPackageOfferController extends Controller
                 'quantity' => 1,
                 'unit_price' => $this->finalOptionPrice($selectedOption),
             ]] : []);
+        $defaultSecondOption = $previous?->options->get(1);
 
         $draft = null;
 
@@ -116,7 +119,8 @@ class CustomPackageOfferController extends Controller
             'draft',
             'sourceRequest',
             'selectedOption',
-            'defaultItems'
+            'defaultItems',
+            'defaultSecondOption'
         ));
     }
 
@@ -125,7 +129,7 @@ class CustomPackageOfferController extends Controller
         abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']) && auth()->user()->can('package.update'), 404);
         abort_unless($offer->status === 'draft', 404);
 
-        $offer->load(['items', 'user', 'previousOffer', 'sourceRequest.user', 'basedPackageOption.package']);
+        $offer->load(['items', 'options.items', 'user', 'previousOffer.options.items', 'sourceRequest.user', 'basedPackageOption.package']);
         $previous = $offer->previousOffer;
         $sourceRequest = $offer->sourceRequest;
         $selectedOption = $offer->basedPackageOption;
@@ -142,6 +146,7 @@ class CustomPackageOfferController extends Controller
             'quantity' => $item->quantity,
             'unit_price' => $item->unit_price,
         ])->all();
+        $defaultSecondOption = $offer->options->get(1);
 
         return view('pages.package-offers.create', [
             'users' => $users,
@@ -151,10 +156,15 @@ class CustomPackageOfferController extends Controller
             'sourceRequest' => $sourceRequest,
             'selectedOption' => $selectedOption,
             'defaultItems' => $defaultItems,
+            'defaultSecondOption' => $defaultSecondOption,
         ]);
     }
 
-    public function store(Request $request, EventDateReservationService $reservations)
+    public function store(
+        Request $request,
+        EventDateReservationService $reservations,
+        CustomPackageWorkflowAudit $audit
+    )
     {
         abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']) && auth()->user()->can('package.store'), 404);
 
@@ -170,7 +180,8 @@ class CustomPackageOfferController extends Controller
         $baseOption = filled($data['based_option_uuid'] ?? null)
             ? $this->findActiveBaseOption($data['based_option_uuid'])
             : null;
-        [$items, $subtotal, $discount, $total] = $this->priceOffer($data);
+        $options = $this->buildOfferOptions($data);
+        $primaryOption = $options[0];
 
         $this->validateEventDate(
             $data['event_date'],
@@ -178,7 +189,7 @@ class CustomPackageOfferController extends Controller
             $reservations
         );
 
-        $offer = DB::transaction(function () use ($data, $user, $baseOption, $sourceRequest, $items, $subtotal, $discount, $total) {
+        $offer = DB::transaction(function () use ($data, $user, $baseOption, $sourceRequest, $options, $primaryOption, $audit) {
             if ($sourceRequest) {
                 $lockedRequest = CustomPackageOfferRequest::where('uuid', $sourceRequest->uuid)
                     ->lockForUpdate()
@@ -212,14 +223,23 @@ class CustomPackageOfferController extends Controller
                 'admin_note' => $data['admin_note'] ?? null,
                 'version' => 1,
                 'status' => 'draft',
-                'subtotal_amount' => $subtotal,
-                'discount_amount' => $discount,
-                'total_amount' => $total,
-                'deposit_percentage' => (int) $data['deposit_percentage'],
-                'payment_terms_note' => $data['payment_terms_note'] ?? null,
+                'subtotal_amount' => $primaryOption['subtotal_amount'],
+                'discount_amount' => $primaryOption['discount_amount'],
+                'total_amount' => $primaryOption['total_amount'],
+                'deposit_percentage' => $primaryOption['deposit_percentage'],
+                'payment_terms_note' => $primaryOption['payment_terms_note'],
             ]);
 
-            $this->saveItems($offer, $items);
+            $this->saveOfferOptions($offer, $options);
+            $audit->record(
+                auth()->id(),
+                'offer_draft_created',
+                $sourceRequest?->uuid,
+                $offer->uuid,
+                null,
+                'draft',
+                ['option_count' => count($options)]
+            );
 
             return $offer;
         });
@@ -229,7 +249,12 @@ class CustomPackageOfferController extends Controller
             ->with('success', 'Draf tersimpan. Periksa pratinjau sebelum mengirim penawaran kepada pengguna.');
     }
 
-    public function update(Request $request, CustomPackageOffer $offer, EventDateReservationService $reservations)
+    public function update(
+        Request $request,
+        CustomPackageOffer $offer,
+        EventDateReservationService $reservations,
+        CustomPackageWorkflowAudit $audit
+    )
     {
         abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']) && auth()->user()->can('package.update'), 404);
         abort_unless($offer->status === 'draft', 404);
@@ -239,10 +264,11 @@ class CustomPackageOfferController extends Controller
         $baseOption = filled($data['based_option_uuid'] ?? null)
             ? $this->findActiveBaseOption($data['based_option_uuid'])
             : null;
-        [$items, $subtotal, $discount, $total] = $this->priceOffer($data);
+        $options = $this->buildOfferOptions($data);
+        $primaryOption = $options[0];
         $this->validateEventDate($data['event_date'], $baseOption?->package, $reservations);
 
-        DB::transaction(function () use ($offer, $data, $baseOption, $items, $subtotal, $discount, $total) {
+        DB::transaction(function () use ($offer, $data, $baseOption, $options, $primaryOption, $audit) {
             $locked = CustomPackageOffer::where('uuid', $offer->uuid)->lockForUpdate()->firstOrFail();
             abort_unless($locked->status === 'draft', 404);
 
@@ -256,14 +282,22 @@ class CustomPackageOfferController extends Controller
                 'venue_note' => $data['venue_note'] ?? null,
                 'customer_note' => $data['customer_note'] ?? null,
                 'admin_note' => $data['admin_note'] ?? null,
-                'subtotal_amount' => $subtotal,
-                'discount_amount' => $discount,
-                'total_amount' => $total,
-                'deposit_percentage' => (int) $data['deposit_percentage'],
-                'payment_terms_note' => $data['payment_terms_note'] ?? null,
+                'subtotal_amount' => $primaryOption['subtotal_amount'],
+                'discount_amount' => $primaryOption['discount_amount'],
+                'total_amount' => $primaryOption['total_amount'],
+                'deposit_percentage' => $primaryOption['deposit_percentage'],
+                'payment_terms_note' => $primaryOption['payment_terms_note'],
             ]);
-            $locked->items()->delete();
-            $this->saveItems($locked, $items);
+            $this->saveOfferOptions($locked, $options);
+            $audit->record(
+                auth()->id(),
+                'offer_draft_updated',
+                $locked->source_request_uuid,
+                $locked->uuid,
+                'draft',
+                'draft',
+                ['option_count' => count($options)]
+            );
         });
 
         return redirect()
@@ -271,12 +305,16 @@ class CustomPackageOfferController extends Controller
             ->with('success', 'Perubahan draf berhasil disimpan. Tinjau kembali sebelum mengirim.');
     }
 
-    public function sendDraft(CustomPackageOffer $offer, EventDateReservationService $reservations)
+    public function sendDraft(
+        CustomPackageOffer $offer,
+        EventDateReservationService $reservations,
+        CustomPackageWorkflowAudit $audit
+    )
     {
         abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']) && auth()->user()->can('package.update'), 404);
 
-        $sentOffer = DB::transaction(function () use ($offer, $reservations) {
-            $locked = CustomPackageOffer::with(['user', 'sourceRequest', 'basedPackage'])
+        $sentOffer = DB::transaction(function () use ($offer, $reservations, $audit) {
+            $locked = CustomPackageOffer::with(['user', 'sourceRequest', 'basedPackage', 'options'])
                 ->where('uuid', $offer->uuid)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -318,16 +356,50 @@ class CustomPackageOfferController extends Controller
             ]);
 
             if ($previous) {
+                $previousStatus = $previous->status;
                 $previous->update(['status' => 'superseded']);
+                $audit->record(
+                    auth()->id(),
+                    'offer_superseded',
+                    $previous->source_request_uuid,
+                    $previous->uuid,
+                    $previousStatus,
+                    'superseded',
+                    ['replacement_offer_uuid' => $locked->uuid]
+                );
             }
 
             if ($locked->sourceRequest) {
+                $previousRequestStatus = $locked->sourceRequest->status;
                 $locked->sourceRequest->update([
                     'status' => 'quoted',
                     'assigned_admin_uuid' => auth()->id(),
                     'handled_at' => now(),
+                    'quoted_at' => now(),
                 ]);
+                $audit->record(
+                    auth()->id(),
+                    'request_quoted',
+                    $locked->sourceRequest->uuid,
+                    $locked->uuid,
+                    $previousRequestStatus,
+                    'quoted',
+                    ['offer_version' => $locked->version]
+                );
             }
+            $audit->record(
+                auth()->id(),
+                'offer_sent',
+                $locked->source_request_uuid,
+                $locked->uuid,
+                'draft',
+                'sent',
+                [
+                    'version' => $locked->version,
+                    'option_count' => $locked->options->count(),
+                    'expires_at' => $locked->expires_at->toIso8601String(),
+                ]
+            );
 
             $locked->user->notify(new CustomPackageOfferNotification(
                 $locked->uuid,
@@ -343,16 +415,25 @@ class CustomPackageOfferController extends Controller
             ->with('success', 'Penawaran berhasil dikirim dan pelanggan telah diberi notifikasi.');
     }
 
-    public function discardDraft(CustomPackageOffer $offer)
+    public function discardDraft(CustomPackageOffer $offer, CustomPackageWorkflowAudit $audit)
     {
         abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']) && auth()->user()->can('package.update'), 404);
 
-        DB::transaction(function () use ($offer) {
+        DB::transaction(function () use ($offer, $audit) {
             $locked = CustomPackageOffer::where('uuid', $offer->uuid)
                 ->lockForUpdate()
                 ->firstOrFail();
             abort_unless($locked->status === 'draft', 404);
 
+            $audit->record(
+                auth()->id(),
+                'offer_draft_discarded',
+                $locked->source_request_uuid,
+                $locked->uuid,
+                'draft',
+                null,
+                ['version' => $locked->version, 'title' => $locked->title]
+            );
             $locked->items()->delete();
             $locked->delete();
         });
@@ -376,7 +457,7 @@ class CustomPackageOfferController extends Controller
         $offers = $this->latestOffersQuery()
             ->where('status', '!=', 'draft')
             ->where('user_uuid', auth()->id())
-            ->with(['items', 'basedPackage'])
+            ->with(['items', 'options', 'basedPackage'])
             ->latest('sent_at')
             ->paginate(15);
 
@@ -399,10 +480,13 @@ class CustomPackageOfferController extends Controller
             $offer->update(['status' => 'expired']);
         }
 
-        $offer->load(['user', 'createdBy', 'items', 'basedPackage', 'basedPackageOption', 'orders' => fn ($query) => $query->latest()]);
+        $offer->load(['user', 'createdBy', 'items', 'options.items', 'basedPackage', 'basedPackageOption', 'orders' => fn ($query) => $query->latest()]);
+        if ($isAdmin) {
+            $offer->load('workflowEvents.actor');
+        }
         $versions = $offer->versions()
             ->when(! $isAdmin, fn ($query) => $query->where('status', '!=', 'draft'))
-            ->with('createdBy')
+            ->with(['createdBy', 'options.items', 'items'])
             ->get();
         $isLatest = $offer->isLatestVersion($isAdmin);
         $activeOrder = $offer->orders->first(fn (Order $order) => in_array($order->status, ['partially_paid', 'paid'], true)
@@ -421,7 +505,7 @@ class CustomPackageOfferController extends Controller
             404
         );
 
-        $offer->load(['user', 'items', 'basedPackage']);
+        $offer->load(['user', 'items', 'options.items', 'basedPackage']);
         $identity = WebsiteIdentity::singleton();
 
         return Pdf::loadView('pages.package-offers.pdf', compact('offer', 'identity'))
@@ -432,17 +516,21 @@ class CustomPackageOfferController extends Controller
     public function respond(
         Request $request,
         CustomPackageOffer $offer,
-        EventDateReservationService $reservations
+        EventDateReservationService $reservations,
+        CustomPackageWorkflowAudit $audit
     ) {
         abort_unless(auth()->user()?->hasRole('user') && $offer->user_uuid === auth()->id(), 404);
 
         $data = $request->validate([
             'action' => ['required', Rule::in(['accept', 'request_revision', 'reject'])],
             'revision_note' => ['nullable', 'string', 'max:3000', 'required_if:action,request_revision'],
+            'option_uuid' => ['nullable', 'uuid', 'exists:custom_package_offer_options,uuid'],
+            'rejection_reason' => ['nullable', Rule::in(['price', 'services', 'date', 'other'])],
+            'rejection_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $result = DB::transaction(function () use ($offer, $data, $reservations) {
-            $locked = CustomPackageOffer::with(['user', 'basedPackage', 'basedPackageOption'])
+        $result = DB::transaction(function () use ($offer, $data, $reservations, $audit) {
+            $locked = CustomPackageOffer::with(['user', 'basedPackage', 'basedPackageOption', 'options.items'])
                 ->where('uuid', $offer->uuid)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -469,12 +557,34 @@ class CustomPackageOfferController extends Controller
 
             if ($data['action'] === 'accept') {
                 $this->validateEventDate($locked->event_date->toDateString(), $locked->basedPackage, $reservations);
+                $selectedOption = $data['option_uuid'] ?? ($locked->options->count() === 1 ? $locked->options->first()?->uuid : null);
+                if (! $selectedOption) {
+                    throw ValidationException::withMessages([
+                        'option_uuid' => 'Pilih salah satu opsi penawaran sebelum menyetujui.',
+                    ]);
+                }
+                $selectedOption = $locked->options->firstWhere('uuid', $selectedOption);
+                if (! $selectedOption) {
+                    throw ValidationException::withMessages([
+                        'option_uuid' => 'Opsi yang dipilih tidak termasuk dalam penawaran ini.',
+                    ]);
+                }
                 $locked->update([
                     'status' => 'accepted',
                     'accepted_at' => now(),
                     'revision_note' => null,
+                    'selected_option_uuid' => $selectedOption->uuid,
                 ]);
-                $this->notifyAdmins($locked, 'Penawaran disetujui pelanggan', $locked->user?->name.' menyetujui penawaran '.$locked->title.'.', 'bi-check-circle');
+                $audit->record(
+                    auth()->id(),
+                    'offer_accepted',
+                    $locked->source_request_uuid,
+                    $locked->uuid,
+                    'sent',
+                    'accepted',
+                    ['selected_option_uuid' => $selectedOption->uuid, 'selected_option_label' => $selectedOption->label]
+                );
+                $this->notifyAdmins($locked, 'Penawaran disetujui pelanggan', $locked->user?->name.' menyetujui opsi '.$selectedOption->label.' pada penawaran '.$locked->title.'.', 'bi-check-circle');
 
                 return 'accepted';
             }
@@ -484,6 +594,15 @@ class CustomPackageOfferController extends Controller
                     'status' => 'revision_requested',
                     'revision_note' => trim($data['revision_note']),
                 ]);
+                $audit->record(
+                    auth()->id(),
+                    'offer_revision_requested',
+                    $locked->source_request_uuid,
+                    $locked->uuid,
+                    'sent',
+                    'revision_requested',
+                    ['revision_note' => trim($data['revision_note'])]
+                );
                 $this->notifyAdmins($locked, 'Permintaan revisi penawaran', $locked->user?->name.' meminta perubahan pada penawaran '.$locked->title.'.', 'bi-pencil-square');
 
                 return 'revision_requested';
@@ -492,7 +611,21 @@ class CustomPackageOfferController extends Controller
             $locked->update([
                 'status' => 'rejected',
                 'rejected_at' => now(),
+                'rejection_reason' => $data['rejection_reason'] ?? 'other',
+                'rejection_note' => filled($data['rejection_note'] ?? null) ? trim($data['rejection_note']) : null,
             ]);
+            $audit->record(
+                auth()->id(),
+                'offer_rejected',
+                $locked->source_request_uuid,
+                $locked->uuid,
+                'sent',
+                'rejected',
+                [
+                    'rejection_reason' => $data['rejection_reason'] ?? 'other',
+                    'rejection_note' => filled($data['rejection_note'] ?? null) ? trim($data['rejection_note']) : null,
+                ]
+            );
             $this->notifyAdmins($locked, 'Penawaran ditolak pelanggan', $locked->user?->name.' menolak penawaran '.$locked->title.'.', 'bi-x-circle');
 
             return 'rejected';
@@ -514,7 +647,12 @@ class CustomPackageOfferController extends Controller
         });
     }
 
-    public function revise(Request $request, CustomPackageOffer $offer, EventDateReservationService $reservations)
+    public function revise(
+        Request $request,
+        CustomPackageOffer $offer,
+        EventDateReservationService $reservations,
+        CustomPackageWorkflowAudit $audit
+    )
     {
         abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']) && auth()->user()->can('package.update'), 404);
 
@@ -533,11 +671,12 @@ class CustomPackageOfferController extends Controller
         $baseOption = filled($data['based_option_uuid'] ?? null)
             ? $this->findActiveBaseOption($data['based_option_uuid'])
             : null;
-        [$items, $subtotal, $discount, $total] = $this->priceOffer($data);
+        $options = $this->buildOfferOptions($data);
+        $primaryOption = $options[0];
 
         $this->validateEventDate($data['event_date'], $baseOption?->package, $reservations);
 
-        $newOffer = DB::transaction(function () use ($data, $previous, $user, $baseOption, $items, $subtotal, $discount, $total) {
+        $newOffer = DB::transaction(function () use ($data, $previous, $user, $baseOption, $options, $primaryOption, $audit) {
             $lockedPrevious = CustomPackageOffer::where('uuid', $previous->uuid)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -576,14 +715,27 @@ class CustomPackageOfferController extends Controller
                 'revision_note' => null,
                 'version' => $version,
                 'status' => 'draft',
-                'subtotal_amount' => $subtotal,
-                'discount_amount' => $discount,
-                'total_amount' => $total,
-                'deposit_percentage' => (int) $data['deposit_percentage'],
-                'payment_terms_note' => $data['payment_terms_note'] ?? null,
+                'subtotal_amount' => $primaryOption['subtotal_amount'],
+                'discount_amount' => $primaryOption['discount_amount'],
+                'total_amount' => $primaryOption['total_amount'],
+                'deposit_percentage' => $primaryOption['deposit_percentage'],
+                'payment_terms_note' => $primaryOption['payment_terms_note'],
             ]);
 
-            $this->saveItems($newOffer, $items);
+            $this->saveOfferOptions($newOffer, $options);
+            $audit->record(
+                auth()->id(),
+                'offer_revision_draft_created',
+                $newOffer->source_request_uuid,
+                $newOffer->uuid,
+                null,
+                'draft',
+                [
+                    'previous_offer_uuid' => $lockedPrevious->uuid,
+                    'version' => $version,
+                    'option_count' => count($options),
+                ]
+            );
 
             return $newOffer;
         });
@@ -598,26 +750,30 @@ class CustomPackageOfferController extends Controller
         abort_unless(auth()->user()?->hasRole('user') && $offer->user_uuid === auth()->id(), 404);
         abort_unless($offer->isLatestVersion() && $offer->status === 'accepted', 404);
 
-        $offer->load('items');
-        $dueNow = (int) round($offer->total_amount * ($offer->deposit_percentage / 100));
+        $offer->load('selectedOption.items');
+        abort_unless($offer->selectedOption, 404);
+        $selectedOption = $offer->selectedOption;
+        $dueNow = (int) round($selectedOption->total_amount * ($selectedOption->deposit_percentage / 100));
 
-        return view('pages.package-offers.checkout', compact('offer', 'dueNow'));
+        return view('pages.package-offers.checkout', compact('offer', 'selectedOption', 'dueNow'));
     }
 
     public function createOrder(
         CustomPackageOffer $offer,
-        EventDateReservationService $reservations
+        EventDateReservationService $reservations,
+        CustomPackageWorkflowAudit $audit
     ) {
         abort_unless(auth()->user()?->hasRole('user') && $offer->user_uuid === auth()->id(), 404);
 
-        $order = DB::transaction(function () use ($offer, $reservations) {
-            $lockedOffer = CustomPackageOffer::with('items')
+        $order = DB::transaction(function () use ($offer, $reservations, $audit) {
+            $lockedOffer = CustomPackageOffer::with('selectedOption.items')
                 ->where('uuid', $offer->uuid)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             abort_unless($lockedOffer->user_uuid === auth()->id(), 404);
             abort_unless($lockedOffer->isLatestVersion() && $lockedOffer->status === 'accepted', 404);
+            abort_unless($lockedOffer->selectedOption, 404);
 
             $existingOrder = Order::packageOnly()
                 ->where('custom_package_offer_uuid', $lockedOffer->uuid)
@@ -639,13 +795,14 @@ class CustomPackageOfferController extends Controller
             }
 
             $reservation = $reservations->lockDate($lockedOffer->event_date);
-            $fullAmount = (int) $lockedOffer->total_amount;
-            $depositPercentage = (int) $lockedOffer->deposit_percentage;
+            $selectedOption = $lockedOffer->selectedOption;
+            $fullAmount = (int) $selectedOption->total_amount;
+            $depositPercentage = (int) $selectedOption->deposit_percentage;
             $dueNow = (int) round($fullAmount * ($depositPercentage / 100));
             $remaining = max(0, $fullAmount - $dueNow);
             $isFullPayment = $remaining === 0;
             $schemeLabel = $isFullPayment ? 'Bayar Lunas' : 'DP '.$depositPercentage.'%';
-            $snapshotItems = $lockedOffer->items->map(fn ($item) => [
+            $snapshotItems = $selectedOption->items->map(fn ($item) => [
                 'uuid' => $item->uuid,
                 'name' => $item->name,
                 'price' => $item->unit_price,
@@ -661,6 +818,7 @@ class CustomPackageOfferController extends Controller
                 'package_uuid' => $lockedOffer->based_package_uuid,
                 'package_option_uuid' => null,
                 'custom_package_offer_uuid' => $lockedOffer->uuid,
+                'custom_package_offer_option_uuid' => $selectedOption->uuid,
                 'event_date' => $lockedOffer->event_date->toDateString(),
                 'amount' => $dueNow,
                 'payment_scheme' => $isFullPayment ? 'full' : 'custom_dp',
@@ -682,6 +840,8 @@ class CustomPackageOfferController extends Controller
                 'promo_snapshot' => [
                     'custom_package_offer_uuid' => $lockedOffer->uuid,
                     'custom_package_offer_version' => $lockedOffer->version,
+                    'custom_package_offer_option_uuid' => $selectedOption->uuid,
+                    'custom_package_offer_option_label' => $selectedOption->label,
                     'scheme_label' => $schemeLabel,
                     'full_amount' => $fullAmount,
                     'booking_fee' => 0,
@@ -691,19 +851,35 @@ class CustomPackageOfferController extends Controller
                 'approval_snapshot' => [
                     'custom_package_offer' => [
                         'uuid' => $lockedOffer->uuid,
+                        'option_uuid' => $selectedOption->uuid,
+                        'option_label' => $selectedOption->label,
                         'thread_uuid' => $lockedOffer->thread_uuid,
                         'version' => $lockedOffer->version,
                         'title' => $lockedOffer->title,
                         'description' => $lockedOffer->description,
                         'items' => $snapshotItems,
-                        'subtotal_amount' => $lockedOffer->subtotal_amount,
-                        'discount_amount' => $lockedOffer->discount_amount,
-                        'total_amount' => $lockedOffer->total_amount,
+                        'subtotal_amount' => $selectedOption->subtotal_amount,
+                        'discount_amount' => $selectedOption->discount_amount,
+                        'total_amount' => $selectedOption->total_amount,
                         'deposit_percentage' => $depositPercentage,
-                        'payment_terms_note' => $lockedOffer->payment_terms_note,
+                        'payment_terms_note' => $selectedOption->payment_terms_note,
                     ],
                 ],
             ]);
+            $audit->record(
+                auth()->id(),
+                'offer_order_created',
+                $lockedOffer->source_request_uuid,
+                $lockedOffer->uuid,
+                'accepted',
+                'ordered',
+                [
+                    'order_uuid' => $order->uuid,
+                    'option_uuid' => $selectedOption->uuid,
+                    'option_label' => $selectedOption->label,
+                    'total_amount' => $fullAmount,
+                ]
+            );
 
             $reservations->hold($reservation, $order);
 
@@ -747,8 +923,21 @@ class CustomPackageOfferController extends Controller
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:999'],
             'items.*.unit_price' => ['required', 'integer', 'min:0', 'max:1000000000000'],
             'discount_amount' => ['nullable', 'integer', 'min:0', 'max:1000000000000000'],
+            'option_label' => ['nullable', 'string', 'max:100'],
+            'option_description' => ['nullable', 'string', 'max:2000'],
             'deposit_percentage' => ['required', 'integer', 'min:1', 'max:100'],
             'payment_terms_note' => ['nullable', 'string', 'max:5000'],
+            'second_option_enabled' => ['nullable', 'boolean'],
+            'second_option.label' => ['exclude_unless:second_option_enabled,1', 'required', 'string', 'max:100'],
+            'second_option.description' => ['exclude_unless:second_option_enabled,1', 'nullable', 'string', 'max:2000'],
+            'second_option.items' => ['exclude_unless:second_option_enabled,1', 'required', 'array', 'min:1', 'max:30'],
+            'second_option.items.*.name' => ['exclude_unless:second_option_enabled,1', 'required', 'string', 'max:255'],
+            'second_option.items.*.description' => ['exclude_unless:second_option_enabled,1', 'nullable', 'string', 'max:2000'],
+            'second_option.items.*.quantity' => ['exclude_unless:second_option_enabled,1', 'required', 'integer', 'min:1', 'max:999'],
+            'second_option.items.*.unit_price' => ['exclude_unless:second_option_enabled,1', 'required', 'integer', 'min:0', 'max:1000000000000'],
+            'second_option.discount_amount' => ['exclude_unless:second_option_enabled,1', 'nullable', 'integer', 'min:0', 'max:1000000000000000'],
+            'second_option.deposit_percentage' => ['exclude_unless:second_option_enabled,1', 'required', 'integer', 'min:1', 'max:100'],
+            'second_option.payment_terms_note' => ['exclude_unless:second_option_enabled,1', 'nullable', 'string', 'max:5000'],
         ], [], [
             'user_uuid' => 'pengguna',
             'based_option_uuid' => 'paket dasar',
@@ -759,6 +948,9 @@ class CustomPackageOfferController extends Controller
             'items.*.quantity' => 'jumlah layanan',
             'items.*.unit_price' => 'harga satuan',
             'discount_amount' => 'diskon',
+            'option_label' => 'nama opsi',
+            'second_option.label' => 'nama opsi kedua',
+            'second_option.items.*.name' => 'nama layanan opsi kedua',
             'deposit_percentage' => 'persentase DP',
         ]);
     }
@@ -786,23 +978,67 @@ class CustomPackageOfferController extends Controller
     private function priceOffer(array $data): array
     {
         $items = $this->buildItems($data['items']);
+        [$subtotal, $discount, $total] = $this->priceItems($items, (int) ($data['discount_amount'] ?? 0), 'discount_amount', 'items');
+
+        return [$items, $subtotal, $discount, $total];
+    }
+
+    private function priceItems(array $items, int $discount, string $discountKey, string $itemsKey): array
+    {
         $subtotal = array_sum(array_column($items, 'line_total'));
-        $discount = (int) ($data['discount_amount'] ?? 0);
 
         if ($discount > $subtotal) {
             throw ValidationException::withMessages([
-                'discount_amount' => 'Diskon tidak boleh melebihi subtotal penawaran.',
+                $discountKey => 'Diskon tidak boleh melebihi subtotal penawaran.',
             ]);
         }
 
         $total = $subtotal - $discount;
         if ($total < 1) {
             throw ValidationException::withMessages([
-                'items' => 'Total penawaran harus lebih dari Rp 0.',
+                $itemsKey => 'Total penawaran harus lebih dari Rp 0.',
             ]);
         }
 
-        return [$items, $subtotal, $discount, $total];
+        return [$subtotal, $discount, $total];
+    }
+
+    private function buildOfferOptions(array $data): array
+    {
+        [$items, $subtotal, $discount, $total] = $this->priceOffer($data);
+        $options = [[
+            'label' => filled($data['option_label'] ?? null) ? trim($data['option_label']) : 'Pilihan 1',
+            'description' => filled($data['option_description'] ?? null) ? trim($data['option_description']) : null,
+            'items' => $items,
+            'subtotal_amount' => $subtotal,
+            'discount_amount' => $discount,
+            'total_amount' => $total,
+            'deposit_percentage' => (int) $data['deposit_percentage'],
+            'payment_terms_note' => $data['payment_terms_note'] ?? null,
+        ]];
+
+        if (! empty($data['second_option_enabled'])) {
+            $second = $data['second_option'];
+            $secondItems = $this->buildItems($second['items']);
+            [$secondSubtotal, $secondDiscount, $secondTotal] = $this->priceItems(
+                $secondItems,
+                (int) ($second['discount_amount'] ?? 0),
+                'second_option.discount_amount',
+                'second_option.items'
+            );
+            $options[] = [
+                'label' => trim($second['label']),
+                'description' => filled($second['description'] ?? null) ? trim($second['description']) : null,
+                'items' => $secondItems,
+                'subtotal_amount' => $secondSubtotal,
+                'discount_amount' => $secondDiscount,
+                'total_amount' => $secondTotal,
+                'deposit_percentage' => (int) $second['deposit_percentage'],
+                'payment_terms_note' => $second['payment_terms_note'] ?? null,
+            ];
+        }
+
+        return $options;
     }
 
     private function notifyAdmins(
@@ -825,10 +1061,28 @@ class CustomPackageOfferController extends Controller
         }
     }
 
-    private function saveItems(CustomPackageOffer $offer, array $items): void
+    private function saveOfferOptions(CustomPackageOffer $offer, array $options): void
     {
-        foreach ($items as $item) {
-            $offer->items()->create($item);
+        $offer->options()->delete();
+        $offer->items()->delete();
+
+        foreach ($options as $index => $attributes) {
+            $items = $attributes['items'];
+            unset($attributes['items']);
+            $option = $offer->options()->create([
+                ...$attributes,
+                'sort_order' => $index + 1,
+            ]);
+
+            foreach ($items as $item) {
+                $option->items()->create($item);
+            }
+
+            if ($index === 0) {
+                foreach ($items as $item) {
+                    $offer->items()->create($item);
+                }
+            }
         }
     }
 

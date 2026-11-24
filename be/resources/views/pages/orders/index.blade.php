@@ -375,7 +375,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                     <i class="bi bi-arrow-left-right me-1"></i>Permintaan perubahan
                 </a>
                 <a href="{{ route('orders.analytics') }}" class="btn btn-sm btn-outline-primary text-nowrap">
-                    <i class="bi bi-graph-up me-1"></i>Analitik checkout
+                    <i class="bi bi-graph-up me-1"></i>Analitik pemesanan
                 </a>
                 <a href="{{ route('orders.workflow-settings.edit') }}" class="btn btn-sm btn-outline-primary text-nowrap">
                     <i class="bi bi-sliders me-1"></i>Template kontrak & checklist
@@ -555,7 +555,7 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
                                 <td class="order-detail" data-col="package" data-label="Paket">
                                     <span class="d-block fw-semibold">{{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}</span>
                                 @if ($order->customPackageOffer)
-                                <small class="log-muted">Penawaran khusus · Versi {{ $order->customPackageOffer->version }}</small>
+                                <small class="log-muted">Penawaran khusus · {{ $order->customPackageOfferOption?->label ?? 'Versi '.$order->customPackageOffer->version }}</small>
                                 @endif
                                 @if ($order->packageOption?->name)
                                 <small class="log-muted">{{ $order->packageOption->name }}</small>

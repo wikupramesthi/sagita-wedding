@@ -143,6 +143,12 @@
 
         <div class="section-title">Syarat & Ketentuan</div>
         <div class="contract-copy">{!! nl2br(e($contractText)) !!}</div>
+        @if ($document->accepted_at)
+            <div class="note">
+                Persetujuan pelanggan tercatat pada {{ $document->accepted_at->translatedFormat('d F Y, H:i') }}.
+                Salinan ini memuat versi kontrak yang disetujui. Catatan ini bukan tanda tangan digital tersertifikasi.
+            </div>
+        @endif
     @else
         <div class="section-title">Rincian Pembayaran</div>
         <table class="detail">

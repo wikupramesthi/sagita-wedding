@@ -65,6 +65,41 @@
         </div>
         @endif
 
+        <div class="app-card p-3 mt-4">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                    <p class="eyebrow mb-1">Khusus untuk Anda</p>
+                    <h2 class="h6 fw-semibold mb-0">Penawaran paket privat</h2>
+                </div>
+                <a href="{{ route('package-offer-requests.create') }}" class="btn btn-sm btn-outline-primary text-nowrap">Ajukan</a>
+            </div>
+            @forelse ($myPackageOffers as $offer)
+            <a href="{{ route('package-offers.show', $offer->uuid) }}" class="d-flex justify-content-between align-items-center gap-2 border rounded-3 p-3 mt-3 text-decoration-none">
+                <span class="min-w-0">
+                    <span class="fw-semibold d-block text-truncate">{{ $offer->title }}</span>
+                    <small class="text-muted2">{{ $offer->options->count() }} pilihan · Versi {{ $offer->version }}</small>
+                </span>
+                <span class="badge {{ $offer->status === 'sent' ? 'bg-warning-subtle text-warning-emphasis' : ($offer->status === 'accepted' ? 'bg-success-subtle text-success-emphasis' : 'bg-secondary-subtle text-secondary-emphasis') }}">
+                    {{ ['sent' => 'Menunggu', 'accepted' => 'Disetujui', 'rejected' => 'Ditolak', 'expired' => 'Kedaluwarsa', 'revision_requested' => 'Revisi'][$offer->display_status] ?? 'Dalam proses' }}
+                </span>
+            </a>
+            @empty
+            <p class="small text-muted2 mt-3 mb-0">Belum ada penawaran privat.</p>
+            @endforelse
+            @if ($myPackageRequests->isNotEmpty())
+            <div class="border-top mt-3 pt-3">
+                <div class="small fw-semibold mb-2">Permintaan terbaru</div>
+                @foreach ($myPackageRequests as $packageRequest)
+                <a href="{{ route('package-offer-requests.show', $packageRequest->uuid) }}" class="d-flex justify-content-between gap-2 py-2 text-decoration-none">
+                    <span class="small text-truncate">{{ \Illuminate\Support\Str::limit($packageRequest->request_details, 55) }}</span>
+                    <span class="small text-muted text-nowrap">{{ ['submitted' => 'Menunggu', 'in_review' => 'Ditinjau', 'quoted' => 'Ditawarkan', 'closed' => 'Ditutup'][$packageRequest->status] ?? 'Dalam proses' }}</span>
+                </a>
+                @endforeach
+            </div>
+            @endif
+            <a href="{{ route('package-offer-requests.mine') }}" class="small d-block mt-2">Lihat semua permintaan dan penawaran</a>
+        </div>
+
         <section class="mt-4" aria-labelledby="mobile-wedding-plan-title">
             <div class="app-card p-3">
                 <div class="d-flex justify-content-between align-items-start gap-2">

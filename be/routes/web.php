@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CheckoutController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\CustomPackageOfferController;
 use App\Http\Controllers\Admin\CustomPackageOfferRequestController;
+use App\Http\Controllers\Admin\CustomPackageOfferAnalyticsController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmailSettingController;
 use App\Http\Controllers\Admin\EventsController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderChangeRequestController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\OrderDocumentController;
+use App\Http\Controllers\Admin\OrderFeedbackController;
 use App\Http\Controllers\Admin\OrderVendorAssignmentController;
 use App\Http\Controllers\Admin\OrderWorkflowAnalyticsController;
 use App\Http\Controllers\Admin\OrderWorkflowSettingsController;
@@ -238,6 +240,7 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
         [PackageInteractionController::class, 'compareRemove']
     )->name('packages.compare.remove');
     Route::get('/package-offers/mine', [CustomPackageOfferController::class, 'mine'])->name('package-offers.mine');
+    Route::get('/package-offers/analytics', [CustomPackageOfferAnalyticsController::class, 'index'])->name('package-offers.analytics');
     Route::get('/package-offers/create', [CustomPackageOfferController::class, 'create'])->name('package-offers.create');
     Route::post('/package-offers', [CustomPackageOfferController::class, 'store'])->name('package-offers.store');
     Route::get('/package-offers/{offer}/checkout', [CustomPackageOfferController::class, 'checkout'])->name('package-offers.checkout');
@@ -255,6 +258,7 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
     Route::get('/package-offer-requests', [CustomPackageOfferRequestController::class, 'index'])->name('package-offer-requests.index');
     Route::post('/package-offer-requests/{packageOfferRequest}/status', [CustomPackageOfferRequestController::class, 'updateStatus'])->name('package-offer-requests.status');
     Route::post('/package-offer-requests/{packageOfferRequest}/convert', [CustomPackageOfferRequestController::class, 'convert'])->name('package-offer-requests.convert');
+    Route::get('/package-offer-requests/{packageOfferRequest}/attachments/{attachment}', [CustomPackageOfferRequestController::class, 'downloadAttachment'])->name('package-offer-requests.attachments.download');
     Route::get('/package-offer-requests/{packageOfferRequest}', [CustomPackageOfferRequestController::class, 'show'])->name('package-offer-requests.show');
     Route::get('/package-offers/{offer}', [CustomPackageOfferController::class, 'show'])->name('package-offers.show');
     Route::get('/package-offers', [CustomPackageOfferController::class, 'index'])->name('package-offers.index');
@@ -294,6 +298,8 @@ Route::group(['middleware' => ['web', 'auth', InvalidateDashboardCache::class], 
     Route::post('orders/change-requests/{changeRequest}/review', [OrderChangeRequestController::class, 'review'])->name('orders.change-requests.review');
     Route::get('orders/{order}/documents/{document}/preview', [OrderDocumentController::class, 'preview'])->name('orders.documents.preview');
     Route::get('orders/{order}/documents/{document}/download', [OrderDocumentController::class, 'download'])->name('orders.documents.download');
+    Route::post('orders/{order}/documents/{document}/accept', [OrderDocumentController::class, 'accept'])->name('orders.documents.accept');
+    Route::post('orders/{order}/feedback', [OrderFeedbackController::class, 'store'])->name('orders.feedback.store')->middleware('throttle:10,1');
     Route::put('orders/{order}/venue-booking', [OrderController::class, 'updateVenueBooking'])->name('orders.venue-booking.update');
     Route::post('orders/{order}/checklist', [WeddingChecklistController::class, 'store'])->name('orders.checklist.store');
     Route::post('orders/{order}/checklist/{item}', [WeddingChecklistController::class, 'update'])->name('orders.checklist.update');

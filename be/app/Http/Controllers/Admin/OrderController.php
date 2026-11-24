@@ -120,6 +120,7 @@ class OrderController extends Controller
                 'package',
                 'packageOption',
                 'customPackageOffer.items',
+                'customPackageOfferOption',
                 'payment',
             ]);
 
@@ -470,9 +471,12 @@ class OrderController extends Controller
             'user',
             'package',
             'packageOption',
+            'customPackageOffer',
+            'customPackageOfferOption.items',
             'payment',
             'payments',
-            'documents',
+            'documents.acceptedBy',
+            'feedback',
             'checklistItems',
             'changeRequests.addon',
             'vendorAssignments.vendor',
@@ -532,7 +536,7 @@ class OrderController extends Controller
         $user = Auth::user();
         $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
 
-        $order = Order::packageOnly()->with(['user', 'package', 'packageOption', 'customPackageOffer', 'payment'])
+        $order = Order::packageOnly()->with(['user', 'package', 'packageOption', 'customPackageOffer', 'customPackageOfferOption', 'payment'])
             ->where('uuid', $uuid)
             ->firstOrFail();
 
@@ -551,7 +555,7 @@ class OrderController extends Controller
         $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
 
         $orderQuery = Order::packageOnly()
-            ->with(['user', 'package', 'customPackageOffer', 'assignedAdmin'])
+            ->with(['user', 'package', 'customPackageOffer', 'customPackageOfferOption', 'assignedAdmin'])
             ->where('uuid', $uuid);
 
         if (! $isAdmin) {
@@ -654,7 +658,7 @@ class OrderController extends Controller
     private function activatePendingOrder(string $orderUuid, ?string $note, ?Payment $incomingPayment = null): array
     {
         return DB::transaction(function () use ($orderUuid, $note, $incomingPayment) {
-            $order = Order::packageOnly()->with(['packageOption', 'customPackageOffer', 'user', 'payments'])
+            $order = Order::packageOnly()->with(['packageOption', 'customPackageOffer', 'customPackageOfferOption', 'user', 'payments'])
                 ->where('uuid', $orderUuid)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -1899,7 +1903,7 @@ class OrderController extends Controller
         $user = Auth::user();
 
         $orders = $this->filteredOrders($request, $user)
-            ->with(['user', 'package', 'packageOption', 'customPackageOffer', 'payment'])
+            ->with(['user', 'package', 'packageOption', 'customPackageOffer', 'customPackageOfferOption', 'payment'])
             ->latest()
             ->limit(10000)
             ->get();
@@ -1939,7 +1943,7 @@ class OrderController extends Controller
             'option' => [
                 'label' => 'Opsi Paket',
                 'value' => fn ($order) => $order->packageOption?->name
-                    ?? ($order->customPackageOffer ? 'Penawaran khusus · Versi '.$order->customPackageOffer->version : '-'),
+                    ?? ($order->customPackageOffer ? 'Penawaran khusus · '.($order->customPackageOfferOption?->label ?? 'Versi '.$order->customPackageOffer->version) : '-'),
             ],
             'amount' => [
                 'label' => 'Tagihan Saat Ini (Rp)',
@@ -2922,6 +2926,7 @@ class OrderController extends Controller
                 'package',
                 'packageOption',
                 'customPackageOffer',
+                'customPackageOfferOption',
                 'payment',
             ])
             ->latest()
@@ -2949,6 +2954,7 @@ class OrderController extends Controller
                 'package',
                 'packageOption',
                 'customPackageOffer',
+                'customPackageOfferOption',
                 'payment',
             ])
             ->latest()
@@ -3158,7 +3164,7 @@ class OrderController extends Controller
     private function notifyAdmins(Order $order): void
     {
         try {
-            $order->loadMissing(['user', 'package', 'packageOption', 'customPackageOffer']);
+            $order->loadMissing(['user', 'package', 'packageOption', 'customPackageOffer', 'customPackageOfferOption']);
 
             $admins = User::role(['super-admin', 'admin'])
                 ->where('uuid', '!=', $order->user_uuid)
@@ -3171,6 +3177,8 @@ class OrderController extends Controller
             $packageName = $order->customPackageOffer?->title ?? $order->package?->name ?? '-';
             if ($order->packageOption?->name) {
                 $packageName .= ' â€” '.$order->packageOption->name;
+            } elseif ($order->customPackageOfferOption?->label) {
+                $packageName .= ' â€” '.$order->customPackageOfferOption->label;
             }
 
             Notification::send($admins, new OrderBaruNotification(

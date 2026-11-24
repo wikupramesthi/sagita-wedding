@@ -21,7 +21,7 @@
             <div class="order-quick-label">Paket</div>
             <div class="fw-semibold">{{ $order->customPackageOffer?->title ?? $order->package?->name ?? '-' }}</div>
             @if ($order->customPackageOffer)
-            <div class="text-muted small">Penawaran khusus · Versi {{ $order->customPackageOffer->version }}</div>
+            <div class="text-muted small">Penawaran khusus · {{ $order->customPackageOfferOption?->label ?? 'Versi '.$order->customPackageOffer->version }}</div>
             @endif
             @if ($order->packageOption?->name)
             <div class="text-muted small">{{ $order->packageOption->name }}</div>

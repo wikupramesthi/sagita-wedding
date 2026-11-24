@@ -244,6 +244,57 @@
         </div>
         @endif
 
+        @if (auth()->user()?->hasRole('user') && $customOffers->isNotEmpty())
+        <section class="mb-4" aria-labelledby="private-package-offers-title">
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+                <div>
+                    <p class="package-catalog-eyebrow mb-1">Paket yang disiapkan khusus untuk Anda</p>
+                    <h2 id="private-package-offers-title" class="h4 fw-bold mb-0">Penawaran Paket Privat</h2>
+                </div>
+                <a href="{{ route('package-offers.mine') }}" class="small fw-semibold text-decoration-none">Lihat riwayat penawaran</a>
+            </div>
+            <div class="row g-3">
+                @foreach ($customOffers as $customOffer)
+                <div class="col-lg-6">
+                    <article class="card h-100 border-primary-subtle shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <h3 class="h5 fw-bold mb-1">{{ $customOffer->title }}</h3>
+                                    <div class="small text-muted">Versi {{ $customOffer->version }} · {{ $customOffer->event_date?->translatedFormat('d F Y') ?? 'Tanggal belum ditentukan' }}</div>
+                                </div>
+                                <span class="badge text-bg-{{ $customOffer->status === 'sent' ? 'warning' : ($customOffer->status === 'accepted' ? 'success' : 'info') }}">
+                                    {{ ['sent' => 'Menunggu pilihan Anda', 'accepted' => 'Sudah disetujui', 'revision_requested' => 'Revisi sedang disiapkan'][$customOffer->status] ?? 'Dalam proses' }}
+                                </span>
+                            </div>
+                            @if ($customOffer->description)
+                            <p class="small text-muted mt-3 mb-2">{{ \Illuminate\Support\Str::limit($customOffer->description, 180) }}</p>
+                            @endif
+                            <div class="row g-2 mt-1">
+                                @foreach ($customOffer->options as $offerOption)
+                                <div class="col-sm-{{ $customOffer->options->count() > 1 ? '6' : '12' }}">
+                                    <div class="rounded-3 border bg-light p-3 h-100">
+                                        <div class="small fw-semibold">{{ $offerOption->label }}</div>
+                                        <div class="h5 fw-bold mt-1 mb-0">Rp {{ number_format($offerOption->total_amount, 0, ',', '.') }}</div>
+                                        <div class="small text-muted">DP {{ $offerOption->deposit_percentage }}%</div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            <a href="{{ route('package-offers.show', $customOffer->uuid) }}" class="btn btn-primary w-100 mt-3">
+                                {{ $customOffer->status === 'accepted' ? 'Lanjutkan ke detail dan checkout' : ($customOffer->status === 'sent' ? 'Tinjau dan pilih paket' : 'Lihat status revisi') }}
+                            </a>
+                            @if ($customOffer->status === 'sent' && $customOffer->expires_at)
+                            <div class="small text-muted text-center mt-2">Berlaku sampai {{ $customOffer->expires_at->translatedFormat('d F Y, H:i') }}</div>
+                            @endif
+                        </div>
+                    </article>
+                </div>
+                @endforeach
+            </div>
+        </section>
+        @endif
+
         <div class="package-filter">
             <div class="package-filter-left">
                 <a href="{{ route('packages.member', array_filter(['sort' => request('sort'), 'guests' => request('guests'), 'budget_max' => request('budget_max')])) }}" class="package-filter-btn {{ !request('filter') ? 'active' : '' }}">

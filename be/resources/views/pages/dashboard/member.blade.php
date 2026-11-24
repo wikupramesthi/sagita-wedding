@@ -20,6 +20,55 @@
         </div>
     </div>
 
+    <section class="card member-card mb-4" aria-labelledby="member-custom-offers-title">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div>
+                    <span class="member-eyebrow">Khusus untuk Anda</span>
+                    <h2 id="member-custom-offers-title" class="h5 fw-semibold mb-0">Permintaan dan penawaran paket privat</h2>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('package-offer-requests.mine') }}" class="btn btn-sm btn-outline-success">Permintaan saya</a>
+                    <a href="{{ route('package-offer-requests.create') }}" class="btn btn-sm btn-success">Ajukan kebutuhan</a>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-lg-6">
+                    <h3 class="h6 fw-semibold">Penawaran terbaru</h3>
+                    @forelse ($myPackageOffers as $offer)
+                    <a href="{{ route('package-offers.show', $offer->uuid) }}" class="d-flex justify-content-between align-items-center gap-2 border rounded-3 p-3 mb-2 text-decoration-none">
+                        <span class="min-w-0">
+                            <span class="fw-semibold d-block text-truncate">{{ $offer->title }}</span>
+                            <small class="text-muted">{{ $offer->options->count() }} pilihan · Versi {{ $offer->version }}</small>
+                        </span>
+                        <span class="badge text-bg-{{ $offer->status === 'sent' ? 'warning' : ($offer->status === 'accepted' ? 'success' : 'secondary') }}">
+                            {{ ['sent' => 'Menunggu tanggapan', 'accepted' => 'Disetujui', 'rejected' => 'Ditolak', 'expired' => 'Kedaluwarsa', 'revision_requested' => 'Menunggu revisi', 'superseded' => 'Diperbarui'][$offer->display_status] ?? 'Dalam proses' }}
+                        </span>
+                    </a>
+                    @empty
+                    <div class="small text-muted border rounded-3 p-3">Belum ada penawaran privat. Ajukan kebutuhan acara untuk memulai.</div>
+                    @endforelse
+                </div>
+                <div class="col-lg-6">
+                    <h3 class="h6 fw-semibold">Status permintaan</h3>
+                    @forelse ($myPackageRequests as $packageRequest)
+                    <a href="{{ route('package-offer-requests.show', $packageRequest->uuid) }}" class="d-flex justify-content-between align-items-center gap-2 border rounded-3 p-3 mb-2 text-decoration-none">
+                        <span class="min-w-0">
+                            <span class="fw-semibold d-block text-truncate">{{ \Illuminate\Support\Str::limit($packageRequest->request_details, 70) }}</span>
+                            <small class="text-muted">{{ $packageRequest->created_at?->translatedFormat('d M Y') }}</small>
+                        </span>
+                        <span class="badge text-bg-{{ $packageRequest->status === 'quoted' ? 'success' : ($packageRequest->status === 'submitted' ? 'warning' : 'info') }}">
+                            {{ ['submitted' => 'Menunggu', 'in_review' => 'Ditinjau', 'quoted' => 'Ada penawaran', 'closed' => 'Ditutup'][$packageRequest->status] ?? 'Dalam proses' }}
+                        </span>
+                    </a>
+                    @empty
+                    <div class="small text-muted border rounded-3 p-3">Belum ada permintaan paket khusus.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </section>
+
     <div class="row g-3 mb-4 member-stats">
         @foreach ($memberStats as $stat)
             <div class="col-6 col-xl-3">

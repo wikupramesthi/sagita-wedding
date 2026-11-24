@@ -744,6 +744,42 @@
 
     </div>
 
+    @if (auth()->user()?->hasRole('user') && $customOffers->isNotEmpty())
+    <section class="app-card p-3 mb-4" aria-labelledby="mobile-private-offers-title">
+        <p class="eyebrow mb-1">Paket khusus untuk Anda</p>
+        <h2 id="mobile-private-offers-title" class="h5 fw-semibold mb-3">Penawaran Paket Privat</h2>
+        <div class="d-grid gap-3">
+            @foreach ($customOffers as $customOffer)
+            <article class="border rounded-3 p-3">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div class="min-w-0">
+                        <h3 class="h6 fw-semibold mb-1">{{ $customOffer->title }}</h3>
+                        <div class="small text-muted2">Acara {{ $customOffer->event_date?->translatedFormat('d M Y') ?? 'belum ditentukan' }}</div>
+                    </div>
+                    <span class="badge {{ $customOffer->status === 'sent' ? 'bg-warning-subtle text-warning-emphasis' : ($customOffer->status === 'accepted' ? 'bg-success-subtle text-success-emphasis' : 'bg-info-subtle text-info-emphasis') }}">
+                        {{ ['sent' => 'Menunggu pilihan', 'accepted' => 'Disetujui', 'revision_requested' => 'Revisi disiapkan'][$customOffer->status] ?? 'Dalam proses' }}
+                    </span>
+                </div>
+                @if ($customOffer->description)<p class="small text-muted2 mt-2 mb-2">{{ \Illuminate\Support\Str::limit($customOffer->description, 110) }}</p>@endif
+                @foreach ($customOffer->options as $offerOption)
+                <div class="d-flex justify-content-between align-items-center gap-2 border-top py-2">
+                    <span class="small">{{ $offerOption->label }} <span class="text-muted2">· DP {{ $offerOption->deposit_percentage }}%</span></span>
+                    <strong class="small text-nowrap">Rp {{ number_format($offerOption->total_amount, 0, ',', '.') }}</strong>
+                </div>
+                @endforeach
+                <a href="{{ route('package-offers.show', $customOffer->uuid) }}" class="btn btn-primary btn-sm w-100 mt-2">
+                    {{ $customOffer->status === 'accepted' ? 'Detail dan checkout' : ($customOffer->status === 'sent' ? 'Tinjau dan pilih paket' : 'Lihat status revisi') }}
+                </a>
+                @if ($customOffer->status === 'sent' && $customOffer->expires_at)
+                <div class="small text-muted2 text-center mt-2">Berlaku sampai {{ $customOffer->expires_at->translatedFormat('d M Y, H:i') }}</div>
+                @endif
+            </article>
+            @endforeach
+        </div>
+        <a href="{{ route('package-offers.mine') }}" class="small d-block mt-3">Lihat riwayat penawaran</a>
+    </section>
+    @endif
+
 
     {{-- FILTER --}}
     <div class="mobile-package-filter">

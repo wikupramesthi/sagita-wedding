@@ -10,6 +10,8 @@ use App\Models\Event;
 use App\Models\FailedLogin;
 use App\Models\LoginLockout;
 use App\Models\Package\Package;
+use App\Models\Package\CustomPackageOffer;
+use App\Models\Package\CustomPackageOfferRequest;
 use App\Models\Payment\Order;
 use App\Models\User;
 use App\Models\UserPackage;
@@ -142,7 +144,7 @@ class DashboardController extends Controller
                     ->whereHas('package', fn ($query) => $query->wedding())
                     ->whereNotNull('event_date')
                     ->whereDate('event_date', '>=', now()->toDateString())
-                    ->with(['user:uuid,name,email', 'package:uuid,name', 'packageOption:uuid,name'])
+                    ->with(['user:uuid,name,email', 'package:uuid,name', 'packageOption:uuid,name', 'customPackageOffer', 'customPackageOfferOption'])
                     ->orderBy('event_date')
                     ->take(8)
                     ->get();
@@ -161,6 +163,25 @@ class DashboardController extends Controller
             }
 
             $data = array_merge($data, $adminData, $adminViewData);
+            if ($user->can('package.index')) {
+                $data['packageOfferDashboard'] = [
+                    'openRequestCount' => CustomPackageOfferRequest::whereIn('status', ['submitted', 'in_review'])->count(),
+                    'overdueRequestCount' => CustomPackageOfferRequest::whereIn('status', ['submitted', 'in_review'])
+                        ->whereNotNull('review_due_at')
+                        ->where('review_due_at', '<', now())
+                        ->count(),
+                    'awaitingResponseCount' => CustomPackageOffer::where('status', 'sent')->count(),
+                    'recentRequests' => CustomPackageOfferRequest::with(['user:uuid,name', 'assignedAdmin:uuid,name'])
+                        ->latest()
+                        ->take(4)
+                        ->get(),
+                    'recentOffers' => CustomPackageOffer::with(['user:uuid,name', 'options'])
+                        ->whereIn('status', ['draft', 'sent', 'accepted', 'revision_requested'])
+                        ->latest()
+                        ->take(4)
+                        ->get(),
+                ];
+            }
         }
 
         $data += [
@@ -175,6 +196,16 @@ class DashboardController extends Controller
 
         if (! $isAdmin) {
             $data = array_merge($data, $this->memberDashboard->build($user, $validated['budget_max'] ?? null));
+            $data['myPackageRequests'] = CustomPackageOfferRequest::where('user_uuid', $user->uuid)
+                ->latest()
+                ->take(3)
+                ->get();
+            $data['myPackageOffers'] = CustomPackageOffer::with(['options'])
+                ->where('user_uuid', $user->uuid)
+                ->where('status', '!=', 'draft')
+                ->latest('sent_at')
+                ->take(3)
+                ->get();
 
             if (MemberView::isMobile()) {
                 return view('pages.mobile.home', $data + [

@@ -12,6 +12,17 @@
     $selectedBaseOptionUuid = old('based_option_uuid', $draft?->based_package_option_uuid ?? $previous?->based_package_option_uuid ?? $selectedOption?->uuid);
     $linkedRecipient = $draft || $previous || $sourceRequest;
     $initialTitle = $draft?->title ?? $previous?->title ?? ($selectedOption ? $selectedOption->package->name.' — '.$selectedOption->name : ($sourceRequest ? 'Penawaran khusus — '.$sourceRequest->user->name : ''));
+    $primaryOption = $draft?->options?->first() ?? $previous?->options?->first();
+    $secondOptionEnabled = (bool) old('second_option_enabled', $defaultSecondOption !== null);
+    $secondFormItems = old('second_option.items', $defaultSecondOption?->items?->map(fn ($item) => [
+        'name' => $item->name,
+        'description' => $item->description,
+        'quantity' => $item->quantity,
+        'unit_price' => $item->unit_price,
+    ])->all() ?? []);
+    if ($secondFormItems === []) {
+        $secondFormItems = [['name' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]];
+    }
 @endphp
 <div class="container-fluid py-3">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
@@ -154,6 +165,18 @@
                     </div>
                     <div class="card-body">
                         @error('items')<div class="alert alert-danger">{{ $message }}</div>@enderror
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-5">
+                                <label for="option_label" class="form-label">Nama pilihan</label>
+                                <input id="option_label" name="option_label" value="{{ old('option_label', $primaryOption?->label ?? 'Pilihan 1') }}" class="form-control @error('option_label') is-invalid @enderror" maxlength="100">
+                                @error('option_label')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-md-7">
+                                <label for="option_description" class="form-label">Keterangan pilihan</label>
+                                <input id="option_description" name="option_description" value="{{ old('option_description', $primaryOption?->description) }}" class="form-control @error('option_description') is-invalid @enderror" maxlength="2000">
+                                @error('option_description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
                         <div id="offer-items" class="vstack gap-3">
                             @foreach ($formItems as $index => $item)
                             <div class="border rounded-3 p-3 offer-item-row">
@@ -185,6 +208,99 @@
                             </div>
                             @endforeach
                         </div>
+
+                <div class="card mt-4">
+                                        <div class="card-header bg-white d-flex justify-content-between align-items-center gap-3">
+                                            <div>
+                                                <div class="fw-semibold">Pilihan kedua <span class="badge text-bg-light">Opsional</span></div>
+                                                <div class="small text-muted">Pelanggan dapat membandingkan maksimal dua pilihan.</div>
+                                            </div>
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="second-option-enabled" name="second_option_enabled" value="1" @checked($secondOptionEnabled)>
+                                                <label class="form-check-label" for="second-option-enabled">Aktifkan</label>
+                                            </div>
+                                        </div>
+                                        <div class="card-body" id="second-option-panel" @if (! $secondOptionEnabled) hidden @endif>
+                                            @error('second_option')<div class="alert alert-danger">{{ $message }}</div>@enderror
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-5">
+                                                    <label for="second-option-label" class="form-label">Nama pilihan <span class="text-danger">*</span></label>
+                                                    <input id="second-option-label" name="second_option[label]" value="{{ old('second_option.label', $defaultSecondOption?->label ?? 'Pilihan 2') }}" class="form-control @error('second_option.label') is-invalid @enderror" maxlength="100">
+                                                    @error('second_option.label')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                                </div>
+                                                <div class="col-md-7">
+                                                    <label for="second-option-description" class="form-label">Keterangan pilihan</label>
+                                                    <input id="second-option-description" name="second_option[description]" value="{{ old('second_option.description', $defaultSecondOption?->description) }}" class="form-control @error('second_option.description') is-invalid @enderror" maxlength="2000">
+                                                    @error('second_option.description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <strong>Rincian layanan</strong>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" id="add-second-offer-item"><i class="bi bi-plus-lg me-1"></i>Tambah layanan</button>
+                                            </div>
+                                            @error('second_option.items')<div class="alert alert-danger">{{ $message }}</div>@enderror
+                                            <div id="second-offer-items" class="vstack gap-3">
+                                                @foreach ($secondFormItems as $index => $item)
+                                                <div class="border rounded-3 p-3 offer-item-row">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <strong>Layanan <span class="offer-item-number">{{ $loop->iteration }}</span></strong>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger remove-offer-item" aria-label="Hapus layanan"><i class="bi bi-trash"></i></button>
+                                                    </div>
+                                                    <div class="row g-2">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Nama layanan</label>
+                                                            <input name="second_option[items][{{ $index }}][name]" value="{{ $item['name'] ?? '' }}" class="form-control" maxlength="255">
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label">Jumlah</label>
+                                                            <input type="number" name="second_option[items][{{ $index }}][quantity]" value="{{ $item['quantity'] ?? 1 }}" min="1" max="999" class="form-control">
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Harga satuan (Rp)</label>
+                                                            <input type="number" name="second_option[items][{{ $index }}][unit_price]" value="{{ $item['unit_price'] ?? 0 }}" min="0" class="form-control offer-item-price">
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label">Keterangan layanan</label>
+                                                            <textarea name="second_option[items][{{ $index }}][description]" rows="2" class="form-control" maxlength="2000">{{ $item['description'] ?? '' }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @endforeach
+                                            </div>
+                                            <template id="second-offer-item-template">
+                                                <div class="border rounded-3 p-3 offer-item-row">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <strong>Layanan <span class="offer-item-number"></span></strong>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger remove-offer-item" aria-label="Hapus layanan"><i class="bi bi-trash"></i></button>
+                                                    </div>
+                                                    <div class="row g-2">
+                                                        <div class="col-md-6"><label class="form-label">Nama layanan</label><input name="second_option[items][__INDEX__][name]" class="form-control" maxlength="255"></div>
+                                                        <div class="col-md-2"><label class="form-label">Jumlah</label><input type="number" name="second_option[items][__INDEX__][quantity]" value="1" min="1" max="999" class="form-control"></div>
+                                                        <div class="col-md-4"><label class="form-label">Harga satuan (Rp)</label><input type="number" name="second_option[items][__INDEX__][unit_price]" value="0" min="0" class="form-control offer-item-price"></div>
+                                                        <div class="col-12"><label class="form-label">Keterangan layanan</label><textarea name="second_option[items][__INDEX__][description]" rows="2" class="form-control" maxlength="2000"></textarea></div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <div class="row g-3 mt-2">
+                                                <div class="col-md-4">
+                                                    <label for="second-option-discount" class="form-label">Diskon (Rp)</label>
+                                                    <input id="second-option-discount" type="number" name="second_option[discount_amount]" min="0" value="{{ old('second_option.discount_amount', $defaultSecondOption?->discount_amount ?? 0) }}" class="form-control">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="second-option-deposit" class="form-label">DP awal (%)</label>
+                                                    <input id="second-option-deposit" type="number" name="second_option[deposit_percentage]" min="1" max="100" value="{{ old('second_option.deposit_percentage', $defaultSecondOption?->deposit_percentage ?? 30) }}" class="form-control">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="second-option-terms" class="form-label">Ketentuan pembayaran</label>
+                                                    <textarea id="second-option-terms" name="second_option[payment_terms_note]" rows="1" class="form-control" maxlength="5000">{{ old('second_option.payment_terms_note', $defaultSecondOption?->payment_terms_note) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="border-top pt-3 mt-3 d-flex justify-content-between fw-semibold">
+                                                <span>Perkiraan total pilihan kedua</span>
+                                                <span id="second-offer-total">Rp 0</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
                         <template id="offer-item-template">
                             <div class="border rounded-3 p-3 offer-item-row">
@@ -252,71 +368,102 @@
 
 <script>
 (() => {
-    const container = document.getElementById('offer-items');
-    const template = document.getElementById('offer-item-template');
-    const baseOption = document.getElementById('based_option_uuid');
-    const titleInput = document.getElementById('title');
-    const discountInput = document.getElementById('discount_amount');
-    const totalNode = document.getElementById('offer-total');
+    const configureItems = (containerId, templateId, addButtonId, discountId, totalId) => {
+        const container = document.getElementById(containerId);
+        const template = document.getElementById(templateId);
+        const discountInput = document.getElementById(discountId);
+        const totalNode = document.getElementById(totalId);
+        if (!container || !template || !discountInput || !totalNode) return null;
 
-    const refresh = () => {
-        const subtotal = [...container.querySelectorAll('.offer-item-row')].reduce((sum, row) => {
-            const quantity = Number(row.querySelector('[name$="[quantity]"]').value || 0);
-            const price = Number(row.querySelector('[name$="[unit_price]"]').value || 0);
-            return sum + quantity * price;
-        }, 0);
-        const discount = Number(discountInput.value || 0);
-        totalNode.textContent = 'Rp ' + Math.max(0, subtotal - discount).toLocaleString('id-ID');
-        container.querySelectorAll('.offer-item-number').forEach((node, index) => {
-            node.textContent = String(index + 1);
+        const refresh = () => {
+            const subtotal = [...container.querySelectorAll('.offer-item-row')].reduce((sum, row) => {
+                const quantity = Number(row.querySelector('[name$="[quantity]"]').value || 0);
+                const price = Number(row.querySelector('[name$="[unit_price]"]').value || 0);
+                return sum + quantity * price;
+            }, 0);
+            totalNode.textContent = 'Rp ' + Math.max(0, subtotal - Number(discountInput.value || 0)).toLocaleString('id-ID');
+            container.querySelectorAll('.offer-item-number').forEach((node, index) => {
+                node.textContent = String(index + 1);
+            });
+        };
+
+        document.getElementById(addButtonId).addEventListener('click', () => {
+            const indexes = [...container.querySelectorAll('[name]')]
+                .map((input) => input.name.match(/\[(\d+)\]\[[^\]]+\]$/))
+                .filter(Boolean)
+                .map((match) => Number(match[1]));
+            const index = indexes.length ? Math.max(...indexes) + 1 : 0;
+            const fragment = template.content.cloneNode(true);
+            fragment.querySelectorAll('[name]').forEach((input) => {
+                input.name = input.name.replace(/__INDEX__/g, String(index));
+            });
+            container.appendChild(fragment);
+            refresh();
         });
+
+        container.addEventListener('click', (event) => {
+            const button = event.target.closest('.remove-offer-item');
+            if (!button) return;
+            const rows = container.querySelectorAll('.offer-item-row');
+            if (rows.length === 1) {
+                rows[0].querySelectorAll('input, textarea').forEach((input) => {
+                    if (input.name.endsWith('[quantity]')) input.value = '1';
+                    else if (input.name.endsWith('[unit_price]')) input.value = '0';
+                    else input.value = '';
+                });
+            } else {
+                button.closest('.offer-item-row').remove();
+            }
+            refresh();
+        });
+
+        container.addEventListener('input', refresh);
+        discountInput.addEventListener('input', refresh);
+        refresh();
+
+        return refresh;
     };
 
-    document.getElementById('add-offer-item').addEventListener('click', () => {
-        const index = Math.max(0, ...[...container.querySelectorAll('[name^="items["]')].map((input) => {
-            const match = input.name.match(/^items\[(\d+)\]/);
-            return match ? Number(match[1]) + 1 : 0;
-        }));
-        const fragment = template.content.cloneNode(true);
-        fragment.querySelectorAll('[name]').forEach((input) => {
-            input.name = input.name.replace(/__INDEX__/g, String(index));
+    const refreshPrimary = configureItems(
+        'offer-items',
+        'offer-item-template',
+        'add-offer-item',
+        'discount_amount',
+        'offer-total'
+    );
+    configureItems(
+        'second-offer-items',
+        'second-offer-item-template',
+        'add-second-offer-item',
+        'second-option-discount',
+        'second-offer-total'
+    );
+    const baseOption = document.getElementById('based_option_uuid');
+    const titleInput = document.getElementById('title');
+    const secondEnabled = document.getElementById('second-option-enabled');
+    const secondPanel = document.getElementById('second-option-panel');
+    const updateSecondOption = () => {
+        secondPanel.hidden = !secondEnabled.checked;
+        secondPanel.querySelectorAll('input, textarea, select').forEach((input) => {
+            input.disabled = !secondEnabled.checked;
         });
-        container.appendChild(fragment);
-        refresh();
-    });
+    };
+    secondEnabled.addEventListener('change', updateSecondOption);
+    updateSecondOption();
 
-    container.addEventListener('click', (event) => {
-        const button = event.target.closest('.remove-offer-item');
-        if (!button) return;
-        const rows = container.querySelectorAll('.offer-item-row');
-        if (rows.length === 1) {
-            rows[0].querySelectorAll('input, textarea').forEach((input) => {
-                if (input.name.endsWith('[quantity]')) input.value = '1';
-                else if (input.name.endsWith('[unit_price]')) input.value = '0';
-                else input.value = '';
-            });
-        } else {
-            button.closest('.offer-item-row').remove();
-        }
-        refresh();
-    });
-
-    container.addEventListener('input', refresh);
-    discountInput.addEventListener('input', refresh);
     baseOption.addEventListener('change', () => {
         const option = baseOption.selectedOptions[0];
         if (!option?.value) return;
         if (!titleInput.value.trim()) titleInput.value = option.dataset.title || '';
+        const container = document.getElementById('offer-items');
         const rows = container.querySelectorAll('.offer-item-row');
         if (rows.length === 1 && !rows[0].querySelector('[name$="[name]"]').value.trim()) {
             rows[0].querySelector('[name$="[name]"]').value = option.dataset.itemName || '';
             rows[0].querySelector('[name$="[description]"]').value = option.dataset.itemDescription || '';
             rows[0].querySelector('[name$="[unit_price]"]').value = option.dataset.itemPrice || '0';
         }
-        refresh();
+        refreshPrimary?.();
     });
-
-    refresh();
 })();
 </script>
 @endsection

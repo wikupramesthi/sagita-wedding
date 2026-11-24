@@ -12,6 +12,9 @@ class CheckoutSessionService
     {
         $attempts = $request->session()->get('checkout_attempts', []);
         $visitorKey = $attempts[$packageUuid] ?? null;
+        $userUuid = $request->user()?->hasRole('user')
+            ? $request->user()->uuid
+            : null;
         $checkout = $visitorKey
             ? CheckoutSession::where('visitor_key', $visitorKey)->first()
             : null;
@@ -21,9 +24,12 @@ class CheckoutSessionService
             $checkout = CheckoutSession::create([
                 'visitor_key' => $visitorKey,
                 'package_uuid' => $packageUuid,
+                'user_uuid' => $userUuid,
                 'status' => 'started',
                 'started_at' => now(),
             ]);
+        } elseif ($userUuid && ! $checkout->user_uuid) {
+            $checkout->update(['user_uuid' => $userUuid]);
         }
 
         $attempts[$packageUuid] = $checkout->visitor_key;

@@ -32,24 +32,99 @@
                         <i class="bi bi-download"></i>
                     </a>
                 </div>
+                @if ($document->type === 'contract')
+                    @if ($document->accepted_at)
+                        <div class="alert alert-success w-100 mb-0 py-2 small">
+                            <i class="bi bi-check-circle me-1"></i>
+                            @if ($isAdmin)
+                                Pelanggan menyetujui kontrak{{ $document->acceptedBy?->name ? ' ('.$document->acceptedBy->name.')' : '' }}
+                                pada {{ $document->accepted_at->translatedFormat('d F Y, H:i') }}.
+                            @else
+                                Kontrak disetujui pada {{ $document->accepted_at->translatedFormat('d F Y, H:i') }}.
+                                Salinan versi yang disetujui telah tersimpan. Catatan ini bukan tanda tangan digital tersertifikasi.
+                            @endif
+                        </div>
+                    @elseif (! $isAdmin)
+                        <form method="POST" action="{{ route('orders.documents.accept', [$order->uuid, $document->uuid]) }}" class="w-100 border rounded-3 p-3">
+                            @csrf
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="agreement" value="1" id="contract-agreement-{{ $document->uuid }}" required>
+                                <label class="form-check-label small" for="contract-agreement-{{ $document->uuid }}">
+                                    Saya telah membaca dan menyetujui isi kontrak layanan ini.
+                                </label>
+                            </div>
+                            <div class="small text-muted mb-2">
+                                Persetujuan dan salinan kontrak yang disetujui akan dicatat pada pesanan ini.
+                                Catatan ini bukan tanda tangan digital tersertifikasi.
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-check2-circle me-1"></i>Setujui kontrak
+                            </button>
+                        </form>
+                    @else
+                        <div class="alert alert-warning w-100 mb-0 py-2 small">
+                            <i class="bi bi-hourglass-split me-1"></i>Menunggu persetujuan kontrak dari pelanggan.
+                        </div>
+                    @endif
+                @endif
             @endforeach
         </div>
     </div>
 @endif
 
-@if ($order->checklistItems->isNotEmpty())
+@if (! $isAdmin && in_array($order->status, ['partially_paid', 'paid'], true) && $order->event_date && $order->event_date->lt(today()))
     @php
-        $checklistDone = $order->checklistItems->where('status', 'completed')->count();
-        $checklistTotal = $order->checklistItems->count();
+        $feedback = $order->feedback;
     @endphp
     <div class="{{ $compact ? 'app-card p-3 mt-3' : 'card border-0 shadow-sm mb-4' }}">
-        <div class="{{ $compact ? '' : 'card-header bg-white' }}">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-                <div class="fw-semibold">Checklist persiapan</div>
-                <span class="badge text-bg-light">{{ $checklistDone }}/{{ $checklistTotal }} selesai</span>
-            </div>
+        <div class="{{ $compact ? 'h6 fw-semibold mb-3' : 'card-header bg-white fw-semibold' }}">Bagaimana pengalaman Anda?</div>
+        <div class="{{ $compact ? '' : 'card-body' }}">
+            <p class="small text-muted">Setelah acara selesai, masukan Anda membantu kami meningkatkan layanan berikutnya.</p>
+            <form method="POST" action="{{ route('orders.feedback.store', $order->uuid) }}" class="d-grid gap-2">
+                @csrf
+                <label class="form-label small fw-semibold" for="feedback-rating-{{ $order->uuid }}">Penilaian</label>
+                <select class="form-select form-select-sm" id="feedback-rating-{{ $order->uuid }}" name="rating" required>
+                    <option value="">Pilih penilaian</option>
+                    @foreach ([5 => 'Sangat puas', 4 => 'Puas', 3 => 'Cukup puas', 2 => 'Kurang puas', 1 => 'Tidak puas'] as $rating => $label)
+                        <option value="{{ $rating }}" @selected((string) old('rating', $feedback?->rating) === (string) $rating)>{{ $rating }} — {{ $label }}</option>
+                    @endforeach
+                </select>
+                <label class="form-label small fw-semibold" for="feedback-comment-{{ $order->uuid }}">Catatan (opsional)</label>
+                <textarea class="form-control form-control-sm" id="feedback-comment-{{ $order->uuid }}" name="comment" rows="3" maxlength="2000" placeholder="Ceritakan hal yang berjalan baik atau yang perlu ditingkatkan.">{{ old('comment', $feedback?->comment) }}</textarea>
+                @if ($feedback)
+                    <div class="small text-muted">Penilaian terakhir dikirim {{ $feedback->submitted_at?->translatedFormat('d F Y, H:i') }}. Anda masih dapat memperbaruinya.</div>
+                @endif
+                <button type="submit" class="btn btn-sm btn-primary justify-self-start">
+                    <i class="bi bi-send me-1"></i>{{ $feedback ? 'Perbarui masukan' : 'Kirim masukan' }}
+                </button>
+            </form>
         </div>
-        <div class="{{ $compact ? 'mt-3' : 'card-body' }}">
+    </div>
+@endif
+
+@if ($isAdmin && $order->feedback)
+    <div class="{{ $compact ? 'app-card p-3 mt-3' : 'card border-0 shadow-sm mb-4' }}">
+        <div class="{{ $compact ? 'h6 fw-semibold mb-3' : 'card-header bg-white fw-semibold' }}">Masukan pelanggan</div>
+        <div class="{{ $compact ? '' : 'card-body' }}">
+            <div class="fw-semibold">{{ $order->feedback->rating }} / 5</div>
+            <div class="small text-muted mb-2">Dikirim {{ $order->feedback->submitted_at?->translatedFormat('d F Y, H:i') }}</div>
+            <div class="text-break">{{ $order->feedback->comment ?: 'Tidak ada catatan tambahan.' }}</div>
+        </div>
+    </div>
+@endif
+
+@php
+    $checklistDone = $order->checklistItems->where('status', 'completed')->count();
+    $checklistTotal = $order->checklistItems->count();
+@endphp
+<div class="{{ $compact ? 'app-card p-3 mt-3' : 'card border-0 shadow-sm mb-4' }}">
+    <div class="{{ $compact ? '' : 'card-header bg-white' }}">
+        <div class="d-flex justify-content-between align-items-center gap-2">
+            <div class="fw-semibold">Checklist persiapan</div>
+            <span class="badge text-bg-light">{{ $checklistDone }}/{{ $checklistTotal }} selesai</span>
+        </div>
+    </div>
+    <div class="{{ $compact ? 'mt-3' : 'card-body' }}">
             @foreach ($order->checklistItems as $item)
                 <div class="py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
                     @if ($isAdmin)
@@ -104,9 +179,11 @@
                     @endif
                 </div>
             @endforeach
-        </div>
+        @if ($checklistTotal === 0)
+            <div class="small text-muted">Belum ada tugas persiapan untuk pesanan ini.</div>
+        @endif
     </div>
-@endif
+</div>
 
 @if ($isAdmin)
     <div class="{{ $compact ? 'app-card p-3 mt-3' : 'card border-0 shadow-sm mb-4' }}">

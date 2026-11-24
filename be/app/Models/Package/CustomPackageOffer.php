@@ -123,6 +123,12 @@ class CustomPackageOffer extends Model
             ->orderBy('sort_order');
     }
 
+    public function workflowEvents(): HasMany
+    {
+        return $this->hasMany(CustomPackageWorkflowEvent::class, 'offer_uuid', 'uuid')
+            ->latest();
+    }
+
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'custom_package_offer_uuid', 'uuid');

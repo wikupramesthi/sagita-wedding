@@ -11,16 +11,19 @@ use App\Models\Payment\EventDateReservation;
 use App\Models\Payment\Order;
 use App\Models\Payment\OrderChangeRequest;
 use App\Models\Payment\OrderDocument;
+use App\Models\Payment\OrderFeedback;
 use App\Models\Payment\OrderWorkflowSetting;
 use App\Models\Payment\Payment;
 use App\Models\Payment\WeddingChecklistItem;
 use App\Models\User;
+use App\Notifications\CheckoutAbandonedNotification;
 use App\Services\EventDateReservationService;
 use App\Services\OrderWorkflowProvisioningService;
 use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
@@ -283,9 +286,38 @@ class OrderWorkflowFeatureTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('orders.analytics'))
             ->assertOk()
-            ->assertSee('Checkout ditinggalkan')
+            ->assertSee('Pemesanan belum selesai')
             ->assertSee('Paket Workflow Test')
             ->assertSee('50,0%');
+    }
+
+    public function test_abandoned_checkout_reminder_is_sent_once_only_to_an_identified_customer(): void
+    {
+        Notification::fake();
+
+        $identified = CheckoutSession::create([
+            'visitor_key' => (string) Str::uuid(),
+            'package_uuid' => $this->package->uuid,
+            'user_uuid' => $this->member->uuid,
+            'status' => 'started',
+            'started_at' => now()->subHours(25),
+        ]);
+        $anonymous = CheckoutSession::create([
+            'visitor_key' => (string) Str::uuid(),
+            'package_uuid' => $this->package->uuid,
+            'status' => 'started',
+            'started_at' => now()->subHours(25),
+        ]);
+
+        Artisan::call('checkouts:remind-abandoned');
+
+        Notification::assertSentTo($this->member, CheckoutAbandonedNotification::class);
+        $this->assertNotNull($identified->fresh()->reminder_sent_at);
+        $this->assertNull($anonymous->fresh()->reminder_sent_at);
+
+        Artisan::call('checkouts:remind-abandoned');
+
+        Notification::assertSentToTimes($this->member, CheckoutAbandonedNotification::class, 1);
     }
 
     public function test_order_documents_cannot_be_downloaded_by_another_member(): void
@@ -309,6 +341,94 @@ class OrderWorkflowFeatureTest extends TestCase
             ->get(route('orders.documents.download', [$this->order->uuid, $document->uuid]))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_customer_can_accept_a_contract_and_the_approved_snapshot_is_preserved(): void
+    {
+        $snapshot = [
+            'customer_name' => $this->member->name,
+            'contract_template' => 'Kontrak versi pertama',
+            'total_amount' => 10000000,
+        ];
+        $document = OrderDocument::create([
+            'order_uuid' => $this->order->uuid,
+            'document_number' => 'CTR-'.uniqid(),
+            'document_key' => $this->order->uuid.':contract',
+            'type' => 'contract',
+            'snapshot' => $snapshot,
+            'issued_at' => now(),
+        ]);
+
+        $this->actingAs($this->member)
+            ->post(route('orders.documents.accept', [$this->order->uuid, $document->uuid]), ['agreement' => '1'])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $accepted = $document->fresh();
+        $this->assertNotNull($accepted->accepted_at);
+        $this->assertSame($this->member->uuid, $accepted->accepted_by_uuid);
+        $this->assertSame($snapshot, $accepted->accepted_snapshot);
+
+        $this->actingAs($this->admin)
+            ->get(route('orders.show', $this->order->uuid))
+            ->assertOk()
+            ->assertSee('Pelanggan menyetujui kontrak')
+            ->assertSee($this->member->name);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.documents.accept', [$this->order->uuid, $document->uuid]), ['agreement' => '1'])
+            ->assertForbidden();
+    }
+
+    public function test_customer_feedback_is_only_allowed_after_the_event_and_can_be_updated(): void
+    {
+        $this->order->update([
+            'status' => 'paid',
+            'event_date' => today()->subDay()->toDateString(),
+        ]);
+
+        $this->actingAs($this->member)
+            ->post(route('orders.feedback.store', $this->order->uuid), [
+                'rating' => 5,
+                'comment' => 'Pelayanan sangat baik.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('order_feedback', [
+            'order_uuid' => $this->order->uuid,
+            'user_uuid' => $this->member->uuid,
+            'rating' => 5,
+        ]);
+
+        $this->actingAs($this->member)
+            ->post(route('orders.feedback.store', $this->order->uuid), [
+                'rating' => 4,
+                'comment' => 'Sudah diperbarui.',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(1, OrderFeedback::where('order_uuid', $this->order->uuid)->count());
+        $this->assertDatabaseHas('order_feedback', [
+            'order_uuid' => $this->order->uuid,
+            'rating' => 4,
+            'comment' => 'Sudah diperbarui.',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('orders.show', $this->order->uuid))
+            ->assertOk()
+            ->assertSee('Masukan pelanggan')
+            ->assertSee('Sudah diperbarui.');
+        $this->get(route('orders.analytics'))
+            ->assertOk()
+            ->assertSee('4,0 / 5')
+            ->assertSee('1 tanggapan');
+
+        $this->order->update(['event_date' => today()->addDay()->toDateString()]);
+        $this->actingAs($this->member)
+            ->post(route('orders.feedback.store', $this->order->uuid), ['rating' => 5])
+            ->assertForbidden();
     }
 
     public function test_order_document_preview_streams_inline_pdf_without_route_registration(): void

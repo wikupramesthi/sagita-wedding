@@ -64,54 +64,58 @@
         @endif
     </div>
 
-    <h2>Rincian layanan</h2>
-    <table class="items">
-        <thead>
-            <tr>
-                <th>Layanan</th>
-                <th class="right">Jumlah</th>
-                <th class="right">Harga satuan</th>
-                <th class="right">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($offer->items as $item)
-            <tr>
-                <td><strong>{{ $item->name }}</strong>@if ($item->description)<br><span class="muted">{{ $item->description }}</span>@endif</td>
-                <td class="right">{{ number_format($item->quantity, 0, ',', '.') }}</td>
-                <td class="right">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                <td class="right">Rp {{ number_format($item->line_total, 0, ',', '.') }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    <table class="totals keep">
-        <tr><td>Subtotal</td><td class="right">Rp {{ number_format($offer->subtotal_amount, 0, ',', '.') }}</td></tr>
-        <tr><td>Diskon khusus</td><td class="right">− Rp {{ number_format($offer->discount_amount, 0, ',', '.') }}</td></tr>
-        <tr class="grand-total"><td>Total penawaran</td><td class="right">Rp {{ number_format($offer->total_amount, 0, ',', '.') }}</td></tr>
-    </table>
-
-    <div class="panel keep">
-        <h2>Ketentuan pembayaran</h2>
-        <div>DP awal: <strong>{{ $offer->deposit_percentage }}%</strong> (Rp {{ number_format((int) round($offer->total_amount * $offer->deposit_percentage / 100), 0, ',', '.') }})</div>
-        @if ($offer->payment_terms_note)<div style="margin-top:5px">{{ $offer->payment_terms_note }}</div>@endif
-        <div class="muted" style="margin-top:7px">
-            @if ($offer->status === 'sent' && $offer->expires_at)
-                Berlaku sampai {{ $offer->expires_at->translatedFormat('d F Y, H:i') }}.
-            @elseif ($offer->status === 'draft')
-                Pratinjau draf — belum dikirim dan belum berlaku.
-            @else
-                Status: {{ match ($offer->display_status) {
-                    'accepted' => 'Disetujui',
-                    'rejected' => 'Ditolak',
-                    'expired' => 'Kedaluwarsa',
-                    'superseded' => 'Digantikan versi baru',
-                    'revision_requested' => 'Menunggu revisi',
-                    default => 'Dalam proses',
-                } }}.
-            @endif
+    @foreach ($offer->options as $option)
+    <div class="keep">
+        <h2>{{ $option->label }}</h2>
+        @if ($option->description)<div class="muted">{{ $option->description }}</div>@endif
+        <table class="items">
+            <thead>
+                <tr>
+                    <th>Layanan</th>
+                    <th class="right">Jumlah</th>
+                    <th class="right">Harga satuan</th>
+                    <th class="right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($option->items as $item)
+                <tr>
+                    <td><strong>{{ $item->name }}</strong>@if ($item->description)<br><span class="muted">{{ $item->description }}</span>@endif</td>
+                    <td class="right">{{ number_format($item->quantity, 0, ',', '.') }}</td>
+                    <td class="right">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
+                    <td class="right">Rp {{ number_format($item->line_total, 0, ',', '.') }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        <table class="totals keep">
+            <tr><td>Subtotal</td><td class="right">Rp {{ number_format($option->subtotal_amount, 0, ',', '.') }}</td></tr>
+            <tr><td>Diskon</td><td class="right">− Rp {{ number_format($option->discount_amount, 0, ',', '.') }}</td></tr>
+            <tr class="grand-total"><td>Total</td><td class="right">Rp {{ number_format($option->total_amount, 0, ',', '.') }}</td></tr>
+        </table>
+        <div class="panel keep">
+            <h2>Ketentuan pembayaran</h2>
+            <div>DP awal: <strong>{{ $option->deposit_percentage }}%</strong> (Rp {{ number_format((int) round($option->total_amount * $option->deposit_percentage / 100), 0, ',', '.') }})</div>
+            @if ($option->payment_terms_note)<div style="margin-top:5px">{{ $option->payment_terms_note }}</div>@endif
         </div>
+    </div>
+    @endforeach
+
+    <div class="muted" style="margin-top:10px">
+        @if ($offer->status === 'sent' && $offer->expires_at)
+            Berlaku sampai {{ $offer->expires_at->translatedFormat('d F Y, H:i') }}.
+        @elseif ($offer->status === 'draft')
+            Pratinjau draf — belum dikirim dan belum berlaku.
+        @else
+            Status: {{ match ($offer->display_status) {
+                'accepted' => 'Disetujui',
+                'rejected' => 'Ditolak',
+                'expired' => 'Kedaluwarsa',
+                'superseded' => 'Digantikan versi baru',
+                'revision_requested' => 'Menunggu revisi',
+                default => 'Dalam proses',
+            } }}.
+        @endif
     </div>
 
     <div class="footer">
