@@ -1,0 +1,142 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { firstString, metaFrom } from "../../lib/pageData.js";
+import { getPageBatch } from "../../lib/services/batchService.js";
+import type { CmsPage } from "../../lib/types/index.js";
+import { toApiError } from "../../lib/utils/errors.js";
+import { sanitizeRichHtml } from "../../lib/utils/sanitize.js";
+import { cleanSlug } from "../../lib/utils/validate.js";
+
+const { lang, dateLocale, t, contactLinks } = Astro.locals;
+const isID = lang === "id";
+
+let page: CmsPage | null = null;
+let title = `${t.notFoundTitle} — 404`;
+let metaDescription = "";
+let publishedDate = "";
+let notFound = false;
+
+try {
+	const slug = cleanSlug(Astro.params.slug, "page");
+	const data = await getPageBatch("page-detail", { slug });
+	const rawPage = data?.page;
+	if (!rawPage || typeof rawPage !== "object") {
+		notFound = true;
+	} else {
+		const pageTitle = firstString(rawPage.title);
+		const rawPageDescription =
+			firstString(rawPage.excerpt, rawPage.description) ||
+			metaFrom(rawPage.content);
+		metaDescription =
+			rawPageDescription.length >= 40
+				? rawPageDescription
+				: isID
+					? `Baca ${pageTitle} dan informasi lengkapnya dari Sagita Wedding Planner.`
+					: `Read ${pageTitle} and learn more from Sagita Wedding Planner.`;
+		title = `${pageTitle} | Sagita Wedding`;
+		const publishedAt = firstString(rawPage.published_at);
+		publishedDate = publishedAt
+			? new Date(publishedAt.replace(" ", "T")).toLocaleDateString(
+					dateLocale || "en-US",
+					{ day: "numeric", month: "long", year: "numeric" },
+				)
+			: "";
+		page = {
+			...(rawPage as CmsPage),
+			title: pageTitle,
+			content: sanitizeRichHtml(String(rawPage.content ?? "")),
+		};
+	}
+} catch (e) {
+	const err = toApiError(e);
+	if (err.status !== 404 && err.status !== 400) throw err;
+	notFound = true;
+}
+
+const isNotFound = notFound || !page;
+if (isNotFound) Astro.response.status = 404;
+---
+
+<BaseLayout
+	title={title}
+	metaDescription={metaDescription}
+	robots={isNotFound ? "noindex, nofollow" : undefined}
+	heroNav={isNotFound || undefined}
+>
+	{page ? (
+		<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
+			<nav aria-label="Breadcrumb" class="mb-8 text-xs sm:text-sm text-stone-warm">
+				<ol class="flex flex-wrap items-center gap-2">
+					<li>
+						<a href="/" class="hover:text-sage-700 transition-colors">{t.nav?.home || "Home"}</a>
+					</li>
+					<li aria-hidden="true" class="opacity-60">/</li>
+					<li aria-current="page" class="text-sage-900 font-medium truncate max-w-[60vw]">{page.title}</li>
+				</ol>
+			</nav>
+
+			<div class="lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-12 items-start">
+				<aside class="hidden lg:block sticky top-28" aria-label={t.tableOfContents}>
+					<div class="bg-white rounded-[20px] border border-sage-100 p-5">
+						<h2 class="text-xs font-bold uppercase tracking-wider text-stone-warm mb-4">{t.tableOfContents}</h2>
+						<ol id="tocList" class="flex flex-col gap-1 text-sm"></ol>
+					</div>
+				</aside>
+
+				<article class="min-w-0">
+					<h1 class="font-display text-4xl font-bold text-sage-900">
+						{page.title}
+					</h1>
+
+					{page.excerpt && (
+						<p class="mt-3 text-stone-warm text-lg">
+							{page.excerpt}
+						</p>
+					)}
+
+					{publishedDate && (
+						<p class="mt-4 text-xs uppercase tracking-[0.15em] text-stone-warm">
+							Last updated — {publishedDate}
+						</p>
+					)}
+
+					<hr class="my-8 border-sage-100">
+
+					{page.featured_image && (
+						<figure class="mb-8 overflow-hidden rounded-[24px] border border-sage-100">
+							<img
+								src={page.featured_image}
+								alt={page.title}
+								width="1200"
+								height="600"
+								loading="lazy"
+								decoding="async"
+								data-img-error="closest-figure"
+								class="w-full h-64 sm:h-80 object-cover"
+							/>
+						</figure>
+					)}
+
+					<div class="page-content mt-8" id="legalContent" set:html={page.content}></div>
+
+					<div class="mt-12 bg-sage-50 border border-sage-100 rounded-[24px] p-6 sm:p-8 text-center">
+						<h2 class="font-display text-xl sm:text-2xl text-sage-900">{t.ctaQuestions}</h2>
+						<div class="mt-5 flex flex-wrap items-center justify-center gap-3">
+							<a href={contactLinks.whatsappLink} target="_blank" rel="noopener noreferrer" class="btn-primary group text-sm px-6 py-3">
+								{t.chatWhatsApp}
+							</a>
+						</div>
+					</div>
+				</article>
+			</div>
+		</main>
+	) : (
+		<main class="site-container py-20 text-center">
+			<p class="font-display text-6xl text-sage-900">404</p>
+			<h1 class="mt-4 font-display text-3xl text-sage-900">{t.notFoundTitle}</h1>
+			<p class="mt-3 text-stone-warm">{t.notFoundDesc}</p>
+			<a href="/" class="btn-primary mt-8 inline-flex text-sm px-6 py-3">{t.notFoundBack}</a>
+		</main>
+	)}
+	<script>import "../../lib/browser/pages/page-detail";</script>
+</BaseLayout>

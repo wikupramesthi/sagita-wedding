@@ -1,17 +1,22 @@
 {
+	"extends": "astro/tsconfigs/strict",
 	"compilerOptions": {
-		"target": "ES2022",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"strict": true,
-		"noFallthroughCasesInSwitch": true,
-		"forceConsistentCasingInFileNames": true,
+		"allowJs": true,
+		"checkJs": false,
 		"esModuleInterop": true,
-		"skipLibCheck": true,
 		"resolveJsonModule": true,
-		"types": ["node"],
-		"noEmit": true
+		"types": ["astro/client", "node", "vitest/globals"],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		}
 	},
-	"include": ["server.ts", "src/**/*.ts"],
-	"exclude": ["src/browser"]
+	"include": [
+		".astro/types.d.ts",
+		"src/**/*",
+		"scripts/**/*",
+		"tests/**/*",
+		"astro.config.mjs"
+	],
+	"exclude": ["dist", "node_modules", "public/js"]
 }

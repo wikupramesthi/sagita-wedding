@@ -3,8 +3,8 @@ import {
 	clearSitaKnowledgeCache,
 	getDynamicAliases,
 	getSitaKnowledge,
-} from "../src/services/sitaKnowledge.js";
-import { detectTopics } from "../src/services/sitaNlu.js";
+} from "../src/lib/services/sitaKnowledge.js";
+import { detectTopics } from "../src/lib/services/sitaNlu.js";
 
 const synonyms = [
 	{

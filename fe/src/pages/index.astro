@@ -1,0 +1,1064 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getHomeFaqs } from "../lib/data/faqContent.js";
+import {
+	getHomeArticles,
+	getHomePackages,
+	getHomeSliderBanners,
+} from "../lib/pageData.js";
+import { getPageBatch } from "../lib/services/batchService.js";
+import type { TestimonialItem } from "../lib/types/index.js";
+
+interface HomeVenue {
+	slug?: string;
+	uuid?: string;
+	name?: string;
+	address?: string;
+	image?: string;
+}
+
+const { lang, dateLocale, t, contactLinks } = Astro.locals;
+const isID = lang === "id";
+const data = await getPageBatch("home").catch(() => null);
+const weddingContentReady = data?.weddingContentReady === true;
+const sliderBanners = weddingContentReady
+	? getHomeSliderBanners(data?.sliderBanners)
+	: [];
+const articles = weddingContentReady
+	? getHomeArticles(data?.articles, dateLocale)
+	: [];
+const packages = weddingContentReady ? getHomePackages(data?.packages) : [];
+const venueDataLoaded = weddingContentReady && Array.isArray(data?.venues);
+const venues: HomeVenue[] = venueDataLoaded ? (data.venues as HomeVenue[]) : [];
+const homeVenues = venues.slice(0, 4);
+const testimonials =
+	weddingContentReady && Array.isArray(data?.testimonials)
+		? (data.testimonials as TestimonialItem[]).slice(0, 10)
+		: [];
+const homeTestimonials = testimonials.slice(0, 10);
+const homeFaqGroups = getHomeFaqs(data?.faqs, lang);
+const checklistRows = t.homeChecklistRows as {
+	task: string;
+	description: string;
+	done: boolean;
+}[];
+const checklistBenefits = t.homeChecklistBenefits as string[];
+const preparationFeatures = t.homePreparationFeatures as {
+	title: string;
+	description: string;
+}[];
+const heroImage = sliderBanners[0]?.gambar ?? "";
+const heroBackground = sliderBanners.length
+	? "linear-gradient(135deg, #665746 0%, #453a30 52%, #302820 100%)"
+	: `radial-gradient(ellipse 58% 48% at 12% 10%, rgba(183, 159, 128, 0.14) 0%, transparent 68%),
+      radial-gradient(ellipse 52% 48% at 88% 88%, rgba(183, 159, 128, 0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 36% 38% at 72% 26%, rgba(250, 248, 244, 0.88) 0%, transparent 74%),
+      linear-gradient(135deg, #fffefd 0%, #faf8f5 52%, #f5f2ee 100%)`;
+const testimonialPhoto = (testimonial: TestimonialItem): string => {
+	const foto = String(testimonial.foto || "");
+	return foto && !/\/images\/default\.png(?:[?#]|$)/i.test(foto) ? foto : "";
+};
+const testimonialInitials = (testimonial: TestimonialItem): string =>
+	String(testimonial.nama || "?")
+		.trim()
+		.split(/\s+/)
+		.slice(0, 2)
+		.map((part) => part.charAt(0))
+		.join("")
+		.toUpperCase();
+const testimonialsJson = JSON.stringify(
+	homeTestimonials.map((testimonial) => ({
+		nama: testimonial.nama || "",
+		jabatan: testimonial.jabatan || "",
+		isi_testimoni: testimonial.isi_testimoni || "",
+	})),
+).replace(/</g, "\\u003c");
+---
+
+<BaseLayout
+	title={isID
+		? "Wedding Organizer & Paket Pernikahan | Sagita Wedding"
+		: "Wedding Planner & Organizer | Sagita Wedding"}
+	metaDescription={isID
+		? "Sagita Wedding Planner membantu merencanakan pernikahan, mengoordinasikan vendor, memilih venue, dan mendampingi hari perayaan Anda."
+		: "Plan your wedding with Sagita Wedding Planner. Explore venues, coordinate trusted vendors, and get thoughtful support on your wedding day."}
+	heroNav={sliderBanners.length > 0}
+	heroImage={heroImage}
+	htmlClass="min-h-screen bg-sand-50 antialiased"
+>
+	<main>
+		<section
+			class="relative min-h-screen flex items-center justify-center overflow-hidden"
+			data-home-slider={sliderBanners.length > 1 ? "true" : undefined}
+			data-home-slides={JSON.stringify(
+				sliderBanners.map((banner) => banner.gambar),
+			)}
+		>
+			<div class="absolute inset-0" style={`background:${heroBackground}`}>
+				{
+					sliderBanners.length ? (
+						<>
+							<img
+								src={sliderBanners[0].gambar}
+								alt=""
+								aria-hidden="true"
+								fetchpriority="high"
+								decoding="async"
+								data-home-slide-image
+								data-home-slide-index="0"
+								class="absolute inset-0 h-full w-full object-cover opacity-100 transition-opacity duration-700 motion-reduce:transition-none"
+							/>
+							{sliderBanners.length > 1 && (
+								<img
+									alt=""
+									aria-hidden="true"
+									decoding="async"
+									data-home-slide-image
+									class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700 motion-reduce:transition-none"
+								/>
+							)}
+							<div
+								class="absolute inset-0"
+								style="background:linear-gradient(180deg,rgba(35,29,25,.42) 0%,rgba(35,29,25,.3) 38%,rgba(35,29,25,.18) 58%,rgba(250,248,245,.38) 76%,rgba(250,248,245,.94) 100%)"
+							></div>
+						</>
+					) : (
+						<>
+							<div
+								class="absolute inset-0 opacity-[0.08] mix-blend-overlay pointer-events-none"
+								style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25'/%3E%3C/svg%3E&quot;)"
+							></div>
+							<div class="hero-shimmer"></div>
+							<div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-sand-900/5 pointer-events-none"></div>
+						</>
+					)
+				}
+
+				<div class="home-hero-content relative w-full max-w-5xl mx-auto mt-12 sm:mt-16 px-6 py-28 text-center">
+					<h1
+						class:list={[
+							"font-display tracking-tight",
+							sliderBanners.length ? "text-white" : "text-sand-900",
+						]}
+					>
+						<span
+							class="block anim-slide-up"
+							style="animation-delay:.05s">{t.heroLine1}</span
+						>
+						<span
+							class="block font-script leading-[1.15] tracking-normal anim-slide-up"
+							style="animation-delay:.2s">{t.heroLine2}</span
+						>
+					</h1>
+
+					<p
+						class:list={[
+							"mt-6 font-sans text-base sm:text-lg max-w-xl mx-auto leading-relaxed anim-fade-in",
+							sliderBanners.length ? "text-white/90" : "text-sand-700",
+						]}
+						style="animation-delay:.45s"
+					>
+						{t.heroSub}
+					</p>
+
+					<div
+						class="mt-10 flex flex-wrap items-center justify-center gap-4 anim-fade-in"
+						style="animation-delay:.65s"
+					>
+						<a
+							href="/formulir-konsultasi"
+							class="group inline-flex items-center gap-3 text-white bg-sage-800 hover:bg-sage-900 rounded-full px-8 py-3.5 text-sm font-medium tracking-wide transition-all"
+						>
+							{t.consultationCta}
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="15"
+								height="15"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="btn-arrow"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg
+							>
+						</a>
+						<a
+							href="/venues"
+							class:list={[
+								"inline-flex items-center gap-3 border rounded-full px-8 py-3.5 text-sm tracking-wide transition-all",
+								sliderBanners.length
+									? "text-sand-900 border-sand-800/40 bg-white hover:border-sand-800 hover:bg-sand-50"
+									: "text-sand-800 border-sand-400/70 hover:border-sand-600 hover:bg-white/70",
+							]}
+						>
+							{t.viewAllVenues}
+						</a>
+					</div>
+				</div>
+
+				{
+					sliderBanners.length > 1 && (
+						<div
+							class="pointer-events-none absolute inset-x-0 top-[57%] z-20 flex -translate-y-1/2 items-center justify-between px-3 sm:px-6"
+							role="group"
+							aria-label={t.heroSliderControls}
+						>
+							<button
+								type="button"
+								data-home-slide-action="previous"
+								class="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-white/70 bg-white/90 text-sand-900 shadow-lg backdrop-blur-sm transition hover:scale-105 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand-800"
+								aria-label={t.heroSlidePrevious}
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg
+								>
+							</button>
+							<button
+								type="button"
+								data-home-slide-action="next"
+								class="pointer-events-auto grid h-11 w-11 place-items-center rounded-full border border-white/70 bg-white/90 text-sand-900 shadow-lg backdrop-blur-sm transition hover:scale-105 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand-800"
+								aria-label={t.heroSlideNext}
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg
+								>
+							</button>
+						</div>
+					)
+				}
+
+				<a
+					href="#home-planning-summary"
+					class="scroll-indicator absolute bottom-0 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 pt-2 pb-1 text-sand-900 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand-800 anim-fade-in cursor-pointer"
+					style="animation-delay:.9s"
+					aria-label={t.scroll}
+				>
+					<span
+						class="text-sm font-semibold tracking-[0.18em] uppercase">{t.scroll}</span
+					>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						data-lucide="chevron-down"
+						class="lucide lucide-chevron-down scroll-chevron h-5 w-5"><path d="m6 9 6 6 6-6"></path></svg
+					>
+				</a>
+			</div>
+		</section>
+
+		<section id="home-planning-summary" class="scroll-mt-28 py-8 sm:py-10 lg:py-12">
+			<div class="site-container">
+				<div class="overflow-hidden rounded-[2rem] bg-sage-50 px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+					<div class="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-14">
+						<div class="max-w-xl">
+							<h2 class="home-planning-summary__title font-body text-3xl font-bold leading-[1.08] tracking-tight text-sage-900 sm:text-4xl lg:text-5xl">
+								{t.homePlanningTitle}
+							</h2>
+							<p class="mt-5 max-w-lg text-base leading-relaxed text-stone-warm sm:text-lg">
+								{t.homePlanningDescription}
+							</p>
+							<a
+								href="/formulir-konsultasi"
+								class="mt-7 inline-flex items-center gap-3 rounded-full bg-sage-800 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-sage-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-700"
+							>
+								{t.consultationCta}
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="15"
+									height="15"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg
+								>
+							</a>
+						</div>
+
+						<div class="space-y-4">
+							<article class="flex items-start gap-4 rounded-3xl bg-sage-100 p-5 transition-transform duration-300 sm:-rotate-2 sm:p-6 sm:hover:rotate-0">
+								<span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-sage-200 text-sage-700" aria-hidden="true">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="4" rx="1"></rect><path d="M8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path><path d="M8 12h8M8 16h6"></path></svg>
+								</span>
+								<div>
+									<h3 class="home-planning-summary__card-title font-body text-base font-semibold leading-snug text-sage-900 sm:text-lg">
+										{t.homePlanningPlanTitle}
+									</h3>
+									<p class="mt-2 text-sm leading-relaxed text-stone-warm sm:text-base">
+										{t.homePlanningPlanDescription}
+									</p>
+								</div>
+							</article>
+							<article class="flex items-start gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-sand-900/5 transition-transform duration-300 sm:ml-10 sm:rotate-2 sm:p-6 sm:hover:rotate-0">
+								<span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-terracotta-100 text-terracotta-600" aria-hidden="true">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+								</span>
+								<div>
+									<h3 class="home-planning-summary__card-title font-body text-base font-semibold leading-snug text-sage-900 sm:text-lg">
+										{t.homePlanningCoordinationTitle}
+									</h3>
+									<p class="mt-2 text-sm leading-relaxed text-stone-warm sm:text-base">
+										{t.homePlanningCoordinationDescription}
+									</p>
+								</div>
+							</article>
+							<article class="flex items-start gap-4 rounded-3xl bg-sand-100 p-5 transition-transform duration-300 sm:mr-10 sm:-rotate-1 sm:p-6 sm:hover:rotate-0">
+								<span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-sand-200 text-sand-700" aria-hidden="true">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="15" rx="2"></rect><path d="M3 10h18M16 14h.01"></path><path d="M7 6V4a2 2 0 0 1 2-2h8"></path></svg>
+								</span>
+								<div>
+									<h3 class="home-planning-summary__card-title font-body text-base font-semibold leading-snug text-sage-900 sm:text-lg">
+										{t.homePlanningBudgetTitle}
+									</h3>
+									<p class="mt-2 text-sm leading-relaxed text-stone-warm sm:text-base">
+										{t.homePlanningBudgetDescription}
+									</p>
+								</div>
+							</article>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		{
+			weddingContentReady && (
+				<>
+					<section id="home-venues" class="home-venues-section py-20">
+						<div class="site-container">
+							<div class="reveal flex items-end justify-between mb-12">
+								<div>
+									<p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3">
+										{t.venuesEyebrow}
+									</p>
+									<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-sage-900">
+										{t.venuesTitle} <span class="italic">{t.venuesTitleItalic}</span>
+									</h2>
+								</div>
+								<a
+									href="/venues"
+									class="hidden sm:flex items-center gap-2 pb-1 text-sm text-sage-700 hover:text-sage-900 transition-colors group"
+								>
+									{t.viewAllVenues}
+									<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:translate-x-1"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+								</a>
+							</div>
+
+							<div
+								class="home-venues-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 lg:gap-6"
+								aria-busy={venueDataLoaded ? undefined : "true"}
+							>
+								{
+									!venueDataLoaded ? (
+										<>
+											<div class="sr-only" role="status">{t.venuesLoading}</div>
+											{Array.from({ length: 4 }).map(() => (
+												<div class="home-venue-skeleton" aria-hidden="true">
+													<span class="home-venue-skeleton__icon"></span>
+													<span class="home-venue-skeleton__title"></span>
+													<span class="home-venue-skeleton__address"></span>
+												</div>
+											))}
+										</>
+									) : (
+										homeVenues.map((venue, i) => (
+											<a
+												href={`/venues#venue-${venue.slug || venue.uuid}`}
+												class="home-venue-card group reveal"
+												data-delay={i * 90}
+											>
+												<span
+													class={`home-venue-icon home-venue-icon--${i % 4}`}
+													aria-hidden="true"
+												>
+													<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01"></path></svg>
+												</span>
+												<h3 class="home-venue-card__title font-display text-xl text-sage-900 group-hover:text-sage-700 transition-colors">
+													{venue.name}
+												</h3>
+												{venue.address && (
+													<p class="home-venue-card__address mt-3 text-sm leading-relaxed">
+														<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+														<span class="line-clamp-2">{venue.address}</span>
+													</p>
+												)}
+											</a>
+										))
+									)
+								}
+							</div>
+
+							{
+								venueDataLoaded && !homeVenues.length && (
+									<p class="text-stone-warm">{t.venueEmptyDescription}</p>
+								)
+							}
+
+							<a
+								href="/venues"
+								class="sm:hidden flex items-center justify-center gap-2 mt-6 text-sm text-sage-700"
+							>
+								{t.viewAllVenues}
+								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+							</a>
+						</div>
+					</section>
+				</>
+			)
+		}
+
+		{
+			weddingContentReady && packages.length > 0 && (
+				<section id="home-packages" class="home-packages-section py-20 relative overflow-hidden">
+					<div class="site-container relative">
+						<div class="reveal mb-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+							<div class="max-w-2xl">
+								<p class="home-packages-eyebrow mb-3 inline-flex items-center gap-3 font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600">
+									<span class="home-packages-eyebrow-line" aria-hidden="true"></span>
+									{t.homePackagesEyebrow}
+								</p>
+								<h2 class="home-packages-title font-display text-3xl sm:text-4xl text-sage-900 leading-tight">
+									{t.homePackagesTitle}{" "}
+									<span class="italic text-terracotta-600">
+										{t.homePackagesTitleItalic}
+									</span>
+								</h2>
+							</div>
+							<a
+								href="/packages"
+								class="home-packages-view-all group hidden sm:inline-flex items-center gap-2 text-sm"
+							>
+								{t.viewAllPackages}
+								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+							</a>
+						</div>
+
+						<div class="grid grid-cols-1 items-stretch gap-5 md:grid-cols-3 md:gap-6 lg:gap-7">
+							{
+								packages.slice(0, 3).map((pkg, i) => (
+									<article
+										data-home-package-slug={pkg.slug}
+										class:list={[
+											"home-package-card reveal relative flex h-full flex-col overflow-visible rounded-[24px] border transition-all duration-300",
+											pkg.isPopular
+												? "home-package-card--featured z-10 border-gold bg-white text-sage-900 shadow-xl"
+												: "border-stone-200 bg-white text-sage-900 hover:shadow-lg",
+										]}
+										data-delay={i * 120}
+									>
+										{pkg.isPopular && (
+											<span class="home-package-badge absolute left-1/2 top-[-13px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-gold bg-sage-900 px-4 py-2 text-xs font-bold text-sand-50 shadow-md">
+												{isID ? "PALING DIMINATI" : "MOST POPULAR"}
+											</span>
+										)}
+										<div class="home-package-body flex flex-1 flex-col p-7">
+											<div
+												class={
+													pkg.isPopular
+														? "-mx-7 -mt-7 mb-5 rounded-t-[23px] bg-sage-900 px-7 py-7 text-white"
+														: ""
+												}
+											>
+												<h3 class="home-package-title font-sans text-[21px] font-bold leading-tight">
+													{pkg.name}
+												</h3>
+												<div class="home-package-description mt-2.5 min-h-[3.25rem]">
+													{pkg.description && (
+														<p
+															class:list={[
+																"text-sm leading-relaxed",
+																pkg.isPopular
+																	? "text-white"
+																	: "text-stone-500",
+															]}
+														>
+															{pkg.description}
+														</p>
+													)}
+												</div>
+											</div>
+											{pkg.startingPrice !== null && (
+												<div class="home-package-price mt-6 flex items-end justify-between gap-3 border-t pt-5 border-stone-100">
+													<p class="font-sans text-[2rem] font-bold leading-none tracking-tight">
+														Rp {new Intl.NumberFormat("id-ID").format(pkg.startingPrice)}
+													</p>
+													<p class="pb-0.5 text-xs text-stone-500">
+														{isID ? "Sekali bayar" : "One-time payment"}
+													</p>
+												</div>
+											)}
+											{pkg.features.length > 0 && (
+												<ul class="home-package-features mt-5 space-y-2.5">
+													{pkg.features.map((feature) => (
+														<li class="flex items-start gap-2.5 text-sm text-stone-600">
+															<span class="home-package-feature-icon" aria-hidden="true">
+																<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg>
+															</span>
+															<span>{feature}</span>
+														</li>
+													))}
+												</ul>
+											)}
+											<div class="mt-auto pt-7">
+												<a
+													href={`/packages/${pkg.slug}`}
+													class:list={[
+														"home-package-cta inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-colors",
+														pkg.isPopular
+															? "bg-sage-900 text-white hover:bg-sage-800"
+															: "bg-sage-800 text-white hover:bg-sage-900",
+													]}
+												>
+													{t.homePackageViewDetails}
+													<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+												</a>
+											</div>
+										</div>
+									</article>
+								))
+							}
+						</div>
+						<a
+							href="/packages"
+							class="home-packages-mobile-link sm:hidden flex items-center justify-center gap-2 mt-8 text-sm text-sage-700"
+						>
+							{t.viewAllPackages}
+							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+						</a>
+					</div>
+				</section>
+			)
+		}
+
+		<section id="home-checklist" class="py-14 sm:py-16 lg:py-20">
+			<div class="site-container">
+				<div class="grid items-center gap-8 rounded-[2rem] bg-white p-6 shadow-[0_12px_42px_rgba(66,48,44,0.08)] ring-1 ring-sand-900/5 sm:p-10 lg:grid-cols-[1.55fr_1fr] lg:gap-12 lg:p-12">
+					<div>
+						<p class="inline-flex rounded-full bg-pink-100 px-4 py-2 text-xs font-bold tracking-wide text-pink-700">
+							{t.homeChecklistEyebrow}
+						</p>
+						<h2 class="mt-4 max-w-2xl font-display text-3xl font-bold leading-tight text-sage-900 sm:text-4xl">
+							{t.homeChecklistTitle}
+						</h2>
+						<p class="mt-4 max-w-2xl text-base leading-relaxed text-stone-warm sm:text-lg">
+							{t.homeChecklistDescription}
+						</p>
+						<ul class="mt-6 space-y-3">
+							{
+								checklistBenefits.map((benefit) => (
+									<li class="flex items-start gap-3 text-sm text-sage-900 sm:text-base">
+										<svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+											<path d="m5 12 4 4L19 6"></path>
+										</svg>
+										<span>{benefit}</span>
+									</li>
+								))
+							}
+						</ul>
+					</div>
+
+					<div class="rounded-[1.75rem] bg-stone-50 p-4 sm:p-5" role="group" aria-label={t.homeChecklistPreviewLabel}>
+						<div class="space-y-3">
+							{
+								checklistRows.map((row) => (
+									<div class="flex items-start gap-3 rounded-2xl bg-white px-4 py-3.5">
+										<span
+											class:list={[
+												"home-checklist-checkbox",
+												row.done ? "home-checklist-checkbox--done" : "",
+											]}
+											aria-hidden="true"
+										>
+											{row.done && (
+												<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+													<path d="m5 12 4 4L19 6"></path>
+												</svg>
+											)}
+										</span>
+										<div class="min-w-0 flex-1">
+											<p
+												class:list={[
+													"text-sm font-medium",
+													row.done ? "text-stone-400 line-through" : "text-sage-900",
+												]}
+											>
+												{row.task}
+											</p>
+											<p class="mt-1 text-xs leading-relaxed text-stone-500">
+												{row.description}
+											</p>
+										</div>
+										<span
+											class:list={[
+												"whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-medium",
+												row.done
+													? "bg-emerald-50 text-emerald-700"
+													: "bg-stone-100 text-stone-500",
+											]}
+										>
+											{row.done
+												? t.homeChecklistDoneLabel
+												: t.homeChecklistPendingLabel}
+										</span>
+									</div>
+								))
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		{
+			weddingContentReady && articles.length > 0 && (
+				<section id="home-articles" class="py-16 bg-clay-50/30">
+					<div class="site-container">
+						<div class="reveal flex items-end justify-between mb-12">
+							<div>
+								<p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-2">
+									{t.homeArticlesEyebrow}
+								</p>
+								<h2 class="font-display text-3xl sm:text-4xl text-sage-900">
+									{t.homeArticlesTitle} <span class="italic">{t.homeArticlesTitleItalic}</span>
+								</h2>
+							</div>
+						</div>
+						<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+							{
+								articles.slice(0, 3).map((article, i) => (
+									<a
+										href={`/blog/${article.slug}`}
+										class="reveal group relative overflow-hidden rounded-2xl aspect-[4/5] text-left w-full shadow-lg ring-1 ring-sand-900/5 hover:-translate-y-1 transition-transform duration-300"
+										data-delay={i * 100}
+									>
+										<img
+											src={article.image || heroImage}
+											data-fallback={heroImage}
+											alt=""
+											aria-hidden="true"
+											loading="lazy"
+											decoding="async"
+											class="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] group-hover:scale-105"
+										/>
+										<div class="approach-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10"></div>
+										<span class="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-full bg-sand-50/15 backdrop-blur-sm text-[9px] font-bold tracking-[0.15em] text-sand-50">
+											{t.homeArticleLabel}
+										</span>
+										<div class="relative h-full flex flex-col justify-end p-6">
+											<p class="text-xs text-sand-100/90 mb-2">{article.date}</p>
+											<h3 class="font-display text-xl text-white leading-tight drop-shadow-sm">
+												{article.title}
+											</h3>
+											<p class="mt-3 inline-flex items-center gap-1.5 text-xs text-sand-100/80 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+												{t.homeArticleReadMore}
+												<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+											</p>
+										</div>
+									</a>
+								))
+							}
+						</div>
+
+						{
+							articles.length > 0 && (
+								<div class="reveal flex justify-center mt-10">
+									<a
+										href="/blog"
+										class="btn-secondary group inline-flex items-center gap-2 px-6 py-3 text-sm"
+									>
+										{t.viewAllArticles}
+										<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+									</a>
+								</div>
+							)
+						}
+					</div>
+				</section>
+			)
+		}
+
+		{
+			weddingContentReady && homeTestimonials.length > 0 && (
+				<section class="home-testimonials-section py-20 sm:py-24">
+					<div class="site-container">
+						<div class="home-testimonials-heading reveal">
+							<div>
+								<p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3">
+									{t.testimonialsEyebrow}
+								</p>
+								<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-sage-900">
+									{t.testimonialsTitle} <span class="italic">{t.testimonialsTitleItalic}</span>
+								</h2>
+							</div>
+						</div>
+
+						<div
+							class="home-testimonial-panels reveal"
+							data-home-testimonial-panels
+							role="group"
+							aria-label={t.testimonialsEyebrow}
+						>
+							{
+								homeTestimonials.map((testimonial, i) => {
+									const photo = testimonialPhoto(testimonial);
+									return (
+										<button
+											type="button"
+											class:list={[
+												"home-testimonial-panel",
+												i === 0 ? "is-active" : "",
+											]}
+											data-home-testimonial-index={i}
+											aria-label={testimonial.nama || t.testimonialPosition}
+											aria-pressed={i === 0 ? "true" : "false"}
+										>
+											<span class="home-testimonial-panel__photo" aria-hidden="true">
+												<span class="home-testimonial-panel__fallback">
+													{testimonialInitials(testimonial)}
+												</span>
+												{photo && (
+													<img
+														src={photo}
+														alt=""
+														loading="lazy"
+														decoding="async"
+														class="home-testimonial-panel__image"
+													/>
+												)}
+											</span>
+											<span class="home-testimonial-panel__shade" aria-hidden="true"></span>
+											<span class="home-testimonial-panel__caption">
+												<span class="home-testimonial-panel__name">
+													{testimonial.nama}
+												</span>
+												{testimonial.jabatan && (
+													<span class="home-testimonial-panel__role">
+														{testimonial.jabatan}
+													</span>
+												)}
+											</span>
+										</button>
+									);
+								})
+							}
+						</div>
+
+						<div class="home-testimonial-details reveal">
+							<div class="home-testimonial-quote">
+								<span class="home-testimonial-quote__mark" aria-hidden="true">“</span>
+								<blockquote data-home-testimonial-quote aria-live="polite">
+									{homeTestimonials[0].isi_testimoni}
+								</blockquote>
+							</div>
+							<div class="home-testimonial-controls">
+								<div class="home-testimonial-navigation">
+									<span class="home-testimonial-count">
+										<span data-home-testimonial-current>01</span>
+										<span class="home-testimonial-count__divider"></span>
+										{String(homeTestimonials.length).padStart(2, "0")}
+									</span>
+									<button
+										type="button"
+										data-home-testimonial-action="previous"
+										aria-label={t.testimonialPrevious}
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
+									</button>
+									<button
+										type="button"
+										data-home-testimonial-action="next"
+										aria-label={t.testimonialNext}
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+									</button>
+								</div>
+							</div>
+						</div>
+
+						<script
+							id="homeTestimonialsData"
+							type="application/json"
+							is:inline
+							set:html={testimonialsJson}
+						></script>
+					</div>
+				</section>
+			)
+		}
+
+		<section id="home-preparation" class="home-system-section scroll-mt-28 overflow-x-clip bg-terracotta-50 py-14 sm:py-16 lg:py-20">
+			<div class="site-container">
+				<div class="home-dashboard-scroll-stage relative" data-home-dashboard-scroll-stage>
+					<div class="home-dashboard-scroll-pin grid items-start gap-9 lg:sticky lg:top-24 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12" data-home-dashboard-scroll-pin>
+						<div class="reveal lg:py-4">
+							<p class="mb-5 inline-flex rounded-full bg-terracotta-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-terracotta-600">
+								{t.homePreparationEyebrow}
+							</p>
+							<h2 class="home-preparation-title text-3xl font-bold leading-[1.05] tracking-tight text-sage-900 sm:text-4xl">
+								{t.homePreparationTitlePrefix}
+								<span class="italic font-medium text-terracotta-600">
+									{t.homePreparationTitleAccent}
+								</span>
+								{t.homePreparationTitleSuffix}
+							</h2>
+							<p class="mt-5 max-w-xl text-base leading-relaxed text-stone-warm sm:text-lg">
+								{t.homePreparationDescription}
+							</p>
+
+							<ul class="mt-6 space-y-3">
+								{
+									preparationFeatures.map((feature) => (
+										<li class="flex items-start gap-3 text-sm leading-relaxed text-sage-800 sm:text-base">
+											<span class="mt-2 h-2 w-2 shrink-0 rounded-full bg-terracotta-500" aria-hidden="true"></span>
+											<span>
+												<strong class="font-semibold text-sage-900">{feature.title}</strong>
+												{" — "}
+												{feature.description}
+											</span>
+										</li>
+									))
+								}
+							</ul>
+						</div>
+
+						<div class="relative reveal self-start" data-delay="120">
+							<div class="absolute -inset-5 -z-10 rounded-[2rem] bg-gradient-to-br from-terracotta-100 via-white to-sand-100 blur-lg" aria-hidden="true"></div>
+							<div class="overflow-hidden rounded-[1.5rem] border border-white bg-white shadow-[0_24px_70px_rgba(66,48,44,0.18)]">
+								<div class="flex h-11 items-center gap-1.5 border-b border-sand-100 bg-white px-4">
+									<span class="h-2.5 w-2.5 rounded-full bg-[#eea5ac]" aria-hidden="true"></span>
+									<span class="h-2.5 w-2.5 rounded-full bg-[#f2d18a]" aria-hidden="true"></span>
+									<span class="h-2.5 w-2.5 rounded-full bg-[#a9c5a5]" aria-hidden="true"></span>
+									<span class="ml-3 truncate rounded-md bg-sand-50 px-3 py-1 text-[10px] text-stone-warm">
+										{t.homePreparationPreviewLabel}
+									</span>
+								</div>
+								<div
+									class="home-dashboard-preview-scroll h-[340px] overflow-y-auto bg-sage-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-terracotta-600 sm:h-[420px] lg:h-[420px]"
+									data-home-dashboard-scroll-viewport
+									role="region"
+									aria-label={t.homePreparationImageAlt}
+									tabindex="0"
+								>
+									<a href="/img/ss-penuh.png" target="_blank" rel="noopener noreferrer" aria-label={t.homePreparationImageAlt} class="block">
+										<img
+											src="/img/ss-penuh.png"
+											alt=""
+											width="746"
+											height="2048"
+											loading="lazy"
+											decoding="async"
+											class="block h-auto w-full"
+											data-home-dashboard-scroll-image
+										/>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="reveal mt-8 text-center" data-delay="200">
+					<p class="mx-auto max-w-3xl text-sm font-medium text-terracotta-600">
+						{t.homePreparationFootnote}
+					</p>
+				</div>
+			</div>
+		</section>
+
+		{
+			homeFaqGroups.length > 0 && (
+				<section id="home-faq" class="home-faq-section py-20 sm:py-24">
+					<div class="site-container">
+						<div class="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+							<div class="reveal self-start lg:sticky lg:top-24">
+								<div class="border-t border-sand-200" role="group" aria-label={t.homeFaqEyebrow}>
+									{
+										homeFaqGroups.map((group, i) => (
+											<button
+												type="button"
+												class="home-faq-tab group flex w-full items-center justify-between border-b border-sand-200 py-3.5 text-left text-sm font-medium text-sage-900 transition-colors duration-200 hover:text-terracotta-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage-500/30 sm:text-base"
+												data-home-faq-tab={group.id}
+												aria-controls={`home-faq-group-${group.id}`}
+												aria-pressed={i === 0 ? "true" : "false"}
+											>
+												<span>{group.kategori}</span>
+												<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-sand-500 transition-transform group-hover:translate-x-1" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+											</button>
+										))
+									}
+								</div>
+								<div class="mt-7 flex items-center gap-4 text-sm text-sand-600">
+									<button
+										type="button"
+										data-home-faq-expand
+										class="font-medium underline-offset-4 hover:text-sage-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30"
+									>
+										{t.homeFaqExpandAll}
+									</button>
+									<span aria-hidden="true">·</span>
+									<button
+										type="button"
+										data-home-faq-collapse
+										class="font-medium underline-offset-4 hover:text-sage-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500/30"
+									>
+										{t.homeFaqCollapseAll}
+									</button>
+								</div>
+								<div class="mt-10">
+									<h3 class="font-display text-xl text-sage-900">{t.homeFaqStillTitle}</h3>
+									<p class="mt-2 max-w-md text-sm leading-relaxed text-stone-warm">
+										{t.homeFaqStillDesc}
+									</p>
+									<div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+										<a
+											href={contactLinks.whatsappShortLink}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="inline-flex items-center gap-2 rounded-full border border-sand-300 px-5 py-3 text-sm font-semibold text-sage-900 transition-colors hover:border-sage-700 hover:bg-white"
+										>
+											{t.homeFaqStillBtn}
+											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+										</a>
+										<a href="/faq" class="text-sm font-medium text-sage-700 underline-offset-4 hover:text-sage-900 hover:underline">
+											{t.homeFaqViewAll}
+										</a>
+									</div>
+								</div>
+							</div>
+
+							<div class="reveal min-w-0">
+								<div id="homeFaqGroups" class="space-y-8">
+									{
+										homeFaqGroups.map((group, groupIndex) => (
+											<section
+												id={`home-faq-group-${group.id}`}
+												class="home-faq-group reveal scroll-mt-28"
+												data-delay={groupIndex * 90}
+												data-home-faq-group={group.id}
+											>
+												<h3 class="mb-3 font-semibold text-sm text-sage-700 sm:text-base">
+													{group.kategori}
+												</h3>
+												<div class="border-t border-sand-200">
+													{
+														group.items.map((item, itemIndex) => {
+															const isFirst = groupIndex === 0 && itemIndex === 0;
+															const buttonId = `home-faq-question-${group.id}-${item.id}`;
+															const panelId = `home-faq-answer-${group.id}-${item.id}`;
+															return (
+																<article
+																	class:list={[
+																		"home-faq-item border-b border-sand-200",
+																		isFirst ? "is-open" : "",
+																	]}
+																	data-home-faq-item
+																>
+																	<button
+																		type="button"
+																		id={buttonId}
+																		data-home-faq-button
+																		class="flex w-full items-start gap-4 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage-500/30 sm:py-5"
+																		aria-expanded={isFirst ? "true" : "false"}
+																		aria-controls={panelId}
+																	>
+																		<span class="min-w-0 flex-1 font-semibold text-base leading-snug text-sage-900 sm:text-lg">
+																			{item.question}
+																		</span>
+																		<span class="home-faq-toggle ms-auto grid h-6 w-6 shrink-0 place-items-center text-xl leading-none text-sage-600 transition-colors">
+																			{isFirst ? "×" : "+"}
+																		</span>
+																	</button>
+																	<div
+																		id={panelId}
+																		data-home-faq-panel
+																		role="region"
+																		aria-labelledby={buttonId}
+																		aria-hidden={isFirst ? "false" : "true"}
+																		class:list={[
+																			"home-faq-panel",
+																			isFirst ? "is-open" : "",
+																		]}
+																	>
+																		<div class="home-faq-panel-inner">
+																			<div class="max-w-3xl pb-5 text-sm leading-relaxed text-stone-warm whitespace-pre-line sm:text-base">
+																				{item.answer}
+																			</div>
+																		</div>
+																	</div>
+																</article>
+															);
+														})
+													}
+												</div>
+											</section>
+										))
+									}
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+			)
+		}
+
+		<section class="py-16 px-6 bg-sand-200/40">
+			<div class="reveal max-w-3xl mx-auto text-center">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-terracotta-600 mx-auto mb-6">
+					<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path>
+					<path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path>
+				</svg>
+				<h2 class="font-display text-3xl sm:text-4xl text-sage-900 mb-4">
+					{t.readyTitle} <span class="italic">{t.readyTitleItalic}</span>?
+				</h2>
+				<p class="text-stone-warm mb-8 max-w-lg mx-auto">{t.ctaDesc}</p>
+				<div class="flex flex-wrap items-center justify-center gap-4">
+					<a
+						href={contactLinks.whatsappShortLink}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="btn-primary group text-base px-8 py-3.5"
+					>
+						{t.chatWhatsApp}
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow ms-2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+					</a>
+					<a href="/formulir-konsultasi" class="btn-secondary group text-base px-8 py-3.5">
+						{t.consultationCta}
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow ms-2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+					</a>
+				</div>
+			</div>
+		</section>
+	</main>
+</BaseLayout>
+
+<script>
+	import "../lib/browser/pages/home";
+</script>

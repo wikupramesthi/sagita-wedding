@@ -3,7 +3,7 @@ import {
 	formatEventDate,
 	formatEventDateInput,
 	parseEventDate,
-} from "../src/utils/eventDate.js";
+} from "../src/lib/utils/eventDate.js";
 
 describe("event date parsing", () => {
 	it.each([

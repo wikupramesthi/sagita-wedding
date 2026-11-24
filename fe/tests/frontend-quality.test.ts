@@ -6,9 +6,9 @@ const read = (path: string) =>
 
 const customCss = read("../public/css/custom.css");
 const inputCss = read("../public/css/input.css");
-const head = read("../views/partials/head.ejs");
-const footer = read("../views/partials/footer.ejs");
-const blogDetail = read("../views/pages/blog-detail.ejs");
+const head = read("../src/components/Head.astro");
+const baseLayout = read("../src/layouts/BaseLayout.astro");
+const blogDetail = read("../src/pages/blog/[slug].astro");
 
 describe("kualitas frontend", () => {
 	it("punya breakpoint mobile dan desktop untuk halaman utama", () => {
@@ -26,20 +26,26 @@ describe("kualitas frontend", () => {
 		expect(blogDetail).toContain('class="blog-detail-aside"');
 	});
 
-	it("aset critical memakai viewport, preload, cache-busting, font swap, dan script defer", () => {
+	it("aset critical memakai viewport, preload, cache-busting, font swap, dan script bundling", () => {
 		expect(head).toContain('name="viewport"');
-		expect(head).toContain('rel="preload" href="/css/output.css');
-		expect(head).toContain('rel="preload" href="/css/custom.css');
-		expect(head).toContain('rel="preload" as="image" href="<%= heroImage %>"');
-		expect(head).toContain("?v=<%= assetV %>");
+		expect(head).toContain(
+			'href={`/css/output.css?v=${styleVersion}`} as="style"',
+		);
+		expect(head).toContain(
+			'href={`/css/custom.css?v=${styleVersion}`} as="style"',
+		);
+		expect(head).toContain('href={heroImage} fetchpriority="high"');
+		expect(head).toContain("?v=${styleVersion}");
 		expect(inputCss).toContain("font-display: swap");
 		expect(inputCss).toContain('font-family: "Cormorant Garamond"');
 		expect(inputCss).toContain('font-family: "Plus Jakarta Sans"');
 		expect(inputCss).toContain('font-family: "Pinyon Script"');
 		expect(head).toContain('href="/fonts/plus-jakarta-sans-latin.woff2');
 		expect(head).toContain('href="/fonts/cormorant-garamond-latin.woff2');
-		expect(head).toContain("/js/telemetry.js");
-		expect(footer).toContain("defer");
+		expect(head).not.toContain("/js/telemetry.js");
+		expect(baseLayout).toContain('import "../lib/browser/telemetry"');
+		expect(baseLayout).toContain('import "../lib/browser/main"');
+		expect(baseLayout).toContain('import "../lib/browser/accessibility"');
 	});
 
 	it("detail blog punya share native, copy link, berita populer, dan list venue", () => {

@@ -1,0 +1,90 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const { t } = Astro.locals;
+Astro.response.status = 404;
+---
+
+<BaseLayout
+	title={`${t.notFoundTitle || "Page Not Found"} — 404`}
+	robots="noindex, nofollow"
+	heroNav={true}
+	htmlClass="min-h-screen bg-sand-50 antialiased"
+>
+	<main>
+		<section class="relative overflow-hidden">
+			<div
+				class="absolute inset-0"
+				style="background:
+      radial-gradient(ellipse 70% 55% at 18% 12%, rgba(183, 159, 128, 0.3) 0%, transparent 62%),
+      radial-gradient(ellipse 60% 60% at 88% 95%, var(--color-sage-900) 0%, transparent 65%),
+      radial-gradient(ellipse 45% 40% at 72% 32%, rgba(168, 143, 112, 0.26) 0%, transparent 70%),
+      linear-gradient(135deg, var(--color-sage-700) 0%, var(--color-sage-800) 55%, var(--color-sage-900) 100%)"
+			></div>
+
+			<div
+				class="absolute inset-0 opacity-[0.08] mix-blend-overlay pointer-events-none"
+				style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;)"
+			></div>
+
+			<div class="hero-shimmer"></div>
+
+			<div
+				class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+				aria-hidden="true"
+			>
+				<div class="h-[560px] w-[560px] max-h-[90vw] max-w-[90vw] rounded-full border border-sand-50/10"></div>
+			</div>
+			<div
+				class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+				aria-hidden="true"
+			>
+				<div class="h-[400px] w-[400px] max-h-[70vw] max-w-[70vw] rounded-full border border-sand-50/[0.07]"></div>
+			</div>
+
+			<div
+				class="relative mx-auto flex min-h-[78vh] w-full max-w-3xl flex-col items-center justify-center px-6 py-20 text-center"
+			>
+				<div
+					class="anim-slide-up font-display leading-none tracking-tight text-sand-50"
+					style="font-size:clamp(5rem, min(22vw, 20vh), 9rem);"
+				>
+					404
+				</div>
+
+				<h1
+					class="anim-slide-up mt-6 font-display text-2xl text-balance text-sand-50 sm:text-3xl"
+					style="animation-delay:.15s"
+				>
+					{t.notFoundTitle}
+				</h1>
+
+				<p
+					class="anim-fade-in mx-auto mt-4 max-w-xl text-balance font-sans text-base leading-relaxed text-sand-100/80"
+					style="animation-delay:.3s"
+				>
+					{t.notFoundDesc}
+				</p>
+
+				<div
+					class="anim-fade-in mt-10 flex flex-wrap items-center justify-center gap-4"
+					style="animation-delay:.45s"
+				>
+					<a
+						href="/"
+						class="inline-flex items-center gap-3 rounded-full bg-sand-50 px-8 py-3.5 text-sm font-medium tracking-wide text-sand-900 transition-all hover:bg-white"
+					>
+						{t.notFoundBack}
+						<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+					</a>
+					<a
+						href="/formulir-konsultasi"
+						class="inline-flex items-center gap-3 rounded-full border border-sand-50/40 px-8 py-3.5 text-sm tracking-wide text-sand-50 transition-all hover:border-sand-50 hover:bg-sand-50/10"
+					>
+						{t.notFoundConsultation}
+					</a>
+				</div>
+			</div>
+		</section>
+	</main>
+</BaseLayout>

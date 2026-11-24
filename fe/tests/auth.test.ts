@@ -1,6 +1,6 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { resetSitaAnalytics } from "../src/services/sitaAnalytics.js";
+import { resetSitaAnalytics } from "../src/lib/services/sitaAnalytics.js";
 
 /* ---------- mock service, backend tidak disentuh ---------- */
 
@@ -15,11 +15,11 @@ const USER = {
 const getSessionUser = vi.fn<(c?: string) => Promise<typeof USER | null>>();
 const logoutSession = vi.fn<(c?: string) => Promise<boolean>>();
 
-vi.mock("../src/services/authService.js", async () => {
+vi.mock("../src/lib/services/authService.js", async () => {
 	// Ikuti implementasi asli untuk hasSessionCookie (memakai env)
 	const actual = await vi.importActual<
-		typeof import("../src/services/authService.js")
-	>("../src/services/authService.js");
+		typeof import("../src/lib/services/authService.js")
+	>("../src/lib/services/authService.js");
 	return {
 		...actual,
 		getSessionUser: (c?: string) => getSessionUser(c),
@@ -45,10 +45,10 @@ fetchSitaSynonymsMock.mockResolvedValue([]);
 createSitaLeadMock.mockResolvedValue("lead-uuid");
 forwardSitaTelemetryMock.mockResolvedValue(undefined);
 
-vi.mock("../src/services/sitaAnalytics.js", async () => {
+vi.mock("../src/lib/services/sitaAnalytics.js", async () => {
 	const actual = await vi.importActual<
-		typeof import("../src/services/sitaAnalytics.js")
-	>("../src/services/sitaAnalytics.js");
+		typeof import("../src/lib/services/sitaAnalytics.js")
+	>("../src/lib/services/sitaAnalytics.js");
 	return {
 		...actual,
 		forwardSitaTelemetry: forwardSitaTelemetryMock,
@@ -58,7 +58,14 @@ vi.mock("../src/services/sitaAnalytics.js", async () => {
 	};
 });
 
-vi.mock("../src/services/siteIdentityService.js", () => ({
+vi.mock("../src/lib/services/batchService.js", async () => {
+	const actual = await vi.importActual<
+		typeof import("../src/lib/services/batchService.js")
+	>("../src/lib/services/batchService.js");
+	return { ...actual, getPageBatch: vi.fn().mockResolvedValue({}) };
+});
+
+vi.mock("../src/lib/services/siteIdentityService.js", () => ({
 	resolveSite: () => ({
 		name: "Sagita Wedding",
 		tagline: "Yoga",
@@ -68,10 +75,10 @@ vi.mock("../src/services/siteIdentityService.js", () => ({
 		email: "e@e.com",
 	}),
 }));
-const { env } = await import("../src/config/env.js");
-const { clearSessionCache } = await import("../src/middleware/locals.js");
+const { env } = await import("../src/lib/config/env.js");
+const { clearSessionCache } = await import("../src/lib/session.js");
 
-const { createApp } = await import("../src/app.js");
+const { createApp } = await import("./helpers/createApp.js");
 const app = createApp();
 const SESSION = `${env.SESSION_COOKIE}=test-session`;
 

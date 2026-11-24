@@ -12,7 +12,7 @@ import {
 	validateNewsletter,
 	validateSitaChat,
 	validateSitaLead,
-} from "../src/utils/validate.js";
+} from "../src/lib/utils/validate.js";
 
 const statusOf = (fn: () => unknown) => {
 	try {

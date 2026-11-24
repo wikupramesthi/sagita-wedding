@@ -5,7 +5,7 @@ import {
 	normalizeNluText,
 	smallTalkKind,
 	withinEditDistance,
-} from "../src/services/sitaNlu.js";
+} from "../src/lib/services/sitaNlu.js";
 
 describe("Sita local NLU", () => {
 	it("normalizes case, accents, and punctuation", () => {

@@ -1,0 +1,656 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getPageBatch } from "../lib/services/batchService.js";
+import { cleanPage, cleanText } from "../lib/utils/validate.js";
+
+const { lang, t, contactLinks } = Astro.locals;
+const isID = lang === "id";
+const txt = (id: string, en: string) => (isID ? id : en);
+const waLink = contactLinks.whatsappLink || "#";
+const money = (value: unknown) =>
+	new Intl.NumberFormat("id-ID").format(Number(value || 0));
+
+const iconPaths: Record<string, string> = {
+	arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+	check: '<path d="m5 12 4 4L19 6"/>',
+	search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+	whatsapp:
+		'<path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 1 1 4.2-14.8 8 8 0 0 1-4.2 14.8Z"/>',
+	spark:
+		'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/>',
+	shield:
+		'<path d="M12 3l8 3v5c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-3Z"/><path d="m9 12 2 2 4-4"/>',
+	clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+	chat: '<path d="M20 15a3 3 0 0 1-3 3H9l-5 3V6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v9Z"/>',
+};
+const icon = (name: string, size = "h-5 w-5") =>
+	`<span class="${size} inline-flex shrink-0" aria-hidden="true"><svg class="h-full w-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">${iconPaths[name] ?? ""}</svg></span>`;
+
+function readText(value: unknown, max: number, label: string): string {
+	try {
+		return cleanText(value, { max, label });
+	} catch {
+		return "";
+	}
+}
+
+const rawFilter = readText(Astro.url.searchParams.get("filter"), 40, "Filter");
+const rawSort = readText(Astro.url.searchParams.get("sort"), 40, "Sort");
+const params = {
+	search: readText(Astro.url.searchParams.get("search"), 80, "Search"),
+	filter: ["popular", "unlimited"].includes(rawFilter) ? rawFilter : "",
+	sort: ["popular", "lowest_price"].includes(rawSort) ? rawSort : "",
+	page: cleanPage(Astro.url.searchParams.get("page")),
+	per_page: 10,
+};
+const data = await getPageBatch("packages", params);
+const items = Array.isArray(data?.packages) ? data.packages : [];
+const meta = data?.meta || {};
+const search = params.search;
+const filter = params.filter;
+const sort = params.sort;
+const totalPackages = Number(meta.total) || items.length;
+const currentPage = Number(meta.current_page) || params.page;
+const totalPages = Number(meta.last_page) || 1;
+const error: string | null = null;
+
+const pkgFilterHref = (value: string) => {
+	const q = new URLSearchParams();
+	if (search) q.set("search", search);
+	if (sort) q.set("sort", sort);
+	if (value) q.set("filter", value);
+	const query = q.toString();
+	return `/packages${query ? `?${query}` : ""}`;
+};
+const pkgQ = new URLSearchParams();
+if (search) pkgQ.set("search", search);
+if (filter) pkgQ.set("filter", filter);
+if (sort) pkgQ.set("sort", sort);
+const pkgQuery = pkgQ.toString();
+const pkgHref = (n: number) =>
+	`/packages${pkgQuery ? `?${pkgQuery}&page=${n}` : `?page=${n}`}`;
+
+const featureLabel = (feature: unknown) =>
+	typeof feature === "string"
+		? feature
+		: feature && typeof feature === "object" && "feature" in feature
+			? String((feature as { feature?: unknown }).feature ?? "")
+			: "";
+
+const steps = [
+	[
+		"01",
+		txt("Ceritakan rencanamu", "Tell us your plan"),
+		txt(
+			"Tanggal, lokasi, dan perkiraan tamu jadi patokan awal.",
+			"Date, venue, and guest count set the starting point.",
+		),
+	],
+	[
+		"02",
+		txt("Pilih paket", "Pick a package"),
+		txt(
+			"Bandingkan harga dan fitur, lalu pilih yang paling pas.",
+			"Compare prices and features, then choose your fit.",
+		),
+	],
+	[
+		"03",
+		txt("Konsultasi detail", "Refine the details"),
+		txt(
+			"Tim membantu menyesuaikan opsi dan kebutuhan acaramu.",
+			"Our team helps tailor options to your celebration.",
+		),
+	],
+	[
+		"04",
+		txt("Siap hari H", "Enjoy your day"),
+		txt(
+			"Semua detail tertata supaya kamu bisa fokus menikmati acara.",
+			"Every detail is set so you can enjoy the day.",
+		),
+	],
+];
+---
+
+<BaseLayout
+	title={isID
+		? "Paket Pernikahan | Sagita Wedding Planner"
+		: "Wedding Planning Packages | Sagita Wedding Planner"}
+	metaDescription={isID
+		? "Jelajahi paket pernikahan Sagita Wedding Planner dan temukan layanan yang sesuai dengan rencana, kebutuhan, dan hari istimewa Anda."
+		: "Explore Sagita Wedding Planner packages and find wedding planning services that fit your plans, priorities, and celebration."}
+>
+	<main id="isi" class="antialiased bg-sand-50">
+		<section class="relative overflow-hidden bg-sand-100 text-sage-900">
+			<div
+				class="pointer-events-none absolute -right-24 -top-32 h-96 w-96 rounded-full bg-sand-200 blur-3xl"
+				aria-hidden="true"
+			></div>
+			<div
+				class="pointer-events-none absolute -bottom-40 left-1/4 h-80 w-80 rounded-full bg-terracotta-100 blur-3xl"
+				aria-hidden="true"
+			></div>
+
+			<div class="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+				<p class="text-xs font-semibold uppercase tracking-[0.28em] text-terracotta-600">
+					Sagita Wedding Planner
+				</p>
+
+				<h1 class="mt-5 max-w-3xl font-display text-4xl font-bold leading-[1.05] sm:text-5xl lg:text-6xl">
+					{t.packagesTitleA}
+					<span class="text-terracotta-600">{t.packagesTitleB}</span>
+				</h1>
+
+				<p class="mt-6 max-w-2xl text-sm leading-relaxed text-stone-500 sm:text-base">
+					{t.packagesDesc}
+				</p>
+
+				<div class="mt-8 flex flex-wrap items-center gap-3">
+					<a
+						href="#daftar-paket"
+						class="inline-flex items-center gap-2 rounded-full bg-sage-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sage-800"
+					>
+						{txt("Lihat daftar paket", "Explore packages")}
+						<Fragment set:html={icon("arrow", "h-4 w-4")} />
+					</a>
+					<a
+						href={waLink}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="inline-flex items-center gap-2 rounded-full border border-sage-200 bg-white px-6 py-3 text-sm font-semibold text-sage-700 transition hover:bg-sage-50"
+					>
+						<Fragment set:html={icon("whatsapp", "h-4 w-4")} />
+						{txt("Tanya via WhatsApp", "Ask on WhatsApp")}
+					</a>
+				</div>
+
+				<dl class="mt-12 grid max-w-3xl grid-cols-2 gap-4 border-t border-sand-300 pt-8 sm:grid-cols-4">
+					<div>
+						<dt class="text-[11px] uppercase tracking-wider text-stone-500">
+							{txt("Paket tersedia", "Packages")}
+						</dt>
+						<dd class="mt-1 font-display text-3xl font-bold">{Number(totalPackages) || 0}</dd>
+					</div>
+					<div>
+						<dt class="text-[11px] uppercase tracking-wider text-stone-500">
+							{txt("Biaya tersembunyi", "Hidden fees")}
+						</dt>
+						<dd class="mt-1 font-display text-3xl font-bold">{txt("Nol", "None")}</dd>
+					</div>
+					<div>
+						<dt class="text-[11px] uppercase tracking-wider text-stone-500">
+							{txt("Konsultasi", "Consultation")}
+						</dt>
+						<dd class="mt-1 font-display text-3xl font-bold">{txt("Gratis", "Free")}</dd>
+					</div>
+					<div>
+						<dt class="text-[11px] uppercase tracking-wider text-stone-500">
+							{txt("Fleksibel", "Flexible")}
+						</dt>
+						<dd class="mt-1 font-display text-3xl font-bold">100%</dd>
+					</div>
+				</dl>
+			</div>
+		</section>
+
+		<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+			<div class="grid gap-4 md:grid-cols-3">
+				<div class="flex gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+					<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-700">
+						<Fragment set:html={icon("shield")} />
+					</span>
+					<div>
+						<h2 class="text-sm font-bold text-sage-900">
+							{txt("Harga transparan", "Transparent pricing")}
+						</h2>
+						<p class="mt-1 text-xs leading-relaxed text-stone-500">
+							{txt("Rincian harga mengikuti opsi yang kamu pilih.", "Pricing follows the options you choose.")}
+						</p>
+					</div>
+				</div>
+
+				<div class="flex gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+					<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-terracotta-100 text-terracotta-600">
+						<Fragment set:html={icon("spark")} />
+					</span>
+					<div>
+						<h2 class="text-sm font-bold text-sage-900">{txt("Sesuai kebutuhan", "Made to fit")}</h2>
+						<p class="mt-1 text-xs leading-relaxed text-stone-500">
+							{txt("Bandingkan paket lalu pilih yang paling pas.", "Compare packages and pick the one that fits.")}
+						</p>
+					</div>
+				</div>
+
+				<div class="flex gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+					<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sand-200 text-sand-800">
+						<Fragment set:html={icon("chat")} />
+					</span>
+					<div>
+						<h2 class="text-sm font-bold text-sage-900">{txt("Dibantu tim", "Guided by our team")}</h2>
+						<p class="mt-1 text-xs leading-relaxed text-stone-500">
+							{txt("Bisa tanya dulu sebelum memutuskan.", "Ask questions before you decide.")}
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="relative z-10 mx-auto -mt-6 max-w-7xl px-4 pt-12 sm:px-6 lg:px-8">
+			<form action="/packages" method="GET" class="rounded-3xl border border-stone-200 bg-white p-4 shadow-lg shadow-sage-900/5 sm:p-5">
+				<div class="grid grid-cols-1 gap-3 md:grid-cols-12">
+					<div class="relative md:col-span-5">
+						<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-stone-400">
+							<Fragment set:html={icon("search", "h-[18px] w-[18px]")} />
+						</span>
+						<input
+							type="text"
+							name="search"
+							value={search || ""}
+							placeholder={t.packagesSearchPlaceholder}
+							aria-label={txt("Cari paket", "Search packages")}
+							class="h-12 w-full rounded-xl border border-stone-200 bg-sand-50 pl-11 pr-4 text-sm text-stone-700 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200"
+						/>
+					</div>
+
+					<div class="md:col-span-3">
+						<select
+							name="filter"
+							aria-label={txt("Filter paket", "Filter packages")}
+							class="h-12 w-full rounded-xl border border-stone-200 bg-sand-50 px-4 text-sm text-stone-700 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200"
+						>
+							<option value="">{txt("Semua paket", "All packages")}</option>
+							<option value="popular" selected={filter === "popular"}>{txt("Populer", "Popular")}</option>
+							<option value="unlimited" selected={filter === "unlimited"}>
+								{txt("Tamu tak terbatas", "Unlimited guests")}
+							</option>
+						</select>
+					</div>
+
+					<div class="md:col-span-2">
+						<select
+							name="sort"
+							aria-label={txt("Urutkan paket", "Sort packages")}
+							class="h-12 w-full rounded-xl border border-stone-200 bg-sand-50 px-4 text-sm text-stone-700 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200"
+						>
+							<option value="">{txt("Default", "Default")}</option>
+							<option value="popular" selected={sort === "popular"}>{txt("Populer", "Popular")}</option>
+							<option value="lowest_price" selected={sort === "lowest_price"}>
+								{txt("Harga terendah", "Lowest price")}
+							</option>
+						</select>
+					</div>
+
+					<div class="flex gap-2 md:col-span-2">
+						<button type="submit" class="h-12 flex-1 rounded-xl bg-sage-700 text-sm font-semibold text-white transition hover:bg-sage-800">
+							{txt("Cari", "Search")}
+						</button>
+						{
+							(search || filter || sort) && (
+								<a
+									href="/packages"
+									aria-label={txt("Reset filter", "Reset filters")}
+									class="flex h-12 w-12 items-center justify-center rounded-xl border border-stone-200 text-stone-500 transition hover:bg-sand-100"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+										<line x1="18" y1="6" x2="6" y2="18"></line>
+										<line x1="6" y1="6" x2="18" y2="18"></line>
+									</svg>
+								</a>
+							)
+						}
+					</div>
+				</div>
+
+				<div class="mt-4 flex flex-wrap items-center gap-2 border-t border-stone-100 pt-4">
+					<span class="mr-1 text-xs text-stone-400">{txt("Jelajahi", "Browse by")}</span>
+					<a
+						href={pkgFilterHref("")}
+						class={`rounded-full px-4 py-2 text-xs font-semibold transition ${!filter ? "bg-sage-700 text-white" : "border border-stone-200 bg-white text-stone-600 hover:bg-sand-100"}`}
+					>
+						{txt("Semua", "All")}
+					</a>
+					<a
+						href={pkgFilterHref("popular")}
+						class={`rounded-full px-4 py-2 text-xs font-semibold transition ${filter === "popular" ? "bg-sage-700 text-white" : "border border-stone-200 bg-white text-stone-600 hover:bg-sand-100"}`}
+					>
+						{txt("Populer", "Popular")}
+					</a>
+					<a
+						href={pkgFilterHref("unlimited")}
+						class={`rounded-full px-4 py-2 text-xs font-semibold transition ${filter === "unlimited" ? "bg-sage-700 text-white" : "border border-stone-200 bg-white text-stone-600 hover:bg-sand-100"}`}
+					>
+						{txt("Tak terbatas", "Unlimited")}
+					</a>
+				</div>
+			</form>
+		</section>
+
+		<section id="daftar-paket" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+			<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+				<div>
+					<p class="text-xs font-bold uppercase tracking-[0.22em] text-terracotta-600">
+						{txt("Daftar harga", "Price list")}
+					</p>
+					<h2 class="mt-2 font-display text-3xl font-bold text-sage-900 sm:text-4xl">
+						{txt("Satu daftar harga, tanpa biaya tersembunyi", "One clear price list, no hidden fees")}
+					</h2>
+				</div>
+				<p class="text-sm text-stone-500">
+					{txt("Menampilkan", "Showing")}
+					<span class="font-semibold text-stone-700">{Number(totalPackages) || items.length}</span>
+					{txt("paket", "packages")}
+				</p>
+			</div>
+
+			{
+				error && (
+					<div class="mb-6 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+						<Fragment set:html={icon("shield", "h-4 w-4")} />
+						<span>{error}</span>
+					</div>
+				)
+			}
+
+			{
+				items.length > 0 ? (
+					<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+						{items.map((pkg: any) => {
+							const options = Array.isArray(pkg.options) ? pkg.options : [];
+							const features = Array.isArray(pkg.features) ? pkg.features : [];
+							const addons = Array.isArray(pkg.addons) ? pkg.addons : [];
+							const isPopular =
+								pkg.is_popular === true || pkg.is_popular === 1 || pkg.is_popular === "1";
+							const hasCover = typeof pkg.cover_url === "string" && pkg.cover_url.length > 0;
+							const pricedOptions = options
+								.map((option: any) => ({
+									...option,
+									finalPriceValue: Number(option.final_price ?? option.price ?? 0),
+									normalPriceValue: Number(option.price ?? 0),
+								}))
+								.filter((option: any) => option.finalPriceValue > 0)
+								.sort((a: any, b: any) => a.finalPriceValue - b.finalPriceValue);
+							const startingOption = pricedOptions[0] || null;
+							const visibleFeatures = features.slice(0, 6);
+							const extraFeatures = features.slice(6);
+
+							return (
+								<article class={`relative flex h-full flex-col overflow-visible rounded-[24px] border bg-white text-sage-900 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl ${isPopular ? "border-gold shadow-lg" : "border-stone-200"}`}>
+									{isPopular && (
+										<span class="absolute -top-3 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-gold bg-sage-900 px-4 py-2 text-xs font-bold text-white shadow-md">
+											<Fragment set:html={icon("spark", "h-3.5 w-3.5")} />
+											{txt("Paling banyak dipilih", "Most popular")}
+										</span>
+									)}
+
+									{hasCover && (
+										<div class="relative h-44 w-full overflow-hidden rounded-t-[23px] bg-sand-100">
+											<img src={pkg.cover_url} alt={pkg.name} class="h-full w-full object-cover" loading="lazy" />
+										</div>
+									)}
+
+									<div class="flex flex-1 flex-col p-6 sm:p-7">
+										<div class="flex items-start justify-between gap-3">
+											<div>
+												<h3 class="font-display text-2xl font-bold leading-tight text-sage-900">{pkg.name}</h3>
+												{pkg.description && (
+													<p class="mt-2 text-sm leading-relaxed text-stone-500">{pkg.description}</p>
+												)}
+											</div>
+											{addons.length > 0 && (
+												<span class="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-sand-800">
+													+{addons.length} {txt("tambahan", "add-ons")}
+												</span>
+											)}
+										</div>
+
+										{(pkg.guest_capacity || pkg.event_duration_hours || pkg.venue_note) && (
+											<div class="mt-4 flex flex-wrap gap-2">
+												{pkg.guest_capacity && (
+													<span class="inline-flex items-center gap-1.5 rounded-lg bg-sage-50 px-2.5 py-1.5 text-[11px] font-medium text-sage-700">
+														<Fragment set:html={icon("spark", "h-3.5 w-3.5")} />
+														{pkg.guest_capacity} {txt("tamu", "guests")}
+													</span>
+												)}
+												{pkg.event_duration_hours && (
+													<span class="inline-flex items-center gap-1.5 rounded-lg bg-sage-50 px-2.5 py-1.5 text-[11px] font-medium text-sage-700">
+														<Fragment set:html={icon("clock", "h-3.5 w-3.5")} />
+														{pkg.event_duration_hours} {txt("jam", "hours")}
+													</span>
+												)}
+												{pkg.venue_note && (
+													<span class="inline-flex items-center gap-1.5 rounded-lg bg-sand-100 px-2.5 py-1.5 text-[11px] font-medium text-sand-800">
+														{pkg.venue_note}
+													</span>
+												)}
+											</div>
+										)}
+
+										<div class="mt-6 rounded-2xl bg-sage-50 p-4">
+											{startingOption ? (
+												<>
+													<p class="text-[11px] font-semibold uppercase tracking-wider text-sage-600">
+														{txt("Mulai dari", "Starting at")}
+													</p>
+													<div class="mt-1 flex flex-wrap items-baseline gap-2">
+														{startingOption.normalPriceValue > startingOption.finalPriceValue && (
+															<span class="text-xs text-stone-400 line-through">
+																Rp {money(startingOption.normalPriceValue)}
+															</span>
+														)}
+														<span class="font-display text-3xl font-bold text-sage-900">
+															Rp {money(startingOption.finalPriceValue)}
+														</span>
+													</div>
+													<p class="mt-1 text-xs text-stone-500">{startingOption.name}</p>
+												</>
+											) : (
+												<>
+													<p class="text-[11px] font-semibold uppercase tracking-wider text-sage-600">
+														{txt("Harga", "Price")}
+													</p>
+													<p class="mt-1 font-display text-2xl font-bold text-sage-900">
+														{txt("Konsultasi dulu", "Let’s talk")}
+													</p>
+													<p class="mt-1 text-xs text-stone-500">
+														{txt("Harga mengikuti kebutuhan acaramu.", "Pricing follows your event needs.")}
+													</p>
+												</>
+											)}
+										</div>
+
+										{pricedOptions.length > 1 && (
+											<div class="mt-4 space-y-2">
+												{pricedOptions.map((option: any) => (
+													<div class="flex items-center justify-between gap-3 rounded-xl border border-stone-100 px-3 py-2.5">
+														<div class="min-w-0">
+															<p class="truncate text-xs font-semibold text-stone-700">{option.name}</p>
+															{(option.duration || option.quota) && (
+																<p class="mt-0.5 truncate text-[11px] text-stone-400">
+																	{option.duration || ""} {option.duration_unit || ""}
+																	{option.quota && <> &middot; {option.quota} {txt("kuota", "quota")}</>}
+																</p>
+															)}
+														</div>
+														<p class="shrink-0 text-xs font-bold text-sage-800">
+															Rp {money(option.finalPriceValue)}
+														</p>
+													</div>
+												))}
+											</div>
+										)}
+
+										{features.length > 0 && (
+											<div class="mt-6 border-t border-stone-100 pt-5">
+												<p class="mb-3 text-xs font-bold uppercase tracking-wider text-stone-500">
+													{txt("Yang termasuk", "What’s included")}
+												</p>
+												<ul class="space-y-2">
+													{visibleFeatures.map((feature: unknown) => (
+														<li class="flex items-start gap-2 text-sm text-stone-warm">
+															<span class="mt-0.5 text-sage-700">
+																<Fragment set:html={icon("check", "h-4 w-4")} />
+															</span>
+															<span>{featureLabel(feature)}</span>
+														</li>
+													))}
+												</ul>
+												{extraFeatures.length > 0 && (
+													<details class="group mt-3">
+														<summary class="cursor-pointer text-xs font-semibold text-terracotta-600 transition hover:text-terracotta-500">
+															{txt("Lihat semua", "View all")} {features.length} {txt("fitur", "features")}
+														</summary>
+														<ul class="mt-3 space-y-2">
+															{extraFeatures.map((feature: unknown) => (
+																<li class="flex items-start gap-2 text-sm text-stone-warm">
+																	<span class="mt-0.5 text-sage-700">
+																		<Fragment set:html={icon("check", "h-4 w-4")} />
+																	</span>
+																	<span>{featureLabel(feature)}</span>
+																</li>
+															))}
+														</ul>
+													</details>
+												)}
+											</div>
+										)}
+
+										<a
+											href={`/packages/${pkg.slug}`}
+											class={`mt-auto flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white transition ${isPopular ? "bg-sage-900 hover:bg-sage-800" : "bg-sage-700 hover:bg-sage-800"}`}
+										>
+											{txt("Lihat Paket", "View Package")}
+											<Fragment set:html={icon("arrow", "h-4 w-4")} />
+										</a>
+									</div>
+								</article>
+							);
+						})}
+					</div>
+				) : (
+					<div class="rounded-3xl border border-stone-200 bg-white px-6 py-20 text-center">
+						<span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sage-100 text-sage-700">
+							<Fragment set:html={icon("search", "h-6 w-6")} />
+						</span>
+						<h3 class="mt-5 text-lg font-bold text-sage-900">
+							{txt("Belum ada paket tersedia", "No packages available")}
+						</h3>
+						<p class="mt-2 text-sm text-stone-500">
+							{txt("Coba ubah pencarian atau filter Anda.", "Try changing your search or filter.")}
+						</p>
+					</div>
+				)
+			}
+
+			{
+				totalPages > 1 && (
+					<nav aria-label={t.pagination} class="mt-10 flex flex-wrap items-center justify-center gap-1.5">
+						{currentPage > 1 && (
+							<a href={pkgHref(currentPage - 1)} rel="prev" class="rounded-full border border-sage-200 px-4 py-2 text-sm font-medium text-sage-700 transition-colors hover:bg-sage-50">
+								{t.prevPage}
+							</a>
+						)}
+						{Array.from({ length: totalPages }, (_, i) => i + 1).map((i) =>
+							i === currentPage ? (
+								<span aria-current="page" class="rounded-full bg-sage-700 px-4 py-2 text-sm font-semibold text-white">
+									{i}
+								</span>
+							) : (
+								<a href={pkgHref(i)} class="rounded-full border border-sage-200 px-4 py-2 text-sm font-medium text-sage-700 transition-colors hover:bg-sage-50">
+									{i}
+								</a>
+							),
+						)}
+						{currentPage < totalPages && (
+							<a href={pkgHref(currentPage + 1)} rel="next" class="rounded-full border border-sage-200 px-4 py-2 text-sm font-medium text-sage-700 transition-colors hover:bg-sage-50">
+								{t.nextPage}
+							</a>
+						)}
+					</nav>
+				)
+			}
+		</section>
+
+		<section class="bg-sage-50 py-14 sm:py-20">
+			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<p class="text-xs font-bold uppercase tracking-[0.22em] text-terracotta-600">
+					{txt("Cara kerjanya", "How it works")}
+				</p>
+				<h2 class="mt-2 font-display text-3xl font-bold text-sage-900 sm:text-4xl">
+					{txt("Empat langkah menuju hari istimewa", "Four steps to your big day")}
+				</h2>
+
+				<div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+					{steps.map((step) => (
+						<div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+							<span class="font-display text-3xl font-bold text-gold">{step[0]}</span>
+							<h3 class="mt-3 text-sm font-bold text-sage-900">{step[1]}</h3>
+							<p class="mt-2 text-xs leading-relaxed text-stone-500">{step[2]}</p>
+						</div>
+					))}
+				</div>
+			</div>
+		</section>
+
+		<section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+			<p class="text-xs font-bold uppercase tracking-[0.22em] text-terracotta-600">
+				{txt("Yang perlu kamu tahu", "Good to know")}
+			</p>
+			<h2 class="mt-2 font-display text-3xl font-bold text-sage-900 sm:text-4xl">
+				{txt("Sebelum kamu memutuskan", "Before you decide")}
+			</h2>
+
+			<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<div class="rounded-2xl border border-stone-200 bg-white p-5">
+					<h3 class="text-sm font-bold text-sage-900">{txt("Harga paket", "Package price")}</h3>
+					<p class="mt-2 text-xs leading-relaxed text-stone-500">
+						{txt("Harga final mengikuti opsi aktif pada paket yang dipilih.", "Final price follows the active options on your chosen package.")}
+					</p>
+				</div>
+				<div class="rounded-2xl border border-stone-200 bg-white p-5">
+					<h3 class="text-sm font-bold text-sage-900">{txt("Durasi layanan", "Service duration")}</h3>
+					<p class="mt-2 text-xs leading-relaxed text-stone-500">
+						{txt("Durasi menyesuaikan paket dan opsi yang kamu ambil.", "Duration follows the package and options you select.")}
+					</p>
+				</div>
+				<div class="rounded-2xl border border-stone-200 bg-white p-5">
+					<h3 class="text-sm font-bold text-sage-900">{txt("Area acara", "Event area")}</h3>
+					<p class="mt-2 text-xs leading-relaxed text-stone-500">
+						{txt("Lokasi dan penjadwalan dibahas bersama tim saat konsultasi.", "Location and scheduling are discussed with our team.")}
+					</p>
+				</div>
+				<div class="rounded-2xl border border-stone-200 bg-white p-5">
+					<h3 class="text-sm font-bold text-sage-900">{txt("Perubahan paket", "Package changes")}</h3>
+					<p class="mt-2 text-xs leading-relaxed text-stone-500">
+						{txt("Kamu bisa mendiskusikan penyesuaian sebelum memesan.", "You can discuss adjustments before placing an order.")}
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="bg-sage-900 py-14 text-white sm:py-20">
+			<div class="mx-auto flex max-w-7xl flex-col items-start gap-6 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+				<div class="max-w-2xl">
+					<p class="text-xs font-bold uppercase tracking-[0.22em] text-gold-light">
+						{txt("Masih ragu?", "Still unsure?")}
+					</p>
+					<h2 class="mt-2 font-display text-3xl font-bold sm:text-4xl">
+						{txt("Tim kami bantu pilihkan yang paling cocok", "Let our team help you choose")}
+					</h2>
+					<p class="mt-3 text-sm leading-relaxed text-sand-200">
+						{txt("Ceritakan tanggal acara dan perkiraan jumlah tamu. Kami bantu cocokkan paketnya.", "Share your date and guest estimate. We’ll help match the right package.")}
+					</p>
+				</div>
+				<a
+					href={waLink}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-sage-900 transition hover:bg-sand-100"
+				>
+					<Fragment set:html={icon("whatsapp", "h-4 w-4")} />
+					{txt("Tanya tim kami", "Ask our team")}
+				</a>
+			</div>
+		</section>
+	</main>
+</BaseLayout>

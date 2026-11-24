@@ -9,8 +9,11 @@
 			"**/*.tsx",
 			"**/*.js",
 			"**/*.mjs",
+			"**/*.astro",
 			"**/*.json",
 			"**/*.css",
+			"!dist",
+			"!.astro",
 			"!public/js",
 			"!public/css/output.css"
 		]
@@ -48,6 +51,29 @@
 			}
 		}
 	},
+	"overrides": [
+		{
+			"includes": ["**/*.astro"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUnusedVariables": "off",
+						"noUnusedImports": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["tests/**"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noTemplateCurlyInString": "off"
+					}
+				}
+			}
+		}
+	],
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double",

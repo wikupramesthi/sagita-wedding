@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../src/services/batchService.js", () => ({
+vi.mock("../src/lib/services/batchService.js", () => ({
 	getPageBatch: vi.fn(),
 }));
 
-vi.mock("../src/services/sitaAvailability.js", () => ({
+vi.mock("../src/lib/services/sitaAvailability.js", () => ({
 	fetchSitaDateAvailability: vi.fn(),
 }));
 
-import { getPageBatch } from "../src/services/batchService.js";
-import { fetchSitaDateAvailability } from "../src/services/sitaAvailability.js";
-import { answerSitaQuestion } from "../src/services/sitaService.js";
+import { getPageBatch } from "../src/lib/services/batchService.js";
+import { fetchSitaDateAvailability } from "../src/lib/services/sitaAvailability.js";
+import { answerSitaQuestion } from "../src/lib/services/sitaService.js";
 
 const getPageBatchMock = vi.mocked(getPageBatch);
 const fetchSitaDateAvailabilityMock = vi.mocked(fetchSitaDateAvailability);

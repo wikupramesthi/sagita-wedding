@@ -1,0 +1,240 @@
+---
+interface Props {
+	title?: string;
+	metaDescription?: string;
+	metaKeywords?: string;
+	robots?: string;
+	ogImage?: string;
+	ogType?: string;
+	articleMeta?: {
+		headline?: string;
+		description?: string;
+		image?: string;
+		datePublished?: string;
+		dateModified?: string;
+		section?: string;
+	};
+	pageSchemaType?: string;
+	heroImage?: string;
+}
+
+const {
+	title: pageTitle,
+	metaDescription,
+	metaKeywords,
+	robots,
+	ogImage: ogImageProp,
+	ogType = "website",
+	articleMeta = null,
+	pageSchemaType = "WebPage",
+	heroImage,
+} = Astro.props;
+
+const {
+	site,
+	seo,
+	siteUrl,
+	currentUrl,
+	currentPath,
+	lang,
+	languages,
+	t,
+	assetV,
+	nonce,
+} = Astro.locals;
+
+const pageTitleResolved =
+	pageTitle ||
+	site.metaTitle ||
+	`${site.name} — ${site.tagline || "Wedding Planner"}`;
+const description = String(
+	metaDescription ||
+		seo.description ||
+		site.metaDescription ||
+		site.description ||
+		t.siteDesc,
+)
+	.replace(/<[^>]*>/g, " ")
+	.slice(0, 160);
+const keywords = metaKeywords || seo.keywords || site.metaKeywords || "";
+const robotsValue = robots || seo.robots || "index, follow";
+const canonical = currentUrl || siteUrl;
+const languageUrl = (code: string) =>
+	`${siteUrl}${currentPath}${code === "en" ? "" : `?lang=${encodeURIComponent(code)}`}`;
+const absoluteUrl = (value: unknown) => {
+	const text = String(value || "").trim();
+	if (!text) return `${siteUrl}/img/logo.WebP`;
+	if (/^https?:\/\//i.test(text)) return text;
+	return siteUrl + (text.startsWith("/") ? text : `/${text}`);
+};
+const ogImage = absoluteUrl(
+	ogImageProp || seo.ogImage || site.ogImage || "/img/logo.WebP",
+);
+const faviconRaw = site.faviconUrl || "/img/fav.png";
+const favicon = /^https?:\/\//i.test(faviconRaw)
+	? faviconRaw
+	: siteUrl + faviconRaw;
+const langCodes = languages.map((item) => item.code);
+
+const jsonLd: Record<string, unknown> = {
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": "Organization",
+			"@id": `${siteUrl}/#organization`,
+			name: site.name || "Sagita Wedding",
+			url: siteUrl,
+			slogan: site.tagline || "",
+			description: site.description || t.siteDesc,
+			logo: /^https?:\/\//i.test(site.logoUrl || "")
+				? site.logoUrl
+				: siteUrl + (site.logoUrl || "/img/logo.WebP"),
+			image: ogImage,
+			...(site.email ? { email: site.email } : {}),
+			...(site.phoneTel ? { telephone: site.phoneTel } : {}),
+			...(site.address
+				? { address: { "@type": "PostalAddress", streetAddress: site.address } }
+				: {}),
+			sameAs: [
+				site.facebookHref,
+				site.instagramHref,
+				site.youtubeHref,
+				site.tiktokHref,
+			].filter(Boolean),
+		},
+		{
+			"@type": "WebSite",
+			"@id": `${siteUrl}/#website`,
+			url: siteUrl,
+			name: site.name || "Sagita Wedding",
+			inLanguage: langCodes,
+			publisher: { "@id": `${siteUrl}/#organization` },
+		},
+		{
+			"@type": pageSchemaType,
+			"@id": `${canonical}#webpage`,
+			url: canonical,
+			name: pageTitleResolved,
+			description,
+			inLanguage: lang,
+			isPartOf: { "@id": `${siteUrl}/#website` },
+		},
+	],
+};
+
+if (articleMeta || ogType === "article") {
+	(jsonLd["@graph"] as unknown[]).push({
+		"@type": "BlogPosting",
+		"@id": `${canonical}#article`,
+		url: canonical,
+		headline: articleMeta?.headline || pageTitleResolved,
+		description: articleMeta?.description || description,
+		image: articleMeta?.image ? absoluteUrl(articleMeta.image) : ogImage,
+		...(articleMeta?.datePublished
+			? { datePublished: articleMeta.datePublished }
+			: {}),
+		...(articleMeta?.dateModified || articleMeta?.datePublished
+			? {
+					dateModified: articleMeta?.dateModified || articleMeta?.datePublished,
+				}
+			: {}),
+		...(articleMeta?.section ? { articleSection: articleMeta.section } : {}),
+		author: { "@type": "Organization", name: site.name || "Sagita Wedding" },
+		publisher: { "@id": `${siteUrl}/#organization` },
+		mainEntityOfPage: { "@id": `${canonical}#webpage` },
+		inLanguage: lang,
+	});
+}
+
+const jsonLdText = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
+const gaInline = `window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+gtag("js", new Date());
+gtag("config", ${JSON.stringify(site.gaId || "")});`;
+const styleVersion = `${assetV}-elegant-palette-v2`;
+---
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>{pageTitleResolved}</title>
+<meta name="description" content={description} />
+{keywords && <meta name="keywords" content={keywords} />}
+<meta name="robots" content={robotsValue} />
+<meta name="author" content={site.name || "Sagita Wedding"} />
+<meta name="theme-color" content="#fffefd" />
+
+<link rel="canonical" href={canonical} />
+<link rel="alternate" hreflang="x-default" href={languageUrl("en")} />
+{langCodes.map((code) => <link rel="alternate" hreflang={code} href={languageUrl(code)} />)}
+
+<meta property="og:type" content={ogType} />
+<meta property="og:locale" content={lang === "id" ? "id_ID" : "en_US"} />
+<meta property="og:site_name" content={site.name || "Sagita Wedding"} />
+<meta property="og:title" content={pageTitleResolved} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:alt" content={pageTitleResolved} />
+{articleMeta?.datePublished && (
+	<meta property="article:published_time" content={articleMeta.datePublished} />
+)}
+{(articleMeta?.dateModified || articleMeta?.datePublished) && (
+	<meta
+		property="article:modified_time"
+		content={articleMeta?.dateModified || articleMeta?.datePublished}
+	/>
+)}
+{articleMeta?.section && <meta property="article:section" content={articleMeta.section} />}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={pageTitleResolved} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+<meta name="twitter:image:alt" content={pageTitleResolved} />
+
+<link rel="icon" href={favicon} />
+<link rel="apple-touch-icon" href={favicon} />
+{site.siteVerification && (
+	<meta name="google-site-verification" content={site.siteVerification} />
+)}
+
+<script type="application/ld+json" is:inline nonce={nonce} set:html={jsonLdText}></script>
+
+{site.gaId && (
+	<>
+		<script
+			async
+			is:inline
+			src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(site.gaId)}`}
+		></script>
+		<script is:inline nonce={nonce} set:html={gaInline}></script>
+	</>
+)}
+
+<link
+	rel="preload"
+	as="image"
+	href={site.logoUrl || "/img/logo-nav.png"}
+	fetchpriority="high"
+/>
+{heroImage && <link rel="preload" as="image" href={heroImage} fetchpriority="high" />}
+<link rel="preload" href="/fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/pinyon-script-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href={`/css/output.css?v=${styleVersion}`} as="style" />
+<link rel="stylesheet" href={`/css/output.css?v=${styleVersion}`} />
+<link rel="preload" href={`/css/custom.css?v=${styleVersion}`} as="style" />
+<link rel="stylesheet" href={`/css/custom.css?v=${styleVersion}`} />
+<link rel="stylesheet" href={`/css/sita-chat.css?v=${assetV}-sita-widget-v16`} />
+
+<script is:inline nonce={nonce}>
+	(function () {
+		try {
+			const saved = localStorage.getItem("serene-dark");
+			const prefers = window.matchMedia("(prefers-color-scheme: dark)").matches;
+			if (saved === "true" || (!saved && prefers))
+				document.documentElement.classList.add("dark");
+		} catch (e) {}
+	})();
+</script>

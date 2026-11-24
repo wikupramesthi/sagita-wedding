@@ -11,9 +11,11 @@ if (typeof zlib.createZstdDecompress !== "function") {
 const { JSDOM } = await import("jsdom");
 
 const { apiRequestMock } = vi.hoisted(() => ({ apiRequestMock: vi.fn() }));
-vi.mock("../src/services/apiClient.js", () => ({ default: apiRequestMock }));
+vi.mock("../src/lib/services/apiClient.js", () => ({
+	default: apiRequestMock,
+}));
 
-vi.mock("../src/services/siteIdentityService.js", () => ({
+vi.mock("../src/lib/services/siteIdentityService.js", () => ({
 	resolveSite: () => ({
 		name: "Sagita Wedding",
 		tagline: "Wedding Planner",
@@ -32,7 +34,7 @@ vi.mock("../src/services/siteIdentityService.js", () => ({
 	}),
 }));
 
-vi.mock("../src/services/batchService.js", () => ({
+vi.mock("../src/lib/services/batchService.js", () => ({
 	getPageBatch: async (page: string) => {
 		switch (page) {
 			case "home":
@@ -88,11 +90,11 @@ vi.mock("../src/services/batchService.js", () => ({
 	},
 }));
 
-vi.mock("../src/services/siteStatsService.js", () => ({
+vi.mock("../src/lib/services/siteStatsService.js", () => ({
 	formatStatCount: (value: unknown) => String(value ?? 0),
 }));
 
-const { createApp } = await import("../src/app.js");
+const { createApp } = await import("./helpers/createApp.js");
 const axe = await import("axe-core");
 
 type AxeResults = {

@@ -2,9 +2,11 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { apiRequestMock } = vi.hoisted(() => ({ apiRequestMock: vi.fn() }));
-vi.mock("../src/services/apiClient.js", () => ({ default: apiRequestMock }));
+vi.mock("../src/lib/services/apiClient.js", () => ({
+	default: apiRequestMock,
+}));
 
-vi.mock("../src/services/siteIdentityService.js", () => ({
+vi.mock("../src/lib/services/siteIdentityService.js", () => ({
 	resolveSite: () => ({
 		name: "Sagita Wedding",
 		tagline: "Wedding Planner",
@@ -23,7 +25,7 @@ vi.mock("../src/services/siteIdentityService.js", () => ({
 	}),
 }));
 
-vi.mock("../src/services/siteStatsService.js", () => ({
+vi.mock("../src/lib/services/siteStatsService.js", () => ({
 	formatStatCount: (value: unknown) => String(value ?? 0),
 }));
 
@@ -96,12 +98,12 @@ const getPageBatch = vi.fn(
 	},
 );
 
-vi.mock("../src/services/batchService.js", () => ({
+vi.mock("../src/lib/services/batchService.js", () => ({
 	getPageBatch: (page: string, params?: Record<string, unknown>) =>
 		getPageBatch(page, params),
 }));
 
-const { createApp } = await import("../src/app.js");
+const { createApp } = await import("./helpers/createApp.js");
 const app = createApp();
 
 const SEO_ROUTES = [

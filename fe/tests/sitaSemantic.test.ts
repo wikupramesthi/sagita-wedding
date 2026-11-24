@@ -3,7 +3,7 @@ import {
 	SEMANTIC_MATCH_THRESHOLD,
 	semanticScore,
 	semanticScores,
-} from "../src/services/sitaSemantic.js";
+} from "../src/lib/services/sitaSemantic.js";
 
 describe("Sita local semantic retrieval", () => {
 	it("matches a package price paraphrase", () => {

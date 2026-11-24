@@ -1,0 +1,192 @@
+---
+const { lang, contactLinks } = Astro.locals;
+const en = lang === "en";
+const L = {
+	status: en
+		? "Sagita Wedding virtual assistant · online 24 hours"
+		: "Asisten virtual Sagita Wedding · online 24 jam",
+	reset: "Reset",
+	resetLabel: en ? "Reset chat and criteria" : "Reset chat dan kriteria",
+	close: en ? "Close chat" : "Tutup chat",
+	greeting: en
+		? "Hi! I’m Sita, Sagita Wedding’s virtual assistant. Ask me about packages, venues, services, vendors, or booking."
+		: "Halo Kak! Aku Sita, asisten virtual Sagita Wedding. Tanya seputar paket, venue, layanan, vendor, atau cara booking, ya.",
+	examples: en ? "Example questions" : "Contoh pertanyaan",
+	tryAsking: en ? "Try asking:" : "Coba tanya:",
+	example1q: en
+		? "What are the package prices?"
+		: "Paket pernikahan berapa harganya?",
+	example1: en ? "Package prices" : "Harga paket",
+	example2q: en ? "Which venues are available?" : "Venue apa yang tersedia?",
+	example2: en ? "Available venues" : "Venue tersedia",
+	example3q: en ? "How do I book?" : "Bagaimana cara booking?",
+	example3: en ? "How to book" : "Cara booking",
+	chooseTopic: en ? "Choose a topic" : "Pilih topik",
+	packages: en ? "Packages & pricing" : "Paket & harga",
+	venues: en ? "Wedding venues" : "Venue",
+	services: en ? "Wedding services" : "Layanan WO",
+	vendors: en ? "Vendors" : "Vendor",
+	booking: en ? "Booking process" : "Cara booking",
+	contact: en ? "Contact the team" : "Hubungi admin",
+	leadTitle: en ? "Ask the Sagita team" : "Minta dibantu admin Sagita",
+	name: en ? "Your name" : "Nama kamu",
+	phone: en ? "WhatsApp number" : "Nomor WhatsApp",
+	consent: en
+		? "I agree to open WhatsApp and contact the Sagita team."
+		: "Saya setuju membuka WhatsApp untuk menghubungi admin Sagita.",
+	continue: en ? "Continue to WhatsApp" : "Lanjut ke WhatsApp",
+	skip: en ? "Skip for now" : "Lewati dulu",
+	write: en ? "Write a question" : "Tulis pertanyaan",
+	placeholder: en ? "Write a question…" : "Tulis pertanyaan…",
+	sendLabel: en ? "Send message" : "Kirim pesan",
+	send: en ? "Send" : "Kirim",
+	note: en
+		? "Sita is Sagita Wedding’s virtual assistant. Unanswered questions can be sent to the team."
+		: "Sita adalah asisten virtual Sagita Wedding. Pertanyaan yang belum terjawab bisa diteruskan ke admin.",
+	privacy: en ? "Privacy Policy" : "Kebijakan Privasi",
+	open: en ? "Open chat with Sita" : "Buka chat dengan Sita",
+};
+---
+
+<div
+	id="sitaChatWidget"
+	class="sita-chat"
+	data-locale={en ? "en" : "id"}
+	data-whatsapp-link={contactLinks.whatsappShortLink}
+>
+	<section
+		id="sitaChatPanel"
+		class="sita-chat-panel hidden"
+		role="dialog"
+		aria-modal="false"
+		aria-labelledby="sitaChatTitle"
+	>
+		<header class="sita-chat-header">
+			<div class="sita-chat-avatar" aria-hidden="true">
+				<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+					<path d="M24 4v6"></path>
+					<circle cx="24" cy="4" r="2"></circle>
+					<rect x="8" y="11" width="32" height="27" rx="9"></rect>
+					<path d="M8 21H4v9h4m32-9h4v9h-4M17 38v5m14-5v5"></path>
+					<circle cx="18" cy="24" r="2" class="sita-robot-eye"></circle>
+					<circle cx="30" cy="24" r="2" class="sita-robot-eye"></circle>
+					<path d="M19 31h10"></path>
+				</svg>
+			</div>
+			<div class="sita-chat-heading">
+				<h2 id="sitaChatTitle">Sita</h2>
+				<p class="sita-chat-status">
+					<span class="sita-chat-status__dot" aria-hidden="true"></span>
+					{L.status}
+				</p>
+			</div>
+			<button
+				id="sitaChatReset"
+				class="sita-chat-reset"
+				type="button"
+				aria-label={L.resetLabel}>{L.reset}</button
+			>
+			<button
+				id="sitaChatClose"
+				class="sita-chat-close"
+				type="button"
+				aria-label={L.close}
+			>
+				<svg viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+					><path d="m18 6-12 12M6 6l12 12"></path></svg
+				>
+			</button>
+		</header>
+
+		<div
+			id="sitaChatMessages"
+			class="sita-chat-messages"
+			role="log"
+			aria-live="polite"
+			aria-relevant="additions text"
+		>
+			<article class="sita-chat-message">
+				<span class="sita-chat-message__sender sr-only">Sita</span>
+				<p class="sita-chat-message__text">{L.greeting}</p>
+			</article>
+		</div>
+		<div
+			id="sitaChatOnboarding"
+			class="sita-chat-onboarding"
+			role="group"
+			aria-label={L.examples}
+		>
+			<p>{L.tryAsking}</p>
+			<button type="button" data-sita-example={L.example1q}>{L.example1}</button>
+			<button type="button" data-sita-example={L.example2q}>{L.example2}</button>
+			<button type="button" data-sita-example={L.example3q}>{L.example3}</button>
+		</div>
+		<div id="sitaChatChoices" class="sita-chat-choices" role="group" aria-label={L.chooseTopic}>
+			<button type="button" data-sita-topic="packages">{L.packages}</button>
+			<button type="button" data-sita-topic="venues">{L.venues}</button>
+			<button type="button" data-sita-topic="services">{L.services}</button>
+			<button type="button" data-sita-topic="vendors">{L.vendors}</button>
+			<button type="button" data-sita-topic="booking">{L.booking}</button>
+			<button type="button" data-sita-topic="contact">{L.contact}</button>
+		</div>
+		<form id="sitaChatLead" class="sita-chat-lead hidden">
+			<strong>{L.leadTitle}</strong>
+			<label for="sitaChatName">{L.name}</label>
+			<input id="sitaChatName" name="name" type="text" maxlength="80" autocomplete="name" required />
+			<label for="sitaChatPhone">{L.phone}</label>
+			<input
+				id="sitaChatPhone"
+				name="phone"
+				type="tel"
+				inputmode="tel"
+				maxlength="20"
+				autocomplete="tel"
+				pattern="[0-9+() -]{6,20}"
+				required
+			/>
+			<label class="sita-chat-consent">
+				<input name="consent" type="checkbox" required />
+				<span>{L.consent}</span>
+			</label>
+			<input name="website" type="text" tabindex="-1" autocomplete="off" hidden />
+			<button type="submit">{L.continue}</button>
+			<button class="sita-chat-skip" type="button" data-sita-skip>{L.skip}</button>
+		</form>
+		<form id="sitaChatComposer" class="sita-chat-composer">
+			<label class="sr-only" for="sitaChatInput">{L.write}</label>
+			<input
+				id="sitaChatInput"
+				type="text"
+				maxlength="500"
+				autocomplete="off"
+				placeholder={L.placeholder}
+				required
+			/>
+			<button type="submit" aria-label={L.sendLabel}>{L.send}</button>
+		</form>
+		<p class="sita-chat-note">
+			{L.note}
+			<a href="/pages/kebijakan-privasi">{L.privacy}</a>
+		</p>
+	</section>
+
+	<button
+		id="sitaChatToggle"
+		class="sita-chat-toggle"
+		type="button"
+		aria-label={L.open}
+		aria-expanded="false"
+		aria-controls="sitaChatPanel"
+	>
+		<svg class="sita-robot" viewBox="0 0 48 48" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+			<path d="M24 5v6"></path>
+			<circle cx="24" cy="4" r="2" class="sita-robot-signal"></circle>
+			<rect x="8" y="12" width="32" height="27" rx="9"></rect>
+			<path d="M8 22H4v9h4m32-9h4v9h-4M17 39v5m14-5v5"></path>
+			<circle cx="18" cy="25" r="2" class="sita-robot-eye"></circle>
+			<circle cx="30" cy="25" r="2" class="sita-robot-eye"></circle>
+			<path d="M19 32h10"></path>
+		</svg>
+		<span>Sita</span>
+	</button>
+</div>

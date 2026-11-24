@@ -1,19 +1,21 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { logger } from "../src/utils/logger.js";
+import { logger } from "../src/lib/utils/logger.js";
 
 const { apiRequestMock } = vi.hoisted(() => ({ apiRequestMock: vi.fn() }));
-vi.mock("../src/services/apiClient.js", () => ({ default: apiRequestMock }));
+vi.mock("../src/lib/services/apiClient.js", () => ({
+	default: apiRequestMock,
+}));
 
 const { forwardSitaTelemetryMock } = vi.hoisted(() => ({
 	forwardSitaTelemetryMock: vi.fn<(payload: unknown) => Promise<void>>(),
 }));
 forwardSitaTelemetryMock.mockResolvedValue(undefined);
 
-vi.mock("../src/services/sitaAnalytics.js", async () => {
+vi.mock("../src/lib/services/sitaAnalytics.js", async () => {
 	const actual = await vi.importActual<
-		typeof import("../src/services/sitaAnalytics.js")
-	>("../src/services/sitaAnalytics.js");
+		typeof import("../src/lib/services/sitaAnalytics.js")
+	>("../src/lib/services/sitaAnalytics.js");
 	return {
 		...actual,
 		forwardSitaTelemetry: forwardSitaTelemetryMock,
@@ -25,7 +27,7 @@ vi.mock("../src/services/sitaAnalytics.js", async () => {
 
 /* ---------- mock semua service agar test tidak menyentuh backend ---------- */
 
-vi.mock("../src/services/siteIdentityService.js", () => ({
+vi.mock("../src/lib/services/siteIdentityService.js", () => ({
 	resolveSite: () => ({
 		name: "Sagita Wedding",
 		tagline: "Wedding Planner",
@@ -217,16 +219,16 @@ const getPageBatch = vi.fn(
 	},
 );
 
-vi.mock("../src/services/batchService.js", () => ({
+vi.mock("../src/lib/services/batchService.js", () => ({
 	getPageBatch: (page: string, params?: Record<string, unknown>) =>
 		getPageBatch(page, params),
 }));
 
-vi.mock("../src/services/siteStatsService.js", () => ({
+vi.mock("../src/lib/services/siteStatsService.js", () => ({
 	formatStatCount: (v: unknown) => String(v ?? 0),
 }));
 
-const { createApp } = await import("../src/app.js");
+const { createApp } = await import("./helpers/createApp.js");
 
 const app = createApp();
 
@@ -438,8 +440,10 @@ describe("consultation form", () => {
 		expect(res.text).toContain('id="consultationCaptchaCode"');
 		expect(res.text).toContain('pattern="[0-9]{4}"');
 		expect(res.text).toMatch(
-			/\/js\/pages\/consultation-form\.js\?v=[^"]+-localcaptchaimage1/,
+			/type="module"[^>]+src="[^"]+\.astro\?astro&type=script/,
 		);
+		expect(res.text).toMatch(/\/css\/output\.css\?v=[^"]+/);
+		expect(res.text).toMatch(/\/css\/custom\.css\?v=[^"]+/);
 	});
 });
 
@@ -590,17 +594,17 @@ describe("pageScript wiring", () => {
 	});
 	it("halaman dengan island memuat loader bundle", async () => {
 		const cases: [string, string][] = [
-			["/formulir-konsultasi", "consultation-form"],
+			["/formulir-konsultasi", "formulir-konsultasi"],
 			["/vendors", "vendors"],
 			["/faq", "faq"],
 			["/blog", "blog"],
-			["/", "home"],
+			["/", "index"],
 		];
 		for (const [path, name] of cases) {
 			const res = await request(app).get(path);
 			expect(res.status, path).toBe(200);
-			expect(res.text, `${path} harus memuat pages/${name}.js`).toContain(
-				`/js/pages/${name}.js`,
+			expect(res.text, `${path} harus memuat ${name}.astro script`).toContain(
+				`${name}.astro?astro&type=script`,
 			);
 		}
 	});
@@ -694,8 +698,8 @@ describe("pageScript wiring", () => {
 		expect(getPageBatch).toHaveBeenCalledWith("vendors", undefined);
 		expect(res.text).toContain('data-category="Katering"');
 		expect(res.text).toContain('data-category="Dekorasi"');
-		expect(res.text).toContain('data-categories="[&#34;Katering&#34;]"');
-		expect(res.text).toContain("/js/pages/vendors.js");
+		expect(res.text).toContain('data-categories="[&quot;Katering&quot;]"');
+		expect(res.text).toContain("vendors.astro?astro&type=script");
 		expect(res.text).toContain("The right people");
 		expect(res.text).toContain("Wedding Vendors | Sagita Wedding Planner");
 		expect(res.text).toContain("Ask about this vendor");
@@ -713,7 +717,9 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain(
 			"<title>Wedding Planning Consultation | Sagita Wedding Planner</title>",
 		);
-		expect(res.text).toContain('<meta name="robots" content="index, follow"/>');
+		expect(res.text).toMatch(
+			/<meta name="robots" content="index, follow"\s*\/?>/,
+		);
 		expect(res.text).toContain(
 			'<meta name="description" content="Plan your wedding with Sagita Wedding Planner.',
 		);
@@ -729,7 +735,7 @@ describe("pageScript wiring", () => {
 		);
 		expect(res.text).toContain('name="wedding_date"');
 		expect(res.text).toContain('name="services"');
-		expect(res.text).toContain("/js/pages/consultation-form.js");
+		expect(res.text).toContain("formulir-konsultasi.astro?astro&type=script");
 		expect(res.text).not.toContain('id="navbar"');
 		expect(res.text).not.toContain("<footer");
 		expect(getPageBatch).not.toHaveBeenCalledWith("contact");
@@ -1173,8 +1179,8 @@ describe("pageScript wiring", () => {
 		const res = await request(app).get("/?lang=id");
 		expect(res.status).toBe(200);
 		expect(res.headers.location).toBeUndefined();
-		expect(res.headers["set-cookie"]?.join(";")).toContain("locale=id");
-		expect(res.text).toContain('<html lang="id">');
+		expect(String(res.headers["set-cookie"])).toContain("locale=id");
+		expect(res.text).toMatch(/<html lang="id"[^>]*>/);
 		expect(res.text).toContain(
 			"<title>Wedding Organizer &amp; Paket Pernikahan | Sagita Wedding</title>",
 		);
@@ -1185,7 +1191,7 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain(`hreflang="id" href="${canonical}"`);
 		expect(res.text).toMatch(/hreflang="en" href="[^"]+\/"/);
 		const structuredData = res.text.match(
-			/<script type="application\/ld\+json">([\s\S]*?)<\/script>/,
+			/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/,
 		)?.[1];
 		expect(structuredData).toBeTruthy();
 		expect(JSON.parse(structuredData as string)["@graph"]).toEqual(
@@ -1216,7 +1222,7 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('id="venueSearch"');
 		expect(res.text).toContain('id="venueList"');
 		expect(res.text).toContain('data-singular="venue to explore"');
-		expect(res.text).toContain("pages/venues.js");
+		expect(res.text).toContain("venues.astro?astro&type=script");
 		expect(res.text).toContain("data-venue-item");
 	});
 
@@ -1302,9 +1308,9 @@ describe("pageScript wiring", () => {
 		expect(response.text).toContain(
 			'name="description" content="Meet Sagita Wedding Planner, a wedding organizer helping you plan your concept, budget, vendors, and wedding-day coordination around your story."',
 		);
-		expect(response.text).toContain("-about-wedding-icons1");
+		expect(response.text).toMatch(/\/css\/output\.css\?v=[^"]+/);
 		const structuredData = response.text.match(
-			/<script type="application\/ld\+json">([\s\S]*?)<\/script>/,
+			/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/,
 		)?.[1];
 		expect(JSON.parse(structuredData as string)["@graph"]).toEqual(
 			expect.arrayContaining([

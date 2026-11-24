@@ -3,7 +3,7 @@ import {
 	getSitaAnalytics,
 	recordSitaTelemetry,
 	resetSitaAnalytics,
-} from "../src/services/sitaAnalytics.js";
+} from "../src/lib/services/sitaAnalytics.js";
 
 beforeEach(() => {
 	resetSitaAnalytics();
@@ -156,7 +156,7 @@ describe("Sita analytics", () => {
 		});
 		recordSitaTelemetry({
 			kind: "event",
-			name: "sita.secret",
+			name: "sita.secret" as "sita.no_match",
 			path: "/",
 		});
 

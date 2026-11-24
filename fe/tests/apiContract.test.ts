@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { parseTelemetry } from "../src/routes/api.js";
 import {
 	assertBatchPagesMatchContract,
 	BATCH_CONTRACT,
@@ -9,8 +8,9 @@ import {
 	missingIdentityKeys,
 	missingItemKeys,
 	VENUE_ITEM_CONTRACT,
-} from "../src/services/apiContract.js";
-import { SUPPORTED_BATCH_PAGES } from "../src/services/batchService.js";
+} from "../src/lib/services/apiContract.js";
+import { SUPPORTED_BATCH_PAGES } from "../src/lib/services/batchService.js";
+import { parseTelemetry } from "../src/lib/telemetry.js";
 
 describe("API contract", () => {
 	it("only exposes batch pages implemented by the backend", () => {

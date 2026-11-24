@@ -4,14 +4,14 @@ const { apiEnvelopeRawMock } = vi.hoisted(() => ({
 	apiEnvelopeRawMock: vi.fn(),
 }));
 
-vi.mock("../src/services/apiClient.js", async (importOriginal) => {
+vi.mock("../src/lib/services/apiClient.js", async (importOriginal) => {
 	const actual =
-		await importOriginal<typeof import("../src/services/apiClient.js")>();
+		await importOriginal<typeof import("../src/lib/services/apiClient.js")>();
 	return { ...actual, apiEnvelopeRaw: apiEnvelopeRawMock };
 });
 
 const { clearBatchCache, getBatchContentUpdatedAt, getPageBatch } =
-	await import("../src/services/batchService.js");
+	await import("../src/lib/services/batchService.js");
 
 beforeEach(() => {
 	clearBatchCache();

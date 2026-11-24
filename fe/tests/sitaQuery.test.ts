@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeSitaQuerySample } from "../src/utils/sitaQuery.js";
+import { sanitizeSitaQuerySample } from "../src/lib/utils/sitaQuery.js";
 
 describe("sanitizeSitaQuerySample", () => {
 	it("removes contact details and keeps a readable snippet", () => {

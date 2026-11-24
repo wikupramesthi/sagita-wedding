@@ -1,0 +1,54 @@
+---
+import Footer from "../components/Footer.astro";
+import Head from "../components/Head.astro";
+import Navbar from "../components/Navbar.astro";
+
+interface Props {
+	title?: string;
+	metaDescription?: string;
+	metaKeywords?: string;
+	robots?: string;
+	ogImage?: string;
+	ogType?: string;
+	articleMeta?: {
+		headline?: string;
+		description?: string;
+		image?: string;
+		datePublished?: string;
+		dateModified?: string;
+		section?: string;
+	};
+	pageSchemaType?: string;
+	heroImage?: string;
+	heroNav?: boolean;
+	heroNavLight?: boolean;
+	showNavbar?: boolean;
+	showFooter?: boolean;
+	htmlClass?: string;
+}
+
+const {
+	showNavbar = true,
+	showFooter = true,
+	htmlClass,
+	...headProps
+} = Astro.props;
+const { lang } = Astro.locals;
+---
+
+<!doctype html>
+<html lang={lang} class={htmlClass}>
+	<head>
+		<Head {...headProps} />
+	</head>
+	<body>
+		{showNavbar && <Navbar heroNav={headProps.heroNav} heroNavLight={headProps.heroNavLight} />}
+		<slot />
+		{showFooter && <Footer />}
+		<script>
+			import "../lib/browser/telemetry";
+			import "../lib/browser/main";
+			import "../lib/browser/accessibility";
+		</script>
+	</body>
+</html>

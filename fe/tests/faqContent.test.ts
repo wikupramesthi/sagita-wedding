@@ -3,7 +3,7 @@ import {
 	getHomeFaqs,
 	localizeFaqCategories,
 	localizeFaqs,
-} from "../src/data/faqContent.js";
+} from "../src/lib/data/faqContent.js";
 
 const faq = {
 	uuid: "4b9411a3-ccc5-44fd-bc24-e8dc7065773c",

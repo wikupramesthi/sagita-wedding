@@ -128,7 +128,7 @@ describe("SITA chat widget", () => {
 		});
 		setGlobal("fetch", fetchMock);
 
-		await import("../src/browser/lib/sita-chat.js");
+		await import("../src/lib/browser/lib/sita-chat.js");
 	});
 
 	afterEach(() => {
@@ -495,7 +495,7 @@ describe("SITA chat widget", () => {
 			{ timeout: 3000 },
 		);
 		const handoff = element(".sita-chat-handoff") as HTMLAnchorElement;
-		expect(decodeURIComponent(handoff.href)).toContain(
+		expect(decodeURIComponent(handoff.href).replace(/\+/g, " ")).toContain(
 			"Paket Mawar (http://localhost:3000/packages/paket-mawar)",
 		);
 		expect(leadRequests[0]).toMatchObject({

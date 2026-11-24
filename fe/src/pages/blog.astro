@@ -1,0 +1,109 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { normalizeBlogPosts } from "../lib/pageData.js";
+import { getPageBatch } from "../lib/services/batchService.js";
+
+const { lang, t } = Astro.locals;
+const isID = lang === "id";
+const data = await getPageBatch("blog");
+const posts = normalizeBlogPosts(data?.articles, isID ? "id-ID" : "en-US");
+const totalPosts = data?.total || posts.length;
+const title = isID
+	? "Artikel Pernikahan & Tips Wedding | Sagita Wedding"
+	: "Wedding Articles & Planning Tips | Sagita Wedding";
+const metaDescription = isID
+	? "Baca artikel dan tips pernikahan dari Sagita Wedding Planner, mulai dari perencanaan, venue, vendor, hingga persiapan hari istimewa."
+	: "Read wedding planning articles from Sagita Wedding Planner, with ideas for venues, vendors, preparation, and your wedding day.";
+---
+
+<BaseLayout title={title} metaDescription={metaDescription}>
+	<main class="blog-page">
+		<section class="site-container blog-hero">
+			<div class="relative max-w-3xl">
+				<p class="blog-eyebrow">
+					<span class="blog-eyebrow-line" aria-hidden="true"></span>
+					{t.homeArticlesEyebrow}
+				</p>
+				<h1 class="blog-title font-display font-bold text-sage-900">
+					{t.blogTitleA}
+					<span class="text-terracotta-600">{t.blogTitleB}</span>
+				</h1>
+				<p class="blog-description">
+					{t.blogDesc}
+				</p>
+				<div class="blog-hero-meta">
+					<span class="blog-hero-rule" aria-hidden="true"></span>
+					<span>{totalPosts} {isID ? "artikel untuk dijelajahi" : "articles to explore"}</span>
+				</div>
+			</div>
+		</section>
+
+		<section class="site-container blog-list-section">
+			{posts.length === 0 ? (
+				<div class="blog-empty">
+					<span class="blog-empty-icon" aria-hidden="true">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg>
+					</span>
+					<h2>{isID ? "Belum ada artikel" : "No articles yet"}</h2>
+					<p>{isID ? "Cerita dan tips pernikahan kami sedang disiapkan. Silakan kembali lagi segera." : "Our wedding stories and planning tips are on their way. Please check back soon."}</p>
+				</div>
+			) : (
+				<>
+					<div id="articleGrid" class="blog-grid">
+						{posts.map((p, i) => (
+							<a
+								href={`/blog/${p.slug}`}
+								class:list={["article-card", "blog-card", i === 0 && "blog-feature-card", i >= 9 && "hidden"]}
+								data-delay={i * 70}
+							>
+								<div class="blog-card-media">
+									{p.image ? (
+										<img
+											src={p.image}
+											alt={p.title}
+											loading="lazy"
+											decoding="async"
+											data-img-error="remove"
+											class="blog-card-image"
+										/>
+									) : (
+										<div class="blog-card-placeholder" aria-hidden="true"><span>SW</span></div>
+									)}
+									{i === 0 && (
+										<span class="blog-feature-label">{isID ? "Bacaan pilihan" : "Featured read"}</span>
+									)}
+								</div>
+								<div class="blog-card-body">
+									<div class="blog-card-meta">
+										{p.category && (
+											<span class="blog-card-category">{p.category}</span>
+										)}
+										<span class="blog-card-date">{p.date} <span class="blog-meta-dot">•</span> {p.read}</span>
+									</div>
+									<h3 class="blog-card-title">{p.title}</h3>
+									{p.excerpt && (
+										<p class="blog-card-excerpt">{p.excerpt}</p>
+									)}
+									<span class="blog-card-link">
+										{t.homeArticleReadMore}
+										<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+									</span>
+								</div>
+							</a>
+						))}
+					</div>
+
+					{posts.length > 9 && (
+						<div class="blog-load-more-wrap">
+							<button id="loadMoreBtn" type="button" class="blog-load-more">
+								<span>{isID ? "Muat artikel lainnya" : "Load more articles"}</span>
+								<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="m5 12 7 7 7-7"></path></svg>
+							</button>
+						</div>
+					)}
+				</>
+			)}
+		</section>
+	</main>
+	<script>import "../lib/browser/pages/blog";</script>
+</BaseLayout>
