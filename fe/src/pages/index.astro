@@ -705,12 +705,12 @@ const heroBackground = sliderBanners.length
 							<p class="mb-5 inline-flex rounded-full bg-terracotta-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-terracotta-600">
 								{t.homePreparationEyebrow}
 							</p>
-							<h2 class="home-preparation-title text-3xl font-bold leading-[1.05] tracking-tight text-sage-900 sm:text-4xl">
-								{t.homePreparationTitlePrefix}
-								<span class="italic font-medium text-terracotta-600">
-									{t.homePreparationTitleAccent}
+							<h2 class="home-preparation-title text-3xl font-bold leading-[1.2] tracking-normal text-sage-900 sm:text-4xl">
+								<span class="block">{t.homePreparationTitlePrefix}</span>
+								<span class="block">
+									<span class="italic font-medium text-terracotta-600">{t.homePreparationTitleAccent}</span>
+									{" "}{t.homePreparationTitleSuffix}
 								</span>
-								{t.homePreparationTitleSuffix}
 							</h2>
 							<p class="mt-5 max-w-xl text-base leading-relaxed text-stone-warm sm:text-lg">
 								{t.homePreparationDescription}
