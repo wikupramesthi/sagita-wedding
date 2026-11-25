@@ -328,7 +328,7 @@ body {
 }
 
 .home-faq-item.is-open {
-	background-color: rgba(248, 246, 242, 0.55);
+	background-color: rgba(248, 246, 242, 0.24);
 	border-color: var(--color-sand-300);
 }
 

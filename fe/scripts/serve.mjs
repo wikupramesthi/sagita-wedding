@@ -44,6 +44,19 @@ function withVary(current) {
 	return existing ? `${existing}, Accept-Encoding` : "Accept-Encoding";
 }
 
+function writeHeadThenEnd(
+	originalWriteHead,
+	originalEnd,
+	status,
+	reason,
+	body,
+	callback,
+) {
+	if (reason) originalWriteHead(status, reason);
+	else originalWriteHead(status);
+	originalEnd(body, callback);
+}
+
 function gzipResponse(req, res) {
 	if (!shouldBuffer(req)) {
 		handler(req, res);
@@ -52,28 +65,23 @@ function gzipResponse(req, res) {
 
 	const chunks = [];
 	const originalWriteHead = res.writeHead.bind(res);
-	const originalWrite = res.write.bind(res);
 	const originalEnd = res.end.bind(res);
+	let pendingStatus = res.statusCode;
+	let pendingReason = "";
+	let pendingHeaders = null;
 
 	res.writeHead = (status, reasonOrHeaders, maybeHeaders) => {
-		if (process.env.GZIP_DEBUG) {
-			console.error("gzip-head", { status, reasonOrHeaders, maybeHeaders });
+		pendingStatus = status;
+		res.statusCode = status;
+		if (typeof reasonOrHeaders === "string") {
+			pendingReason = reasonOrHeaders;
+		} else {
+			pendingHeaders =
+				reasonOrHeaders && typeof reasonOrHeaders === "object"
+					? reasonOrHeaders
+					: maybeHeaders;
 		}
-		const headers =
-			reasonOrHeaders &&
-			typeof reasonOrHeaders === "object" &&
-			!Array.isArray(reasonOrHeaders)
-				? reasonOrHeaders
-				: maybeHeaders;
-		if (headers && typeof headers === "object") {
-			for (const [key, value] of Object.entries(headers)) {
-				if (value !== undefined) res.setHeader(key, value);
-			}
-			return originalWriteHead(status);
-		}
-		return reasonOrHeaders === undefined
-			? originalWriteHead(status)
-			: originalWriteHead(status, reasonOrHeaders);
+		return res;
 	};
 
 	res.write = (chunk, encoding, callback) => {
@@ -92,39 +100,49 @@ function gzipResponse(req, res) {
 				toBuffer(chunk, typeof encoding === "string" ? encoding : undefined),
 			);
 		const done = typeof encoding === "function" ? encoding : callback;
+		if (pendingHeaders) {
+			for (const [key, value] of Object.entries(pendingHeaders)) {
+				if (value !== undefined) res.setHeader(key, value);
+			}
+		}
+
 		const body = Buffer.concat(chunks);
 		const contentType = String(res.getHeader("content-type") ?? "");
 		const canGzip =
-			res.statusCode >= 200 &&
-			res.statusCode < 300 &&
+			pendingStatus >= 200 &&
+			pendingStatus < 300 &&
 			!res.hasHeader("content-encoding") &&
 			COMPRESSIBLE_TYPE.test(contentType) &&
 			body.byteLength >= MIN_COMPRESS_BYTES;
 
-		if (process.env.GZIP_DEBUG) {
-			console.error("gzip-debug", {
-				path: req.url,
-				status: res.statusCode,
-				contentType,
-				chunks: chunks.length,
-				bytes: body.byteLength,
-				canGzip,
-			});
-		}
 		if (canGzip) {
 			const compressed = gzipSync(body, { level: 6 });
 			res.setHeader("content-encoding", "gzip");
 			res.setHeader("vary", withVary(res.getHeader("vary")));
 			res.removeHeader("content-length");
 			res.setHeader("content-length", String(compressed.length));
-			originalEnd(compressed, done);
+			writeHeadThenEnd(
+				originalWriteHead,
+				originalEnd,
+				pendingStatus,
+				pendingReason,
+				compressed,
+				done,
+			);
 			return;
 		}
 
 		if (body.length && !res.hasHeader("content-length")) {
 			res.setHeader("content-length", String(body.length));
 		}
-		originalEnd(body, done);
+		writeHeadThenEnd(
+			originalWriteHead,
+			originalEnd,
+			pendingStatus,
+			pendingReason,
+			body,
+			done,
+		);
 	};
 
 	handler(req, res);

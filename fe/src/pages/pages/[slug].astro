@@ -71,7 +71,7 @@ if (isNotFound) Astro.response.status = 404;
 		: undefined}
 >
 	{page ? (
-		<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
+		<main class="site-page-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
 			<nav aria-label="Breadcrumb" class="mb-8 text-xs sm:text-sm text-stone-warm">
 				<ol class="flex flex-wrap items-center gap-2">
 					<li>
@@ -139,7 +139,7 @@ if (isNotFound) Astro.response.status = 404;
 			<ExploreLinks heading={t.siteDesc || "Sagita Wedding"} />
 		</main>
 	) : (
-		<main class="site-container py-20 text-center">
+		<main class="site-container site-page-content py-20 text-center">
 			<p class="font-display text-6xl text-sage-900">404</p>
 			<h1 class="mt-4 font-display text-3xl text-sage-900">{t.notFoundTitle}</h1>
 			<p class="mt-3 text-stone-warm">{t.notFoundDesc}</p>

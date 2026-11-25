@@ -108,7 +108,7 @@ describe("server Astro produksi", () => {
 	it("mengompres HTML, CSS, dan JS dengan gzip saat diminta", async () => {
 		const htmlHeaders = await rawHeaders("/", "gzip");
 		expect(htmlHeaders["content-encoding"]).toBe("gzip");
-		expect(String(htmlHeaders["vary"])).toContain("Accept-Encoding");
+		expect(String(htmlHeaders.vary)).toContain("Accept-Encoding");
 
 		const cssHeaders = await rawHeaders("/css/output.css", "gzip");
 		expect(cssHeaders["content-encoding"]).toBe("gzip");

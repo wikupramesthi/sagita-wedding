@@ -11,10 +11,7 @@ function setHomeFaqItemOpen(button: HTMLButtonElement, open: boolean): void {
 	if (toggle) toggle.textContent = open ? "×" : "+";
 }
 
-function initHomeFaq(): void {
-	const section = document.getElementById("home-faq");
-	if (!section) return;
-
+function initHomeFaq(section: HTMLElement): void {
 	const tabs = Array.from(
 		section.querySelectorAll<HTMLButtonElement>("[data-home-faq-tab]"),
 	);
@@ -79,4 +76,6 @@ function initHomeFaq(): void {
 	if (firstButton) setHomeFaqItemOpen(firstButton, true);
 }
 
-initHomeFaq();
+document
+	.querySelectorAll<HTMLElement>("[data-home-faq-section]")
+	.forEach(initHomeFaq);

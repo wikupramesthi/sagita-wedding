@@ -1,6 +1,8 @@
 ---
+import HomeFaqSection from "../components/HomeFaqSection.astro";
 import Icon from "../components/Icon.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { getHomeFaqs } from "../lib/data/faqContent.js";
 import { getPageBatch } from "../lib/services/batchService.js";
 import { cleanPage, cleanText } from "../lib/utils/validate.js";
 
@@ -28,8 +30,12 @@ const params = {
 	page: cleanPage(Astro.url.searchParams.get("page")),
 	per_page: 10,
 };
-const data = await getPageBatch("packages", params);
+const [data, faqData] = await Promise.all([
+	getPageBatch("packages", params),
+	getPageBatch("faq").catch(() => null),
+]);
 const items = Array.isArray(data?.packages) ? data.packages : [];
+const packageFaqGroups = getHomeFaqs(faqData?.faqs, lang);
 const meta = data?.meta || {};
 const search = params.search;
 const filter = params.filter;
@@ -95,6 +101,47 @@ const steps = [
 			"Every detail is set so you can enjoy the day.",
 		),
 	],
+];
+const stepLabels = [
+	txt("MULAI DARI RENCANA", "START WITH A PLAN"),
+	txt("PILIH YANG SESUAI", "FIND YOUR FIT"),
+	txt("RAPIKAN DETAIL", "REFINE THE DETAILS"),
+	txt("NIKMATI HARI BAHAGIA", "ENJOY YOUR DAY"),
+];
+const stepIcons = ["chat", "search", "check", "spark"];
+const packageGuidanceItems = [
+	{
+		icon: "wallet",
+		title: txt("Harga paket", "Package price"),
+		description: txt(
+			"Harga final mengikuti opsi aktif pada paket yang dipilih.",
+			"Final price follows the active options on your chosen package.",
+		),
+	},
+	{
+		icon: "clock",
+		title: txt("Durasi layanan", "Service duration"),
+		description: txt(
+			"Durasi menyesuaikan paket dan opsi yang kamu ambil.",
+			"Duration follows the package and options you select.",
+		),
+	},
+	{
+		icon: "map-pin",
+		title: txt("Area acara", "Event area"),
+		description: txt(
+			"Lokasi dan penjadwalan dibahas bersama tim saat konsultasi.",
+			"Location and scheduling are discussed with our team.",
+		),
+	},
+	{
+		icon: "spark",
+		title: txt("Perubahan paket", "Package changes"),
+		description: txt(
+			"Kamu bisa mendiskusikan penyesuaian sebelum memesan.",
+			"You can discuss adjustments before placing an order.",
+		),
+	},
 ];
 ---
 
@@ -179,52 +226,11 @@ const steps = [
 			</div>
 		</section>
 
-		<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-			<div class="grid gap-4 md:grid-cols-3">
-				<div class="flex gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-					<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-700">
-						<Icon name="shield" />
-					</span>
-					<div>
-						<h2 class="text-sm font-bold text-sage-900">
-							{txt("Harga transparan", "Transparent pricing")}
-						</h2>
-						<p class="mt-1 text-xs leading-relaxed text-stone-500">
-							{txt("Rincian harga mengikuti opsi yang kamu pilih.", "Pricing follows the options you choose.")}
-						</p>
-					</div>
-				</div>
-
-				<div class="flex gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-					<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-terracotta-100 text-terracotta-600">
-						<Icon name="spark" />
-					</span>
-					<div>
-						<h2 class="text-sm font-bold text-sage-900">{txt("Sesuai kebutuhan", "Made to fit")}</h2>
-						<p class="mt-1 text-xs leading-relaxed text-stone-500">
-							{txt("Bandingkan paket lalu pilih yang paling pas.", "Compare packages and pick the one that fits.")}
-						</p>
-					</div>
-				</div>
-
-				<div class="flex gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-					<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sand-200 text-sand-800">
-						<Icon name="chat" />
-					</span>
-					<div>
-						<h2 class="text-sm font-bold text-sage-900">{txt("Dibantu tim", "Guided by our team")}</h2>
-						<p class="mt-1 text-xs leading-relaxed text-stone-500">
-							{txt("Bisa tanya dulu sebelum memutuskan.", "Ask questions before you decide.")}
-						</p>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<section class="relative z-10 mx-auto -mt-6 max-w-7xl px-4 pt-12 sm:px-6 lg:px-8">
-			<form action="/packages" method="GET" class="rounded-3xl border border-stone-200 bg-white p-4 shadow-lg shadow-sage-900/5 sm:p-5">
-				<div class="grid grid-cols-1 gap-3 md:grid-cols-12">
-					<div class="relative md:col-span-5">
+		<section class="package-filter-section relative z-10 -mt-6">
+			<div class="site-container">
+			<form action="/packages" method="GET" class="package-filter-form rounded-2xl border border-stone-200 bg-white shadow-sm">
+				<div class="package-filter-grid grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-12">
+					<div class="relative sm:col-span-2 lg:col-span-5">
 						<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-stone-400">
 							<Icon name="search" size="h-[18px] w-[18px]" />
 						</span>
@@ -234,15 +240,15 @@ const steps = [
 							value={search || ""}
 							placeholder={t.packagesSearchPlaceholder}
 							aria-label={txt("Cari paket", "Search packages")}
-							class="h-12 w-full rounded-xl border border-stone-200 bg-sand-50 pl-11 pr-4 text-sm text-stone-700 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200"
+							class="package-filter-control h-11 w-full rounded-xl border border-stone-200 bg-white pl-11 pr-4 text-sm text-stone-700 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200 lg:h-9"
 						/>
 					</div>
 
-					<div class="md:col-span-3">
+					<div class="lg:col-span-3">
 						<select
 							name="filter"
 							aria-label={txt("Filter paket", "Filter packages")}
-							class="h-12 w-full rounded-xl border border-stone-200 bg-sand-50 px-4 text-sm text-stone-700 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200"
+							class="package-filter-control h-11 w-full rounded-xl border border-stone-200 bg-white px-4 text-sm text-stone-700 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200 lg:h-9"
 						>
 							<option value="">{txt("Semua paket", "All packages")}</option>
 							<option value="popular" selected={filter === "popular"}>{txt("Populer", "Popular")}</option>
@@ -252,11 +258,11 @@ const steps = [
 						</select>
 					</div>
 
-					<div class="md:col-span-2">
+					<div class="lg:col-span-2">
 						<select
 							name="sort"
 							aria-label={txt("Urutkan paket", "Sort packages")}
-							class="h-12 w-full rounded-xl border border-stone-200 bg-sand-50 px-4 text-sm text-stone-700 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200"
+							class="package-filter-control h-11 w-full rounded-xl border border-stone-200 bg-white px-4 text-sm text-stone-700 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200 lg:h-9"
 						>
 							<option value="">{txt("Default", "Default")}</option>
 							<option value="popular" selected={sort === "popular"}>{txt("Populer", "Popular")}</option>
@@ -266,8 +272,8 @@ const steps = [
 						</select>
 					</div>
 
-					<div class="flex gap-2 md:col-span-2">
-						<button type="submit" class="h-12 flex-1 rounded-xl bg-sage-700 text-sm font-semibold text-white transition hover:bg-sage-800">
+					<div class="flex gap-2 sm:col-span-2 lg:col-span-2">
+						<button type="submit" class="package-filter-control h-11 flex-1 rounded-xl bg-sage-700 text-sm font-semibold text-white transition hover:bg-sage-800 lg:h-9">
 							{txt("Cari", "Search")}
 						</button>
 						{
@@ -275,7 +281,7 @@ const steps = [
 								<a
 									href="/packages"
 									aria-label={txt("Reset filter", "Reset filters")}
-									class="flex h-12 w-12 items-center justify-center rounded-xl border border-stone-200 text-stone-500 transition hover:bg-sand-100"
+									class="package-filter-control flex h-11 w-11 items-center justify-center rounded-xl border border-stone-200 text-stone-500 transition hover:bg-sand-100 lg:h-9 lg:w-9"
 								>
 									<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 										<line x1="18" y1="6" x2="6" y2="18"></line>
@@ -287,31 +293,33 @@ const steps = [
 					</div>
 				</div>
 
-				<div class="mt-4 flex flex-wrap items-center gap-2 border-t border-stone-100 pt-4">
-					<span class="mr-1 text-xs text-stone-400">{txt("Jelajahi", "Browse by")}</span>
+				<div class="package-filter-quick-links mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-stone-100 pt-2.5">
+					<span class="mr-1 text-[11px] text-stone-400">{txt("Jelajahi", "Browse by")}</span>
 					<a
 						href={pkgFilterHref("")}
-						class={`rounded-full px-4 py-2 text-xs font-semibold transition ${!filter ? "bg-sage-700 text-white" : "border border-stone-200 bg-white text-stone-600 hover:bg-sand-100"}`}
+						class={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${!filter ? "bg-sage-700 text-white" : "border border-stone-200 bg-white text-stone-600 hover:bg-sand-100"}`}
 					>
 						{txt("Semua", "All")}
 					</a>
 					<a
 						href={pkgFilterHref("popular")}
-						class={`rounded-full px-4 py-2 text-xs font-semibold transition ${filter === "popular" ? "bg-sage-700 text-white" : "border border-stone-200 bg-white text-stone-600 hover:bg-sand-100"}`}
+						class={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${filter === "popular" ? "bg-sage-700 text-white" : "border border-stone-200 bg-white text-stone-600 hover:bg-sand-100"}`}
 					>
 						{txt("Populer", "Popular")}
 					</a>
 					<a
 						href={pkgFilterHref("unlimited")}
-						class={`rounded-full px-4 py-2 text-xs font-semibold transition ${filter === "unlimited" ? "bg-sage-700 text-white" : "border border-stone-200 bg-white text-stone-600 hover:bg-sand-100"}`}
+						class={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${filter === "unlimited" ? "bg-sage-700 text-white" : "border border-stone-200 bg-white text-stone-600 hover:bg-sand-100"}`}
 					>
 						{txt("Tak terbatas", "Unlimited")}
 					</a>
 				</div>
 			</form>
+			</div>
 		</section>
 
-		<section id="daftar-paket" class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+		<section id="daftar-paket" class="package-catalog-section site-section">
+			<div class="site-container">
 			<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 				<div>
 					<p class="text-xs font-bold uppercase tracking-[0.22em] text-terracotta-600">
@@ -321,10 +329,9 @@ const steps = [
 						{txt("Satu daftar harga, tanpa biaya tersembunyi", "One clear price list, no hidden fees")}
 					</h2>
 				</div>
-				<p class="text-sm text-stone-500">
-					{txt("Menampilkan", "Showing")}
-					<span class="font-semibold text-stone-700">{Number(totalPackages) || items.length}</span>
-					{txt("paket", "packages")}
+				<p class="package-count">
+					<span class="package-count__value">{Number(totalPackages) || items.length}</span>
+					<span>{txt("paket tersedia", "packages available")}</span>
 				</p>
 			</div>
 
@@ -339,7 +346,12 @@ const steps = [
 
 			{
 				items.length > 0 ? (
-					<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+					<div
+						class:list={[
+							"package-card-grid grid grid-cols-1 items-stretch gap-5 md:grid-cols-2 xl:gap-6",
+							items.length >= 4 ? "xl:grid-cols-4" : items.length === 3 ? "xl:grid-cols-3" : items.length === 2 ? "xl:grid-cols-2" : "mx-auto max-w-md xl:grid-cols-1",
+						]}
+					>
 						{items.map((pkg: any) => {
 							const options = Array.isArray(pkg.options) ? pkg.options : [];
 							const features = Array.isArray(pkg.features) ? pkg.features : [];
@@ -356,85 +368,98 @@ const steps = [
 								.filter((option: any) => option.finalPriceValue > 0)
 								.sort((a: any, b: any) => a.finalPriceValue - b.finalPriceValue);
 							const startingOption = pricedOptions[0] || null;
-							const visibleFeatures = features.slice(0, 6);
-							const extraFeatures = features.slice(6);
+							const discountPercent =
+								startingOption && startingOption.normalPriceValue > startingOption.finalPriceValue
+									? Math.round(
+											((startingOption.normalPriceValue - startingOption.finalPriceValue) /
+												startingOption.normalPriceValue) *
+												100,
+										)
+									: 0;
+							const visibleFeatures = features.slice(0, 5);
+							const extraFeatures = features.slice(5);
 
 							return (
-								<article class={`relative flex h-full flex-col overflow-visible rounded-[24px] border bg-white text-sage-900 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl ${isPopular ? "border-gold shadow-lg" : "border-stone-200"}`}>
+								<article
+									class:list={[
+										"package-price-card group relative flex h-full min-w-0 flex-col overflow-visible rounded-[24px] border text-sage-900 transition duration-300 hover:-translate-y-1",
+										isPopular ? "package-price-card--featured" : "",
+									]}
+								>
 									{isPopular && (
-										<span class="absolute -top-3 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-gold bg-sage-900 px-4 py-2 text-xs font-bold text-white shadow-md">
-											<Icon name="spark" size="h-3.5 w-3.5" />
-											{txt("Paling banyak dipilih", "Most popular")}
+										<span class="package-price-card__badge absolute -top-3 left-1/2 z-20 inline-flex -translate-x-1/2 items-center whitespace-nowrap rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+											{txt("Rekomendasi", "Recommended")}
 										</span>
 									)}
 
 									{hasCover && (
-										<div class="relative h-44 w-full overflow-hidden rounded-t-[23px] bg-sand-100">
-											<img src={pkg.cover_url} alt={pkg.name} class="h-full w-full object-cover" loading="lazy" />
+										<div class="package-price-card__cover relative h-36 w-full overflow-hidden rounded-t-[23px]">
+											<img src={pkg.cover_url} alt={pkg.name} class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
 										</div>
 									)}
 
-									<div class="flex flex-1 flex-col p-6 sm:p-7">
-										<div class="flex items-start justify-between gap-3">
-											<div>
-												<h3 class="font-display text-2xl font-bold leading-tight text-sage-900">{pkg.name}</h3>
-												{pkg.description && (
-													<p class="mt-2 text-sm leading-relaxed text-stone-500">{pkg.description}</p>
+									<div class="flex flex-1 flex-col p-5 sm:p-6">
+										<div class="package-price-card__intro">
+											<div class="flex items-start justify-between gap-3">
+												<h3 class="font-display text-2xl font-semibold leading-tight text-sage-900">{pkg.name}</h3>
+												{addons.length > 0 && (
+													<span class="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[10px] font-semibold text-sand-800">
+														+{addons.length} {txt("tambahan", "add-ons")}
+													</span>
 												)}
 											</div>
-											{addons.length > 0 && (
-												<span class="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-sand-800">
-													+{addons.length} {txt("tambahan", "add-ons")}
-												</span>
+											{pkg.description && (
+												<p class="mt-2 text-[13px] leading-relaxed text-stone-500">{pkg.description}</p>
 											)}
 										</div>
 
 										{(pkg.guest_capacity || pkg.event_duration_hours || pkg.venue_note) && (
 											<div class="mt-4 flex flex-wrap gap-2">
 												{pkg.guest_capacity && (
-													<span class="inline-flex items-center gap-1.5 rounded-lg bg-sage-50 px-2.5 py-1.5 text-[11px] font-medium text-sage-700">
+													<span class="inline-flex items-center gap-1.5 rounded-full bg-sage-50 px-2.5 py-1.5 text-[11px] font-medium text-sage-700">
 														<Icon name="spark" size="h-3.5 w-3.5" />
 														{pkg.guest_capacity} {txt("tamu", "guests")}
 													</span>
 												)}
 												{pkg.event_duration_hours && (
-													<span class="inline-flex items-center gap-1.5 rounded-lg bg-sage-50 px-2.5 py-1.5 text-[11px] font-medium text-sage-700">
+													<span class="inline-flex items-center gap-1.5 rounded-full bg-sage-50 px-2.5 py-1.5 text-[11px] font-medium text-sage-700">
 														<Icon name="clock" size="h-3.5 w-3.5" />
 														{pkg.event_duration_hours} {txt("jam", "hours")}
 													</span>
 												)}
 												{pkg.venue_note && (
-													<span class="inline-flex items-center gap-1.5 rounded-lg bg-sand-100 px-2.5 py-1.5 text-[11px] font-medium text-sand-800">
+													<span class="inline-flex items-center gap-1.5 rounded-full bg-sand-100 px-2.5 py-1.5 text-[11px] font-medium text-sand-800">
 														{pkg.venue_note}
 													</span>
 												)}
 											</div>
 										)}
 
-										<div class="mt-6 rounded-2xl bg-sage-50 p-4">
+										<div class="package-price-card__price mt-6">
 											{startingOption ? (
 												<>
-													<p class="text-[11px] font-semibold uppercase tracking-wider text-sage-600">
-														{txt("Mulai dari", "Starting at")}
-													</p>
-													<div class="mt-1 flex flex-wrap items-baseline gap-2">
+													<p class="text-[11px] font-medium text-stone-500">{txt("Mulai dari", "Starting at")}</p>
+													<div class="mt-1 flex flex-wrap items-center gap-2">
 														{startingOption.normalPriceValue > startingOption.finalPriceValue && (
-															<span class="text-xs text-stone-400 line-through">
-																Rp {money(startingOption.normalPriceValue)}
-															</span>
+															<>
+																<span class="text-xs text-stone-400 line-through">
+																	Rp {money(startingOption.normalPriceValue)}
+																</span>
+																<span class="package-price-card__saving rounded-full px-2.5 py-1 text-[10px] font-bold">
+																	{txt("Hemat", "Save")} {discountPercent}%
+																</span>
+															</>
 														)}
-														<span class="font-display text-3xl font-bold text-sage-900">
-															Rp {money(startingOption.finalPriceValue)}
-														</span>
 													</div>
+													<p class="font-display text-[2rem] font-semibold leading-tight tracking-tight text-sage-950">
+														Rp {money(startingOption.finalPriceValue)}
+													</p>
 													<p class="mt-1 text-xs text-stone-500">{startingOption.name}</p>
 												</>
 											) : (
 												<>
-													<p class="text-[11px] font-semibold uppercase tracking-wider text-sage-600">
-														{txt("Harga", "Price")}
-													</p>
-													<p class="mt-1 font-display text-2xl font-bold text-sage-900">
+													<p class="text-[11px] font-medium text-stone-500">{txt("Harga", "Price")}</p>
+													<p class="mt-1 font-display text-2xl font-semibold text-sage-900">
 														{txt("Konsultasi dulu", "Let’s talk")}
 													</p>
 													<p class="mt-1 text-xs text-stone-500">
@@ -445,11 +470,11 @@ const steps = [
 										</div>
 
 										{pricedOptions.length > 1 && (
-											<div class="mt-4 space-y-2">
+											<div class="mt-4 space-y-2 border-t border-stone-100 pt-4">
 												{pricedOptions.map((option: any) => (
-													<div class="flex items-center justify-between gap-3 rounded-xl border border-stone-100 px-3 py-2.5">
+													<div class="flex items-center justify-between gap-3 text-xs">
 														<div class="min-w-0">
-															<p class="truncate text-xs font-semibold text-stone-700">{option.name}</p>
+															<p class="truncate font-medium text-stone-700">{option.name}</p>
 															{(option.duration || option.quota) && (
 																<p class="mt-0.5 truncate text-[11px] text-stone-400">
 																	{option.duration || ""} {option.duration_unit || ""}
@@ -457,23 +482,21 @@ const steps = [
 																</p>
 															)}
 														</div>
-														<p class="shrink-0 text-xs font-bold text-sage-800">
-															Rp {money(option.finalPriceValue)}
-														</p>
+														<p class="shrink-0 font-semibold text-sage-800">Rp {money(option.finalPriceValue)}</p>
 													</div>
 												))}
 											</div>
 										)}
 
 										{features.length > 0 && (
-											<div class="mt-6 border-t border-stone-100 pt-5">
-												<p class="mb-3 text-xs font-bold uppercase tracking-wider text-stone-500">
-													{txt("Yang termasuk", "What’s included")}
+											<div class="mt-5 border-t border-stone-100 pt-4">
+												<p class="mb-3 text-[11px] font-semibold text-stone-700">
+													{txt("Semua yang termasuk:", "Everything included:")}
 												</p>
-												<ul class="space-y-2">
+												<ul class="space-y-2.5">
 													{visibleFeatures.map((feature: unknown) => (
-														<li class="flex items-start gap-2 text-sm text-stone-warm">
-															<span class="mt-0.5 text-sage-700">
+														<li class="flex items-start gap-2 text-[13px] leading-snug text-stone-600">
+															<span class="package-price-card__check mt-0.5">
 																<Icon name="check" size="h-4 w-4" />
 															</span>
 															<span>{featureLabel(feature)}</span>
@@ -482,13 +505,16 @@ const steps = [
 												</ul>
 												{extraFeatures.length > 0 && (
 													<details class="group mt-3">
-														<summary class="cursor-pointer text-xs font-semibold text-terracotta-600 transition hover:text-terracotta-500">
-															{txt("Lihat semua", "View all")} {features.length} {txt("fitur", "features")}
+														<summary class="package-price-card__more flex cursor-pointer list-none items-center gap-1.5 text-xs font-semibold transition">
+															{txt("Lihat semua", "See all")} {features.length} {txt("fitur", "features")}
+															<svg class="h-3.5 w-3.5 transition-transform group-open:rotate-180" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+																<path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+															</svg>
 														</summary>
-														<ul class="mt-3 space-y-2">
+														<ul class="mt-3 space-y-2.5">
 															{extraFeatures.map((feature: unknown) => (
-																<li class="flex items-start gap-2 text-sm text-stone-warm">
-																	<span class="mt-0.5 text-sage-700">
+																<li class="flex items-start gap-2 text-[13px] leading-snug text-stone-600">
+																	<span class="package-price-card__check mt-0.5">
 																		<Icon name="check" size="h-4 w-4" />
 																	</span>
 																	<span>{featureLabel(feature)}</span>
@@ -500,13 +526,18 @@ const steps = [
 											</div>
 										)}
 
-										<a
-											href={`/packages/${pkg.slug}`}
-											class={`mt-auto flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white transition ${isPopular ? "bg-sage-900 hover:bg-sage-800" : "bg-sage-700 hover:bg-sage-800"}`}
-										>
-											{txt("Lihat Paket", "View Package")}
-											<Icon name="arrow" size="h-4 w-4" />
-										</a>
+										<div class="package-price-card__actions mt-auto pt-6">
+											<a
+												href={`/packages/${pkg.slug}`}
+												class="package-price-card__button flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition"
+											>
+												{txt("Lihat Paket", "View Package")}
+												<Icon name="arrow" size="h-4 w-4" />
+											</a>
+											<a href="/formulir-konsultasi" class="package-price-card__consult mt-3 flex items-center justify-center gap-2 text-xs font-semibold transition">
+												{txt("Konsultasi paket", "Ask about this package")}
+											</a>
+										</div>
 									</div>
 								</article>
 							);
@@ -526,6 +557,19 @@ const steps = [
 					</div>
 				)
 			}
+
+			<div class="package-catalog-note mt-8 flex flex-col gap-3 border-t border-stone-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+				<p class="max-w-2xl text-xs leading-relaxed text-stone-500">
+					{txt(
+						"Harga paket menyesuaikan pilihan layanan, jumlah tamu, dan lokasi acara. Konsultasi awal gratis.",
+						"Final pricing depends on services, guest count, and event location. The initial consultation is free.",
+					)}
+				</p>
+				<a href="/formulir-konsultasi" class="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-terracotta-600 transition hover:text-terracotta-500">
+					{txt("Konsultasikan kebutuhanmu", "Discuss your needs")}
+					<Icon name="arrow" size="h-4 w-4" />
+				</a>
+			</div>
 
 			{
 				totalPages > 1 && (
@@ -554,88 +598,188 @@ const steps = [
 					</nav>
 				)
 			}
+			</div>
 		</section>
 
-		<section class="bg-sage-50 py-14 sm:py-20">
-			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<p class="text-xs font-bold uppercase tracking-[0.22em] text-terracotta-600">
-					{txt("Cara kerjanya", "How it works")}
-				</p>
-				<h2 class="mt-2 font-display text-3xl font-bold text-sage-900 sm:text-4xl">
-					{txt("Empat langkah menuju hari istimewa", "Four steps to your big day")}
-				</h2>
+		<section class="package-steps-section site-section">
+			<div class="site-container">
+				<div class="package-steps-heading">
+					<p class="package-steps-eyebrow inline-flex rounded-full px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.16em]">
+						{txt("ALUR PERENCANAAN", "THE PLANNING JOURNEY")}
+					</p>
+					<h2 class="mt-4 font-display text-3xl leading-tight text-sage-900 sm:text-4xl lg:text-5xl">
+						{txt("Empat langkah menuju", "Four steps to")}
+						{" "}
+						<span class="italic text-terracotta-600">{txt("hari istimewa", "your big day")}</span>
+					</h2>
+					<p class="mt-4 max-w-2xl text-sm leading-relaxed text-stone-500 sm:text-base">
+						{txt(
+							"Dari rencana awal hingga hari pernikahan, tim kami mendampingi setiap tahap agar persiapan terasa lebih mudah.",
+							"From the first plan to the wedding day, our team guides every step so the preparations feel easier.",
+						)}
+					</p>
+				</div>
 
-				<div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-					{steps.map((step) => (
-						<div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-							<span class="font-display text-3xl font-bold text-gold">{step[0]}</span>
-							<h3 class="mt-3 text-sm font-bold text-sage-900">{step[1]}</h3>
-							<p class="mt-2 text-xs leading-relaxed text-stone-500">{step[2]}</p>
-						</div>
+				<div class="package-steps-grid mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+					{steps.map((step, index) => (
+						<article
+							class:list={[
+								"package-step-card relative flex min-w-0 flex-col rounded-[24px] p-5 sm:p-6",
+								index === 0 ? "package-step-card--featured" : "",
+							]}
+						>
+							<p class="package-step-card__label text-[10px] font-bold uppercase tracking-[0.15em]">
+								{stepLabels[index]}
+							</p>
+							<span class="package-step-card__icon mt-3 grid h-10 w-10 place-items-center rounded-xl">
+								<Icon name={stepIcons[index]} size="h-5 w-5" />
+							</span>
+							<h3 class="mt-3 font-display text-xl leading-snug text-sage-900">{step[1]}</h3>
+							<p class="mt-2 text-sm leading-relaxed text-stone-500">{step[2]}</p>
+							<span
+								class="package-step-card__number pointer-events-none absolute right-5 top-5 font-display text-3xl"
+								aria-hidden="true"
+							>
+								{step[0]}
+							</span>
+							{index < steps.length - 1 && (
+								<span
+									class="package-step-card__connector absolute -right-5 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full xl:grid"
+									aria-hidden="true"
+								>
+									<Icon name="arrow" size="h-4 w-4" />
+								</span>
+							)}
+						</article>
 					))}
 				</div>
 			</div>
 		</section>
 
-		<section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-			<p class="text-xs font-bold uppercase tracking-[0.22em] text-terracotta-600">
-				{txt("Yang perlu kamu tahu", "Good to know")}
-			</p>
-			<h2 class="mt-2 font-display text-3xl font-bold text-sage-900 sm:text-4xl">
-				{txt("Sebelum kamu memutuskan", "Before you decide")}
-			</h2>
+		{
+			packageFaqGroups.length > 0 && (
+				<HomeFaqSection
+					sectionId="package-faq"
+					groups={packageFaqGroups}
+					eyebrow={t.homeFaqEyebrow}
+					expandAll={t.homeFaqExpandAll}
+					collapseAll={t.homeFaqCollapseAll}
+					stillTitle={t.homeFaqStillTitle}
+					stillDesc={t.homeFaqStillDesc}
+					stillButton={t.homeFaqStillBtn}
+					viewAll={t.homeFaqViewAll}
+					whatsappHref={contactLinks.whatsappShortLink}
+				/>
+			)
+		}
 
-			<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<div class="rounded-2xl border border-stone-200 bg-white p-5">
-					<h3 class="text-sm font-bold text-sage-900">{txt("Harga paket", "Package price")}</h3>
-					<p class="mt-2 text-xs leading-relaxed text-stone-500">
-						{txt("Harga final mengikuti opsi aktif pada paket yang dipilih.", "Final price follows the active options on your chosen package.")}
-					</p>
-				</div>
-				<div class="rounded-2xl border border-stone-200 bg-white p-5">
-					<h3 class="text-sm font-bold text-sage-900">{txt("Durasi layanan", "Service duration")}</h3>
-					<p class="mt-2 text-xs leading-relaxed text-stone-500">
-						{txt("Durasi menyesuaikan paket dan opsi yang kamu ambil.", "Duration follows the package and options you select.")}
-					</p>
-				</div>
-				<div class="rounded-2xl border border-stone-200 bg-white p-5">
-					<h3 class="text-sm font-bold text-sage-900">{txt("Area acara", "Event area")}</h3>
-					<p class="mt-2 text-xs leading-relaxed text-stone-500">
-						{txt("Lokasi dan penjadwalan dibahas bersama tim saat konsultasi.", "Location and scheduling are discussed with our team.")}
-					</p>
-				</div>
-				<div class="rounded-2xl border border-stone-200 bg-white p-5">
-					<h3 class="text-sm font-bold text-sage-900">{txt("Perubahan paket", "Package changes")}</h3>
-					<p class="mt-2 text-xs leading-relaxed text-stone-500">
-						{txt("Kamu bisa mendiskusikan penyesuaian sebelum memesan.", "You can discuss adjustments before placing an order.")}
-					</p>
+		<section class="package-guidance-section site-section" aria-labelledby="package-guidance-title">
+			<div class="site-container">
+				<div class="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+					<div>
+						<p class="package-guidance-eyebrow">{txt("KETENTUAN", "GOOD TO KNOW")}</p>
+						<h2
+							id="package-guidance-title"
+							class="package-guidance-title mt-4 max-w-sm font-display text-sage-950"
+						>
+							<span class="block">{txt("Yang perlu", "Good to")}</span>
+							<span class="italic text-terracotta-600">{txt("kamu tahu", "know")}</span>
+						</h2>
+						<p class="package-guidance-description mt-5 max-w-sm">
+							{txt(
+								"Ada pertanyaan soal paket, jadwal, atau acara di luar kota? Tim kami siap membantu lewat WhatsApp.",
+								"Questions about packages, timing, or an out-of-town event? Our team is happy to help via WhatsApp.",
+							)}
+						</p>
+						<a
+							href={contactLinks.whatsappShortLink}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="package-guidance-link mt-5 inline-flex items-center gap-2 font-semibold"
+						>
+							{txt("Tanya tim kami", "Ask our team")}
+							<Icon name="arrow" size="h-4 w-4" />
+						</a>
+					</div>
+
+					<div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+						{
+							packageGuidanceItems.map((item) => (
+								<article class="package-guidance-item border-t pt-4">
+									<div class="flex items-center gap-3">
+										<span class="package-guidance-icon grid h-8 w-8 place-items-center rounded-lg">
+											<Icon name={item.icon} size="h-4 w-4" />
+										</span>
+										<h3 class="package-guidance-item-title font-bold text-sage-900">{item.title}</h3>
+									</div>
+									<p class="package-guidance-item-description mt-2">
+										{item.description}
+									</p>
+								</article>
+							))
+						}
+					</div>
 				</div>
 			</div>
 		</section>
 
-		<section class="bg-sage-900 py-14 text-white sm:py-20">
-			<div class="mx-auto flex max-w-7xl flex-col items-start gap-6 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-				<div class="max-w-2xl">
-					<p class="text-xs font-bold uppercase tracking-[0.22em] text-gold-light">
-						{txt("Masih ragu?", "Still unsure?")}
-					</p>
-					<h2 class="mt-2 font-display text-3xl font-bold sm:text-4xl">
-						{txt("Tim kami bantu pilihkan yang paling cocok", "Let our team help you choose")}
-					</h2>
-					<p class="mt-3 text-sm leading-relaxed text-sand-200">
-						{txt("Ceritakan tanggal acara dan perkiraan jumlah tamu. Kami bantu cocokkan paketnya.", "Share your date and guest estimate. We’ll help match the right package.")}
-					</p>
+		<section class="package-contact-section site-section">
+			<div class="site-container">
+				<div class="package-contact-card mx-auto grid overflow-hidden rounded-[28px] lg:grid-cols-[1.05fr_0.95fr]">
+					<div class="package-contact-copy flex flex-col justify-center p-7 sm:p-10 lg:p-16">
+						<img
+							class="package-contact-decoration"
+							src="/images/mawar-kiri.webp"
+							alt=""
+							aria-hidden="true"
+							loading="lazy"
+							decoding="async"
+						/>
+						<h2 class="package-contact-title font-display text-3xl leading-[1.12] text-sage-950 sm:text-4xl lg:text-5xl">
+							{txt("Belum yakin paket mana yang", "Not sure which package")}
+							{" "}
+							<span class="italic text-terracotta-600">{txt("pas", "fits you")}</span>?
+						</h2>
+						<p class="mt-5 max-w-lg text-sm leading-relaxed text-stone-600 sm:text-base">
+							{txt(
+								"Kirim tanggal acara dan perkiraan jumlah tamu, tim kami bantu memilihkan paket yang paling cocok.",
+								"Share your wedding date and guest estimate. Our team will help you find the package that fits.",
+							)}
+						</p>
+						<div class="mt-6 flex flex-wrap items-center gap-3">
+							<a
+								href={waLink}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="package-contact-whatsapp inline-flex min-h-12 items-center gap-3 rounded-full py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition"
+							>
+								{txt("Tanya via WhatsApp", "Ask via WhatsApp")}
+								<span class="grid h-9 w-9 place-items-center rounded-full bg-white text-terracotta-600">
+									<Icon name="whatsapp" size="h-4 w-4" />
+								</span>
+							</a>
+							<a
+								href="/gallery"
+								class="package-contact-gallery inline-flex min-h-12 items-center justify-center rounded-full border px-5 py-3 text-sm font-semibold transition"
+							>
+								{txt("Lihat desain undangan", "View wedding inspiration")}
+							</a>
+						</div>
+					</div>
+					<div class="package-contact-image">
+						<img
+							src="/images/bg-kontak.jpg"
+							alt={txt("Pasangan pengantin di hari pernikahan", "A couple celebrating their wedding day")}
+							loading="lazy"
+							decoding="async"
+						/>
+					</div>
 				</div>
-				<a
-					href={waLink}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-sage-900 transition hover:bg-sand-100"
-				>
-					<Icon name="whatsapp" size="h-4 w-4" />
-					{txt("Tanya tim kami", "Ask our team")}
-				</a>
 			</div>
 		</section>
 	</main>
 </BaseLayout>
+
+<script>
+	import "../lib/browser/lib/home-faq";
+</script>
