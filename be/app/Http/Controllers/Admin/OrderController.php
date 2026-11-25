@@ -479,6 +479,9 @@ class OrderController extends Controller
             'feedback',
             'checklistItems',
             'changeRequests.addon',
+            'cancellationRequests.requestedBy',
+            'cancellationRequests.reviewedBy',
+            'cancellationRequests.refundRecordedBy',
             'vendorAssignments.vendor',
             'vendorAssignments.assignedBy',
             'venue',
@@ -933,6 +936,11 @@ class OrderController extends Controller
         $canRecordPayment = $user->hasAnyRole(['admin', 'super-admin']);
         abort_unless($record->user_uuid === $user->uuid || $isAdmin, 403);
         abort_unless(in_array($record->status, ['pending', 'partially_paid'], true), 403, 'Pesanan tidak dalam status pembayaran aktif.');
+        abort_if(
+            $record->cancellationRequests()->where('status', 'pending')->exists(),
+            403,
+            'Pembayaran ditangguhkan selama permintaan pembatalan ditinjau.'
+        );
 
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:1'],
@@ -960,6 +968,12 @@ class OrderController extends Controller
 
         $payment = DB::transaction(function () use ($record, $amount, $proofPath, $kind, $status, $verification, $user, $validated, $recordOnly) {
             $locked = Order::packageOnly()->where('uuid', $record->uuid)->lockForUpdate()->firstOrFail();
+            if (! in_array($locked->status, ['pending', 'partially_paid'], true)) {
+                throw ValidationException::withMessages(['order' => 'Pesanan tidak lagi dalam status pembayaran aktif.']);
+            }
+            if ($locked->cancellationRequests()->where('status', 'pending')->exists()) {
+                throw ValidationException::withMessages(['order' => 'Pembayaran ditangguhkan selama permintaan pembatalan ditinjau.']);
+            }
             $lockedRemaining = (float) $locked->remaining_amount_value;
             if ($amount - $lockedRemaining > 0.01) {
                 throw ValidationException::withMessages(['amount' => 'Nominal melebihi sisa pembayaran.']);
@@ -1049,6 +1063,12 @@ class OrderController extends Controller
         return DB::transaction(function () use ($order, $payment, $note) {
             $lockedOrder = Order::packageOnly()->where('uuid', $order->uuid)->lockForUpdate()->firstOrFail();
             $lockedPayment = Payment::where('uuid', $payment->uuid)->where('order_uuid', $lockedOrder->uuid)->lockForUpdate()->firstOrFail();
+            if (! in_array($lockedOrder->status, ['pending', 'partially_paid'], true)) {
+                throw ValidationException::withMessages(['order' => 'Pesanan tidak lagi dapat menerima pembayaran.']);
+            }
+            if ($lockedOrder->cancellationRequests()->where('status', 'pending')->exists()) {
+                throw ValidationException::withMessages(['order' => 'Pembayaran ditangguhkan selama permintaan pembatalan ditinjau.']);
+            }
             if ($lockedOrder->status === 'pending' && $lockedOrder->expired_at?->isPast()) {
                 throw ValidationException::withMessages(['order' => __('flash.order_expired_cannot_process')]);
             }

@@ -934,7 +934,7 @@ $promos = ($package->promos ?? collect())->map(function ($promo) {
 
     .package-checkout {
         padding-bottom: 40px;
-        max-width: 1520px;
+        max-width: 100%;
         margin: 0 auto;
     }
 

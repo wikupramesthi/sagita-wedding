@@ -22,7 +22,20 @@
   $trendMax = max(1, collect($summary['dailyTrend'] ?? [])->max(fn($d)=>max($d['answers'],$d['feedback'],$d['noMatch'])));
 @endphp
 
-<div class="card shadow-sm border-0 mb-4"><div class="card-body"><div class="sita-hero"><div class="sita-hero-icon"><i class="bi bi-robot"></i></div><div class="flex-grow-1"><h5 class="mb-1">Ringkasan Sita</h5><p class="text-muted small mb-0">Jendela {{ $summary['window']['events'] }} dari maks {{ $summary['window']['maxEvents'] }}. Dibuat {{ $formatTime($summary['generatedAt']) }}. Retensi {{ config('sita.analytics.retention_days') }} hari / maks {{ number_format(config('sita.analytics.max_rows')) }} baris. Cache 30s.</p></div></div></div></div>
+<section class="analytics-hero analytics-hero--sita mb-4" aria-labelledby="sita-analytics-title">
+  <div class="analytics-hero__copy">
+    <p class="analytics-hero__eyebrow"><i class="bi bi-activity me-2" aria-hidden="true"></i>Analitik percakapan</p>
+    <h1 id="sita-analytics-title">Ringkasan Sita</h1>
+    <p class="analytics-hero__subtitle">Pantau kualitas jawaban, masukan pengguna, dan performa asisten.</p>
+    <span class="analytics-hero__meta"><i class="bi bi-clock-history" aria-hidden="true"></i>{{ $summary['window']['events'] }} dari maks {{ $summary['window']['maxEvents'] }} peristiwa <span aria-hidden="true">·</span> {{ $formatTime($summary['generatedAt']) }}</span>
+  </div>
+  <div class="analytics-hero__aside">
+    <span class="analytics-hero__aside-label">Retensi data</span>
+    <strong>{{ config('sita.analytics.retention_days') }} hari</strong>
+    <span>Maks {{ number_format(config('sita.analytics.max_rows')) }} baris · cache 30 dtk</span>
+  </div>
+  <div class="analytics-hero__decoration" aria-hidden="true"><i class="bi bi-robot"></i></div>
+</section>
 
 <div class="card shadow-sm border-0 mb-4 sita-filter-card"><div class="card-body">
   <form method="GET" class="row g-3 align-items-end sita-filter-grid">

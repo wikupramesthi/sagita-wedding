@@ -33,7 +33,7 @@ class CustomPackageOfferFeatureTest extends TestCase
     {
         parent::setUp();
 
-        foreach (['user', 'admin', 'super-admin'] as $roleName) {
+        foreach (['user', 'admin', 'super-admin', 'vendor'] as $roleName) {
             Role::findOrCreate($roleName, 'web');
         }
 
@@ -41,7 +41,7 @@ class CustomPackageOfferFeatureTest extends TestCase
         Cache::flush();
 
         $adminRole = Role::findByName('admin', 'web');
-        foreach (['package.index', 'package.store', 'package.update', 'package.member', 'orders.index', 'orders.show', 'orders.approve'] as $permission) {
+        foreach (['package.index', 'package.store', 'package.update', 'package.member', 'dashboard.index', 'orders.index', 'orders.show', 'orders.approve'] as $permission) {
             $adminRole->givePermissionTo(Permission::firstOrCreate([
                 'name' => $permission,
                 'guard_name' => 'web',
@@ -475,6 +475,151 @@ class CustomPackageOfferFeatureTest extends TestCase
             ->assertSee('Penawaran tersedia')
             ->assertSee('Paket Acara dari Permintaan')
             ->assertDontSee('Catatan internal yang tidak ditampilkan');
+    }
+
+    public function test_customer_can_reopen_a_closed_request_and_continue_a_public_conversation(): void
+    {
+        Notification::fake();
+
+        $packageRequest = CustomPackageOfferRequest::create([
+            'user_uuid' => $this->member->uuid,
+            'request_details' => 'Kami membutuhkan dekorasi dan koordinator acara.',
+            'status' => 'submitted',
+            'review_due_at' => now()->subHours(2),
+        ]);
+
+        $this->actingAs($this->otherMember)
+            ->post(route('package-offer-requests.messages.store', $packageRequest->uuid), [
+                'message' => 'Saya mencoba mengirim pesan ke permintaan orang lain.',
+            ])
+            ->assertNotFound();
+        $this->assertDatabaseCount('custom_package_offer_request_messages', 0);
+
+        $this->actingAs($this->admin)
+            ->post(route('package-offer-requests.status', $packageRequest->uuid), [
+                'status' => 'closed',
+                'admin_note' => 'Catatan internal.',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($this->member)
+            ->post(route('package-offer-requests.messages.store', $packageRequest->uuid), [
+                'message' => 'Saya ingin melanjutkan diskusi tentang tanggal acara.',
+            ])
+            ->assertRedirect(route('package-offer-requests.show', $packageRequest->uuid));
+
+        $packageRequest->refresh();
+        $this->assertSame('submitted', $packageRequest->status);
+        $this->assertTrue($packageRequest->review_due_at->isFuture());
+        $this->assertNull($packageRequest->sla_notified_at);
+        $this->assertDatabaseHas('custom_package_offer_request_messages', [
+            'request_uuid' => $packageRequest->uuid,
+            'actor_uuid' => $this->member->uuid,
+            'body' => 'Saya ingin melanjutkan diskusi tentang tanggal acara.',
+        ]);
+        Notification::assertSentTo($this->admin, CustomPackageRequestNotification::class);
+
+        $this->actingAs($this->admin)
+            ->post(route('package-offer-requests.messages.store', $packageRequest->uuid), [
+                'message' => 'Baik, tim kami akan membantu meninjau kembali permintaan Anda.',
+            ])
+            ->assertRedirect(route('package-offer-requests.show', $packageRequest->uuid));
+
+        $this->assertSame('in_review', $packageRequest->fresh()->status);
+        $this->actingAs($this->member)
+            ->get(route('package-offer-requests.show', $packageRequest->uuid))
+            ->assertOk()
+            ->assertSee('Percakapan')
+            ->assertSee('Saya ingin melanjutkan diskusi tentang tanggal acara.')
+            ->assertSee('Baik, tim kami akan membantu meninjau kembali permintaan Anda.')
+            ->assertDontSee('Catatan internal.');
+        Notification::assertSentTo($this->member, CustomPackageRequestNotification::class);
+    }
+
+    public function test_unread_messages_are_scoped_to_each_user_and_cleared_when_thread_is_opened(): void
+    {
+        $packageRequest = CustomPackageOfferRequest::create([
+            'user_uuid' => $this->member->uuid,
+            'request_details' => 'Kami membutuhkan dekorasi dan koordinator acara.',
+            'status' => 'in_review',
+            'review_due_at' => now()->addHours(12),
+        ]);
+        $adminMessage = $packageRequest->messages()->create([
+            'actor_uuid' => $this->admin->uuid,
+            'body' => 'Kami sedang meninjau kebutuhan acara Anda.',
+        ]);
+
+        $this->actingAs($this->member)
+            ->get(route('package-offer-requests.mine'))
+            ->assertOk()
+            ->assertSee('1 pesan baru');
+
+        $this->get(route('package-offer-requests.show', $packageRequest->uuid))
+            ->assertOk()
+            ->assertSee($adminMessage->body);
+
+        $this->assertDatabaseHas('custom_package_offer_request_message_reads', [
+            'message_uuid' => $adminMessage->uuid,
+            'user_uuid' => $this->member->uuid,
+        ]);
+
+        $this->get(route('package-offer-requests.mine'))
+            ->assertOk()
+            ->assertDontSee('1 pesan baru');
+
+        $customerMessage = $packageRequest->messages()->create([
+            'actor_uuid' => $this->member->uuid,
+            'body' => 'Terima kasih, saya menunggu kabar selanjutnya.',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('package-offer-requests.index'))
+            ->assertOk()
+            ->assertSee('1 pesan baru');
+
+        $this->get(route('package-offer-requests.show', $packageRequest->uuid))
+            ->assertOk()
+            ->assertSee($customerMessage->body);
+
+        $this->assertDatabaseHas('custom_package_offer_request_message_reads', [
+            'message_uuid' => $customerMessage->uuid,
+            'user_uuid' => $this->admin->uuid,
+        ]);
+
+        $this->get(route('package-offer-requests.index'))
+            ->assertOk()
+            ->assertDontSee('1 pesan baru');
+    }
+
+    public function test_admin_dashboard_prioritizes_requests_due_soon_or_overdue(): void
+    {
+        $overdue = CustomPackageOfferRequest::create([
+            'user_uuid' => $this->member->uuid,
+            'request_details' => 'Permintaan yang sudah melewati SLA tinjauan.',
+            'status' => 'submitted',
+            'review_due_at' => now()->subHour(),
+        ]);
+        $dueSoon = CustomPackageOfferRequest::create([
+            'user_uuid' => $this->otherMember->uuid,
+            'request_details' => 'Permintaan yang segera jatuh tempo untuk ditinjau.',
+            'status' => 'in_review',
+            'assigned_admin_uuid' => $this->admin->uuid,
+            'review_due_at' => now()->addHours(3),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('dashboard.index'))
+            ->assertOk()
+            ->assertSee('Antrean tindak lanjut SLA')
+            ->assertSee('Terlambat')
+            ->assertSee('Segera jatuh tempo')
+            ->assertSee($this->admin->name)
+            ->assertViewHas('packageOfferDashboard', function (array $dashboard) use ($overdue, $dueSoon): bool {
+                return $dashboard['overdueRequestCount'] === 1
+                    && $dashboard['dueSoonRequestCount'] === 1
+                    && $dashboard['priorityRequestCount'] === 2
+                    && $dashboard['slaRequests']->pluck('uuid')->all() === [$overdue->uuid, $dueSoon->uuid];
+            });
     }
 
     public function test_expiry_reminder_is_sent_once_during_the_day_before_window(): void

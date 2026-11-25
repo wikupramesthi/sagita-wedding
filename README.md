@@ -3,7 +3,7 @@
 Panduan lengkap untuk developer baru: arsitektur, instalasi, konfigurasi, alur kerja, dan perintah yang sering dipakai.
 
 - **Backend:** Laravel 13 · PHP 8.3 · MySQL · Blade · Tailwind 3 · Vite
-- **Frontend:** Astro 5 · EJS · TypeScript · Tailwind 4 · esbuild
+- **Frontend:** Astro 7 · TypeScript · Tailwind 4 · @astrojs/node
 - **Port:** `3000` (website publik) · `8000` (panel admin & API)
 
 ## Daftar Isi
@@ -30,7 +30,7 @@ Proyek ini adalah **monorepo** dengan dua aplikasi yang berjalan terpisah:
 | Folder | Peran                            | Teknologi                                       | Port default |
 | ------ | -------------------------------- | ----------------------------------------------- | ------------ |
 | `be/`  | Backend + panel admin + JSON API | Laravel 13 (PHP 8.3), Blade, Tailwind 3, Vite   | `8000`       |
-| `fe/`  | Website publik (front-end)       | Astro 5, EJS, TypeScript, Tailwind 4, esbuild | `3000`       |
+| `fe/`  | Website publik (front-end)       | Astro 7, TypeScript, Tailwind 4, @astrojs/node | `3000`       |
 
 Alurnya:
 
@@ -65,10 +65,9 @@ Poin penting:
 
 ### Frontend (`fe/`)
 
-- Node.js **`>=22`** (wajib), TypeScript, Astro 5, EJS
-- Tailwind CSS 4, esbuild (bundle JS browser)
-- Helmet, `express-rate-limit`, `sanitize-html`, `compression`, `html-minifier-terser`
-- Vitest + Supertest (test), Biome (lint/format)
+- Node.js **`>=22`** (wajib), TypeScript, Astro 7, `@astrojs/node`
+- Tailwind CSS 4, `sanitize-html`, CSP nonce + rate limit di `src/middleware.ts`
+- Vitest (test), Biome (lint/format), Astro SSR adapter
 
 ---
 
@@ -96,23 +95,22 @@ sagita-wedding/
 │   ├── routes/{web,api,auth,console}.php
 │   ├── sagita (3).sql               # dump database MariaDB (55 tabel)
 │   └── .env / .env.example
-└── fe/                              # Astro (website publik)
-    ├── server.ts                    # bootstrap tipis
+└── fe/                              # Astro SSR (website publik)
+    ├── astro.config.mjs
     ├── src/
-    │   ├── app.ts                   # rakit middleware + router
-    │   ├── config/                  # env tervalidasi, locale (en|id)
-    │   ├── middleware/              # security, i18n, locals, minify, errors, analytics
-    │   ├── routes/                  # pages.ts, api.ts, sitemap.ts, health.ts
-    │   ├── services/                # apiClient.ts, batchService.ts, service per resource
-    │   ├── data/                    # data statis site/nav/kontak + translasi
-    │   ├── browser/                 # TS browser → bundle ke public/js
-    │   └── utils/                   # validate.ts, sanitize.ts
-    ├── views/
-    │   ├── pages/                   # 14 halaman EJS
-    │   └── partials/                # head, navbar, footer, WA float, booking modal
-    ├── public/css/ public/js/       # aset hasil build (disimpan di repo)
+    │   ├── middleware.ts            # nonce CSP, origin check, rate limit, i18n, minify
+    │   ├── pages/                   # rute halaman + src/pages/api/*
+    │   ├── components/ layouts/     # UI reusable
+    │   ├── lib/
+    │   │   ├── config/              # env tervalidasi, locale (en|id)
+    │   │   ├── services/            # apiClient, batchService, sita*, siteIdentity
+    │   │   ├── data/                # data statis site/nav/kontak + translasi
+    │   │   ├── browser/             # module interaksi browser
+    │   │   └── utils/               # validate.ts, sanitize.ts, logger.ts
+    │   └── styles/                  # sumber Tailwind
+    ├── public/css/                  # output.css hasil build
     ├── tests/
-    ├── scripts/build-js.mjs
+    ├── scripts/check-assets.mjs
     └── .env.example
 ```
 
@@ -284,15 +282,14 @@ Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Role`, `Menu`, `Route`, 
 
 ### Website publik (`fe/`)
 
-- Beranda (testimoni, kelas, paket, event), halaman Tentang dengan statistik live
-- Katalog & detail kelas, jadwal mingguan dengan filter tanggal/level/waktu/venue
-- Paket keanggotaan & detail paket, daftar vendor
+- Beranda (testimoni, venue, paket, artikel), halaman Tentang dengan statistik live
+- Katalog venue & vendor wedding, katalog/detail paket pernikahan
 - Blog/artikel + kategori + artikel terkait, event/workshop
 - Galeri (dari banner/media admin), halaman statis via CMS (`/pages/:slug`)
-- Form kontak + captcha & FAQ, halaman "Art of Living"
-- i18n Indonesia/Inggris melalui `?lang=en|id` (cookie)
+- Form konsultasi + captcha & FAQ
+- i18n Indonesia/Inggris melalui `?lang=id` (cookie)
 - Modal booking & tombol WhatsApp mengambang
-- Sitemap dinamis, robots.txt, `healthz`/`readyz`
+- SEO: canonical/hreflang, JSON-LD (Organization, WebSite, LocalBusiness, WebPage, BlogPosting, BreadcrumbList), OG 1200×630, sitemap dengan `lastmod` dari backend, robots.txt, analytics setelah consent, `healthz`/`readyz`
 - Login Google (session bersama dengan backend)
 
 > [!NOTE]
@@ -352,7 +349,7 @@ POST /api/analytics/visits
 
 `GET /api/faqs` menerima `?kategori=<nama kategori>` dan mengembalikan `data` berisi `uuid`, `kategori`, `question`, `answer` serta `meta` berisi `total`, `kategori`, dan daftar `categories`.
 
-Endpoint internal Astro (dipanggil browser) ada di `fe/src/routes/api.ts`, antara lain `/api/contact/captcha`, `/api/contact`, dan passthrough `/api/batch/{page}`. Endpoint lama `/api/classes`, `/api/class-schedules`, dan `/api/batch/schedules` sengaja membalas `410 Gone`.
+Endpoint internal Astro (dipanggil browser) ada di `fe/src/pages/api/`, antara lain `/api/contact/captcha`, `/api/contact`, dan passthrough `/api/batch/{page}`. Endpoint lama `/api/classes`, `/api/class-schedules`, dan `/api/batch/schedules` sengaja membalas `410 Gone`.
 
 Error API memakai amplop konsisten: `{ "success": false, "status": "error", "message": "...", "errors": { ... } }` (field `errors` hanya untuk 422). `POST /api/contact` punya honeypot `website`; `POST /api/analytics/visits` dibatasi 30/menit/IP + 10/menit/visitor dan deduplikasi per menit.
 
@@ -365,20 +362,22 @@ Endpoint sesi untuk frontend: `GET /auth/me`, `POST /auth/me/logout`, `GET /auth
 ### Menambah halaman publik
 
 1. Tambah data di `BatchController::show()` (`be/app/Http/Controllers/Api/BatchController.php`) bila halaman butuh data baru.
-2. Tambah route di `fe/src/routes/pages.ts` yang memanggil `getPageBatch('nama-page')`.
-3. Buat file EJS di `fe/views/pages/`, gunakan partial yang sudah ada.
-4. Update daftar URL statis di `fe/src/routes/sitemap.ts` bila perlu.
-5. Jalankan `npm run typecheck && npm run lint && npm test` di `fe/`.
+2. Buat file Astro di `fe/src/pages/` yang memanggil `getPageBatch('nama-page')`.
+3. Pakai component/layout yang sudah ada di `fe/src/components/` dan `fe/src/layouts/`.
+4. Update daftar URL statis di `fe/src/pages/sitemap.xml.ts` bila perlu, dan beri `breadcrumbs` jika halaman punya breadcrumb terlihat.
+5. Sediakan `ogImage` 1200×630 bila gambar default tidak relevan.
+6. Jalankan `npm run typecheck && npm run lint && npm test` di `fe/`.
 
 ### Aturan penting di `fe/`
 
-- **Tidak ada URL/nomor hardcode** di views, `public/js`, dan services — pakai `contactLinks` / `env` / `site`.
-- Blok UI yang dipakai lebih dari satu halaman wajib jadi **partial**. `footer` sudah memuat `/js/main.js` sekali — jangan duplikasi `<script>`.
-- Semua input (slug, query, body POST) wajib lewat `src/utils/validate.ts`.
-- HTML dari CMS wajib melewati `sanitizeRichHtml()` sebelum dicetak dengan `<%- ... %>`.
-- Query ke backend wajib lewat `buildQuery(params, whitelist)` di `src/services/apiClient.ts`.
+- **Tidak ada URL/nomor hardcode** di `.astro`, module browser, dan services — pakai `contactLinks` / `env` / `site`.
+- Blok UI yang dipakai lebih dari satu halaman wajib jadi component/layout.
+- Semua input (slug, query, body POST) wajib lewat `src/lib/utils/validate.ts`.
+- HTML dari CMS wajib melewati `sanitizeRichHtml()` sebelum `set:html`; atribut `style` tidak diizinkan.
+- Inline script wajib memakai nonce dari `Astro.locals.nonce`; GA ID dan JSON inline sudah divalidasi/di-escape.
+- Query ke backend wajib lewat `buildQuery(params, whitelist)` di `src/lib/services/apiClient.ts`.
 - Halaman publik wajib mengambil data lewat `getPageBatch(page)`, bukan memanggil service per resource satu per satu. `getPageBatch` sudah menangani cache ETag + single-flight; jangan membungkusnya dengan cache TTL karena bisa membuat konten admin basi.
-- Tambah bahasa baru: update `src/config/locales.ts` **dan** `src/data/translations.ts`.
+- Tambah bahasa baru: update `src/lib/config/locales.ts` **dan** `src/lib/data/translations.ts`.
 
 ### Aturan penting di `be/`
 
@@ -396,17 +395,19 @@ Endpoint sesi untuk frontend: `GET /auth/me`, `POST /auth/me/logout`, `GET /auth
 ### Frontend (`fe/`)
 
 ```bash
-npm run dev          # build JS + tsx watch server (:3000)
-npm run dev:all      # watch CSS + watch JS + watch server sekaligus
+npm run dev          # Astro dev server (:3000)
 npm run build:css    # Tailwind -> public/css/output.css
 npm run watch:css    # watch CSS
-npm run build:js     # esbuild -> public/js/main.js
-npm run typecheck    # tsc server + browser
+npm run typecheck    # tsc
 npm run lint         # Biome check
 npm run lint:fix     # Biome check + perbaikan otomatis
-npm test             # Vitest + Supertest (test mock service, tidak butuh MySQL)
-npm run build        # lint + typecheck + build CSS + build JS
-npm start            # build JS + jalankan server (produksi)
+npm test             # Vitest (service dimock, tidak butuh MySQL)
+npm run test:server  # build + integration test server Astro asli
+npm run test:a11y    # Vitest a11y
+npm run test:golden  # evaluasi query golden Sita
+npm run build        # lint + typecheck + build CSS + Astro build
+npm run perf:assets  # build + cek budget aset di dist/client
+npm start            # NODE_ENV=production node dist/server/entry.mjs
 ```
 
 ### Backend (`be/`)
@@ -434,7 +435,7 @@ npm run dev                   # aset Vite panel admin (atau: npm run build)
 | Login Google gagal / `redirect_uri_mismatch` | `GOOGLE_REDIRECT_URL` tidak persis sama dengan Authorized Redirect URI di Google Console. Perhatikan `localhost` vs `127.0.0.1`. |
 | Gambar upload tidak tampil                   | Jalankan `php artisan storage:link` dan pastikan `FILESYSTEM_DISK=public` / izin folder `storage`.                               |
 | Tabel tidak ada setelah import SQL           | Pastikan database bernama `sagita` dan `DB_DATABASE` di `.env` sesuai, lalu `php artisan migrate`.                               |
-| CSS/JS tidak berubah setelah deploy          | Naikkan `ASSET_V` di `fe/.env`, lalu `npm run build:css && npm run build:js`.                                                    |
+| CSS/JS tidak berubah setelah deploy          | Naikkan `ASSET_V` di `fe/.env`, lalu `npm run build` dan restart proses Astro.                                                    |
 | Error `Class "PDO" not found` / ekstensi PHP | Aktifkan ekstensi PHP yang dibutuhkan di `php.ini` XAMPP, restart Apache.                                                        |
 | Port 3000/8000 sudah dipakai                 | Ubah `PORT` di `fe/.env` atau jalankan `php artisan serve --port=8080` (sesuaikan `BACKEND_URL`).                                    |
 
@@ -442,7 +443,7 @@ npm run dev                   # aset Vite panel admin (atau: npm run build)
 
 ## 12. Catatan untuk Developer Baru
 
-- Mulai dari `be/bootstrap/app.php` untuk memahami middleware, lalu `be/routes/api.php` dan `fe/src/routes/pages.ts` untuk memahami alur data.
+- Mulai dari `be/bootstrap/app.php` untuk memahami middleware, lalu `be/routes/api.php` dan `fe/src/pages/` untuk memahami alur data.
 - Perubahan konten di panel admin langsung tampil di website publik (batch API tanpa cache konten).
 - `fe/README.md` berisi aturan kerapian yang lebih rinci khusus front-end; `be/README.md` masih berisi template default Laravel.
 - Seluruh file `.env` bersifat lokal dan tidak boleh masuk Git.

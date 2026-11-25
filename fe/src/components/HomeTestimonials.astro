@@ -1,0 +1,154 @@
+---
+import type { TestimonialItem } from "../lib/types/index.js";
+
+interface Props {
+	testimonials: TestimonialItem[];
+	eyebrow: string;
+	title: string;
+	titleItalic: string;
+	previousLabel: string;
+	nextLabel: string;
+	positionLabel: string;
+}
+
+const nonce = Astro.locals.nonce;
+const {
+	testimonials,
+	eyebrow,
+	title,
+	titleItalic,
+	previousLabel,
+	nextLabel,
+	positionLabel,
+} = Astro.props;
+
+const photoOf = (testimonial: TestimonialItem): string => {
+	const foto = String(testimonial.foto || "");
+	return foto && !/\/images\/default\.png(?:[?#]|$)/i.test(foto) ? foto : "";
+};
+
+const initialsOf = (testimonial: TestimonialItem): string =>
+	String(testimonial.nama || "?")
+		.trim()
+		.split(/\s+/)
+		.slice(0, 2)
+		.map((part) => part.charAt(0))
+		.join("")
+		.toUpperCase();
+
+const dataJson = JSON.stringify(
+	testimonials.map((testimonial) => ({
+		nama: testimonial.nama || "",
+		jabatan: testimonial.jabatan || "",
+		isi_testimoni: testimonial.isi_testimoni || "",
+	})),
+).replace(/</g, "\\u003c");
+---
+
+<section class="home-testimonials-section py-20 sm:py-24">
+	<div class="site-container">
+		<div class="home-testimonials-heading reveal">
+			<div>
+				<p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3">
+					{eyebrow}
+				</p>
+				<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-sage-900">
+					{title} <span class="italic">{titleItalic}</span>
+				</h2>
+			</div>
+		</div>
+
+		<div
+			class="home-testimonial-panels reveal"
+			data-home-testimonial-panels
+			role="group"
+			aria-label={eyebrow}
+		>
+			{
+				testimonials.map((testimonial, i) => {
+					const photo = photoOf(testimonial);
+					return (
+						<button
+							type="button"
+							class:list={[
+								"home-testimonial-panel",
+								i === 0 ? "is-active" : "",
+							]}
+							data-home-testimonial-index={i}
+							aria-label={testimonial.nama || positionLabel}
+							aria-pressed={i === 0 ? "true" : "false"}
+						>
+							<span class="home-testimonial-panel__photo" aria-hidden="true">
+								<span class="home-testimonial-panel__fallback">
+									{initialsOf(testimonial)}
+								</span>
+								{photo && (
+									<img
+										src={photo}
+										alt=""
+										loading="lazy"
+										decoding="async"
+										class="home-testimonial-panel__image"
+										data-img-error="remove"
+									/>
+								)}
+							</span>
+							<span class="home-testimonial-panel__shade" aria-hidden="true"></span>
+							<span class="home-testimonial-panel__caption">
+								<span class="home-testimonial-panel__name">
+									{testimonial.nama}
+								</span>
+								{testimonial.jabatan && (
+									<span class="home-testimonial-panel__role">
+										{testimonial.jabatan}
+									</span>
+								)}
+							</span>
+						</button>
+					);
+				})
+			}
+		</div>
+
+		<div class="home-testimonial-details reveal">
+			<div class="home-testimonial-quote">
+				<span class="home-testimonial-quote__mark" aria-hidden="true">“</span>
+				<blockquote data-home-testimonial-quote aria-live="polite">
+					{testimonials[0].isi_testimoni}
+				</blockquote>
+			</div>
+			<div class="home-testimonial-controls">
+				<div class="home-testimonial-navigation">
+					<span class="home-testimonial-count">
+						<span data-home-testimonial-current>01</span>
+						<span class="home-testimonial-count__divider"></span>
+						{String(testimonials.length).padStart(2, "0")}
+					</span>
+					<button
+						type="button"
+						data-home-testimonial-action="previous"
+						aria-label={previousLabel}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
+					</button>
+					<button
+						type="button"
+						data-home-testimonial-action="next"
+						aria-label={nextLabel}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<script
+			id="homeTestimonialsData"
+			type="application/json"
+			is:inline
+			nonce={nonce}
+			set:html={dataJson}
+		></script>
+
+	</div>
+</section>

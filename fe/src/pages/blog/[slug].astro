@@ -1,4 +1,5 @@
 ---
+import ExploreLinks from "../../components/ExploreLinks.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import type { ArticleView, VenueLink } from "../../lib/pageData.js";
 import {
@@ -69,6 +70,13 @@ const author = post ? firstString(post.author) : "";
 	heroNav={isNotFound || undefined}
 	ogType={post ? "article" : undefined}
 	ogImage={articleImage}
+	breadcrumbs={post
+		? [
+				{ name: t.nav?.home || "Home", url: "/" },
+				{ name: t.nav?.articles || "Blog", url: "/blog" },
+				{ name: post.title },
+			]
+		: undefined}
 	articleMeta={post
 		? {
 				headline: post.title,
@@ -314,6 +322,15 @@ const author = post ? firstString(post.author) : "";
 					</section>
 				)}
 			</div>
+			<ExploreLinks
+				heading={t.nav?.articles || "Articles"}
+				links={[
+					{ href: "/packages", label: String(t.nav?.packages || "Wedding Packages") },
+					{ href: "/venues", label: String(t.nav?.venues || "Venues") },
+					{ href: "/vendors", label: String(t.nav?.vendors || "Vendors") },
+					{ href: "/faq", label: String(t.nav?.faq || "FAQs") },
+				]}
+			/>
 		</main>
 	) : (
 		<main class="site-container py-20 text-center">

@@ -15,6 +15,7 @@ Schedule::command('package-offers:remind-expiry')->hourly();
 Schedule::command('package-offers:remind-response')->everyThirtyMinutes();
 Schedule::command('package-offer-requests:remind-sla')->everyThirtyMinutes();
 Schedule::command('orders:remind-sla')->everyThirtyMinutes();
+Schedule::command('orders:remind-pending-expiry')->everyThirtyMinutes()->withoutOverlapping();
 Schedule::command('orders:remind-balance-due')->dailyAt('08:00');
 Schedule::command('checkouts:remind-abandoned')->everyThirtyMinutes()->withoutOverlapping();
 Schedule::command('checklists:remind-due')->dailyAt('08:15');

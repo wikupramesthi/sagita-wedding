@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Package\PackageAddon;
 use App\Models\Package\PackageBlackoutDate;
 use App\Models\Payment\EventDateReservation;
@@ -14,7 +15,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class OrderChangeRequestController extends Controller
 {
@@ -44,7 +47,7 @@ class OrderChangeRequestController extends Controller
             'customer_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        DB::transaction(function () use ($validated, $order): void {
+        $change = DB::transaction(function () use ($validated, $order): OrderChangeRequest {
             $record = Order::packageOnly()->where('uuid', $order)->lockForUpdate()->firstOrFail();
             abort_unless($record->user_uuid === Auth::user()->uuid, 403);
             abort_if(
@@ -54,6 +57,12 @@ class OrderChangeRequestController extends Controller
                     || ($record->status === 'pending' && $record->expired_at?->isPast()),
                 403
             );
+
+            if ($record->cancellationRequests()->where('status', 'pending')->exists()) {
+                throw ValidationException::withMessages([
+                    'change_type' => 'Perubahan pesanan ditangguhkan selama permintaan pembatalan ditinjau.',
+                ]);
+            }
 
             if (OrderChangeRequest::where('order_uuid', $record->uuid)->where('status', 'pending')->exists()) {
                 throw ValidationException::withMessages([
@@ -89,7 +98,7 @@ class OrderChangeRequestController extends Controller
                 $requestedPrice = (int) $addon->final_price * $quantity;
             }
 
-            OrderChangeRequest::create([
+            return OrderChangeRequest::create([
                 'order_uuid' => $record->uuid,
                 'requested_by_uuid' => Auth::user()->uuid,
                 'change_type' => $validated['change_type'],
@@ -100,6 +109,15 @@ class OrderChangeRequestController extends Controller
                 'customer_note' => $validated['customer_note'] ?? null,
             ]);
         });
+
+        $this->logOrderAction($change->order, 'change_request_submitted', [], [
+            'change_request_uuid' => $change->uuid,
+            'change_type' => $change->change_type,
+            'requested_event_date' => $change->requested_event_date?->toDateString(),
+            'addon_uuid' => $change->addon_uuid,
+            'addon_quantity' => $change->addon_quantity,
+            'requested_price' => $change->requested_price,
+        ]);
 
         return back()->with('success', 'Permintaan perubahan telah dikirim dan menunggu persetujuan admin.');
     }
@@ -113,7 +131,7 @@ class OrderChangeRequestController extends Controller
             'admin_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        DB::transaction(function () use ($changeRequest, $validated, $reservations): void {
+        $reviewResult = DB::transaction(function () use ($changeRequest, $validated, $reservations): array {
             $change = OrderChangeRequest::where('uuid', $changeRequest)->lockForUpdate()->firstOrFail();
             if ($change->status !== 'pending') {
                 throw ValidationException::withMessages(['decision' => 'Permintaan ini sudah ditinjau.']);
@@ -123,8 +141,16 @@ class OrderChangeRequestController extends Controller
             if (! in_array($order->status, ['pending', 'partially_paid', 'paid'], true)) {
                 throw ValidationException::withMessages(['decision' => 'Pesanan ini tidak lagi aktif.']);
             }
+
+            $oldEventDate = $order->event_date?->toDateString();
+            $oldTotalAmount = (float) $order->full_amount;
             if ($order->status === 'pending' && $order->expired_at?->isPast()) {
                 throw ValidationException::withMessages(['decision' => 'Pesanan ini sudah kedaluwarsa.']);
+            }
+            if ($order->cancellationRequests()->where('status', 'pending')->exists()) {
+                throw ValidationException::withMessages([
+                    'decision' => 'Perubahan pesanan ditangguhkan selama permintaan pembatalan ditinjau.',
+                ]);
             }
 
             if ($validated['decision'] === 'approved') {
@@ -141,7 +167,33 @@ class OrderChangeRequestController extends Controller
                 'reviewed_by_uuid' => Auth::user()->uuid,
                 'reviewed_at' => now(),
             ]);
+
+            return [
+                'change' => $change->fresh(),
+                'order' => $order->fresh(),
+                'old_event_date' => $oldEventDate,
+                'old_total_amount' => $oldTotalAmount,
+            ];
         });
+
+        $change = $reviewResult['change'];
+        $order = $reviewResult['order'];
+        $event = match (true) {
+            $validated['decision'] === 'rejected' => 'change_request_rejected',
+            $change->change_type === 'event_date' => 'event_date_rescheduled',
+            default => 'addon_change_approved',
+        };
+        $this->logOrderAction($order, $event, [
+            'event_date' => $reviewResult['old_event_date'],
+            'total_amount' => $reviewResult['old_total_amount'],
+        ], [
+            'change_request_uuid' => $change->uuid,
+            'change_type' => $change->change_type,
+            'event_date' => $order->event_date?->toDateString(),
+            'total_amount' => (float) $order->full_amount,
+            'requested_price' => $change->requested_price,
+            'decision' => $validated['decision'],
+        ]);
 
         return back()->with('success', 'Permintaan perubahan berhasil ditinjau.');
     }
@@ -263,5 +315,32 @@ class OrderChangeRequestController extends Controller
         $snapshot['full_amount'] = $newTotal;
         $order->promo_snapshot = $snapshot;
         $order->save();
+    }
+
+    private function logOrderAction(Order $order, string $event, array $oldValues = [], array $newValues = []): void
+    {
+        $user = Auth::user();
+
+        try {
+            AuditLog::create([
+                'user_uuid' => $user?->uuid,
+                'user_name' => $user?->name ?? 'Sistem',
+                'user_email' => $user?->email,
+                'event' => $event,
+                'auditable_type' => Order::class,
+                'auditable_id' => (string) $order->uuid,
+                'auditable_label' => $order->order_number,
+                'old_values' => $oldValues,
+                'new_values' => $newValues,
+                'url' => request()->fullUrl(),
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+        } catch (Throwable $exception) {
+            Log::warning('Order change audit log failed: '.$exception->getMessage(), [
+                'order' => $order->uuid,
+                'event' => $event,
+            ]);
+        }
     }
 }

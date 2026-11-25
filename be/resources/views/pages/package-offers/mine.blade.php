@@ -3,17 +3,19 @@
 @section('title', 'Penawaran Saya')
 
 @section('content')
-<div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <div>
-            <h3 class="fw-bold mb-1">Penawaran Saya</h3>
-            <p class="text-muted mb-0">Penawaran khusus yang ditujukan untuk Anda.</p>
+<div class="container-fluid py-3 offer-module-page">
+    <section class="analytics-hero mb-4" aria-labelledby="my-offers-title">
+        <div class="analytics-hero__copy">
+            <p class="analytics-hero__eyebrow"><i class="bi bi-file-earmark-text me-2" aria-hidden="true"></i>Ruang pelanggan</p>
+            <h1 id="my-offers-title">Penawaran Saya</h1>
+            <p class="analytics-hero__subtitle">Tinjau rincian penawaran privat yang disiapkan khusus untuk Anda.</p>
         </div>
-        <div class="d-flex flex-wrap gap-2">
-            <a href="{{ route('package-offer-requests.mine') }}" class="btn btn-outline-primary">Permintaan Saya</a>
-            <a href="{{ route('package-offer-requests.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Ajukan Paket Khusus</a>
+        <div class="offer-module-actions">
+            <a href="{{ route('package-offer-requests.mine') }}" class="btn btn-light"><i class="bi bi-inboxes me-1" aria-hidden="true"></i>Permintaan Saya</a>
+            <a href="{{ route('package-offer-requests.create') }}" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>Ajukan Paket Khusus</a>
         </div>
-    </div>
+        <div class="analytics-hero__decoration" aria-hidden="true"><i class="bi bi-envelope-paper"></i></div>
+    </section>
 
     <div class="row g-3">
         @forelse ($offers as $offer)
@@ -36,31 +38,31 @@
         };
         @endphp
         <div class="col-12 col-lg-6">
-            <article class="card h-100 shadow-sm">
+            <article class="card h-100 shadow-sm offer-list-card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start gap-3">
                         <div>
                             <span class="badge text-bg-{{ $statusTone }} mb-2">{{ $statusLabel }}</span>
-                            <h5 class="fw-bold">{{ $offer->title }}</h5>
+                            <h2 class="h5 fw-bold offer-list-card__title">{{ $offer->title }}</h2>
                         </div>
-                        <span class="small text-muted">Versi {{ $offer->version }}</span>
+                        <span class="offer-version-badge">Versi {{ $offer->version }}</span>
                     </div>
-                    <p class="text-muted small mb-2">Tanggal acara: {{ $offer->event_date?->translatedFormat('d F Y') ?? 'Belum ditentukan' }}</p>
-                    <p class="h5 fw-bold text-success mb-3">Rp {{ number_format($offer->total_amount, 0, ',', '.') }}</p>
+                    <div class="offer-list-card__meta"><i class="bi bi-calendar-event" aria-hidden="true"></i><span>Tanggal acara: {{ $offer->event_date?->translatedFormat('d F Y') ?? 'Belum ditentukan' }}</span></div>
+                    <p class="offer-list-card__price mb-3">Rp {{ number_format($offer->total_amount, 0, ',', '.') }}</p>
                     @if ($offer->display_status === 'sent')
                     <p class="small text-muted">Berlaku sampai {{ $offer->expires_at?->translatedFormat('d F Y') }}.</p>
                     @endif
-                    <a href="{{ route('package-offers.show', $offer->uuid) }}" class="btn btn-outline-primary">Lihat Penawaran</a>
+                    <a href="{{ route('package-offers.show', $offer->uuid) }}" class="btn btn-primary"><i class="bi bi-arrow-right-circle me-1" aria-hidden="true"></i>Lihat Penawaran</a>
                 </div>
             </article>
         </div>
         @empty
         <div class="col-12">
-            <div class="card card-body text-center py-5">
+            <div class="card card-body text-center py-5 offer-module-empty">
                 <i class="bi bi-file-earmark-text display-5 text-muted mb-3"></i>
                 <h5>Belum ada penawaran khusus</h5>
                 <p class="text-muted">Jika admin menyiapkan penawaran untuk Anda, penawaran akan muncul di sini dan Anda akan menerima notifikasi.</p>
-                <a href="{{ route('package-offer-requests.create') }}" class="btn btn-primary align-self-center">Ajukan Paket Khusus</a>
+                <a href="{{ route('package-offer-requests.create') }}" class="btn btn-primary align-self-center"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Ajukan Paket Khusus</a>
             </div>
         </div>
         @endforelse

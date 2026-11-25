@@ -103,13 +103,6 @@ const endpointRoutes: Record<string, RouteHandler> = {
 	"/sitemap.xml": Sitemap.GET as RouteHandler,
 };
 
-const redirectRoutes: Record<string, string> = {
-	"/classes": "/venues",
-	"/schedules": "/venues",
-	"/art-of-living": "/about",
-	"/instructors": "/vendors",
-};
-
 function cookieValue(header: string, name: string): string {
 	for (const part of header.split(";")) {
 		const [key, ...rest] = part.trim().split("=");
@@ -220,16 +213,6 @@ export function createApp(): Server {
 					: json({ success: false, message: "Not found." }, 404);
 			} else if (endpointRoutes[url.pathname]) {
 				response = await endpointRoutes[url.pathname](context);
-			} else if (redirectRoutes[url.pathname]) {
-				response = new Response(null, {
-					status: 301,
-					headers: { Location: redirectRoutes[url.pathname] },
-				});
-			} else if (url.pathname.startsWith("/classes/")) {
-				response = new Response(null, {
-					status: 301,
-					headers: { Location: "/venues" },
-				});
 			} else {
 				let matched:
 					| { pattern: RegExp; component: any; params?: string[] }

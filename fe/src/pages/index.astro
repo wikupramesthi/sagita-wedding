@@ -1,4 +1,5 @@
 ---
+import HomeTestimonials from "../components/HomeTestimonials.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getHomeFaqs } from "../lib/data/faqContent.js";
 import {
@@ -54,25 +55,6 @@ const heroBackground = sliderBanners.length
       radial-gradient(ellipse 52% 48% at 88% 88%, rgba(183, 159, 128, 0.08) 0%, transparent 70%),
       radial-gradient(ellipse 36% 38% at 72% 26%, rgba(250, 248, 244, 0.88) 0%, transparent 74%),
       linear-gradient(135deg, #fffefd 0%, #faf8f5 52%, #f5f2ee 100%)`;
-const testimonialPhoto = (testimonial: TestimonialItem): string => {
-	const foto = String(testimonial.foto || "");
-	return foto && !/\/images\/default\.png(?:[?#]|$)/i.test(foto) ? foto : "";
-};
-const testimonialInitials = (testimonial: TestimonialItem): string =>
-	String(testimonial.nama || "?")
-		.trim()
-		.split(/\s+/)
-		.slice(0, 2)
-		.map((part) => part.charAt(0))
-		.join("")
-		.toUpperCase();
-const testimonialsJson = JSON.stringify(
-	homeTestimonials.map((testimonial) => ({
-		nama: testimonial.nama || "",
-		jabatan: testimonial.jabatan || "",
-		isi_testimoni: testimonial.isi_testimoni || "",
-	})),
-).replace(/</g, "\\u003c");
 ---
 
 <BaseLayout
@@ -102,6 +84,8 @@ const testimonialsJson = JSON.stringify(
 								src={sliderBanners[0].gambar}
 								alt=""
 								aria-hidden="true"
+								width={1920}
+								height={1080}
 								fetchpriority="high"
 								decoding="async"
 								data-home-slide-image
@@ -112,6 +96,9 @@ const testimonialsJson = JSON.stringify(
 								<img
 									alt=""
 									aria-hidden="true"
+									width={1920}
+									height={1080}
+									loading="lazy"
 									decoding="async"
 									data-home-slide-image
 									class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700 motion-reduce:transition-none"
@@ -707,111 +694,15 @@ const testimonialsJson = JSON.stringify(
 
 		{
 			weddingContentReady && homeTestimonials.length > 0 && (
-				<section class="home-testimonials-section py-20 sm:py-24">
-					<div class="site-container">
-						<div class="home-testimonials-heading reveal">
-							<div>
-								<p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3">
-									{t.testimonialsEyebrow}
-								</p>
-								<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-sage-900">
-									{t.testimonialsTitle} <span class="italic">{t.testimonialsTitleItalic}</span>
-								</h2>
-							</div>
-						</div>
-
-						<div
-							class="home-testimonial-panels reveal"
-							data-home-testimonial-panels
-							role="group"
-							aria-label={t.testimonialsEyebrow}
-						>
-							{
-								homeTestimonials.map((testimonial, i) => {
-									const photo = testimonialPhoto(testimonial);
-									return (
-										<button
-											type="button"
-											class:list={[
-												"home-testimonial-panel",
-												i === 0 ? "is-active" : "",
-											]}
-											data-home-testimonial-index={i}
-											aria-label={testimonial.nama || t.testimonialPosition}
-											aria-pressed={i === 0 ? "true" : "false"}
-										>
-											<span class="home-testimonial-panel__photo" aria-hidden="true">
-												<span class="home-testimonial-panel__fallback">
-													{testimonialInitials(testimonial)}
-												</span>
-												{photo && (
-													<img
-														src={photo}
-														alt=""
-														loading="lazy"
-														decoding="async"
-														class="home-testimonial-panel__image"
-														data-img-error="remove"
-													/>
-												)}
-											</span>
-											<span class="home-testimonial-panel__shade" aria-hidden="true"></span>
-											<span class="home-testimonial-panel__caption">
-												<span class="home-testimonial-panel__name">
-													{testimonial.nama}
-												</span>
-												{testimonial.jabatan && (
-													<span class="home-testimonial-panel__role">
-														{testimonial.jabatan}
-													</span>
-												)}
-											</span>
-										</button>
-									);
-								})
-							}
-						</div>
-
-						<div class="home-testimonial-details reveal">
-							<div class="home-testimonial-quote">
-								<span class="home-testimonial-quote__mark" aria-hidden="true">“</span>
-								<blockquote data-home-testimonial-quote aria-live="polite">
-									{homeTestimonials[0].isi_testimoni}
-								</blockquote>
-							</div>
-							<div class="home-testimonial-controls">
-								<div class="home-testimonial-navigation">
-									<span class="home-testimonial-count">
-										<span data-home-testimonial-current>01</span>
-										<span class="home-testimonial-count__divider"></span>
-										{String(homeTestimonials.length).padStart(2, "0")}
-									</span>
-									<button
-										type="button"
-										data-home-testimonial-action="previous"
-										aria-label={t.testimonialPrevious}
-									>
-										<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
-									</button>
-									<button
-										type="button"
-										data-home-testimonial-action="next"
-										aria-label={t.testimonialNext}
-									>
-										<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-									</button>
-								</div>
-							</div>
-						</div>
-
-						<script
-							id="homeTestimonialsData"
-							type="application/json"
-							is:inline
-							set:html={testimonialsJson}
-						></script>
-					</div>
-				</section>
+				<HomeTestimonials
+					testimonials={homeTestimonials}
+					eyebrow={t.testimonialsEyebrow}
+					title={t.testimonialsTitle}
+					titleItalic={t.testimonialsTitleItalic}
+					previousLabel={t.testimonialPrevious}
+					nextLabel={t.testimonialNext}
+					positionLabel={t.testimonialPosition}
+				/>
 			)
 		}
 

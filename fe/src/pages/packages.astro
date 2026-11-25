@@ -1,4 +1,5 @@
 ---
+import Icon from "../components/Icon.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getPageBatch } from "../lib/services/batchService.js";
 import { cleanPage, cleanText } from "../lib/utils/validate.js";
@@ -9,22 +10,6 @@ const txt = (id: string, en: string) => (isID ? id : en);
 const waLink = contactLinks.whatsappLink || "#";
 const money = (value: unknown) =>
 	new Intl.NumberFormat("id-ID").format(Number(value || 0));
-
-const iconPaths: Record<string, string> = {
-	arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-	check: '<path d="m5 12 4 4L19 6"/>',
-	search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
-	whatsapp:
-		'<path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 1 1 4.2-14.8 8 8 0 0 1-4.2 14.8Z"/>',
-	spark:
-		'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/>',
-	shield:
-		'<path d="M12 3l8 3v5c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-3Z"/><path d="m9 12 2 2 4-4"/>',
-	clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-	chat: '<path d="M20 15a3 3 0 0 1-3 3H9l-5 3V6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v9Z"/>',
-};
-const icon = (name: string, size = "h-5 w-5") =>
-	`<span class="${size} inline-flex shrink-0" aria-hidden="true"><svg class="h-full w-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">${iconPaths[name] ?? ""}</svg></span>`;
 
 function readText(value: unknown, max: number, label: string): string {
 	try {
@@ -152,7 +137,7 @@ const steps = [
 						class="inline-flex items-center gap-2 rounded-full bg-sage-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sage-800"
 					>
 						{txt("Lihat daftar paket", "Explore packages")}
-						<Fragment set:html={icon("arrow", "h-4 w-4")} />
+						<Icon name="arrow" size="h-4 w-4" />
 					</a>
 					<a
 						href={waLink}
@@ -160,7 +145,7 @@ const steps = [
 						rel="noopener noreferrer"
 						class="inline-flex items-center gap-2 rounded-full border border-sage-200 bg-white px-6 py-3 text-sm font-semibold text-sage-700 transition hover:bg-sage-50"
 					>
-						<Fragment set:html={icon("whatsapp", "h-4 w-4")} />
+						<Icon name="whatsapp" size="h-4 w-4" />
 						{txt("Tanya via WhatsApp", "Ask on WhatsApp")}
 					</a>
 				</div>
@@ -198,7 +183,7 @@ const steps = [
 			<div class="grid gap-4 md:grid-cols-3">
 				<div class="flex gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
 					<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-700">
-						<Fragment set:html={icon("shield")} />
+						<Icon name="shield" />
 					</span>
 					<div>
 						<h2 class="text-sm font-bold text-sage-900">
@@ -212,7 +197,7 @@ const steps = [
 
 				<div class="flex gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
 					<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-terracotta-100 text-terracotta-600">
-						<Fragment set:html={icon("spark")} />
+						<Icon name="spark" />
 					</span>
 					<div>
 						<h2 class="text-sm font-bold text-sage-900">{txt("Sesuai kebutuhan", "Made to fit")}</h2>
@@ -224,7 +209,7 @@ const steps = [
 
 				<div class="flex gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
 					<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sand-200 text-sand-800">
-						<Fragment set:html={icon("chat")} />
+						<Icon name="chat" />
 					</span>
 					<div>
 						<h2 class="text-sm font-bold text-sage-900">{txt("Dibantu tim", "Guided by our team")}</h2>
@@ -241,7 +226,7 @@ const steps = [
 				<div class="grid grid-cols-1 gap-3 md:grid-cols-12">
 					<div class="relative md:col-span-5">
 						<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-stone-400">
-							<Fragment set:html={icon("search", "h-[18px] w-[18px]")} />
+							<Icon name="search" size="h-[18px] w-[18px]" />
 						</span>
 						<input
 							type="text"
@@ -346,7 +331,7 @@ const steps = [
 			{
 				error && (
 					<div class="mb-6 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-						<Fragment set:html={icon("shield", "h-4 w-4")} />
+						<Icon name="shield" size="h-4 w-4" />
 						<span>{error}</span>
 					</div>
 				)
@@ -378,7 +363,7 @@ const steps = [
 								<article class={`relative flex h-full flex-col overflow-visible rounded-[24px] border bg-white text-sage-900 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl ${isPopular ? "border-gold shadow-lg" : "border-stone-200"}`}>
 									{isPopular && (
 										<span class="absolute -top-3 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-gold bg-sage-900 px-4 py-2 text-xs font-bold text-white shadow-md">
-											<Fragment set:html={icon("spark", "h-3.5 w-3.5")} />
+											<Icon name="spark" size="h-3.5 w-3.5" />
 											{txt("Paling banyak dipilih", "Most popular")}
 										</span>
 									)}
@@ -408,13 +393,13 @@ const steps = [
 											<div class="mt-4 flex flex-wrap gap-2">
 												{pkg.guest_capacity && (
 													<span class="inline-flex items-center gap-1.5 rounded-lg bg-sage-50 px-2.5 py-1.5 text-[11px] font-medium text-sage-700">
-														<Fragment set:html={icon("spark", "h-3.5 w-3.5")} />
+														<Icon name="spark" size="h-3.5 w-3.5" />
 														{pkg.guest_capacity} {txt("tamu", "guests")}
 													</span>
 												)}
 												{pkg.event_duration_hours && (
 													<span class="inline-flex items-center gap-1.5 rounded-lg bg-sage-50 px-2.5 py-1.5 text-[11px] font-medium text-sage-700">
-														<Fragment set:html={icon("clock", "h-3.5 w-3.5")} />
+														<Icon name="clock" size="h-3.5 w-3.5" />
 														{pkg.event_duration_hours} {txt("jam", "hours")}
 													</span>
 												)}
@@ -489,7 +474,7 @@ const steps = [
 													{visibleFeatures.map((feature: unknown) => (
 														<li class="flex items-start gap-2 text-sm text-stone-warm">
 															<span class="mt-0.5 text-sage-700">
-																<Fragment set:html={icon("check", "h-4 w-4")} />
+																<Icon name="check" size="h-4 w-4" />
 															</span>
 															<span>{featureLabel(feature)}</span>
 														</li>
@@ -504,7 +489,7 @@ const steps = [
 															{extraFeatures.map((feature: unknown) => (
 																<li class="flex items-start gap-2 text-sm text-stone-warm">
 																	<span class="mt-0.5 text-sage-700">
-																		<Fragment set:html={icon("check", "h-4 w-4")} />
+																		<Icon name="check" size="h-4 w-4" />
 																	</span>
 																	<span>{featureLabel(feature)}</span>
 																</li>
@@ -520,7 +505,7 @@ const steps = [
 											class={`mt-auto flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white transition ${isPopular ? "bg-sage-900 hover:bg-sage-800" : "bg-sage-700 hover:bg-sage-800"}`}
 										>
 											{txt("Lihat Paket", "View Package")}
-											<Fragment set:html={icon("arrow", "h-4 w-4")} />
+											<Icon name="arrow" size="h-4 w-4" />
 										</a>
 									</div>
 								</article>
@@ -530,7 +515,7 @@ const steps = [
 				) : (
 					<div class="rounded-3xl border border-stone-200 bg-white px-6 py-20 text-center">
 						<span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sage-100 text-sage-700">
-							<Fragment set:html={icon("search", "h-6 w-6")} />
+							<Icon name="search" size="h-6 w-6" />
 						</span>
 						<h3 class="mt-5 text-lg font-bold text-sage-900">
 							{txt("Belum ada paket tersedia", "No packages available")}
@@ -647,7 +632,7 @@ const steps = [
 					rel="noopener noreferrer"
 					class="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-sage-900 transition hover:bg-sand-100"
 				>
-					<Fragment set:html={icon("whatsapp", "h-4 w-4")} />
+					<Icon name="whatsapp" size="h-4 w-4" />
 					{txt("Tanya tim kami", "Ask our team")}
 				</a>
 			</div>

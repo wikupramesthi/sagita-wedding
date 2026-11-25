@@ -1730,7 +1730,7 @@ export async function answerSitaQuestion(
 	const knowledge = await getSitaKnowledge(locale);
 	const analysis = detectTopics(message, knowledge.topics);
 
-	const kind = smallTalkKind(message, knowledge.topics);
+	const kind = smallTalkKind(message);
 	if (kind) return smallTalkAnswer(locale, kind);
 
 	if (DATE_CHANGE_INTENT.test(message)) {

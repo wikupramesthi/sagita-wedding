@@ -77,4 +77,10 @@ class CustomPackageOfferRequest extends Model
         return $this->hasMany(CustomPackageWorkflowEvent::class, 'request_uuid', 'uuid')
             ->latest();
     }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(CustomPackageOfferRequestMessage::class, 'request_uuid', 'uuid')
+            ->oldest();
+    }
 }

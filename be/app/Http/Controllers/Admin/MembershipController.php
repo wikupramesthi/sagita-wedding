@@ -62,8 +62,6 @@ class MembershipController extends Controller
             'payment_scheme',
         ];
 
-        $orderRows = (clone $orderQuery)->get($orderColumns);
-
         $finance = [
             'total' => 0.0,
             'paid' => 0.0,
@@ -74,19 +72,23 @@ class MembershipController extends Controller
             'progress' => 0,
         ];
 
-        foreach ($orderRows as $order) {
-            $finance['total'] += $order->full_amount;
-            $finance['paid'] += $order->amount_paid_value;
-            $finance['remaining'] += $order->remaining_amount_value;
+        (clone $orderQuery)
+            ->select($orderColumns)
+            ->chunkById(500, function ($orders) use (&$finance): void {
+                foreach ($orders as $order) {
+                    $finance['total'] += $order->full_amount;
+                    $finance['paid'] += $order->amount_paid_value;
+                    $finance['remaining'] += $order->remaining_amount_value;
 
-            if ($order->isFullyPaid()) {
-                $finance['fully_paid']++;
-            } elseif ($order->hasOutstandingBalance()) {
-                $finance['partial']++;
-            } else {
-                $finance['awaiting']++;
-            }
-        }
+                    if ($order->isFullyPaid()) {
+                        $finance['fully_paid']++;
+                    } elseif ($order->hasOutstandingBalance()) {
+                        $finance['partial']++;
+                    } else {
+                        $finance['awaiting']++;
+                    }
+                }
+            }, 'orders.uuid', 'uuid');
 
         $finance['progress'] = $finance['total'] > 0
             ? (int) round(min(100, max(0, $finance['paid'] / $finance['total'] * 100)))
@@ -95,15 +97,12 @@ class MembershipController extends Controller
         $today = now()->startOfDay();
         $horizon = $today->copy()->addDays(30);
 
-        $stats['events_soon'] = $orderRows->filter(
-            fn (Order $order) => $order->event_date
-                && $order->event_date->gte($today)
-                && $order->event_date->lte($horizon)
-        )->count();
+        $stats['events_soon'] = (clone $orderQuery)
+            ->whereBetween('event_date', [$today->toDateString(), $horizon->toDateString()])
+            ->count();
 
         $upcomingEvents = (clone $orderQuery)
-            ->whereNotNull('event_date')
-            ->whereDate('event_date', '>=', $today->toDateString())
+            ->where('event_date', '>=', $today->toDateString())
             ->with(['user', 'package'])
             ->orderBy('event_date')
             ->limit(5)
@@ -185,41 +184,44 @@ class MembershipController extends Controller
 
         $this->applyFilters($request, $query, $user, true);
 
-        $handle = fopen('php://temp', 'r+');
+        return response()->streamDownload(function () use ($query): void {
+            $handle = fopen('php://output', 'w');
 
-        fputcsv($handle, [
-            'Pelanggan', 'Email', 'Paket', 'No. Pesanan', 'Status Paket',
-            'Status Pembayaran', 'Total', 'Dibayar', 'Sisa', 'Tanggal Acara',
-            'Mulai', 'Berakhir',
-        ]);
+            if ($handle === false) {
+                throw new \RuntimeException('Tidak dapat membuka aliran ekspor CSV.');
+            }
 
-        foreach ($query->latest('started_at')->get() as $membership) {
-            fputcsv($handle, array_map(
-                [$this, 'csvSafe'],
-                [
-                    $membership->user?->name ?? '-',
-                    $membership->user?->email ?? '-',
-                    $membership->package?->name ?? '-',
-                    $membership->order?->order_number ?? '-',
-                    $membership->status,
-                    $membership->payment_status_label,
-                    $membership->total_amount_value,
-                    $membership->amount_paid_value,
-                    $membership->remaining_amount_value,
-                    $membership->event_date?->format('Y-m-d') ?? '-',
-                    $membership->started_at?->format('Y-m-d H:i') ?? '-',
-                    $membership->expired_at?->format('Y-m-d H:i') ?? '-',
-                ]
-            ));
-        }
+            fputcsv($handle, [
+                'Pelanggan', 'Email', 'Paket', 'No. Pesanan', 'Status Paket',
+                'Status Pembayaran', 'Total', 'Dibayar', 'Sisa', 'Tanggal Acara',
+                'Mulai', 'Berakhir',
+            ]);
 
-        rewind($handle);
-        $content = stream_get_contents($handle);
-        fclose($handle);
+            $query->latest('started_at')->chunk(500, function ($memberships) use ($handle): void {
+                foreach ($memberships as $membership) {
+                    fputcsv($handle, array_map(
+                        [$this, 'csvSafe'],
+                        [
+                            $membership->user?->name ?? '-',
+                            $membership->user?->email ?? '-',
+                            $membership->package?->name ?? '-',
+                            $membership->order?->order_number ?? '-',
+                            $membership->status,
+                            $membership->payment_status_label,
+                            $membership->total_amount_value,
+                            $membership->amount_paid_value,
+                            $membership->remaining_amount_value,
+                            $membership->event_date?->format('Y-m-d') ?? '-',
+                            $membership->started_at?->format('Y-m-d H:i') ?? '-',
+                            $membership->expired_at?->format('Y-m-d H:i') ?? '-',
+                        ]
+                    ));
+                }
+            });
 
-        return response($content, 200, [
+            fclose($handle);
+        }, 'memberships-'.now()->format('Ymd-His').'.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="memberships-'.now()->format('Ymd-His').'.csv"',
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',
         ]);

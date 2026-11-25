@@ -9,6 +9,10 @@ const inputCss = read("../public/css/input.css");
 const head = read("../src/components/Head.astro");
 const baseLayout = read("../src/layouts/BaseLayout.astro");
 const blogDetail = read("../src/pages/blog/[slug].astro");
+const analyticsConsent = read("../src/components/AnalyticsConsent.astro");
+const exploreLinks = read("../src/components/ExploreLinks.astro");
+const middleware = read("../src/middleware.ts");
+const sitemap = read("../src/pages/sitemap.xml.ts");
 
 describe("kualitas frontend", () => {
 	it("punya breakpoint mobile dan desktop untuk halaman utama", () => {
@@ -34,7 +38,7 @@ describe("kualitas frontend", () => {
 		expect(head).toContain(
 			'href={`/css/custom.css?v=${styleVersion}`} as="style"',
 		);
-		expect(head).toContain('href={heroImage} fetchpriority="high"');
+		expect(head).toContain('href={heroPreload} fetchpriority="high"');
 		expect(head).toContain("?v=${styleVersion}");
 		expect(inputCss).toContain("font-display: swap");
 		expect(inputCss).toContain('font-family: "Cormorant Garamond"');
@@ -53,5 +57,18 @@ describe("kualitas frontend", () => {
 		expect(blogDetail).toContain('id="copyLinkBtn"');
 		expect(blogDetail).toContain("blog-popular-list");
 		expect(blogDetail).toContain("blog-venue-list");
+	});
+
+	it("SEO lanjutan memakai lastmod backend, schema lokal, OG 1200x630, dan consent", () => {
+		expect(sitemap).toContain("getPageContentUpdatedAt");
+		expect(sitemap).toContain("Cache-Control");
+		expect(head).toContain('"@type": "LocalBusiness"');
+		expect(head).toContain('"@type": "BreadcrumbList"');
+		expect(head).toContain("/img/og-default.png");
+		expect(head).toContain('content="1200"');
+		expect(analyticsConsent).toContain("sagita_analytics");
+		expect(baseLayout).toContain("<AnalyticsConsent />");
+		expect(exploreLinks).toContain('href: "/packages"');
+		expect(middleware).toContain("immutable");
 	});
 });

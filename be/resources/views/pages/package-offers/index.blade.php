@@ -3,26 +3,32 @@
 @section('title', 'Penawaran Khusus')
 
 @section('content')
-<div class="container-fluid py-3">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <div>
-            <h4 class="fw-bold mb-1">Penawaran Paket Khusus</h4>
-            <p class="text-muted mb-0">Kelola penawaran privat untuk setiap pelanggan.</p>
+<div class="container-fluid py-3 offer-module-page">
+    <section class="offer-page-heading mb-4" aria-labelledby="offers-page-title">
+        <div class="offer-page-heading__copy">
+            <p class="offer-page-heading__eyebrow"><i class="bi bi-gem" aria-hidden="true"></i>Paket privat</p>
+            <h1 id="offers-page-title">Penawaran Paket Khusus</h1>
+            <p class="offer-page-heading__subtitle">Kelola penawaran privat dan pantau respons setiap pelanggan.</p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('package-offers.analytics') }}" class="btn btn-outline-info">Analitik</a>
-            <a href="{{ route('package-offer-requests.index') }}" class="btn btn-outline-success">
-                Permintaan pelanggan
+        <div class="offer-page-heading__actions">
+            <a href="{{ route('package-offers.analytics') }}" class="btn btn-outline-primary"><i class="bi bi-bar-chart-line me-1" aria-hidden="true"></i>Analitik</a>
+            <a href="{{ route('package-offer-requests.index') }}" class="btn btn-outline-primary">
+                <i class="bi bi-inboxes me-1" aria-hidden="true"></i>Permintaan pelanggan
             </a>
-            <a href="{{ route('packages.index') }}" class="btn btn-outline-secondary">Kembali ke Paket</a>
-            <a href="{{ route('package-offers.create') }}" class="btn btn-primary">
+            <a href="{{ route('packages.index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Kembali ke Paket</a>
+            <a href="{{ route('package-offers.create') }}" class="btn btn-success">
                 <i class="bi bi-plus-lg me-1"></i>Buat Penawaran
             </a>
         </div>
-    </div>
+    </section>
 
-    <form method="GET" class="card card-body mb-3">
-        <div class="row g-2 align-items-end">
+    <form method="GET" class="card shadow-sm border-0 mb-4 offer-module-filter">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="analytics-section-icon"><i class="bi bi-funnel" aria-hidden="true"></i></span>
+              <div><h2 class="h6 fw-bold mb-0">Filter penawaran</h2><p class="small text-muted mb-0">Persempit daftar berdasarkan status terkini.</p></div>
+          </div>
+          <div class="row g-2 align-items-end">
             <div class="col-sm-6 col-md-4">
                 <label for="offer-status" class="form-label">Status</label>
                 <select id="offer-status" name="status" class="form-select">
@@ -33,12 +39,17 @@
                 </select>
             </div>
             <div class="col-sm-6 col-md-2">
-                <button class="btn btn-outline-warning w-100" type="submit">Terapkan</button>
+                <button class="btn btn-primary w-100" type="submit"><i class="bi bi-funnel me-1" aria-hidden="true"></i>Terapkan</button>
             </div>
+          </div>
         </div>
     </form>
 
-    <div class="card">
+    <div class="card shadow-sm border-0 offer-module-table">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center gap-2">
+            <h2 class="h6 fw-bold mb-0">Daftar penawaran</h2>
+            <span class="badge rounded-pill text-bg-light">{{ number_format($offers->total(), 0, ',', '.') }} penawaran</span>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -87,12 +98,14 @@
                         <td><span class="badge text-bg-{{ $statusTone }}">{{ $statusLabel }}</span></td>
                         <td>{{ $offer->expires_at?->translatedFormat('d F Y') ?? '-' }}</td>
                         <td class="text-end">
-                            <a href="{{ route('package-offers.show', $offer->uuid) }}" class="btn btn-sm btn-outline-primary">Buka</a>
+                            <a href="{{ route('package-offers.show', $offer->uuid) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1" aria-hidden="true"></i>Buka</a>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-5">Belum ada penawaran khusus.</td>
+                        <td colspan="7">
+                            <div class="offer-module-empty"><i class="bi bi-file-earmark-plus" aria-hidden="true"></i><strong>Belum ada penawaran khusus</strong><span>Buat penawaran untuk mulai mengelola kebutuhan pelanggan.</span><a href="{{ route('package-offers.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Buat Penawaran</a></div>
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>

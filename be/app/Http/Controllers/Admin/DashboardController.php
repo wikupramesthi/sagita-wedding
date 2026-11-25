@@ -164,15 +164,27 @@ class DashboardController extends Controller
 
             $data = array_merge($data, $adminData, $adminViewData);
             if ($user->can('package.index')) {
+                $now = now();
+                $slaCutoff = $now->copy()->addHours(6);
                 $data['packageOfferDashboard'] = [
                     'openRequestCount' => CustomPackageOfferRequest::whereIn('status', ['submitted', 'in_review'])->count(),
                     'overdueRequestCount' => CustomPackageOfferRequest::whereIn('status', ['submitted', 'in_review'])
                         ->whereNotNull('review_due_at')
-                        ->where('review_due_at', '<', now())
+                        ->where('review_due_at', '<', $now)
+                        ->count(),
+                    'dueSoonRequestCount' => CustomPackageOfferRequest::whereIn('status', ['submitted', 'in_review'])
+                        ->whereBetween('review_due_at', [$now, $slaCutoff])
+                        ->count(),
+                    'priorityRequestCount' => CustomPackageOfferRequest::whereIn('status', ['submitted', 'in_review'])
+                        ->whereNotNull('review_due_at')
+                        ->where('review_due_at', '<=', $slaCutoff)
                         ->count(),
                     'awaitingResponseCount' => CustomPackageOffer::where('status', 'sent')->count(),
-                    'recentRequests' => CustomPackageOfferRequest::with(['user:uuid,name', 'assignedAdmin:uuid,name'])
-                        ->latest()
+                    'slaRequests' => CustomPackageOfferRequest::with(['user:uuid,name', 'assignedAdmin:uuid,name'])
+                        ->whereIn('status', ['submitted', 'in_review'])
+                        ->whereNotNull('review_due_at')
+                        ->where('review_due_at', '<=', $slaCutoff)
+                        ->orderBy('review_due_at')
                         ->take(4)
                         ->get(),
                     'recentOffers' => CustomPackageOffer::with(['user:uuid,name', 'options'])

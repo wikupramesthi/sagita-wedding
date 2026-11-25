@@ -29,6 +29,10 @@ class CustomPackageOfferRequestController extends Controller
 
         $requests = CustomPackageOfferRequest::with('offer')
             ->where('user_uuid', auth()->id())
+            ->withCount(['messages as unread_messages_count' => function ($query) use ($user): void {
+                $query->where('actor_uuid', '!=', $user->uuid)
+                    ->whereDoesntHave('reads', fn ($reads) => $reads->where('user_uuid', $user->uuid));
+            }])
             ->latest()
             ->paginate(15);
 
@@ -165,7 +169,14 @@ class CustomPackageOfferRequestController extends Controller
         abort_unless(auth()->user()?->hasAnyRole(['super-admin', 'admin']) && auth()->user()->can('package.index'), 404);
 
         $status = (string) $request->query('status', '');
+        $user = auth()->user();
         $requests = CustomPackageOfferRequest::with(['user', 'assignedAdmin', 'offer'])
+            ->withCount(['messages as unread_messages_count' => function ($query) use ($user): void {
+                $query->whereColumn(
+                    'custom_package_offer_request_messages.actor_uuid',
+                    'custom_package_offer_requests.user_uuid'
+                )->whereDoesntHave('reads', fn ($reads) => $reads->where('user_uuid', $user->uuid));
+            }])
             ->when(in_array($status, ['submitted', 'in_review', 'quoted', 'closed'], true), fn ($query) => $query->where('status', $status))
             ->latest()
             ->paginate(20)
@@ -186,7 +197,29 @@ class CustomPackageOfferRequestController extends Controller
             404
         );
 
-        $packageOfferRequest->load(['user', 'assignedAdmin', 'offer.options.items', 'attachments']);
+        $incomingMessages = $packageOfferRequest->messages()
+            ->when(
+                $isAdmin,
+                fn ($query) => $query->where('actor_uuid', $packageOfferRequest->user_uuid),
+                fn ($query) => $query->where('actor_uuid', '!=', $user->uuid)
+            )
+            ->whereDoesntHave('reads', fn ($query) => $query->where('user_uuid', $user->uuid))
+            ->get(['uuid']);
+
+        if ($incomingMessages->isNotEmpty()) {
+            $readAt = now();
+            DB::table('custom_package_offer_request_message_reads')->insertOrIgnore(
+                $incomingMessages->map(fn ($message) => [
+                    'message_uuid' => $message->uuid,
+                    'user_uuid' => $user->uuid,
+                    'read_at' => $readAt,
+                    'created_at' => $readAt,
+                    'updated_at' => $readAt,
+                ])->all()
+            );
+        }
+
+        $packageOfferRequest->load(['user', 'assignedAdmin', 'offer.options.items', 'attachments', 'messages.actor']);
         if ($isAdmin) {
             $packageOfferRequest->load('workflowEvents.actor');
         }
@@ -194,8 +227,114 @@ class CustomPackageOfferRequestController extends Controller
         return view('pages.package-offer-requests.show', [
             'packageRequest' => $packageOfferRequest,
             'isAdmin' => $isAdmin,
+            'canReply' => ($isAdmin && $user->can('package.update')) ||
+                ($user?->hasRole('user') && $packageOfferRequest->user_uuid === $user->uuid),
             'admins' => $isAdmin ? User::role(['super-admin', 'admin'])->orderBy('name')->get(['uuid', 'name']) : collect(),
         ]);
+    }
+
+    public function storeMessage(
+        Request $request,
+        CustomPackageOfferRequest $packageOfferRequest,
+        CustomPackageWorkflowAudit $audit
+    ) {
+        $user = auth()->user();
+        $isAdmin = $user?->hasAnyRole(['super-admin', 'admin']) &&
+            $user->can('package.index') &&
+            $user->can('package.update');
+        $isOwner = $user?->hasRole('user') &&
+            $packageOfferRequest->user_uuid === $user->uuid;
+
+        abort_unless($isAdmin || $isOwner, 404);
+
+        $data = $request->validate([
+            'message' => ['required', 'string', 'min:3', 'max:5000'],
+        ]);
+        $body = trim($data['message']);
+        if (mb_strlen($body) < 3) {
+            return back()
+                ->withErrors(['message' => 'Pesan minimal harus berisi 3 karakter.'])
+                ->withInput();
+        }
+
+        $result = DB::transaction(function () use ($packageOfferRequest, $user, $isAdmin, $body, $audit) {
+            $locked = CustomPackageOfferRequest::where('uuid', $packageOfferRequest->uuid)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $ownsLockedRequest = $user->hasRole('user') && $locked->user_uuid === $user->uuid;
+            abort_unless($isAdmin || $ownsLockedRequest, 404);
+
+            $fromStatus = $locked->status;
+            $reopened = $ownsLockedRequest && $fromStatus === 'closed';
+
+            if ($reopened) {
+                $locked->update([
+                    'status' => 'submitted',
+                    'review_due_at' => now()->addHours(24),
+                    'sla_notified_at' => null,
+                    'handled_at' => null,
+                ]);
+            } elseif ($isAdmin && $fromStatus === 'submitted') {
+                $locked->update([
+                    'status' => 'in_review',
+                    'assigned_admin_uuid' => $user->uuid,
+                    'handled_at' => now(),
+                ]);
+            } elseif ($isAdmin && $fromStatus === 'in_review' && ! $locked->assigned_admin_uuid) {
+                $locked->update([
+                    'assigned_admin_uuid' => $user->uuid,
+                    'handled_at' => now(),
+                ]);
+            }
+
+            $message = $locked->messages()->create([
+                'actor_uuid' => $user->uuid,
+                'body' => $body,
+            ]);
+
+            $audit->record(
+                $user->uuid,
+                'request_message_sent',
+                $locked->uuid,
+                null,
+                $fromStatus,
+                $locked->status,
+                ['message_uuid' => $message->uuid, 'reopened' => $reopened]
+            );
+
+            return [
+                'request' => $locked,
+                'reopened' => $reopened,
+            ];
+        });
+
+        if ($isOwner) {
+            $recipients = $result['request']->assignedAdmin
+                ? collect([$result['request']->assignedAdmin])
+                : User::role(['super-admin', 'admin'])->get();
+
+            if ($recipients->isNotEmpty()) {
+                Notification::send($recipients, new CustomPackageRequestNotification(
+                    $packageOfferRequest->uuid,
+                    $result['reopened'] ? 'Permintaan paket dibuka kembali' : 'Pesan baru pada permintaan paket',
+                    $user->name.' mengirim tindak lanjut pada permintaan paket.',
+                    'bi-chat-square-text'
+                ));
+            }
+        } else {
+            $result['request']->user?->notify(new CustomPackageRequestNotification(
+                $packageOfferRequest->uuid,
+                'Admin membalas permintaan paket',
+                'Admin '.$user->name.' membalas percakapan pada permintaan paket Anda.',
+                'bi-chat-square-text'
+            ));
+        }
+
+        return redirect()
+            ->route('package-offer-requests.show', $packageOfferRequest->uuid)
+            ->with('success', $result['reopened']
+                ? 'Permintaan dibuka kembali dan pesan Anda dikirim kepada admin.'
+                : 'Pesan berhasil dikirim.');
     }
 
     public function updateStatus(

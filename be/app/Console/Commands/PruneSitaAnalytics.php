@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Sita\SitaAnalyticsEvent;
+use App\Services\Sita\SitaAnalyticsService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -57,6 +58,10 @@ class PruneSitaAnalytics extends Command
             }
 
             $deleted += $removed;
+        }
+
+        if ($deleted > 0) {
+            SitaAnalyticsService::invalidate();
         }
 
         Log::info('sita.analytics.pruned', [

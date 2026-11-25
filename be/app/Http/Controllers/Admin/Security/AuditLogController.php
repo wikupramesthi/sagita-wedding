@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
+        $this->validateDateFilters($request);
+
         $search = $request->string('search')->trim()->value();
         $event = $request->input('event');
         $model = $request->input('model');
@@ -25,10 +28,15 @@ class AuditLogController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $today = today();
+
         // Stats follow the active filter so numbers stay in sync with the data.
         $stats = [
             'total' => (clone $base)->count(),
-            'today' => (clone $base)->whereDate('created_at', today())->count(),
+            'today' => (clone $base)
+                ->where('created_at', '>=', $today->copy()->startOfDay())
+                ->where('created_at', '<', $today->copy()->addDay()->startOfDay())
+                ->count(),
             'created' => (clone $base)->where('event', 'created')->count(),
             'updated' => (clone $base)->where('event', 'updated')->count(),
             'deleted' => (clone $base)->where('event', 'deleted')->count(),
@@ -95,6 +103,8 @@ class AuditLogController extends Controller
 
     public function exportPdf(Request $request)
     {
+        $this->validateDateFilters($request);
+
         $logs = $this->filteredQuery($request)
             ->latest('created_at')
             ->limit(1000)
@@ -182,7 +192,23 @@ class AuditLogController extends Controller
             ->when($event, fn ($query) => $query->where('event', $event))
             ->when($model, fn ($query) => $query->where('auditable_type', $model))
             ->when($userUuid, fn ($query) => $query->where('user_uuid', $userUuid))
-            ->when($startDate, fn ($query) => $query->whereDate('created_at', '>=', $startDate))
-            ->when($endDate, fn ($query) => $query->whereDate('created_at', '<=', $endDate));
+            ->when($startDate, fn ($query) => $query->where(
+                'created_at',
+                '>=',
+                Carbon::parse($startDate)->startOfDay()
+            ))
+            ->when($endDate, fn ($query) => $query->where(
+                'created_at',
+                '<',
+                Carbon::parse($endDate)->addDay()->startOfDay()
+            ));
+    }
+
+    private function validateDateFilters(Request $request): void
+    {
+        $request->validate([
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d'],
+        ]);
     }
 }

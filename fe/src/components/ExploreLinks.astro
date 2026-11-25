@@ -1,0 +1,34 @@
+---
+interface Props {
+	heading: string;
+	links?: { href: string; label: string }[];
+}
+
+const { heading } = Astro.props;
+const { t } = Astro.locals;
+const links = Astro.props.links ?? [
+	{ href: "/packages", label: String(t.nav?.packages || "Wedding Packages") },
+	{ href: "/venues", label: String(t.nav?.venues || "Venues") },
+	{ href: "/vendors", label: String(t.nav?.vendors || "Vendors") },
+	{ href: "/blog", label: String(t.nav?.articles || "Articles") },
+];
+---
+
+<section class="border-t border-stone-200 bg-cream py-12">
+	<div class="site-container">
+		<h2 class="font-display text-xl text-sage-900 sm:text-2xl">{heading}</h2>
+		<div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+			{
+				links.map((link) => (
+					<a
+						href={link.href}
+						class="group flex items-center justify-between rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm font-medium text-sage-900 transition hover:border-sage-700 hover:text-sage-700"
+					>
+						<span>{link.label}</span>
+						<span aria-hidden="true" class="transition group-hover:translate-x-1">→</span>
+					</a>
+				))
+			}
+		</div>
+	</div>
+</section>

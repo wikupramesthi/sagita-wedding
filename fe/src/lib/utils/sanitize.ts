@@ -28,7 +28,7 @@ const ALLOWED = {
 	allowedAttributes: {
 		a: ["href", "title", "target", "rel"],
 		img: ["src", "alt", "title", "width", "height", "loading"],
-		"*": ["class", "style"],
+		"*": ["class"],
 	},
 	allowedSchemes: ["http", "https", "mailto"],
 	// Paksa link eksternal aman

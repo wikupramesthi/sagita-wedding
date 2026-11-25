@@ -8,7 +8,6 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class SitaAnalyticsService
 {
@@ -97,7 +96,7 @@ class SitaAnalyticsService
                 ])->all(),
                 'feedbackSegments' => $this->feedbackSegments($feedback),
                 'noMatchPatterns' => $this->noMatchPatterns($noMatch),
-                'dailyTrend' => $this->dailyTrend($filters),
+                'dailyTrend' => $this->dailyTrend($filters, $events),
                 'recent' => $events->slice(-20)->reverse()->map(fn (SitaAnalyticsEvent $event): array => $this->sanitizeEvent($event))->values()->all(),
             ];
         });
@@ -143,52 +142,47 @@ class SitaAnalyticsService
         return $query;
     }
 
-    private function dailyTrend(array $filters): array
+    private function dailyTrend(array $filters, Collection $events): array
     {
-        $from = $filters['from'] ? Carbon::parse($filters['from'])->startOfDay() : now()->subDays(13)->startOfDay();
-        $to = $filters['to'] ? Carbon::parse($filters['to'])->endOfDay() : now()->endOfDay();
-
-        $useAggregate = DB::getSchemaBuilder()->hasTable('sita_analytics_daily');
-
-        if ($useAggregate) {
-            $rows = DB::table('sita_analytics_daily')
-                ->selectRaw('date, name, SUM(total) as total')
-                ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
-                ->when($filters['topic'], fn ($q) => $q->where('topic', $filters['topic']))
-                ->when($filters['locale'], fn ($q) => $q->where('locale', $filters['locale']))
-                ->groupBy('date', 'name')
-                ->get();
-        } else {
-            $rows = $this->filteredQuery($filters)
-                ->whereBetween('occurred_at', [$from, $to])
-                ->selectRaw('DATE(occurred_at) as date, name, COUNT(*) as total')
-                ->groupBy('date', 'name')
-                ->get();
-        }
+        $firstEvent = $events->first();
+        $lastEvent = $events->last();
+        $from = $filters['from']
+            ? Carbon::parse($filters['from'])->startOfDay()
+            : ($firstEvent ? Carbon::parse($firstEvent->occurred_at)->startOfDay() : now()->subDays(13)->startOfDay());
+        $to = $filters['to']
+            ? Carbon::parse($filters['to'])->endOfDay()
+            : ($lastEvent ? Carbon::parse($lastEvent->occurred_at)->endOfDay() : now()->endOfDay());
 
         $days = [];
         $cursor = $from->copy()->startOfDay();
         $end = $to->copy()->startOfDay();
-        while ($cursor->lte($end)) {
-            $key = $cursor->toDateString();
-            $days[$key] = ['date' => $key, 'answers' => 0, 'feedback' => 0, 'noMatch' => 0];
-            $cursor->addDay();
+        if ($cursor->diffInDays($end) <= 366) {
+            while ($cursor->lte($end)) {
+                $key = $cursor->toDateString();
+                $days[$key] = ['date' => $key, 'answers' => 0, 'feedback' => 0, 'noMatch' => 0];
+                $cursor->addDay();
+            }
         }
 
-        foreach ($rows as $row) {
-            $key = (string) $row->date;
-            if (! isset($days[$key])) {
+        foreach ($events as $event) {
+            $occurredAt = Carbon::parse($event->occurred_at);
+            if ($occurredAt->lt($from) || $occurredAt->gt($to)) {
                 continue;
             }
-            $count = (int) $row->total;
-            if ($row->name === 'sita.answer') {
-                $days[$key]['answers'] += $count;
-            } elseif ($row->name === 'sita.feedback') {
-                $days[$key]['feedback'] += $count;
-            } elseif ($row->name === 'sita.no_match') {
-                $days[$key]['noMatch'] += $count;
+
+            $key = $occurredAt->toDateString();
+            $days[$key] ??= ['date' => $key, 'answers' => 0, 'feedback' => 0, 'noMatch' => 0];
+
+            if ($event->name === 'sita.answer') {
+                $days[$key]['answers']++;
+            } elseif ($event->name === 'sita.feedback') {
+                $days[$key]['feedback']++;
+            } elseif ($event->name === 'sita.no_match') {
+                $days[$key]['noMatch']++;
             }
         }
+
+        ksort($days);
 
         return array_values($days);
     }

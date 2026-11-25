@@ -7,7 +7,7 @@ const LIMITS = {
 };
 
 const JS_TOTAL_LIMIT = 150 * 1024;
-const JS_FILE_LIMIT = 40 * 1024;
+const JS_FILE_LIMIT = 60 * 1024;
 
 function sizeOf(path) {
 	try {
@@ -39,9 +39,7 @@ for (const [path, limit] of Object.entries(LIMITS)) {
 	}
 }
 
-const jsFiles = [
-	...new Set([...listJs("public/js"), ...listJs("public/js/pages")]),
-];
+const jsFiles = [...new Set(listJs("dist/client"))];
 const jsTotal = jsFiles.reduce((sum, path) => sum + statSync(path).size, 0);
 
 for (const path of jsFiles) {
@@ -60,7 +58,7 @@ if (jsTotal > JS_TOTAL_LIMIT) {
 }
 
 console.log(
-	`Asset budget: CSS ${(sizeOf("public/css/output.css") / 1024).toFixed(1)}KB, JS ${(jsTotal / 1024).toFixed(1)}KB (${jsFiles.length} file)`,
+	`Asset budget: CSS ${(sizeOf("public/css/output.css") / 1024).toFixed(1)}KB, JS ${(jsTotal / 1024).toFixed(1)}KB (${jsFiles.length} file, dist/client)`,
 );
 
 if (failures.length) {

@@ -57,24 +57,6 @@ async function withMinifiedHtml(response: Response): Promise<Response> {
 	}
 }
 
-async function withScriptNonce(
-	response: Response,
-	nonce: string,
-): Promise<Response> {
-	const contentType = response.headers.get("content-type") ?? "";
-	if (!contentType.includes("text/html")) return response;
-	try {
-		const html = await response.text();
-		if (!html.includes("<html")) return new Response(html, response);
-		return new Response(
-			html.replace(/<script(?![^>]*\bnonce\s*=)/g, `<script nonce="${nonce}"`),
-			response,
-		);
-	} catch {
-		return response;
-	}
-}
-
 export const onRequest = defineMiddleware(async (context, next) => {
 	const { request, cookies, locals, url } = context;
 	const pathname = url.pathname;
@@ -111,7 +93,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 				securityHeaders(nonce),
 			);
 		}
-		const bucketKey = `${clientIp(request)}:${pathname === "/api/telemetry" ? "telemetry" : "api"}`;
+		const bucketKey = `${clientIp(request, context.clientAddress)}:${pathname === "/api/telemetry" ? "telemetry" : "api"}`;
 		apiLimit = takeRateLimit(bucketKey, 20);
 		if (!apiLimit.ok) {
 			return json(
@@ -120,7 +102,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 					message: "Too many requests, please try again shortly.",
 				},
 				429,
-				{ ...securityHeaders(nonce), ...rateLimitHeaders(apiLimit) },
+				{ ...securityHeaders(nonce), ...rateLimitHeaders(apiLimit, 20) },
 			);
 		}
 	}
@@ -172,9 +154,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	for (const [key, value] of Object.entries(securityHeaders(nonce))) {
 		response.headers.set(key, value);
 	}
+	if (/^\/_astro\/.+[.-][A-Za-z0-9_-]{8,}\.[a-z0-9]+$/i.test(pathname)) {
+		response.headers.set(
+			"Cache-Control",
+			"public, max-age=31536000, immutable",
+		);
+	}
 	if (apiLimit) {
-		for (const [key, value] of Object.entries(rateLimitHeaders(apiLimit))) {
-			response.headers.set(key, value);
+		for (const [key, value] of Object.entries(rateLimitHeaders(apiLimit, 20))) {
+			if (!response.headers.has(key)) response.headers.set(key, value);
 		}
 	}
 
@@ -182,6 +170,5 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		void submitVisit(buildVisitPayload(visitorId, visitPath, visitAgent));
 	}
 
-	const nonced = await withScriptNonce(response, nonce);
-	return env.HTML_MINIFY === "0" ? nonced : await withMinifiedHtml(nonced);
+	return env.HTML_MINIFY === "0" ? response : await withMinifiedHtml(response);
 });

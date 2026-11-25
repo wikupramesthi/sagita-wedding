@@ -7,9 +7,12 @@ import { logger } from "../../../lib/utils/logger.js";
 import { validateSitaChat } from "../../../lib/utils/validate.js";
 import { limitHeaders, readRecord } from "../_shared.js";
 
-export const POST: APIRoute = async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
 	const limit = 15;
-	const hit = takeRateLimit(`sita-chat:${clientIp(request)}`, limit);
+	const hit = takeRateLimit(
+		`sita-chat:${clientIp(request, clientAddress)}`,
+		limit,
+	);
 	const headers = limitHeaders(hit, limit);
 	if (!hit.ok) {
 		return json(

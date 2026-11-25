@@ -53,7 +53,7 @@ class MenuSeeder extends Seeder
                 ['name' => 'Pengaturan Email', 'route' => 'email-setting.index', 'permission_name' => 'email-setting.index', 'position' => 1],
             ],
             'orders.index' => [
-                ['name' => 'Pesanan Saya', 'route' => 'orders.index', 'permission_name' => 'orders.index', 'position' => 2],
+                ['name' => 'Daftar Pesanan', 'route' => 'orders.index', 'permission_name' => 'orders.index', 'position' => 2],
             ],
             'articles.index' => [
                 ['name' => 'Artikel', 'route' => 'articles.index', 'permission_name' => 'articles.index', 'position' => 1],
@@ -70,7 +70,7 @@ class MenuSeeder extends Seeder
             ],
             'package.member' => [
                 ['name' => 'Data Paket', 'route' => 'packages.index', 'permission_name' => 'package.index', 'position' => 1],
-                ['name' => 'Paket Organizer', 'route' => 'packages.member', 'permission_name' => 'package.member', 'position' => 2],
+                ['name' => 'Katalog Paket', 'route' => 'packages.member', 'permission_name' => 'package.member', 'position' => 2],
                 ['name' => 'Promo', 'route' => 'package-promos.index', 'permission_name' => 'package.promo.index', 'position' => 3],
                 ['name' => 'Permintaan Paket Saya', 'route' => 'package-offer-requests.mine', 'permission_name' => 'package.member', 'position' => 4],
                 ['name' => 'Penawaran Saya', 'route' => 'package-offers.mine', 'permission_name' => 'package.member', 'position' => 5],

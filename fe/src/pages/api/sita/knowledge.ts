@@ -3,9 +3,12 @@ import { clientIp, json, takeRateLimit } from "../../../lib/http.js";
 import { fetchSitaSynonyms } from "../../../lib/services/sitaAnalytics.js";
 import { limitHeaders } from "../_shared.js";
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, clientAddress }) => {
 	const limit = 30;
-	const hit = takeRateLimit(`sita-knowledge:${clientIp(request)}`, limit);
+	const hit = takeRateLimit(
+		`sita-knowledge:${clientIp(request, clientAddress)}`,
+		limit,
+	);
 	const headers = limitHeaders(hit, limit);
 	if (!hit.ok) {
 		return json(

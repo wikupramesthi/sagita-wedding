@@ -163,7 +163,9 @@ export function parseTelemetry(value: unknown): TelemetryPayload | null {
 		typeof item.message === "string"
 			? item.message
 					.replace(/\S+@\S+/g, "[email]")
+					.replace(/\b\d(?:[\s().-]?\d){9,}\b/g, "[nomor]")
 					.replace(/[A-Za-z0-9_-]{32,}/g, "[token]")
+
 					.slice(0, 200)
 			: "";
 	return { kind: "error", name, path, message };

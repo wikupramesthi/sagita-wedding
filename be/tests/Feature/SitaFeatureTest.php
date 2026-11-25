@@ -10,6 +10,7 @@ use App\Models\Sita\SitaAnalyticsEvent;
 use App\Models\Sita\SitaLead;
 use App\Models\Sita\SitaSynonym;
 use App\Models\User;
+use App\Services\Sita\SitaAnalyticsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -494,13 +495,58 @@ class SitaFeatureTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('sita.analytics.index'))
             ->assertOk()
-            ->assertSee('Retensi '.config('sita.analytics.retention_days').' hari')
+            ->assertSee('Retensi data')
+            ->assertSee(config('sita.analytics.retention_days').' hari')
             ->assertSee('Tinjau FAQ')
             ->assertSee(route('faq.index', ['q' => 'fotobooth untuk acara']), false)
             ->assertSee('Buat draft FAQ')
             ->assertSee(route('faq.create', ['pertanyaan' => 'fotobooth untuk acara']), false)
             ->assertSee('Kelola sinonim')
             ->assertSee(route('sita.synonyms.index'), false);
+    }
+
+    public function test_sita_daily_trend_matches_the_bounded_event_summary(): void
+    {
+        SitaAnalyticsEvent::query()->create([
+            'name' => 'sita.answer',
+            'path' => '/',
+            'occurred_at' => now()->subDays(20),
+        ]);
+
+        foreach (range(1, 500) as $turn) {
+            SitaAnalyticsEvent::query()->create([
+                'name' => 'sita.answer',
+                'path' => '/',
+                'occurred_at' => now()->subMinutes($turn),
+            ]);
+        }
+
+        $summary = app(SitaAnalyticsService::class)->summary();
+
+        $this->assertSame(500, $summary['totals']['answers']);
+        $this->assertSame(500, array_sum(array_column($summary['dailyTrend'], 'answers')));
+    }
+
+    public function test_sita_analytics_cache_is_invalidated_after_pruning(): void
+    {
+        $eventDate = now()->subDays(100);
+        SitaAnalyticsEvent::query()->create([
+            'name' => 'sita.answer',
+            'path' => '/',
+            'occurred_at' => $eventDate,
+        ]);
+
+        $filters = [
+            'from' => $eventDate->toDateString(),
+            'to' => $eventDate->toDateString(),
+        ];
+        $analytics = app(SitaAnalyticsService::class);
+        $this->assertSame(1, $analytics->summary($filters)['totals']['answers']);
+
+        $this->artisan('sita:prune-analytics', ['--days' => 90, '--keep' => 100])
+            ->assertExitCode(0);
+
+        $this->assertSame(0, $analytics->summary($filters)['totals']['answers']);
     }
 
     public function test_admin_synonym_filters_are_applied(): void

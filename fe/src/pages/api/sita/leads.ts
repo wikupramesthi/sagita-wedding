@@ -6,9 +6,12 @@ import { logger } from "../../../lib/utils/logger.js";
 import { validateSitaLead } from "../../../lib/utils/validate.js";
 import { limitHeaders, readRecord } from "../_shared.js";
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
 	const limit = 10;
-	const hit = takeRateLimit(`sita-leads:${clientIp(request)}`, limit);
+	const hit = takeRateLimit(
+		`sita-leads:${clientIp(request, clientAddress)}`,
+		limit,
+	);
 	const headers = limitHeaders(hit, limit);
 	if (!hit.ok) {
 		return json(

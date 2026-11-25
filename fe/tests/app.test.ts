@@ -1288,11 +1288,18 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('aria-label="Buka pengaturan aksesibilitas"');
 	});
 
-	it("URL kelas dan jadwal lama diarahkan ke direktori venue", async () => {
-		for (const path of ["/classes", "/classes/yoga", "/schedules"]) {
+	it("rute publik legacy sudah dihapus dan merender 404", async () => {
+		for (const path of [
+			"/contact",
+			"/classes",
+			"/classes/yoga",
+			"/schedules",
+			"/instructors",
+			"/art-of-living",
+		]) {
 			const res = await request(app).get(path);
-			expect(res.status, path).toBe(301);
-			expect(res.headers.location, path).toBe("/venues");
+			expect(res.status, path).toBe(404);
+			expect(res.headers.location, path).toBeUndefined();
 		}
 	});
 
@@ -1330,8 +1337,7 @@ describe("pageScript wiring", () => {
 		expect(indonesianResponse.text).toContain("Keunggulan Wedding Organizer");
 
 		const oldUrl = await request(app).get("/art-of-living");
-		expect(oldUrl.status).toBe(301);
-		expect(oldUrl.headers.location).toBe("/about");
+		expect(oldUrl.status).toBe(404);
 
 		const home = await request(app).get("/");
 		expect(home.text).toContain('href="/about"');

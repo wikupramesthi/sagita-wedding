@@ -19,7 +19,7 @@ export function limitHeaders(
 	result: RateLimitResult,
 	limit: number,
 ): Record<string, string> {
-	return { ...rateLimitHeaders(result), "RateLimit-Limit": String(limit) };
+	return rateLimitHeaders(result, limit);
 }
 
 export const gone: APIRoute = () =>

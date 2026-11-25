@@ -61,6 +61,8 @@ export interface SiteIdentity {
 	logoWhiteUrl: string;
 	faviconUrl: string;
 	ogImage: string;
+	latitude?: number;
+	longitude?: number;
 	year: number;
 }
 
@@ -81,16 +83,6 @@ export interface Article {
 export interface SiteStats {
 	members: number | null;
 	vendors: number | null;
-}
-
-/** Kelas yoga dari backend. */
-export interface YogaClass {
-	slug?: string;
-	name?: string;
-	description?: string;
-	level?: string;
-	image?: string;
-	vendor?: { name?: string; avatar?: string };
 }
 
 /** Instruktur yoga. */

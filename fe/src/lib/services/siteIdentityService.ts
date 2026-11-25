@@ -54,6 +54,30 @@ function instagramHandleFrom(url: string, fallback: string): string {
 	return m ? m[1] : fallback;
 }
 
+const GA_ID = /^(?:G-[A-Z0-9]{8,12}|UA-\d+-\d+|GTM-[A-Z0-9]{4,12})$/i;
+const SITE_VERIFICATION = /^[A-Za-z0-9_-]{10,128}$/;
+
+function analyticsId(value: unknown): string {
+	const candidate = text(value);
+	return GA_ID.test(candidate) ? candidate : "";
+}
+
+function siteVerification(value: unknown): string {
+	const candidate = text(value);
+	return SITE_VERIFICATION.test(candidate) ? candidate : "";
+}
+
+function coordinate(
+	value: unknown,
+	min: number,
+	max: number,
+): number | undefined {
+	const number = Number(value);
+	return Number.isFinite(number) && Math.abs(number) <= max && number >= min
+		? number
+		: undefined;
+}
+
 export function normalizeIdentity(
 	api: Record<string, unknown> = {},
 ): SiteIdentity {
@@ -82,8 +106,8 @@ export function normalizeIdentity(
 		metaTitle: text(api.meta_title),
 		metaDescription: text(api.meta_description),
 		metaKeywords: text(api.meta_keywords),
-		gaId: text(api.google_analytics_id),
-		siteVerification: text(api.google_site_verification),
+		gaId: analyticsId(api.google_analytics_id),
+		siteVerification: siteVerification(api.google_site_verification),
 		logoUrl,
 		logoWhiteUrl: text(
 			api.logo_white_url,
@@ -91,6 +115,8 @@ export function normalizeIdentity(
 		),
 		faviconUrl: text(api.favicon_url, fallback.faviconUrl),
 		ogImage: text(api.og_image_url, fallback.ogImage),
+		latitude: coordinate(api.latitude, -90, 90),
+		longitude: coordinate(api.longitude, -180, 180),
 		year:
 			Number.isInteger(yearValue) && yearValue > 0 ? yearValue : fallback.year,
 	};

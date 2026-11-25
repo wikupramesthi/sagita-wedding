@@ -16,6 +16,7 @@ interface Props {
 	};
 	pageSchemaType?: string;
 	heroImage?: string;
+	breadcrumbs?: { name: string; url?: string }[];
 }
 
 const {
@@ -28,6 +29,7 @@ const {
 	articleMeta = null,
 	pageSchemaType = "WebPage",
 	heroImage,
+	breadcrumbs,
 } = Astro.props;
 
 const {
@@ -61,20 +63,35 @@ const robotsValue = robots || seo.robots || "index, follow";
 const canonical = currentUrl || siteUrl;
 const languageUrl = (code: string) =>
 	`${siteUrl}${currentPath}${code === "en" ? "" : `?lang=${encodeURIComponent(code)}`}`;
-const absoluteUrl = (value: unknown) => {
+const absoluteUrl = (value: unknown, fallback = "") => {
 	const text = String(value || "").trim();
-	if (!text) return `${siteUrl}/img/logo.WebP`;
+	if (!text) return fallback;
 	if (/^https?:\/\//i.test(text)) return text;
 	return siteUrl + (text.startsWith("/") ? text : `/${text}`);
 };
-const ogImage = absoluteUrl(
-	ogImageProp || seo.ogImage || site.ogImage || "/img/logo.WebP",
+const configuredOgImage = absoluteUrl(
+	ogImageProp || seo.ogImage || site.ogImage,
 );
+const ogImage =
+	configuredOgImage && !/\/img\/logo\.WebP$/i.test(configuredOgImage)
+		? configuredOgImage
+		: absoluteUrl(heroImage) || `${siteUrl}/img/og-default.png`;
+const ogImageIsDefault = ogImage.endsWith("/img/og-default.png");
+const heroPreload = heroImage ? absoluteUrl(heroImage) : "";
 const faviconRaw = site.faviconUrl || "/img/fav.png";
 const favicon = /^https?:\/\//i.test(faviconRaw)
 	? faviconRaw
 	: siteUrl + faviconRaw;
 const langCodes = languages.map((item) => item.code);
+const logoUrl = /^https?:\/\//i.test(site.logoUrl || "")
+	? site.logoUrl
+	: siteUrl + (site.logoUrl || "/img/logo.WebP");
+const socialProfiles = [
+	site.facebookHref,
+	site.instagramHref,
+	site.youtubeHref,
+	site.tiktokHref,
+].filter(Boolean);
 
 const jsonLd: Record<string, unknown> = {
 	"@context": "https://schema.org",
@@ -86,21 +103,43 @@ const jsonLd: Record<string, unknown> = {
 			url: siteUrl,
 			slogan: site.tagline || "",
 			description: site.description || t.siteDesc,
-			logo: /^https?:\/\//i.test(site.logoUrl || "")
-				? site.logoUrl
-				: siteUrl + (site.logoUrl || "/img/logo.WebP"),
+			logo: logoUrl,
 			image: ogImage,
 			...(site.email ? { email: site.email } : {}),
 			...(site.phoneTel ? { telephone: site.phoneTel } : {}),
 			...(site.address
 				? { address: { "@type": "PostalAddress", streetAddress: site.address } }
 				: {}),
-			sameAs: [
-				site.facebookHref,
-				site.instagramHref,
-				site.youtubeHref,
-				site.tiktokHref,
-			].filter(Boolean),
+			sameAs: socialProfiles,
+		},
+		{
+			"@type": "LocalBusiness",
+			"@id": `${siteUrl}/#business`,
+			name: site.name || "Sagita Wedding",
+			url: siteUrl,
+			image: ogImage,
+			logo: logoUrl,
+			...(site.email ? { email: site.email } : {}),
+			...(site.phoneTel ? { telephone: site.phoneTel } : {}),
+			...(site.address
+				? {
+						address: {
+							"@type": "PostalAddress",
+							streetAddress: site.address,
+						},
+						areaServed: { "@type": "Place", name: site.address },
+					}
+				: {}),
+			...(Number.isFinite(site.latitude) && Number.isFinite(site.longitude)
+				? {
+						geo: {
+							"@type": "GeoCoordinates",
+							latitude: site.latitude,
+							longitude: site.longitude,
+						},
+					}
+				: {}),
+			sameAs: socialProfiles,
 		},
 		{
 			"@type": "WebSite",
@@ -146,11 +185,20 @@ if (articleMeta || ogType === "article") {
 	});
 }
 
+if (breadcrumbs?.length) {
+	(jsonLd["@graph"] as unknown[]).push({
+		"@type": "BreadcrumbList",
+		"@id": `${canonical}#breadcrumb`,
+		itemListElement: breadcrumbs.map((item, index) => ({
+			"@type": "ListItem",
+			position: index + 1,
+			name: item.name,
+			...(item.url ? { item: absoluteUrl(item.url) } : {}),
+		})),
+	});
+}
+
 const jsonLdText = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
-const gaInline = `window.dataLayer = window.dataLayer || [];
-function gtag() { dataLayer.push(arguments); }
-gtag("js", new Date());
-gtag("config", ${JSON.stringify(site.gaId || "")});`;
 const styleVersion = `${assetV}-elegant-palette-v2`;
 ---
 
@@ -165,6 +213,9 @@ const styleVersion = `${assetV}-elegant-palette-v2`;
 <meta name="theme-color" content="#fffefd" />
 
 <link rel="canonical" href={canonical} />
+{heroPreload && (
+	<link rel="preload" as="image" href={heroPreload} fetchpriority="high" />
+)}
 <link rel="alternate" hreflang="x-default" href={languageUrl("en")} />
 {langCodes.map((code) => <link rel="alternate" hreflang={code} href={languageUrl(code)} />)}
 
@@ -176,6 +227,8 @@ const styleVersion = `${assetV}-elegant-palette-v2`;
 <meta property="og:url" content={canonical} />
 <meta property="og:image" content={ogImage} />
 <meta property="og:image:alt" content={pageTitleResolved} />
+{ogImageIsDefault && <meta property="og:image:width" content="1200" />}
+{ogImageIsDefault && <meta property="og:image:height" content="630" />}
 {articleMeta?.datePublished && (
 	<meta property="article:published_time" content={articleMeta.datePublished} />
 )}
@@ -201,24 +254,12 @@ const styleVersion = `${assetV}-elegant-palette-v2`;
 
 <script type="application/ld+json" is:inline nonce={nonce} set:html={jsonLdText}></script>
 
-{site.gaId && (
-	<>
-		<script
-			async
-			is:inline
-			src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(site.gaId)}`}
-		></script>
-		<script is:inline nonce={nonce} set:html={gaInline}></script>
-	</>
-)}
-
 <link
 	rel="preload"
 	as="image"
 	href={site.logoUrl || "/img/logo-nav.png"}
 	fetchpriority="high"
 />
-{heroImage && <link rel="preload" as="image" href={heroImage} fetchpriority="high" />}
 <link rel="preload" href="/fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/pinyon-script-latin.woff2" as="font" type="font/woff2" crossorigin />

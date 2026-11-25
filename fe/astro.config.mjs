@@ -1,3 +1,4 @@
+import "dotenv/config";
 import node from "@astrojs/node";
 import { defineConfig } from "astro/config";
 

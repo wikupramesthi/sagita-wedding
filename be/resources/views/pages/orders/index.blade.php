@@ -371,6 +371,12 @@ $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== 
             </div>
             @if ($isAdmin)
             <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{{ route('orders.calendar') }}" class="btn btn-sm btn-outline-success text-nowrap">
+                    <i class="bi bi-calendar3 me-1"></i>Kalender acara
+                </a>
+                <a href="{{ route('orders.cancellations.index') }}" class="btn btn-sm btn-outline-danger text-nowrap">
+                    <i class="bi bi-calendar2-x me-1"></i>Pembatalan
+                </a>
                 <a href="{{ route('orders.change-requests.index') }}" class="btn btn-sm btn-outline-primary text-nowrap">
                     <i class="bi bi-arrow-left-right me-1"></i>Permintaan perubahan
                 </a>

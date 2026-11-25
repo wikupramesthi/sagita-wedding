@@ -8,8 +8,8 @@
     .package-list-head h1 { margin: 0 0 8px; font-size: 28px; font-weight: 800; color: #202020; }
     .package-list-head p { margin: 0; color: #888; font-size: 14px; }
     .package-list-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-    .package-list-link { display: inline-flex; align-items: center; gap: 7px; padding: 10px 16px; border: 1px solid #6d4aff; border-radius: 10px; color: #6d4aff; background: #fff; font-size: 13px; font-weight: 700; text-decoration: none; }
-    .package-list-link:hover { background: #f7f5ff; }
+    .package-list-link { display: inline-flex; align-items: center; gap: 7px; padding: 10px 16px; border: 1px solid #2f7d54; border-radius: 10px; color: #2f7d54; background: #fff; font-size: 13px; font-weight: 700; text-decoration: none; }
+    .package-list-link:hover { background: #f2f8f4; }
     .package-list-link.danger { border-color: #dc9a8f; color: #b8503f; }
     .package-list-link.danger:hover { background: #fff5f3; }
     .package-list-card { display: grid; grid-template-columns: 190px 1fr; gap: 24px; margin-bottom: 18px; padding: 20px; background: #fff; border: 1px solid #ece9e4; border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, .045); }
@@ -25,9 +25,9 @@
     .package-list-actions-row form { margin: 0; }
     .package-list-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 42px; padding: 8px 6px; border: 1px solid #e7e4df; border-radius: 9px; background: #fff; color: #555; font-size: 11px; font-weight: 700; line-height: 1.2; text-decoration: none; cursor: pointer; }
     .package-list-btn i { font-size: 14px; }
-    .package-list-btn:hover { border-color: #6d4aff; color: #6d4aff; }
-    .package-list-btn.primary { display: flex; border-color: #6d4aff; background: #6d4aff; color: #fff; font-size: 13px; }
-    .package-list-btn.primary:hover { background: #5b38f0; color: #fff; }
+    .package-list-btn:hover { border-color: #2f7d54; color: #2f7d54; }
+    .package-list-btn.primary { display: flex; border-color: #2f7d54; background: #2f7d54; color: #fff; font-size: 13px; }
+    .package-list-btn.primary:hover { background: #1f7a4b; color: #fff; }
     .package-list-table { margin-top: 26px; }
     .package-list-table table { background: #fff; border-color: #ece9e4; font-size: 13px; }
     .package-list-table th, .package-list-table td { min-width: 170px; border-color: #ece9e4; vertical-align: middle; }
@@ -36,7 +36,7 @@
     .package-list-table thead th { background: #faf8ff; color: #444; font-weight: 700; }
     .package-list-table th:first-child, .package-list-table td:first-child { font-weight: 700; color: #444; }
     .package-empty { background: #fff; border: 1px solid #ece9e4; border-radius: 20px; padding: 60px 30px; box-shadow: 0 8px 30px rgba(0, 0, 0, .035); }
-    .package-empty-icon { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; background: #f5f2ff; border-radius: 50%; color: #6d4aff; font-size: 28px; }
+    .package-empty-icon { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; background: #eff8f2; border-radius: 50%; color: #2f7d54; font-size: 28px; }
     .package-empty h5 { color: #333; margin-bottom: 8px; }
     .package-empty p { color: #888; margin-bottom: 0; font-size: 14px; }
 
@@ -53,11 +53,11 @@
 </style>
 
 <div class="package-list-page">
-    <div class="container">
+    <div class="container-fluid">
 
         <div class="package-list-head">
             <div>
-                <p class="text-uppercase fw-bold mb-1" style="color: #6d4aff; font-size: 11px; letter-spacing: .08em;">Bandingkan Paket</p>
+                <p class="text-uppercase fw-bold mb-1" style="color: #2f7d54; font-size: 11px; letter-spacing: .08em;">Bandingkan Paket</p>
                 <h1>Pilih Paket Terbaikmu</h1>
                 <p>Lihat harga mulai, kapasitas tamu, dan layanan tambahan secara berdampingan.</p>
             </div>

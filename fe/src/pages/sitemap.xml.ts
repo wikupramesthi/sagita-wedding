@@ -1,24 +1,66 @@
 import type { APIRoute } from "astro";
 import { env } from "../lib/config/env.js";
 import apiRequest from "../lib/services/apiClient.js";
+import {
+	type BatchPage,
+	getPageBatch,
+	getPageContentUpdatedAt,
+} from "../lib/services/batchService.js";
 import { toApiError } from "../lib/utils/errors.js";
 import { logger } from "../lib/utils/logger.js";
 import { cleanSlugLoose } from "../lib/utils/validate.js";
 
-const STATIC_URLS = [
-	{ path: "/", changefreq: "daily", priority: "1.0" },
-	{ path: "/about", changefreq: "monthly", priority: "0.8" },
-	{ path: "/venues", changefreq: "weekly", priority: "0.9" },
-	{ path: "/vendors", changefreq: "weekly", priority: "0.7" },
-	{ path: "/blog", changefreq: "weekly", priority: "0.8" },
-	{ path: "/packages", changefreq: "weekly", priority: "0.8" },
-	{ path: "/event", changefreq: "weekly", priority: "0.7" },
+const STATIC_URLS: {
+	path: string;
+	changefreq: string;
+	priority: string;
+	batchPage?: BatchPage;
+}[] = [
+	{ path: "/", changefreq: "daily", priority: "1.0", batchPage: "home" },
+	{
+		path: "/about",
+		changefreq: "monthly",
+		priority: "0.8",
+		batchPage: "about",
+	},
+	{
+		path: "/venues",
+		changefreq: "weekly",
+		priority: "0.9",
+		batchPage: "venues",
+	},
+	{
+		path: "/vendors",
+		changefreq: "weekly",
+		priority: "0.7",
+		batchPage: "vendors",
+	},
+	{ path: "/blog", changefreq: "weekly", priority: "0.8", batchPage: "blog" },
+	{
+		path: "/packages",
+		changefreq: "weekly",
+		priority: "0.8",
+		batchPage: "packages",
+	},
+	{
+		path: "/event",
+		changefreq: "weekly",
+		priority: "0.7",
+		batchPage: "events",
+	},
+	{
+		path: "/gallery",
+		changefreq: "monthly",
+		priority: "0.5",
+		batchPage: "gallery",
+	},
 	{ path: "/portofolio", changefreq: "monthly", priority: "0.5" },
-	{ path: "/faq", changefreq: "monthly", priority: "0.6" },
+	{ path: "/faq", changefreq: "monthly", priority: "0.6", batchPage: "faq" },
 	{
 		path: "/formulir-konsultasi",
 		changefreq: "monthly",
 		priority: "0.7",
+		batchPage: "contact",
 	},
 ];
 
@@ -43,7 +85,10 @@ const DYNAMIC_SOURCES = [
 	},
 ];
 
-const XML_HEADERS = { "Content-Type": "application/xml; charset=utf-8" };
+const XML_HEADERS = {
+	"Content-Type": "application/xml; charset=utf-8",
+	"Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+};
 
 function escapeXml(value: unknown): string {
 	return String(value ?? "")
@@ -52,6 +97,14 @@ function escapeXml(value: unknown): string {
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&apos;");
+}
+
+function parseLastmod(value: unknown, fallback: string): string {
+	if (typeof value !== "string") return fallback;
+	const date = new Date(value);
+	return Number.isNaN(date.getTime())
+		? fallback
+		: date.toISOString().slice(0, 10);
 }
 
 function urlEntry(
@@ -73,17 +126,43 @@ function urlEntry(
 async function buildSitemap(base: string): Promise<string> {
 	const today = new Date().toISOString().slice(0, 10);
 	const seen = new Set<string>();
+	const lastmodByPath = new Map<string, string>();
 	let xml =
 		'<?xml version="1.0" encoding="UTF-8"?>\n' +
 		'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
-	const push = (path: string, changefreq: string, priority: string) => {
+	const push = (
+		path: string,
+		changefreq: string,
+		priority: string,
+		lastmod = today,
+	) => {
 		if (!path || seen.has(path)) return;
 		seen.add(path);
-		xml += urlEntry(`${base}${path}`, changefreq, priority, today);
+		xml += urlEntry(`${base}${path}`, changefreq, priority, lastmod);
 	};
 
-	for (const s of STATIC_URLS) push(s.path, s.changefreq, s.priority);
+	const batchPages = STATIC_URLS.flatMap((s) =>
+		s.batchPage ? [{ path: s.path, page: s.batchPage }] : [],
+	);
+	const batchResults = await Promise.allSettled(
+		batchPages.map(async ({ path, page }) => {
+			await getPageBatch(page);
+			const updatedAt = getPageContentUpdatedAt(page);
+			if (updatedAt) lastmodByPath.set(path, parseLastmod(updatedAt, today));
+		}),
+	);
+	for (const result of batchResults) {
+		if (result.status === "rejected") {
+			logger.debug("sitemap.batch_lastmod_failed", {
+				error: toApiError(result.reason).message.slice(0, 200),
+			});
+		}
+	}
+
+	for (const s of STATIC_URLS) {
+		push(s.path, s.changefreq, s.priority, lastmodByPath.get(s.path));
+	}
 
 	const results = await Promise.allSettled(
 		DYNAMIC_SOURCES.map(async (src) => {
@@ -109,9 +188,26 @@ async function buildSitemap(base: string): Promise<string> {
 		if (result.status !== "fulfilled") return;
 		const { src, items } = result.value;
 		for (const item of items) {
-			const record = item as { slug?: unknown } | null;
+			const record = item as {
+				slug?: unknown;
+				updated_at?: unknown;
+				updatedAt?: unknown;
+				modified_at?: unknown;
+				contentUpdatedAt?: unknown;
+			} | null;
 			const slug = cleanSlugLoose(record?.slug);
-			if (slug) push(`${src.base}/${slug}`, src.changefreq, src.priority);
+			if (!slug) continue;
+			const updatedAt =
+				record?.updated_at ??
+				record?.updatedAt ??
+				record?.modified_at ??
+				record?.contentUpdatedAt;
+			push(
+				`${src.base}/${slug}`,
+				src.changefreq,
+				src.priority,
+				parseLastmod(updatedAt, today),
+			);
 		}
 	});
 

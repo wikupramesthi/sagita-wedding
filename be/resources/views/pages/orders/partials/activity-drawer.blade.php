@@ -63,6 +63,14 @@
         'approval_reverted' => 'Persetujuan dibatalkan',
         'rejection_reverted' => 'Penolakan dibatalkan',
         'sla_reminded' => 'Pengingat SLA dikirim',
+        'change_request_submitted' => 'Perubahan Pesanan Diajukan',
+        'change_request_rejected' => 'Perubahan Pesanan Ditolak',
+        'event_date_rescheduled' => 'Tanggal Acara Diubah',
+        'addon_change_approved' => 'Layanan Tambahan Disetujui',
+        'cancellation_requested' => 'Pembatalan Diajukan',
+        'cancellation_approved' => 'Pesanan Dibatalkan',
+        'cancellation_rejected' => 'Pembatalan Ditolak',
+        'refund_recorded' => 'Refund Ditransfer',
         ];
         $detail = $audit->new_values['admin_note'] ?? $audit->new_values['hours'] ?? null;
         @endphp

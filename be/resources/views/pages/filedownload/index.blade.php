@@ -48,7 +48,7 @@
                     <tbody>
                         @foreach ($downloads as $item)
                         <tr>
-                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ ($downloads->firstItem() ?? 1) + $loop->index }}</td>
                             <td class="text-wrap" style="width: 200px;">{{ $item->judul }}</td>
                             <td class="text-wrap" style="width: 300px;">{{ $item->deskripsi }}</td>
                             <td>
@@ -114,6 +114,11 @@
                     </tbody>
                 </table>
             </div>
+            @if ($downloads->hasPages())
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $downloads->links() }}
+                </div>
+            @endif
         </div>
     </div>
 </section>

@@ -40,6 +40,7 @@ interface QueryHashStat {
 }
 
 const MAX_EVENTS = 500;
+const MAX_QUERY_HASHES = 200;
 const BACKEND_TIMEOUT_MS = 2500;
 const events: StoredSitaEvent[] = [];
 const queryHashes = new Map<string, QueryHashStat>();
@@ -198,6 +199,11 @@ export function recordSitaTelemetry(payload: TelemetryPayload): void {
 					: {}),
 			lastAt: stored.at,
 		});
+		while (queryHashes.size > MAX_QUERY_HASHES) {
+			const oldest = queryHashes.keys().next().value;
+			if (oldest === undefined) break;
+			queryHashes.delete(oldest);
+		}
 	}
 }
 

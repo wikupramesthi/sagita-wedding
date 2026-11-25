@@ -12,12 +12,21 @@ export function clearSessionCache(): void {
 	sessionCache.clear();
 }
 
+function cacheKey(cookieHeader: string): string {
+	return createHash("sha256").update(cookieHeader).digest("base64url");
+}
+
+export function invalidateSessionCache(cookieHeader?: string): void {
+	if (!hasSessionCookie(cookieHeader)) return;
+	sessionCache.delete(cacheKey(cookieHeader as string));
+}
+
 export async function resolveUser(
 	cookieHeader?: string,
 ): Promise<SessionUser | null> {
 	if (!hasSessionCookie(cookieHeader)) return null;
 	const cookie = cookieHeader as string;
-	const key = createHash("sha256").update(cookie).digest("base64url");
+	const key = cacheKey(cookie);
 	const hit = sessionCache.get(key);
 	if (hit && hit.expiresAt > Date.now()) return hit.user;
 

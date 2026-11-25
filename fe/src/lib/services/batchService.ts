@@ -40,28 +40,32 @@ interface CachedBatch {
 
 const cache = new Map<string, CachedBatch>();
 const inflight = new Map<string, Promise<BackendPayload>>();
-let latestContentUpdatedAt: string | null = null;
+const contentUpdatedAtByPage = new Map<string, string>();
 
 export function clearBatchCache(): void {
 	cache.clear();
-	latestContentUpdatedAt = null;
+	contentUpdatedAtByPage.clear();
 }
 
 export function getBatchContentUpdatedAt(): string | null {
-	return latestContentUpdatedAt;
+	const values = [...contentUpdatedAtByPage.values()].sort();
+	return values.at(-1) ?? null;
 }
 
-function rememberContentUpdatedAt(value: BackendPayload): void {
-	if (!value || typeof value !== "object" || Array.isArray(value)) {
-		latestContentUpdatedAt = null;
-		return;
-	}
+export function getPageContentUpdatedAt(page: BatchPage): string | null {
+	return contentUpdatedAtByPage.get(page) ?? null;
+}
 
-	const updatedAt = (value as Record<string, unknown>).contentUpdatedAt;
-	latestContentUpdatedAt =
-		typeof updatedAt === "string" && Number.isFinite(Date.parse(updatedAt))
-			? updatedAt
-			: null;
+function rememberContentUpdatedAt(page: string, value: BackendPayload): void {
+	const updatedAt =
+		value && typeof value === "object" && !Array.isArray(value)
+			? (value as Record<string, unknown>).contentUpdatedAt
+			: undefined;
+	if (typeof updatedAt === "string" && Number.isFinite(Date.parse(updatedAt))) {
+		contentUpdatedAtByPage.set(page, updatedAt);
+	} else {
+		contentUpdatedAtByPage.delete(page);
+	}
 }
 
 function remember(key: string, entry: CachedBatch): void {
@@ -108,7 +112,7 @@ export async function getPageBatch(
 				throw new Error("Backend returned 304 without a cached batch body");
 			}
 			remember(key, cached);
-			rememberContentUpdatedAt(cached.value);
+			rememberContentUpdatedAt(page, cached.value);
 			return cached.value;
 		}
 
@@ -118,7 +122,7 @@ export async function getPageBatch(
 			data.events = sanitizeEvents(data.events);
 		}
 		remember(key, { etag: result.etag ?? undefined, value: data });
-		rememberContentUpdatedAt(data);
+		rememberContentUpdatedAt(page, data);
 		return data;
 	})();
 

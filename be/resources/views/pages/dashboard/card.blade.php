@@ -120,71 +120,97 @@
         </section>
 
     @if (isset($packageOfferDashboard))
-        <section class="card my-4" aria-labelledby="packageOfferDashboardTitle">
-            <div class="card-header bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <div>
-                    <h2 id="packageOfferDashboardTitle" class="card-title h6 mb-1">Penawaran privat</h2>
-                    <p class="small text-muted mb-0">Pantau permintaan pelanggan dan tanggapan atas penawaran.</p>
+        <section class="card my-4 dashboard-offer-card" aria-labelledby="packageOfferDashboardTitle">
+            <div class="card-header dashboard-offer-card__header d-flex justify-content-between">
+                <div class="dashboard-offer-card__heading">
+                    <span class="dashboard-offer-card__icon"><i class="bi bi-gem" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 id="packageOfferDashboardTitle" class="card-title h6 mb-1">Penawaran privat</h2>
+                        <p class="small text-muted mb-0">Pantau permintaan pelanggan dan tanggapan atas penawaran.</p>
+                    </div>
                 </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('package-offers.analytics') }}" class="btn btn-sm btn-outline-primary">Analitik</a>
-                    <a href="{{ route('package-offer-requests.index') }}" class="btn btn-sm btn-primary">Buka antrean</a>
+                <div class="dashboard-offer-card__actions">
+                    <a href="{{ route('package-offers.analytics') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-bar-chart-line me-1" aria-hidden="true"></i>Analitik</a>
+                    <a href="{{ route('package-offer-requests.index') }}" class="btn btn-sm btn-primary"><i class="bi bi-inboxes me-1" aria-hidden="true"></i>Buka antrean</a>
                 </div>
             </div>
             <div class="card-body">
                 <div class="row g-3 mb-4">
                     <div class="col-6 col-lg-4">
-                        <div class="border rounded-3 p-3 h-100">
-                            <div class="small text-muted">Permintaan terbuka</div>
-                            <div class="fs-4 fw-bold">{{ number_format($packageOfferDashboard['openRequestCount'], 0, ',', '.') }}</div>
-                            <div class="small {{ $packageOfferDashboard['overdueRequestCount'] ? 'text-danger' : 'text-muted' }}">
-                                {{ number_format($packageOfferDashboard['overdueRequestCount'], 0, ',', '.') }} melewati tenggat tinjauan
+                        <div class="dashboard-offer-metric dashboard-offer-metric--requests h-100">
+                            <span class="dashboard-offer-metric__icon"><i class="bi bi-inbox" aria-hidden="true"></i></span>
+                            <div class="min-w-0">
+                                <div class="small text-muted">Permintaan terbuka</div>
+                                <div class="dashboard-offer-metric__value">{{ number_format($packageOfferDashboard['openRequestCount'], 0, ',', '.') }}</div>
+                                <div class="small {{ $packageOfferDashboard['overdueRequestCount'] ? 'text-danger fw-semibold' : 'text-muted' }}">
+                                    {{ number_format($packageOfferDashboard['overdueRequestCount'], 0, ',', '.') }} melewati SLA
+                                    · {{ number_format($packageOfferDashboard['dueSoonRequestCount'], 0, ',', '.') }} jatuh tempo ≤ 6 jam
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-6 col-lg-4">
-                        <div class="border rounded-3 p-3 h-100">
-                            <div class="small text-muted">Menunggu tanggapan pelanggan</div>
-                            <div class="fs-4 fw-bold">{{ number_format($packageOfferDashboard['awaitingResponseCount'], 0, ',', '.') }}</div>
+                        <div class="dashboard-offer-metric dashboard-offer-metric--waiting h-100">
+                            <span class="dashboard-offer-metric__icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+                            <div class="min-w-0">
+                                <div class="small text-muted">Menunggu tanggapan pelanggan</div>
+                                <div class="dashboard-offer-metric__value">{{ number_format($packageOfferDashboard['awaitingResponseCount'], 0, ',', '.') }}</div>
+                                <div class="small text-muted">Penawaran yang menunggu respons</div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-12 col-lg-4">
-                        <a href="{{ route('package-offers.create') }}" class="border rounded-3 p-3 h-100 d-flex align-items-center justify-content-between text-decoration-none">
-                            <span><strong>Buat penawaran</strong><small class="d-block text-muted">Untuk pelanggan yang dituju</small></span>
-                            <i class="bi bi-arrow-up-right fs-5"></i>
+                        <a href="{{ route('package-offers.create') }}" class="dashboard-offer-create h-100">
+                            <span class="dashboard-offer-create__icon"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
+                            <span class="min-w-0"><strong>Buat penawaran</strong><small class="d-block">Untuk pelanggan yang dituju</small></span>
+                            <i class="bi bi-arrow-up-right dashboard-offer-create__arrow" aria-hidden="true"></i>
                         </a>
                     </div>
                 </div>
                 <div class="row g-4">
                     <div class="col-lg-6">
-                        <h3 class="h6 fw-semibold">Permintaan terbaru</h3>
-                        @forelse ($packageOfferDashboard['recentRequests'] as $packageRequest)
-                        <a href="{{ route('package-offer-requests.show', $packageRequest->uuid) }}" class="d-flex justify-content-between gap-2 py-2 border-bottom text-decoration-none">
-                            <span class="min-w-0">
-                                <span class="fw-semibold d-block text-truncate">{{ $packageRequest->user?->name ?? 'Pelanggan' }}</span>
-                                <small class="text-muted">{{ \Illuminate\Support\Str::limit($packageRequest->request_details, 70) }}</small>
+                        <div class="dashboard-offer-list-heading">
+                            <h3 class="h6 fw-semibold mb-0"><i class="bi bi-alarm me-2" aria-hidden="true"></i>Antrean tindak lanjut SLA</h3>
+                            <span>{{ number_format($packageOfferDashboard['priorityRequestCount'], 0, ',', '.') }} prioritas</span>
+                        </div>
+                        @forelse ($packageOfferDashboard['slaRequests'] as $packageRequest)
+                        <a href="{{ route('package-offer-requests.show', $packageRequest->uuid) }}" class="dashboard-offer-list-item">
+                            <span class="dashboard-offer-list-item__icon"><i class="bi bi-chat-left-text" aria-hidden="true"></i></span>
+                            <span class="dashboard-offer-list-item__body">
+                                <span class="dashboard-offer-list-item__title">{{ $packageRequest->user?->name ?? 'Pelanggan' }}</span>
+                                <small>{{ \Illuminate\Support\Str::limit($packageRequest->request_details, 70) }}</small>
+                                <small class="dashboard-offer-list-item__owner"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ $packageRequest->assignedAdmin?->name ?? 'Belum ditugaskan' }}</small>
+                                <small class="{{ $packageRequest->review_due_at->isPast() ? 'text-danger fw-semibold' : 'text-warning-emphasis' }}">
+                                    <i class="bi bi-clock me-1" aria-hidden="true"></i>
+                                    {{ $packageRequest->review_due_at->isPast() ? 'Terlambat '.$packageRequest->review_due_at->diffForHumans() : 'Tenggat '.$packageRequest->review_due_at->translatedFormat('d M, H:i') }}
+                                </small>
                             </span>
-                            <span class="text-end small flex-shrink-0">
-                                <span class="badge text-bg-{{ $packageRequest->status === 'submitted' ? 'warning' : ($packageRequest->status === 'in_review' ? 'info' : 'success') }}">{{ ['submitted' => 'Menunggu', 'in_review' => 'Ditinjau', 'quoted' => 'Ditawarkan', 'closed' => 'Ditutup'][$packageRequest->status] ?? 'Dalam proses' }}</span>
-                                <small class="d-block text-muted mt-1">{{ $packageRequest->assignedAdmin?->name ?? 'Belum ditugaskan' }}</small>
+                            <span class="dashboard-offer-list-item__side">
+                                <span class="badge text-bg-{{ $packageRequest->review_due_at->isPast() ? 'danger' : 'warning' }}">{{ $packageRequest->review_due_at->isPast() ? 'Lewat SLA' : 'Segera jatuh tempo' }}</span>
+                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
                             </span>
                         </a>
                         @empty
-                        <div class="small text-muted py-2">Belum ada permintaan paket.</div>
+                        <div class="dashboard-offer-empty"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Tidak ada permintaan yang mendekati tenggat 6 jam ke depan.</span></div>
                         @endforelse
                     </div>
                     <div class="col-lg-6">
-                        <h3 class="h6 fw-semibold">Penawaran terbaru</h3>
+                        <div class="dashboard-offer-list-heading">
+                            <h3 class="h6 fw-semibold mb-0"><i class="bi bi-send me-2" aria-hidden="true"></i>Penawaran terbaru</h3>
+                            <a href="{{ route('package-offers.index') }}">Lihat semua<i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></a>
+                        </div>
                         @forelse ($packageOfferDashboard['recentOffers'] as $offer)
-                        <a href="{{ route('package-offers.show', $offer->uuid) }}" class="d-flex justify-content-between gap-2 py-2 border-bottom text-decoration-none">
-                            <span class="min-w-0">
-                                <span class="fw-semibold d-block text-truncate">{{ $offer->title }}</span>
-                                <small class="text-muted">{{ $offer->user?->name ?? 'Pelanggan' }} · {{ $offer->options->count() }} pilihan</small>
+                        <a href="{{ route('package-offers.show', $offer->uuid) }}" class="dashboard-offer-list-item">
+                            <span class="dashboard-offer-list-item__icon dashboard-offer-list-item__icon--offer"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></span>
+                            <span class="dashboard-offer-list-item__body">
+                                <span class="dashboard-offer-list-item__title">{{ $offer->title }}</span>
+                                <small>{{ $offer->user?->name ?? 'Pelanggan' }} · {{ $offer->options->count() }} pilihan</small>
+                                <small class="dashboard-offer-list-item__owner"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ $offer->created_at?->translatedFormat('d M Y') }}</small>
                             </span>
-                            <small class="text-muted text-nowrap">{{ $offer->created_at?->translatedFormat('d M Y') }}</small>
+                            <span class="dashboard-offer-list-item__side"><i class="bi bi-chevron-right" aria-hidden="true"></i></span>
                         </a>
                         @empty
-                        <div class="small text-muted py-2">Belum ada penawaran.</div>
+                        <div class="dashboard-offer-empty"><i class="bi bi-file-earmark-plus" aria-hidden="true"></i><span>Belum ada penawaran.</span><a href="{{ route('package-offers.create') }}">Buat penawaran pertama</a></div>
                         @endforelse
                     </div>
                 </div>

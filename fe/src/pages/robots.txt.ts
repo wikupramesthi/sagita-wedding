@@ -5,6 +5,11 @@ export const GET: APIRoute = async ({ locals }) => {
 	const base = (locals.siteUrl || env.SITE_URL).replace(/\/+$/, "");
 	return new Response(
 		`User-agent: *\nAllow: /\n\nSitemap: ${base}/sitemap.xml\n`,
-		{ headers: { "Content-Type": "text/plain; charset=utf-8" } },
+		{
+			headers: {
+				"Content-Type": "text/plain; charset=utf-8",
+				"Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+			},
+		},
 	);
 };

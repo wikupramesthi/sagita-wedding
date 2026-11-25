@@ -46,6 +46,7 @@ class Order extends Model
         'balance_reminder_sent_at',
         'status',
         'expired_at',
+        'pending_payment_reminded_at',
         'paid_at',
         'admin_note',
         'assigned_admin_uuid',
@@ -77,6 +78,7 @@ class Order extends Model
         'balance_reminder_sent_at' => 'datetime',
         'event_date' => 'date',
         'expired_at' => 'datetime',
+        'pending_payment_reminded_at' => 'datetime',
         'paid_at' => 'datetime',
         'sla_reminded_at' => 'datetime',
         'proof_uploaded_at' => 'datetime',
@@ -213,6 +215,11 @@ class Order extends Model
     public function changeRequests(): HasMany
     {
         return $this->hasMany(OrderChangeRequest::class, 'order_uuid', 'uuid')->latest();
+    }
+
+    public function cancellationRequests(): HasMany
+    {
+        return $this->hasMany(OrderCancellationRequest::class, 'order_uuid', 'uuid')->latest();
     }
 
     public function vendorAssignments(): HasMany

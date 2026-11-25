@@ -1,6 +1,84 @@
 @if (session('success'))
     <div class="alert alert-success py-2 mb-3">{{ session('success') }}</div>
 @endif
+
+@php
+    $cancellationRequests = $order->cancellationRequests ?? collect();
+    $hasPendingCancellation = $cancellationRequests->contains('status', 'pending');
+    $createdWithinCancellationWindow = $order->created_at
+        && now()->lessThanOrEqualTo($order->created_at->copy()->addDays(7));
+    $canRequestCancellation = ! $isAdmin
+        && $createdWithinCancellationWindow
+        && in_array($order->status, ['pending', 'partially_paid', 'paid'], true)
+        && ! $order->event_date?->lt(today());
+    $cancellationStatusLabels = [
+        'pending' => 'Menunggu tinjauan',
+        'approved' => 'Disetujui',
+        'rejected' => 'Ditolak',
+    ];
+@endphp
+
+@if ($cancellationRequests->isNotEmpty() || $canRequestCancellation || (! $isAdmin && in_array($order->status, ['pending', 'partially_paid', 'paid'], true)))
+    <div class="{{ $compact ? 'app-card p-3 mt-3' : 'card border-0 shadow-sm mb-4' }}">
+        <div class="{{ $compact ? 'h6 fw-semibold mb-2' : 'card-header bg-white fw-semibold' }}">Pembatalan pesanan</div>
+        <div class="{{ $compact ? '' : 'card-body' }}">
+            @foreach ($cancellationRequests as $cancellation)
+                <div class="d-flex flex-wrap justify-content-between gap-2 py-2 {{ ! $loop->last ? 'border-bottom' : '' }}">
+                    <div class="small">
+                        <strong>{{ $cancellationStatusLabels[$cancellation->status] ?? ucfirst($cancellation->status) }}</strong>
+                        <div class="text-muted">Diajukan {{ $cancellation->created_at?->translatedFormat('d M Y, H:i') }}</div>
+                        @if ($cancellation->customer_note)
+                            <div class="mt-1">{{ $cancellation->customer_note }}</div>
+                        @endif
+                        @if ($cancellation->admin_note)
+                            <div class="text-muted mt-1">Catatan admin: {{ $cancellation->admin_note }}</div>
+                        @endif
+                        @if ($cancellation->status === 'approved' && (float) $cancellation->refund_amount > 0)
+                            <div class="mt-1">
+                                Refund Rp {{ number_format((float) $cancellation->refund_amount, 0, ',', '.') }} ·
+                                @if ($cancellation->refund_status === 'refunded')
+                                    ditransfer {{ $cancellation->refund_recorded_at?->translatedFormat('d M Y, H:i') }}
+                                    @if ($cancellation->refund_reference) · Referensi {{ $cancellation->refund_reference }}@endif
+                                @else
+                                    menunggu transfer manual admin
+                                @endif
+                            </div>
+                        @elseif ($cancellation->status === 'approved')
+                            <div class="mt-1">Pembatalan disetujui tanpa refund.</div>
+                        @endif
+                    </div>
+                    <span class="badge align-self-start {{ $cancellation->status === 'pending' ? 'text-bg-warning' : ($cancellation->status === 'approved' ? 'text-bg-success' : 'text-bg-secondary') }}">
+                        {{ $cancellationStatusLabels[$cancellation->status] ?? ucfirst($cancellation->status) }}
+                    </span>
+                </div>
+            @endforeach
+
+            @if ($isAdmin && $hasPendingCancellation)
+                <a href="{{ route('orders.cancellations.index') }}" class="btn btn-sm btn-outline-primary mt-2">
+                    Tinjau permintaan pembatalan
+                </a>
+            @elseif (! $isAdmin && $hasPendingCancellation)
+                <div class="alert alert-warning small mt-2 mb-0">
+                    Pembayaran baru ditangguhkan sampai admin menyelesaikan tinjauan pembatalan.
+                </div>
+            @elseif ($canRequestCancellation)
+                <p class="small text-muted mb-2">
+                    Pengajuan tersedia dalam 7 hari sejak pesanan dibuat. Admin menentukan nominal refund berdasarkan pembayaran terverifikasi; transfer dilakukan secara manual.
+                </p>
+                <form method="POST" action="{{ route('orders.cancellations.store', $order->uuid) }}" class="d-grid gap-2">
+                    @csrf
+                    <label class="small fw-semibold" for="cancellation-note-{{ $order->uuid }}">Alasan pembatalan (opsional)</label>
+                    <textarea id="cancellation-note-{{ $order->uuid }}" name="customer_note" rows="2" maxlength="1000" class="form-control form-control-sm"></textarea>
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Kirim permintaan pembatalan? Pesanan tidak langsung dibatalkan sebelum ditinjau admin.')">
+                        <i class="bi bi-calendar2-x me-1"></i>Ajukan pembatalan
+                    </button>
+                </form>
+            @elseif (! $isAdmin && in_array($order->status, ['pending', 'partially_paid', 'paid'], true) && ! $createdWithinCancellationWindow)
+                <p class="small text-muted mb-0">Masa pengajuan pembatalan 7 hari sejak pesanan dibuat telah berakhir.</p>
+            @endif
+        </div>
+    </div>
+@endif
 @if ($errors->any())
     <div class="alert alert-danger py-2 mb-3">{{ $errors->first() }}</div>
 @endif

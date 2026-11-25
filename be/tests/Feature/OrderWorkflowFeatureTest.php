@@ -9,14 +9,19 @@ use App\Models\Package\PackageOption;
 use App\Models\Payment\CheckoutSession;
 use App\Models\Payment\EventDateReservation;
 use App\Models\Payment\Order;
+use App\Models\Payment\OrderCancellationRequest;
 use App\Models\Payment\OrderChangeRequest;
 use App\Models\Payment\OrderDocument;
 use App\Models\Payment\OrderFeedback;
 use App\Models\Payment\OrderWorkflowSetting;
 use App\Models\Payment\Payment;
 use App\Models\Payment\WeddingChecklistItem;
+use App\Models\UserPackage;
 use App\Models\User;
 use App\Notifications\CheckoutAbandonedNotification;
+use App\Notifications\PendingOrderPaymentReminderNotification;
+use App\Notifications\OrderWorkflowNotification;
+use App\Models\AuditLog;
 use App\Services\EventDateReservationService;
 use App\Services\OrderWorkflowProvisioningService;
 use Database\Seeders\RouteSeeder;
@@ -49,6 +54,7 @@ class OrderWorkflowFeatureTest extends TestCase
         parent::setUp();
 
         Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
         $this->seed(RouteSeeder::class);
         Cache::flush();
@@ -58,6 +64,9 @@ class OrderWorkflowFeatureTest extends TestCase
             Role::findByName('admin', 'web')->givePermissionTo($permission);
             Role::findByName('user', 'web')->givePermissionTo($permission);
         }
+        Role::findByName('admin', 'web')->givePermissionTo(
+            Permission::firstOrCreate(['name' => 'orders.approve', 'guard_name' => 'web'])
+        );
 
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
@@ -114,6 +123,45 @@ class OrderWorkflowFeatureTest extends TestCase
             OrderWorkflowSetting::current()->contract_template
         );
         $this->assertSame('Konfirmasi lokasi', OrderWorkflowSetting::current()->checklist_template[0]['title']);
+    }
+
+    public function test_pending_order_customer_is_reminded_once_before_expiration(): void
+    {
+        Notification::fake();
+
+        $pendingOrder = Order::create([
+            'user_uuid' => $this->member->uuid,
+            'order_number' => 'ORD-EXPIRY-'.strtoupper(uniqid()),
+            'type' => 'package',
+            'package_uuid' => $this->package->uuid,
+            'event_date' => today()->addMonths(6)->toDateString(),
+            'amount' => 10000000,
+            'payment_scheme' => 'full',
+            'total_amount' => 10000000,
+            'amount_paid' => 0,
+            'remaining_amount' => 10000000,
+            'status' => 'pending',
+            'expired_at' => now()->addHour(),
+            'addons' => [],
+        ]);
+
+        $this->artisan('orders:remind-pending-expiry')->assertExitCode(0);
+        $remindedAt = $pendingOrder->fresh()->pending_payment_reminded_at;
+        $this->assertNotNull($remindedAt);
+        $this->assertSame(
+            1,
+            Notification::sent($this->member, PendingOrderPaymentReminderNotification::class)->count()
+        );
+
+        $this->artisan('orders:remind-pending-expiry')->assertExitCode(0);
+        $this->assertSame(
+            $remindedAt->toDateTimeString(),
+            $pendingOrder->fresh()->pending_payment_reminded_at->toDateTimeString()
+        );
+        $this->assertSame(
+            1,
+            Notification::sent($this->member, PendingOrderPaymentReminderNotification::class)->count()
+        );
     }
 
     public function test_admin_approval_reprices_addon_and_updates_order_balance(): void
@@ -264,6 +312,206 @@ class OrderWorkflowFeatureTest extends TestCase
             'order_uuid' => $this->order->uuid,
             'status' => 'confirmed',
         ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'auditable_id' => $this->order->uuid,
+            'event' => 'event_date_rescheduled',
+        ]);
+    }
+
+    public function test_customer_cancellation_is_reviewed_and_manual_refund_is_audited(): void
+    {
+        Notification::fake();
+        $verifiedPayment = Payment::create([
+            'order_uuid' => $this->order->uuid,
+            'kind' => 'dp',
+            'payment_gateway' => 'manual_transfer',
+            'amount' => 2000000,
+            'gross_amount' => 2000000,
+            'status' => 'paid',
+            'verification_status' => 'approved',
+            'verified_by' => $this->admin->uuid,
+            'verified_at' => now(),
+            'paid_at' => now(),
+        ]);
+        $pendingPayment = Payment::create([
+            'order_uuid' => $this->order->uuid,
+            'kind' => 'installment',
+            'payment_gateway' => 'manual_transfer',
+            'amount' => 100000,
+            'gross_amount' => 100000,
+            'status' => 'pending',
+            'verification_status' => 'pending',
+        ]);
+        $membership = UserPackage::create([
+            'user_uuid' => $this->member->uuid,
+            'package_uuid' => $this->package->uuid,
+            'order_uuid' => $this->order->uuid,
+            'quota' => 1,
+            'status' => 'active',
+        ]);
+        $reservationService = app(EventDateReservationService::class);
+        $reservation = $reservationService->lockDate($this->order->event_date, $this->order->uuid);
+        $reservationService->hold($reservation, $this->order);
+        $reservationService->confirmForOrder($this->order->uuid);
+
+        $this->actingAs($this->member)
+            ->post(route('orders.cancellations.store', $this->order->uuid), [
+                'customer_note' => 'Jadwal keluarga berubah.',
+            ])
+            ->assertRedirect(route('orders.show', $this->order->uuid));
+
+        $cancellation = OrderCancellationRequest::firstOrFail();
+        Notification::assertSentTo($this->admin, OrderWorkflowNotification::class);
+
+        $this->actingAs($this->member)
+            ->post(route('orders.change-requests.store', $this->order->uuid), [
+                'change_type' => 'event_date',
+                'requested_event_date' => today()->addMonths(7)->toDateString(),
+            ])
+            ->assertSessionHasErrors('change_type');
+
+        $this->actingAs($this->member)
+            ->post(route('orders.payments.store', $this->order->uuid), ['amount' => 100000])
+            ->assertForbidden();
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.payments.approve', [$this->order->uuid, $pendingPayment->uuid]))
+            ->assertRedirect()
+            ->assertSessionHas('error');
+        $this->assertDatabaseHas('payments', [
+            'uuid' => $pendingPayment->uuid,
+            'verification_status' => 'pending',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.cancellations.review', $cancellation->uuid), [
+                'decision' => 'approved',
+                'refund_amount' => 2000000,
+                'admin_note' => 'Refund disetujui; transfer manual.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('orders', [
+            'uuid' => $this->order->uuid,
+            'status' => 'cancelled',
+            'remaining_amount' => 0,
+        ]);
+        $this->assertDatabaseHas('order_cancellation_requests', [
+            'uuid' => $cancellation->uuid,
+            'status' => 'approved',
+            'refund_amount' => 2000000,
+            'refund_status' => 'pending',
+        ]);
+        $this->assertDatabaseHas('payments', [
+            'uuid' => $pendingPayment->uuid,
+            'status' => 'failed',
+            'verification_status' => 'rejected',
+        ]);
+        $this->assertSame('approved', $verifiedPayment->fresh()->verification_status);
+        $this->assertSame('cancelled', $membership->fresh()->status);
+        $this->assertDatabaseHas('event_date_reservations', [
+            'event_date' => $this->order->event_date->toDateString(),
+            'order_uuid' => null,
+            'status' => 'available',
+        ]);
+        Notification::assertSentTo($this->member, OrderWorkflowNotification::class);
+        $this->assertDatabaseHas('audit_logs', [
+            'auditable_id' => $this->order->uuid,
+            'event' => 'cancellation_approved',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.cancellations.refund', $cancellation->uuid), [
+                'refund_reference' => 'BANK-REFUND-2026-001',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('order_cancellation_requests', [
+            'uuid' => $cancellation->uuid,
+            'refund_status' => 'refunded',
+            'refund_reference' => 'BANK-REFUND-2026-001',
+        ]);
+        Notification::assertSentTo($this->member, OrderWorkflowNotification::class);
+        $this->assertDatabaseHas('audit_logs', [
+            'auditable_id' => $this->order->uuid,
+            'event' => 'refund_recorded',
+        ]);
+    }
+
+    public function test_cancellation_request_expires_after_seven_days_and_refund_cannot_exceed_verified_payments(): void
+    {
+        $this->order->forceFill(['created_at' => now()->subDays(8)])->save();
+
+        $this->actingAs($this->member)
+            ->post(route('orders.cancellations.store', $this->order->uuid), [])
+            ->assertSessionHasErrors('cancellation');
+        $this->assertDatabaseCount('order_cancellation_requests', 0);
+
+        $this->order->forceFill(['created_at' => now()])->save();
+        $this->actingAs($this->member)
+            ->post(route('orders.cancellations.store', $this->order->uuid), [])
+            ->assertRedirect();
+        $cancellation = OrderCancellationRequest::firstOrFail();
+
+        Payment::create([
+            'order_uuid' => $this->order->uuid,
+            'kind' => 'dp',
+            'payment_gateway' => 'manual_transfer',
+            'amount' => 1000000,
+            'gross_amount' => 1000000,
+            'status' => 'paid',
+            'verification_status' => 'approved',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('orders.cancellations.review', $cancellation->uuid), [
+                'decision' => 'approved',
+                'refund_amount' => 1000001,
+            ])
+            ->assertSessionHasErrors('refund_amount');
+
+        $this->assertDatabaseHas('orders', [
+            'uuid' => $this->order->uuid,
+            'status' => 'partially_paid',
+        ]);
+        $this->assertDatabaseHas('order_cancellation_requests', [
+            'uuid' => $cancellation->uuid,
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_admin_can_view_monthly_event_calendar_and_members_cannot(): void
+    {
+        $cancelledOrder = Order::create([
+            'user_uuid' => $this->member->uuid,
+            'order_number' => 'ORD-CALENDAR-CANCELLED',
+            'type' => 'package',
+            'package_uuid' => $this->package->uuid,
+            'package_option_uuid' => $this->option->uuid,
+            'event_date' => $this->order->event_date->toDateString(),
+            'amount' => 10000000,
+            'total_amount' => 10000000,
+            'remaining_amount' => 0,
+            'status' => 'cancelled',
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'uuid' => $this->order->uuid,
+            'status' => 'partially_paid',
+            'event_date' => $this->order->event_date->toDateString(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('orders.calendar', ['month' => $this->order->event_date->format('Y-m')]))
+            ->assertOk()
+            ->assertSee('Kalender acara')
+            ->assertSee($this->package->name)
+            ->assertDontSee($cancelledOrder->order_number);
+
+        $this->actingAs($this->member)
+            ->get(route('orders.calendar'))
+            ->assertNotFound();
     }
 
     public function test_checkout_analytics_counts_mature_abandoned_sessions_without_customer_data(): void

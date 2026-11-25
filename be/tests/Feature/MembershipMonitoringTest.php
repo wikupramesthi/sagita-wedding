@@ -246,9 +246,7 @@ class MembershipMonitoringTest extends TestCase
         $response = $this->actingAs($admin)
             ->get(route('memberships.export', ['payment' => 'lunas']))
             ->assertOk()
-            ->assertHeader('Content-Type', 'text/csv; charset=UTF-8')
-            ->assertSee('=1+1')
-            ->assertDontSee($otherMember->email);
+            ->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
 
         $cacheControl = $response->headers->get('Cache-Control');
 
@@ -256,9 +254,10 @@ class MembershipMonitoringTest extends TestCase
         $this->assertStringContainsString('private', $cacheControl);
         $this->assertStringNotContainsString('public', $cacheControl);
 
-        $content = $response->getContent();
+        $content = $response->streamedContent();
 
         $this->assertStringContainsString("'=1+1", $content);
+        $this->assertStringNotContainsString($otherMember->email, $content);
         $this->assertStringNotContainsString($otherMember->name, $content);
     }
 

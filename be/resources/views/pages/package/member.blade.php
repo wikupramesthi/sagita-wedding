@@ -206,7 +206,7 @@
 </style>
 
 <div class="package-catalog-page">
-    <div class="container">
+    <div class="container-fluid">
 
         <div class="package-catalog-hero">
             <div>
@@ -255,7 +255,7 @@
             </div>
             <div class="row g-3">
                 @foreach ($customOffers as $customOffer)
-                <div class="col-lg-6">
+                <div class="{{ $customOffers->count() === 1 ? 'col-12' : 'col-lg-6' }}">
                     <article class="card h-100 border-primary-subtle shadow-sm">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start gap-2">

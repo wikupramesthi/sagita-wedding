@@ -1,10 +1,11 @@
 import type { APIRoute } from "astro";
 import { json } from "../../lib/http.js";
 import { logoutSession } from "../../lib/services/authService.js";
-import { clearSessionCache } from "../../lib/session.js";
+import { invalidateSessionCache } from "../../lib/session.js";
 
 export const POST: APIRoute = async ({ request }) => {
-	const ok = await logoutSession(request.headers.get("cookie") ?? undefined);
+	const cookie = request.headers.get("cookie") ?? undefined;
+	const ok = await logoutSession(cookie);
 	if (!ok) {
 		return json(
 			{
@@ -14,6 +15,6 @@ export const POST: APIRoute = async ({ request }) => {
 			502,
 		);
 	}
-	clearSessionCache();
+	invalidateSessionCache(cookie);
 	return json({ success: true, authenticated: false });
 };

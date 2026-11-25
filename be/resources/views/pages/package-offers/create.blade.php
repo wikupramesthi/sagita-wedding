@@ -24,16 +24,16 @@
         $secondFormItems = [['name' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]];
     }
 @endphp
-<div class="container-fluid py-3">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <div>
-            <h4 class="fw-bold mb-1">{{ $draft ? 'Ubah Draf Penawaran' : ($previous ? 'Buat Revisi Penawaran' : 'Buat Penawaran Khusus') }}</h4>
-            <p class="text-muted mb-0">
-                Draf hanya terlihat oleh admin. Pelanggan baru menerima penawaran setelah Anda meninjau dan mengirimnya.
-            </p>
+<div class="container-fluid py-3 offer-module-page offer-form-page">
+    <section class="analytics-hero mb-4" aria-labelledby="offer-form-title">
+        <div class="analytics-hero__copy">
+            <p class="analytics-hero__eyebrow"><i class="bi bi-file-earmark-plus me-2" aria-hidden="true"></i>Pengelolaan penawaran</p>
+            <h1 id="offer-form-title">{{ $draft ? 'Ubah Draf Penawaran' : ($previous ? 'Buat Revisi Penawaran' : 'Buat Penawaran Khusus') }}</h1>
+            <p class="analytics-hero__subtitle">Draf hanya terlihat admin. Pelanggan baru menerima penawaran setelah Anda meninjau dan mengirimnya.</p>
         </div>
-        <a href="{{ route('package-offers.index') }}" class="btn btn-outline-secondary">Kembali</a>
-    </div>
+        <div class="offer-module-actions"><a href="{{ route('package-offers.index') }}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Kembali</a></div>
+        <div class="analytics-hero__decoration" aria-hidden="true"><i class="bi bi-pencil-square"></i></div>
+    </section>
 
     <form method="POST" action="{{ $draft ? route('package-offers.update', $draft->uuid) : ($previous ? route('package-offers.revise', $previous->uuid) : route('package-offers.store')) }}" id="custom-offer-form">
         @csrf

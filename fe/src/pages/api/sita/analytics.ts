@@ -6,9 +6,12 @@ import {
 } from "../../../lib/services/sitaAnalytics.js";
 import { limitHeaders } from "../_shared.js";
 
-export const GET: APIRoute = async ({ request, locals }) => {
+export const GET: APIRoute = async ({ request, locals, clientAddress }) => {
 	const limit = 30;
-	const hit = takeRateLimit(`sita-analytics:${clientIp(request)}`, limit);
+	const hit = takeRateLimit(
+		`sita-analytics:${clientIp(request, clientAddress)}`,
+		limit,
+	);
 	const headers = limitHeaders(hit, limit);
 	if (!hit.ok) {
 		return json(

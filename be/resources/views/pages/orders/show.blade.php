@@ -789,7 +789,7 @@
 
     .receipt-wrapper {
         width: 100%;
-        max-width: 1380px;
+        max-width: 100%;
         margin: 0 auto;
     }
 

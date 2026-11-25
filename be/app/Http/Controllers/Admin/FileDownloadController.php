@@ -15,7 +15,10 @@ class FileDownloadController extends Controller
      */
     public function index()
     {
-        $downloads = FileDownload::latest()->get();
+        $downloads = FileDownload::query()
+            ->latest('created_at')
+            ->paginate(25)
+            ->withQueryString();
 
         return view('pages.filedownload.index', compact('downloads'));
     }

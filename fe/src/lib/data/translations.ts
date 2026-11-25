@@ -190,10 +190,7 @@ const rawTranslations = {
 		nav: {
 			home: "Home",
 			about: "About Us",
-			artofliving: "Art of Living",
 			venues: "Venues",
-			classes: "Classes",
-			schedules: "Schedules",
 			packages: "Wedding Packages",
 			portfolio: "Portfolio",
 			vendors: "Vendors",
@@ -699,10 +696,7 @@ const rawTranslations = {
 		nav: {
 			home: "Beranda",
 			about: "Tentang Kami",
-			artofliving: "Art of Living",
 			venues: "Venue",
-			classes: "Kelas",
-			schedules: "Jadwal",
 			packages: "Paket Pernikahan",
 			portfolio: "Portofolio",
 			vendors: "Vendor",

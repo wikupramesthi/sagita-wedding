@@ -8,9 +8,12 @@ import { parseTelemetry } from "../../lib/telemetry.js";
 import { logger } from "../../lib/utils/logger.js";
 import { limitHeaders, readRecord } from "./_shared.js";
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
 	const limit = 40;
-	const hit = takeRateLimit(`telemetry:${clientIp(request)}`, limit);
+	const hit = takeRateLimit(
+		`telemetry:${clientIp(request, clientAddress)}`,
+		limit,
+	);
 	const headers = limitHeaders(hit, limit);
 	if (!hit.ok) {
 		return json(

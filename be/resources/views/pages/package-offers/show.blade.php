@@ -23,18 +23,26 @@
         default => 'light',
     };
 @endphp
-<div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <div>
+<div class="container-fluid py-3 offer-detail-page">
+    <header class="offer-detail-hero mb-4">
+        <div class="offer-detail-heading">
             <a href="{{ $isAdmin ? route('package-offers.index') : route('package-offers.mine') }}" class="text-decoration-none small">
                 <i class="bi bi-arrow-left me-1"></i>{{ $isAdmin ? 'Kembali ke penawaran' : 'Kembali ke Penawaran Saya' }}
             </a>
-            <h3 class="fw-bold mt-2 mb-1">{{ $offer->title }}</h3>
-            <span class="badge text-bg-{{ $statusTone }}">{{ $statusLabel }}</span>
-            <span class="text-muted small ms-2">Versi {{ $offer->version }}</span>
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                <h1 class="offer-detail-title mb-0">{{ $offer->title }}</h1>
+                <span class="badge text-bg-{{ $statusTone }}">{{ $statusLabel }}</span>
+                <span class="offer-version-badge">Versi {{ $offer->version }}</span>
+            </div>
+            <p class="offer-detail-subtitle mb-0">
+                <i class="bi bi-calendar-event me-1" aria-hidden="true"></i>{{ $offer->event_date?->translatedFormat('d F Y') ?? 'Tanggal belum ditentukan' }}
+                @if ($offer->guest_count)
+                <span class="mx-1">·</span><i class="bi bi-people me-1" aria-hidden="true"></i>{{ number_format($offer->guest_count, 0, ',', '.') }} tamu
+                @endif
+            </p>
         </div>
         @if ($isAdmin)
-        <div class="d-flex flex-wrap gap-2">
+        <div class="offer-detail-actions">
             <a href="{{ route('package-offers.pdf', $offer->uuid) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-file-earmark-pdf me-1"></i>Unduh PDF
             </a>
@@ -60,21 +68,23 @@
             @endif
         </div>
         @endif
-    </div>
+    </header>
 
     @if ($isAdmin)
-    <div class="alert alert-light border">
-        <strong>Penerima:</strong> {{ $offer->user?->name ?? '-' }} · {{ $offer->user?->email ?? '-' }}
+    <div class="alert alert-light border offer-recipient-alert">
+        <i class="bi bi-person-circle me-2" aria-hidden="true"></i><strong>Penerima:</strong> {{ $offer->user?->name ?? '-' }} · {{ $offer->user?->email ?? '-' }}
         @if ($offer->source_request_uuid)
-        <a href="{{ route('package-offer-requests.show', $offer->source_request_uuid) }}" class="ms-2">Lihat permintaan asal</a>
+        <a href="{{ route('package-offer-requests.show', $offer->source_request_uuid) }}" class="btn btn-sm btn-outline-primary ms-md-2 mt-2 mt-md-0"><i class="bi bi-arrow-up-right me-1"></i>Lihat permintaan asal</a>
         @endif
     </div>
     @endif
 
     <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header bg-white fw-semibold">Ringkasan acara</div>
+        <div class="col-xl-8">
+            <div class="card mb-4 offer-detail-card">
+                <div class="card-header bg-transparent">
+                    <h2 class="h6 fw-bold mb-0"><i class="bi bi-card-text me-2 text-primary" aria-hidden="true"></i>Ringkasan acara</h2>
+                </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-sm-6">
@@ -116,8 +126,8 @@
 
             <div class="vstack gap-3">
                 @foreach ($offer->options as $option)
-                <div class="card {{ $offer->selected_option_uuid === $option->uuid ? 'border-success' : '' }}">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center gap-2">
+                <div class="card offer-detail-card offer-option-card {{ $offer->selected_option_uuid === $option->uuid ? 'offer-option-card--selected' : '' }}">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center gap-2">
                         <div>
                             <h5 class="fw-bold mb-0">{{ $option->label }}</h5>
                             @if ($option->description)<div class="small text-muted mt-1">{{ $option->description }}</div>@endif
@@ -150,7 +160,7 @@
                         <div class="d-flex justify-content-between"><span>Subtotal</span><span>Rp {{ number_format($option->subtotal_amount, 0, ',', '.') }}</span></div>
                         <div class="d-flex justify-content-between"><span>Diskon</span><span>− Rp {{ number_format($option->discount_amount, 0, ',', '.') }}</span></div>
                         <div class="d-flex justify-content-between border-top mt-2 pt-2 fw-bold"><span>Total</span><span>Rp {{ number_format($option->total_amount, 0, ',', '.') }}</span></div>
-                        <div class="small mt-2"><strong>DP awal:</strong> {{ $option->deposit_percentage }}%</div>
+                        <div class="offer-option-deposit mt-3"><i class="bi bi-wallet2 me-1" aria-hidden="true"></i><strong>DP awal:</strong> {{ $option->deposit_percentage }}%</div>
                         @if ($option->payment_terms_note)<div class="small mt-1"><strong>Ketentuan pembayaran:</strong> {{ $option->payment_terms_note }}</div>@endif
                         @if ($offer->status === 'sent')
                         <div class="small text-muted mt-2">Berlaku sampai {{ $offer->expires_at?->translatedFormat('d F Y, H:i') }}.</div>
@@ -162,7 +172,7 @@
                             @csrf
                             <input type="hidden" name="action" value="accept">
                             <input type="hidden" name="option_uuid" value="{{ $option->uuid }}">
-                            <button type="submit" class="btn btn-primary w-100">Pilih {{ $option->label }} dan Lanjut</button>
+                            <button type="submit" class="btn btn-success btn-lg w-100"><i class="bi bi-check2-circle me-1" aria-hidden="true"></i>Pilih {{ $option->label }} dan lanjut</button>
                         </form>
                         @endif
                     </div>
@@ -174,19 +184,21 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-xl-4">
             @if (! $isAdmin && $isLatest && $offer->status === 'sent')
-            <div class="card border-primary mb-3">
+            <div class="card offer-response-card mb-3">
                 <div class="card-body">
-                    <h5 class="fw-bold">Bagaimana pendapat Anda?</h5>
-                    <p class="small text-muted">Pilih salah satu opsi di samping untuk lanjut checkout, atau minta perubahan sebelum penawaran berakhir.</p>
+                    <div class="offer-response-heading">
+                        <span class="analytics-section-icon"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
+                        <div><h2 class="h5 fw-bold mb-1">Bagaimana pendapat Anda?</h2><p class="small text-muted mb-0">Pilih opsi untuk melanjutkan atau sampaikan perubahan yang dibutuhkan.</p></div>
+                    </div>
                     <form method="POST" action="{{ route('package-offers.respond', $offer->uuid) }}" class="mb-2">
                         @csrf
                         <input type="hidden" name="action" value="request_revision">
                         <label for="revision_note" class="form-label small">Apa yang ingin diubah?</label>
                         <textarea id="revision_note" name="revision_note" rows="3" class="form-control @error('revision_note') is-invalid @enderror" maxlength="3000" required>{{ old('revision_note') }}</textarea>
                         @error('revision_note')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        <button type="submit" class="btn btn-outline-primary w-100 mt-2">Minta Revisi</button>
+                        <button type="submit" class="btn btn-outline-primary w-100 mt-2"><i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Minta revisi</button>
                     </form>
                     <form method="POST" action="{{ route('package-offers.respond', $offer->uuid) }}" onsubmit="return confirm('Tolak penawaran ini?')">
                         @csrf
@@ -199,19 +211,19 @@
                             <option value="other">Alasan lainnya</option>
                         </select>
                         <textarea name="rejection_note" rows="2" class="form-control mb-2" maxlength="2000" placeholder="Catatan tambahan (opsional)"></textarea>
-                        <button type="submit" class="btn btn-link text-danger w-100">Tolak Penawaran</button>
+                        <button type="submit" class="btn btn-outline-danger w-100"><i class="bi bi-x-circle me-1" aria-hidden="true"></i>Tolak penawaran</button>
                     </form>
                 </div>
             </div>
             @elseif (! $isAdmin && $offer->status === 'accepted')
-            <div class="card border-success mb-3">
+            <div class="card offer-accepted-card mb-3">
                 <div class="card-body text-center">
                     <i class="bi bi-check-circle-fill text-success fs-2"></i>
                     <h5 class="fw-bold mt-2">Penawaran disetujui</h5>
                     @if ($activeOrder)
-                    <a href="{{ route('orders.show', $activeOrder->uuid) }}" class="btn btn-success w-100">Lihat Pesanan</a>
+                    <a href="{{ route('orders.show', $activeOrder->uuid) }}" class="btn btn-success w-100"><i class="bi bi-receipt me-1" aria-hidden="true"></i>Lihat pesanan</a>
                     @else
-                    <a href="{{ route('package-offers.checkout', $offer->uuid) }}" class="btn btn-success w-100">Lanjutkan ke Checkout</a>
+                    <a href="{{ route('package-offers.checkout', $offer->uuid) }}" class="btn btn-success w-100"><i class="bi bi-arrow-right-circle me-1" aria-hidden="true"></i>Lanjutkan ke checkout</a>
                     @endif
                 </div>
             </div>
@@ -220,8 +232,8 @@
             @endif
 
             @if ($versions->count() > 1)
-            <div class="card">
-                <div class="card-header bg-white fw-semibold">Perbandingan versi penawaran</div>
+            <div class="card offer-detail-card">
+                <div class="card-header bg-transparent"><h2 class="h6 fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary" aria-hidden="true"></i>Perbandingan versi penawaran</h2></div>
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
                         <thead class="table-light">
@@ -265,8 +277,8 @@
             @endif
 
             @if ($isAdmin && $offer->workflowEvents->isNotEmpty())
-            <div class="card mt-3">
-                <div class="card-header bg-white fw-semibold">Riwayat aktivitas</div>
+            <div class="card mt-3 offer-detail-card">
+                <div class="card-header bg-transparent"><h2 class="h6 fw-bold mb-0"><i class="bi bi-activity me-2 text-primary" aria-hidden="true"></i>Riwayat aktivitas</h2></div>
                 <div class="list-group list-group-flush">
                     @foreach ($offer->workflowEvents as $event)
                     <div class="list-group-item">

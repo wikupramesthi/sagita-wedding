@@ -3,17 +3,20 @@
 @section('title', 'Ajukan Paket Khusus')
 
 @section('content')
-<div class="container py-4">
-    <div class="mb-4">
-        <a href="{{ route('package-offer-requests.mine') }}" class="text-decoration-none small">
-            <i class="bi bi-arrow-left me-1"></i>Kembali ke permintaan saya
-        </a>
-        <h3 class="fw-bold mt-2 mb-1">Ceritakan kebutuhan acara Anda</h3>
-        <p class="text-muted mb-0">Tim Sagita akan meninjau kebutuhan ini dan menyiapkan penawaran khusus yang hanya dapat Anda lihat.</p>
-    </div>
+<div class="container-fluid py-3 offer-module-page">
+    <section class="analytics-hero mb-4" aria-labelledby="request-create-title">
+        <div class="analytics-hero__copy">
+            <p class="analytics-hero__eyebrow"><i class="bi bi-chat-square-heart me-2" aria-hidden="true"></i>Permintaan privat</p>
+            <h1 id="request-create-title">Ceritakan kebutuhan acara Anda</h1>
+            <p class="analytics-hero__subtitle">Tim Sagita akan meninjau kebutuhan ini dan menyiapkan penawaran khusus yang hanya dapat Anda lihat.</p>
+        </div>
+        <div class="offer-module-actions"><a href="{{ route('package-offer-requests.mine') }}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Kembali ke permintaan saya</a></div>
+        <div class="analytics-hero__decoration" aria-hidden="true"><i class="bi bi-pencil-square"></i></div>
+    </section>
 
-    <form method="POST" action="{{ route('package-offer-requests.store') }}" enctype="multipart/form-data" class="card">
+    <form method="POST" action="{{ route('package-offer-requests.store') }}" enctype="multipart/form-data" class="card shadow-sm border-0 offer-form-card">
         @csrf
+        <div class="card-header bg-transparent"><h2 class="h6 fw-bold mb-0"><i class="bi bi-calendar-heart me-2 text-primary" aria-hidden="true"></i>Detail acara dan kebutuhan</h2></div>
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
@@ -57,8 +60,8 @@
             </div>
         </div>
         <div class="card-footer bg-white d-flex flex-wrap justify-content-between gap-2">
-            <a href="{{ route('package-offer-requests.mine') }}" class="btn btn-outline-secondary">Batal</a>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Kirim Permintaan</button>
+            <a href="{{ route('package-offer-requests.mine') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-1" aria-hidden="true"></i>Batal</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1" aria-hidden="true"></i>Kirim Permintaan</button>
         </div>
     </form>
 </div>
