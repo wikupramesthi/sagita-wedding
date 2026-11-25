@@ -28,6 +28,7 @@ use App\Services\CheckoutSessionService;
 use App\Services\EventDateReservationService;
 use App\Services\MembershipService;
 use App\Services\OrderWorkflowProvisioningService;
+use App\Services\TelegramAdminNotifier;
 use App\Support\ImageShrinker;
 use App\Support\MemberView;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -1025,6 +1026,12 @@ class OrderController extends Controller
             }
 
             try {
+                app(TelegramAdminNotifier::class)->paymentProofUploaded($record, $user->name, $amount);
+            } catch (Throwable $e) {
+                Log::error('Telegram payment proof notification failed: '.$e->getMessage());
+            }
+
+            try {
                 $record->loadMissing('user');
                 if (filled($record->user?->email)) {
                     Mail::to($record->user->email)->send(new PaymentProofReceivedMail(
@@ -1036,6 +1043,12 @@ class OrderController extends Controller
                 }
             } catch (Throwable $e) {
                 Log::error('Payment proof confirmation email failed: '.$e->getMessage());
+            }
+        } else {
+            try {
+                app(TelegramAdminNotifier::class)->paymentStatusChanged($record, $amount, true);
+            } catch (Throwable $e) {
+                Log::error('Telegram payment verification notification failed: '.$e->getMessage());
             }
         }
 
@@ -1060,7 +1073,7 @@ class OrderController extends Controller
 
     private function verifyPendingPayment(Order $order, Payment $payment, ?string $note = null): array
     {
-        return DB::transaction(function () use ($order, $payment, $note) {
+        $result = DB::transaction(function () use ($order, $payment, $note) {
             $lockedOrder = Order::packageOnly()->where('uuid', $order->uuid)->lockForUpdate()->firstOrFail();
             $lockedPayment = Payment::where('uuid', $payment->uuid)->where('order_uuid', $lockedOrder->uuid)->lockForUpdate()->firstOrFail();
             if (! in_array($lockedOrder->status, ['pending', 'partially_paid'], true)) {
@@ -1106,6 +1119,20 @@ class OrderController extends Controller
 
             return [$updated, $lockedPayment->kind ?: 'payment'];
         });
+
+        if (($result[1] ?? null) !== 'already') {
+            try {
+                app(TelegramAdminNotifier::class)->paymentStatusChanged(
+                    $result[0],
+                    (float) $payment->amount,
+                    true
+                );
+            } catch (Throwable $e) {
+                Log::error('Telegram payment verification notification failed: '.$e->getMessage());
+            }
+        }
+
+        return $result;
     }
 
     private function applyVerifiedPaymentToOrder(Order $order, Payment $payment): Order
@@ -1269,6 +1296,17 @@ class OrderController extends Controller
             $record->user?->notify(new OrderRejectedNotification($record->uuid, $record->order_number, 'Pembayaran ditolak: '.$validated['admin_note']));
         } catch (Throwable $e) {
             Log::error('Payment rejection notification failed: '.$e->getMessage());
+        }
+
+        try {
+            app(TelegramAdminNotifier::class)->paymentStatusChanged(
+                $record,
+                (float) $paymentModel->amount,
+                false,
+                $validated['admin_note']
+            );
+        } catch (Throwable $e) {
+            Log::error('Telegram payment rejection notification failed: '.$e->getMessage());
         }
 
         return redirect()->route('orders.show', $record->uuid)->with('success', 'Pembayaran ditolak.')->with('payment_module_focus', true);
@@ -2096,6 +2134,16 @@ class OrderController extends Controller
             }
         } catch (Throwable $e) {
             Log::error('Proof upload notification failed: '.$e->getMessage());
+        }
+
+        try {
+            app(TelegramAdminNotifier::class)->paymentProofUploaded(
+                $order,
+                $order->user?->name ?? '-',
+                (float) $order->amount
+            );
+        } catch (Throwable $e) {
+            Log::error('Telegram proof upload notification failed: '.$e->getMessage());
         }
 
         try {
@@ -3183,16 +3231,12 @@ class OrderController extends Controller
      */
     private function notifyAdmins(Order $order): void
     {
-        try {
-            $order->loadMissing(['user', 'package', 'packageOption', 'customPackageOffer', 'customPackageOfferOption']);
+        $order->loadMissing(['user', 'package', 'packageOption', 'customPackageOffer', 'customPackageOfferOption']);
 
+        try {
             $admins = User::role(['super-admin', 'admin'])
                 ->where('uuid', '!=', $order->user_uuid)
                 ->get();
-
-            if ($admins->isEmpty()) {
-                return;
-            }
 
             $packageName = $order->customPackageOffer?->title ?? $order->package?->name ?? '-';
             if ($order->packageOption?->name) {
@@ -3210,6 +3254,12 @@ class OrderController extends Controller
             ));
         } catch (Throwable $e) {
             Log::error('Order admin notification failed: '.$e->getMessage());
+        }
+
+        try {
+            app(TelegramAdminNotifier::class)->newOrder($order);
+        } catch (Throwable $e) {
+            Log::error('Telegram new order notification failed: '.$e->getMessage());
         }
     }
 

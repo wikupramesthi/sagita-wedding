@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Payment\WeddingChecklistItem;
 use App\Models\User;
 use App\Notifications\WeddingChecklistDueNotification;
+use App\Services\TelegramAdminNotifier;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -130,6 +131,21 @@ class RemindWeddingChecklist extends Command
                         ]);
 
                         return $delivered;
+                    }
+
+                    if ($isEscalation) {
+                        try {
+                            app(TelegramAdminNotifier::class)->checklistOverdue(
+                                $order,
+                                $locked->title,
+                                $dueAt
+                            );
+                        } catch (\Throwable $exception) {
+                            Log::warning('checklists.remind_due.telegram_failed', [
+                                'item' => $locked->uuid,
+                                'error' => $exception->getMessage(),
+                            ]);
+                        }
                     }
 
                     $locked->update([$marker => $now->toDateTimeString()]);

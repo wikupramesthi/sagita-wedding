@@ -54,7 +54,7 @@ $chipMap = [
 $activeChips = array_filter($chipMap, fn ($chip) => (string) $chip['value'] !== '');
 @endphp
 
-<section class="section">
+<section class="section orders-page">
     <div class="row g-3 ml-stats order-stats">
         <div class="col-6 col-xl-3">
             <div class="card order-stat-card stat-total h-100">

@@ -17,6 +17,7 @@
     {{-- @include('components.includes.style') --}}
 
     <link rel="stylesheet" href="{{ asset('dist/assets/bundles/admin.css') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('dist/assets/bundles/admin.css')) ? filemtime(public_path('dist/assets/bundles/admin.css')) : '1' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin-dark-theme.css') }}?v={{ \Illuminate\Support\Facades\File::exists(public_path('css/admin-dark-theme.css')) ? filemtime(public_path('css/admin-dark-theme.css')) : '1' }}">
 
 
     @stack('after-style')
@@ -203,6 +204,30 @@
             syncAll();
             window.addEventListener('load', syncAll);
             window.addEventListener('resize', syncAll);
+
+            var sidebarWrapper = document.querySelector('#sidebar .sidebar-wrapper');
+            var sidebarMenu = sidebarWrapper && sidebarWrapper.querySelector('.sidebar-menu');
+
+            if (sidebarWrapper && sidebarMenu) {
+                sidebarWrapper.addEventListener('wheel', function (event) {
+                    var maxScroll = sidebarMenu.scrollHeight - sidebarMenu.clientHeight;
+                    var delta = event.deltaY;
+
+                    if (event.deltaMode === 1) delta *= 16;
+                    if (event.deltaMode === 2) delta *= sidebarMenu.clientHeight;
+
+                    if (maxScroll <= 0 || delta === 0) return;
+
+                    var canScroll = delta < 0
+                        ? sidebarMenu.scrollTop > 0
+                        : sidebarMenu.scrollTop < maxScroll;
+
+                    if (!canScroll) return;
+
+                    event.preventDefault();
+                    sidebarMenu.scrollTop = Math.max(0, Math.min(maxScroll, sidebarMenu.scrollTop + delta));
+                }, { passive: false });
+            }
         })();
     </script>
 

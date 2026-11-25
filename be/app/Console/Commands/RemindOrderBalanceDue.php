@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Payment\Order;
 use App\Notifications\OrderBalanceDueNotification;
+use App\Services\TelegramAdminNotifier;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -67,6 +68,16 @@ class RemindOrderBalanceDue extends Command
                             (string) ($installment['label'] ?? 'Cicilan'),
                             $reminderDay
                         ));
+                        if ($reminderDay === 1) {
+                            try {
+                                app(TelegramAdminNotifier::class)->balanceDue($order, $remaining, $daysUntilDue);
+                            } catch (\Throwable $exception) {
+                                Log::warning('Telegram balance due notification failed.', [
+                                    'order_uuid' => $order->uuid,
+                                    'message' => $exception->getMessage(),
+                                ]);
+                            }
+                        }
                         $markers[$marker] = now()->toDateTimeString();
                         $changed = true;
                         $sent++;

@@ -14,13 +14,15 @@ use App\Models\User;
 use App\Models\WebsiteIdentity;
 use App\Notifications\CustomPackageOfferNotification;
 use App\Notifications\OrderBaruNotification;
-use App\Services\EventDateReservationService;
 use App\Services\CustomPackageWorkflowAudit;
+use App\Services\EventDateReservationService;
+use App\Services\TelegramAdminNotifier;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -898,6 +900,12 @@ class CustomPackageOfferController extends Controller
 
             return $order;
         });
+
+        try {
+            app(TelegramAdminNotifier::class)->newOrder($order);
+        } catch (\Throwable $exception) {
+            Log::error('Telegram custom package order notification failed: '.$exception->getMessage());
+        }
 
         return redirect()
             ->route('orders.show', $order->uuid)

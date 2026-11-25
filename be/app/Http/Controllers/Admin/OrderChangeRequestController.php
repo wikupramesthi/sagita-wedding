@@ -11,6 +11,7 @@ use App\Models\Payment\Order;
 use App\Models\Payment\OrderChangeRequest;
 use App\Models\Payment\WeddingChecklistItem;
 use App\Services\EventDateReservationService;
+use App\Services\TelegramAdminNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -118,6 +119,12 @@ class OrderChangeRequestController extends Controller
             'addon_quantity' => $change->addon_quantity,
             'requested_price' => $change->requested_price,
         ]);
+
+        try {
+            app(TelegramAdminNotifier::class)->changeRequested($change);
+        } catch (Throwable $exception) {
+            Log::error('Telegram order change request notification failed: '.$exception->getMessage());
+        }
 
         return back()->with('success', 'Permintaan perubahan telah dikirim dan menunggu persetujuan admin.');
     }

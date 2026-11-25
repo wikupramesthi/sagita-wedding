@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Payment\Order;
 use App\Models\User;
 use App\Notifications\OrderSlaReminderNotification;
+use App\Services\TelegramAdminNotifier;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -86,6 +87,15 @@ class RemindPendingOrders extends Command
 
             if ($delivered === 0) {
                 continue;
+            }
+
+            try {
+                app(TelegramAdminNotifier::class)->orderNeedsAction($order, $ageHours);
+            } catch (\Throwable $exception) {
+                Log::warning('orders.sla.telegram_failed', [
+                    'order' => $order->uuid,
+                    'error' => $exception->getMessage(),
+                ]);
             }
 
             if ($delivered < $recipients->count()) {

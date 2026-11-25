@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendTelegramMessage;
 use App\Mail\ConsultationReceivedMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -165,5 +167,34 @@ class ContactControllerTest extends TestCase
 
             return $mail->hasTo('duplicate@example.test');
         });
+    }
+
+    public function test_new_contact_consultation_queues_telegram_notification(): void
+    {
+        Queue::fake();
+        config([
+            'services.telegram.enabled' => true,
+            'services.telegram.bot_token' => 'test-token',
+            'services.telegram.chat_id' => '-100123',
+        ]);
+
+        $captchaId = (string) Str::uuid();
+        cache()->put('contact_captcha_'.$captchaId, ['answer' => '0042'], now()->addMinutes(10));
+
+        $this->withHeader('X-Api-Key', self::API_KEY)
+            ->postJson('/api/contact', [
+                'nama' => 'Calon Pengantin',
+                'email' => 'calon@example.test',
+                'no_telp' => '081234567890',
+                'isi' => 'Kami ingin berkonsultasi untuk acara pernikahan.',
+                'captcha_id' => $captchaId,
+                'captcha_answer' => '0042',
+            ])
+            ->assertCreated();
+
+        Queue::assertPushed(SendTelegramMessage::class, fn (SendTelegramMessage $job): bool => str_contains(
+            $job->message,
+            '<b>Permintaan Konsultasi Baru</b>'
+        ) && str_contains($job->message, 'calon@example.test'));
     }
 }

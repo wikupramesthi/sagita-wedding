@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Payment\Order;
 use App\Notifications\PendingOrderPaymentReminderNotification;
+use App\Services\TelegramAdminNotifier;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -59,6 +60,15 @@ class RemindPendingOrderExpiry extends Command
 
                         if ($wasSent) {
                             $sent++;
+
+                            try {
+                                app(TelegramAdminNotifier::class)->orderExpiringSoon($order);
+                            } catch (Throwable $exception) {
+                                Log::warning('Pending order expiry Telegram notification failed.', [
+                                    'order_uuid' => $order->uuid,
+                                    'message' => $exception->getMessage(),
+                                ]);
+                            }
                         }
                     } catch (Throwable $exception) {
                         $failed++;

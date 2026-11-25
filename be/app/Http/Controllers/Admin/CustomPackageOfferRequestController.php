@@ -8,8 +8,10 @@ use App\Models\Package\CustomPackageOfferRequestAttachment;
 use App\Models\User;
 use App\Notifications\CustomPackageRequestNotification;
 use App\Services\CustomPackageWorkflowAudit;
+use App\Services\TelegramAdminNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -157,6 +159,12 @@ class CustomPackageOfferRequestController extends Controller
                 auth()->user()->name.' mengirim permintaan paket khusus.',
                 'bi-inbox'
             ));
+        }
+
+        try {
+            app(TelegramAdminNotifier::class)->newCustomPackageRequest($customRequest);
+        } catch (\Throwable $exception) {
+            Log::error('Telegram custom package request notification failed: '.$exception->getMessage());
         }
 
         return redirect()

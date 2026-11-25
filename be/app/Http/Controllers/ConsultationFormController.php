@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\ConsultationReceivedMail;
 use App\Models\Consultation;
+use App\Services\TelegramAdminNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -127,12 +128,12 @@ class ConsultationFormController extends Controller
             'whatsapp' => $data['whatsapp'],
         ];
 
-        $isDuplicate = DB::transaction(function () use ($data, $duplicateCheck) {
+        $consultation = DB::transaction(function () use ($data, $duplicateCheck) {
             if (Consultation::findDuplicates(null, $duplicateCheck, true)->isNotEmpty()) {
-                return true;
+                return null;
             }
 
-            Consultation::create([
+            return Consultation::create([
                 'full_name' => $data['full_name'],
                 'email' => $data['email'],
                 'whatsapp' => $data['whatsapp'],
@@ -144,11 +145,16 @@ class ConsultationFormController extends Controller
                 'lead_status' => 'New',
                 'source' => 'website',
             ]);
-
-            return false;
         });
+        $isDuplicate = $consultation === null;
 
-        if (! $isDuplicate) {
+        if ($consultation) {
+            try {
+                app(TelegramAdminNotifier::class)->newConsultation($consultation);
+            } catch (Throwable $exception) {
+                Log::error('Telegram consultation notification failed: '.$exception->getMessage());
+            }
+
             try {
                 Mail::to($data['email'])->send(new ConsultationReceivedMail($data['full_name']));
             } catch (Throwable $exception) {

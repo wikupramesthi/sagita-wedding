@@ -4,7 +4,9 @@ namespace App\Listeners;
 
 use App\Models\FailedLogin;
 use App\Services\Security\BruteForceProtector;
+use App\Services\TelegramAdminNotifier;
 use Illuminate\Auth\Events\Failed;
+use Illuminate\Support\Facades\RateLimiter;
 
 class RecordFailedLogin
 {
@@ -21,6 +23,16 @@ class RecordFailedLogin
             'reason' => 'credentials',
             'attempted_at' => now(),
         ]);
+
+        if (! $event->user && is_string($email) && trim($email) !== '') {
+            $key = 'telegram-unregistered-login:'.hash('sha256', strtolower(trim($email)).'|'.$ip);
+            RateLimiter::hit($key, 15 * 60);
+            $attempts = RateLimiter::attempts($key);
+
+            if ($attempts === 3) {
+                app(TelegramAdminNotifier::class)->unregisteredLoginAttempt($email, (string) $ip, $attempts);
+            }
+        }
 
         try {
             app(BruteForceProtector::class)->recordFailure($ip, $email);

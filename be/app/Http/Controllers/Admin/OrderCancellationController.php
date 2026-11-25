@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\UserPackage;
 use App\Notifications\OrderWorkflowNotification;
 use App\Services\EventDateReservationService;
+use App\Services\TelegramAdminNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -84,6 +85,12 @@ class OrderCancellationController extends Controller
                 'Pelanggan mengajukan pembatalan untuk pesanan '.$record->order_number.'.',
                 'bi-calendar2-x'
             ));
+        }
+
+        try {
+            app(TelegramAdminNotifier::class)->cancellationRequested($record);
+        } catch (Throwable $exception) {
+            Log::error('Telegram cancellation request notification failed: '.$exception->getMessage());
         }
 
         return redirect()

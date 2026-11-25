@@ -65,6 +65,7 @@ Lanjutkan konfigurasi berikut:
 - Set `CORS_ALLOWED_ORIGINS` hanya ke origin website yang benar-benar digunakan.
 - Jika Google login dipakai, isi `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` dan daftarkan URI persis `https://DOMAIN_BACKEND/auth/google/callback` di Google Cloud Console.
 - `MAIL_MAILER=log` tidak mengirim email. Konfigurasikan SMTP sebelum mengandalkan notifikasi email. Isi kredensial captcha, WhatsApp, dan rekening manual jika fitur terkait dipakai.
+- Untuk notifikasi Telegram, tambahkan bot ke grup admin dan isi `TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN`, serta `TELEGRAM_CHAT_ID` di `be/.env`. Gunakan token bot yang sudah dirotasi jika token pernah dibagikan; jangan simpan kredensial di Git. Pastikan worker `sagita-queue` aktif agar notifikasi terkirim.
 
 Jaga permission file: `be/.env` perlu dapat dibaca PHP-FPM (`www-data`) tetapi tidak boleh publik; `fe/.env` hanya perlu dapat dibaca pengguna layanan Astro. Jangan menyimpan kedua file itu di Git.
 

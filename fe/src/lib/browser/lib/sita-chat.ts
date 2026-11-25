@@ -742,7 +742,16 @@ import { hashSitaQuestion } from "../telemetry.js";
 	}
 
 	function isSafeCardUrl(value: string): boolean {
-		if (value.startsWith("/") && !value.startsWith("//")) return true;
+		if (value.includes("\\")) return false;
+		if (value.startsWith("/") && !value.startsWith("//")) {
+			try {
+				return (
+					new URL(value, window.location.href).origin === window.location.origin
+				);
+			} catch {
+				return false;
+			}
+		}
 		try {
 			return ["http:", "https:"].includes(new URL(value).protocol);
 		} catch {
@@ -1536,6 +1545,9 @@ import { hashSitaQuestion } from "../telemetry.js";
 
 		try {
 			const destination = new URL(whatsappLink);
+			if (!["http:", "https:"].includes(destination.protocol)) {
+				throw new Error("Invalid WhatsApp link protocol");
+			}
 			destination.searchParams.set("text", message);
 			addMessage(copy.sita, copy.handoff, [], destination.toString());
 			hideLeadForm();

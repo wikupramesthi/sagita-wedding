@@ -1,0 +1,305 @@
+html[data-bs-theme="dark"] #main-content .dashboard-welcome {
+    min-height: 176px;
+    padding: 20px 24px;
+}
+
+html[data-bs-theme="dark"] #main-content .dashboard-welcome h1 {
+    font-size: clamp(1.65rem, 2.1vw, 2rem);
+}
+
+html[data-bs-theme="dark"] #main-content .package-page .package-toolbar-card,
+html[data-bs-theme="dark"] #main-content .package-page .package-table-card,
+html[data-bs-theme="dark"] #main-content .package-page #package-table-card,
+html[data-bs-theme="dark"] #main-content .package-page .package-cards-card,
+html[data-bs-theme="dark"] #main-content .package-page .package-item-card {
+    color: var(--bs-body-color);
+    background: var(--bs-body-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-page .package-toolbar-head,
+html[data-bs-theme="dark"] #main-content .package-page .package-list-header,
+html[data-bs-theme="dark"] #main-content .package-page .package-table th {
+    color: var(--bs-body-color) !important;
+    background: var(--bs-secondary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-page .package-filter-grid,
+html[data-bs-theme="dark"] #main-content .package-page .package-bulk-bar,
+html[data-bs-theme="dark"] #main-content .package-page .package-filter-chip,
+html[data-bs-theme="dark"] #main-content .package-page .package-card-price,
+html[data-bs-theme="dark"] #main-content .package-page .package-card-footer,
+html[data-bs-theme="dark"] #main-content .package-page .package-card-check {
+    color: var(--bs-body-color) !important;
+    background: var(--bs-tertiary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-page .package-toolbar-title,
+html[data-bs-theme="dark"] #main-content .package-page .package-list-header h6,
+html[data-bs-theme="dark"] #main-content .package-page .package-bulk-title,
+html[data-bs-theme="dark"] #main-content .package-page .package-active-label,
+html[data-bs-theme="dark"] #main-content .package-page .package-pagination-title,
+html[data-bs-theme="dark"] #main-content .package-page .package-card-title,
+html[data-bs-theme="dark"] #main-content .package-page .package-card-price strong {
+    color: var(--bs-body-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-page .package-toolbar-subtitle,
+html[data-bs-theme="dark"] #main-content .package-page .package-filter-label,
+html[data-bs-theme="dark"] #main-content .package-page .package-bulk-subtitle,
+html[data-bs-theme="dark"] #main-content .package-page .package-card-content,
+html[data-bs-theme="dark"] #main-content .package-page .package-card-desc,
+html[data-bs-theme="dark"] #main-content .package-page .package-card-meta,
+html[data-bs-theme="dark"] #main-content .package-page .package-pagination-subtitle {
+    color: var(--bs-secondary-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-page .package-shortcut-hint kbd,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-footer,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-metric,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-list li {
+    color: var(--bs-body-color) !important;
+    background: var(--bs-secondary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-body,
+html[data-bs-theme="dark"] #main-content .package-page .package-card-price {
+    background: var(--bs-tertiary-bg) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-title,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-description,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-list li,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-metric-value,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-section h6,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-list strong {
+    color: var(--bs-body-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-subtitle,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-metric-label,
+html[data-bs-theme="dark"] #main-content .package-page .package-drawer-empty {
+    color: var(--bs-secondary-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page {
+    color: var(--bs-body-color);
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-catalog-count,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-filter,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-catalog-card:not(.popular),
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-filter-form,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-compare,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .compare-table,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-empty,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-quick-link,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-tool-btn,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-tool-link {
+    color: var(--bs-body-color) !important;
+    background: var(--bs-body-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-filter {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .24);
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-preview-notice,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-filter-btn.active,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-filter-btn[data-filter="popular"]:not(.active) {
+    color: var(--bs-body-color) !important;
+    background: var(--bs-tertiary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-filter-btn {
+    color: var(--bs-secondary-color);
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-sort .form-select {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-catalog-card.popular {
+    color: #f3e8ec !important;
+    background: linear-gradient(160deg, #30252b, #241f26) !important;
+    border-color: #9f4962 !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-catalog-hero h1,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-name,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-price-range,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .features-title,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-compare summary,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .compare-table th,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .compare-table td,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-empty h5 {
+    color: var(--bs-body-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-description,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-price-label,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-features li,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-compare-summary,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-empty p,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .sort-label {
+    color: var(--bs-secondary-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .compare-table thead th,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .compare-table th:first-child,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .compare-table td:first-child {
+    color: var(--bs-body-color) !important;
+    background: var(--bs-secondary-bg) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .choose-package {
+    color: var(--bs-body-color);
+    background: var(--bs-secondary-bg);
+    border-color: var(--bs-border-color);
+}
+
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-catalog-card.popular .package-name,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-catalog-card.popular .package-price-range,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-catalog-card.popular .features-title,
+html[data-bs-theme="dark"] #main-content .package-catalog-page .package-catalog-card.popular .package-features li {
+    color: #f3e8ec !important;
+}
+
+html[data-bs-theme="dark"] #main-content .orders-page .order-revenue-card,
+html[data-bs-theme="dark"] #main-content .orders-page .order-toolbar-card,
+html[data-bs-theme="dark"] #main-content .orders-page .order-saved-panel,
+html[data-bs-theme="dark"] #main-content .orders-page .order-sticky-bar,
+html[data-bs-theme="dark"] #main-content .orders-page .orders-bulk-bar,
+html[data-bs-theme="dark"] #main-content .orders-page .order-kanban-card,
+html[data-bs-theme="dark"] #main-content .orders-page .order-kanban-empty,
+html[data-bs-theme="dark"] #main-content .orders-page .orders-table tr {
+    color: var(--bs-body-color);
+    background: var(--bs-body-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .orders-page .order-toolbar-head,
+html[data-bs-theme="dark"] #main-content .orders-page .order-kanban-head,
+html[data-bs-theme="dark"] #main-content .orders-page .orders-table th {
+    color: var(--bs-body-color) !important;
+    background: var(--bs-secondary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .orders-page .order-filter-grid,
+html[data-bs-theme="dark"] #main-content .orders-page .order-kanban-column {
+    color: var(--bs-body-color);
+    background: var(--bs-tertiary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .orders-page .order-saved-count,
+html[data-bs-theme="dark"] #main-content .orders-page .order-shortcut-hint kbd,
+html[data-bs-theme="dark"] #main-content .orders-page .order-date-preset,
+html[data-bs-theme="dark"] #main-content .orders-page .order-kanban-count {
+    color: var(--bs-body-color) !important;
+    background: var(--bs-secondary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .orders-page .order-toolbar-title,
+html[data-bs-theme="dark"] #main-content .orders-page .order-revenue-value,
+html[data-bs-theme="dark"] #main-content .orders-page .order-saved-head,
+html[data-bs-theme="dark"] #main-content .orders-page .order-sticky-title,
+html[data-bs-theme="dark"] #main-content .orders-page .orders-table-tools-title {
+    color: var(--bs-body-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .orders-page .order-toolbar-subtitle,
+html[data-bs-theme="dark"] #main-content .orders-page .order-revenue-label,
+html[data-bs-theme="dark"] #main-content .orders-page .order-revenue-meta-value,
+html[data-bs-theme="dark"] #main-content .orders-page .order-filter-grid .security-filter-label,
+html[data-bs-theme="dark"] #main-content .orders-page .order-save-check .form-check-label,
+html[data-bs-theme="dark"] #main-content .orders-page .order-date-presets-label,
+html[data-bs-theme="dark"] #main-content .orders-page .order-kanban-meta {
+    color: var(--bs-secondary-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page {
+    --ms-ink: var(--bs-body-color);
+    --ms-muted: var(--bs-secondary-color);
+    --ms-line: var(--bs-border-color);
+    --ms-sage-soft: rgba(120, 170, 132, .16);
+    color: var(--bs-body-color);
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-finance,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-reminder,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-followup,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-toolbar,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-table-card {
+    color: var(--bs-body-color);
+    background: var(--bs-body-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-reminder-head,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-followup-head,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-toolbar-head,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-table th {
+    color: var(--bs-body-color) !important;
+    background: var(--bs-secondary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-filter-grid,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-progress,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-mini-progress {
+    color: var(--bs-body-color);
+    background: var(--bs-tertiary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-table td,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-reminder-table td,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-followup-table td {
+    color: var(--bs-body-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-toolbar-title,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-reminder-title,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-followup-title,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-finance-value,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-finance-count strong {
+    color: var(--bs-body-color) !important;
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-day-today,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-day-near {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, .16);
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-day-past,
+html[data-bs-theme="dark"] #main-content .ms-page .ms-badge-muted {
+    color: var(--bs-secondary-color);
+    background: var(--bs-tertiary-bg);
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-badge-success {
+    color: #86efac;
+    background: rgba(16, 185, 129, .16);
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-badge-danger {
+    color: #fda4af;
+    background: rgba(239, 68, 68, .16);
+}
+
+html[data-bs-theme="dark"] #main-content .ms-page .ms-badge-info {
+    color: #93c5fd;
+    background: rgba(59, 130, 246, .16);
+}

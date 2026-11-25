@@ -6,8 +6,10 @@ use App\Contracts\WhatsAppGateway;
 use App\Listeners\RecordFailedLogin;
 use App\Listeners\RecordLoginActivity;
 use App\Models\Payment\Order;
+use App\Models\User;
 use App\Notifications\Channels\WhatsAppChannel;
 use App\Observers\AuditObserver;
+use App\Observers\UserObserver;
 use App\Policies\OrderPolicy;
 use App\Services\BatchVersionService;
 use App\Services\EmailSettingService;
@@ -53,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
         Carbon::setLocale($this->app->getLocale());
 
         Gate::policy(Order::class, OrderPolicy::class);
+        User::observe(UserObserver::class);
 
         EmailSettingService::apply();
 

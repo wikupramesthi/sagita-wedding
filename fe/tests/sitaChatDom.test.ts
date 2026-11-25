@@ -503,4 +503,61 @@ describe("SITA chat widget", () => {
 			topic: "packages",
 		});
 	});
+
+	it("menolak URL kartu, sumber, dan handoff di luar skema aman", async () => {
+		element("#sitaChatToggle").click();
+		submitQuestion(
+			"Paket pernikahan",
+			{ label: "Sumber", href: "/\\evil.test" },
+			[
+				{
+					title: "Paket Aman",
+					description: "Paket pernikahan",
+					actions: [
+						{ label: "Backslash", href: "/\\evil.test" },
+						{ label: "Script", href: "javascript:alert(1)" },
+						{ label: "Protokol relatif", href: "//evil.test" },
+						{ label: "Aman", href: "/packages/aman" },
+					],
+				},
+			],
+		);
+
+		await vi.waitFor(
+			() =>
+				expect(
+					dom.window.document.querySelector(".sita-chat-card__action"),
+				).not.toBeNull(),
+			{ timeout: 3000 },
+		);
+		const links = [
+			...dom.window.document.querySelectorAll<HTMLAnchorElement>(
+				".sita-chat-card__action, .sita-chat-source",
+			),
+		].map((link) => link.getAttribute("href") ?? "");
+		expect(links).toEqual(["/packages/aman"]);
+		expect(dom.window.document.querySelector(".sita-chat-source")).toBeNull();
+
+		element("#sitaChatWidget").dataset.whatsappLink = "javascript:alert(1)";
+		element("[data-sita-topic='contact']").click();
+		(element("#sitaChatLead input[name='name']") as HTMLInputElement).value =
+			"Rina";
+		(element("#sitaChatLead input[name='phone']") as HTMLInputElement).value =
+			"08123456789";
+		(
+			element("#sitaChatLead input[name='consent']") as HTMLInputElement
+		).checked = true;
+		element("#sitaChatLead").dispatchEvent(
+			new dom.window.Event("submit", { bubbles: true, cancelable: true }),
+		);
+
+		await vi.waitFor(
+			() =>
+				expect(element("#sitaChatMessages").textContent).toContain(
+					"Link WhatsApp belum tersedia",
+				),
+			{ timeout: 3000 },
+		);
+		expect(dom.window.document.querySelector(".sita-chat-handoff")).toBeNull();
+	});
 });
