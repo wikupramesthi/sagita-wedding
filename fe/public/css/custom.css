@@ -41,11 +41,17 @@ main:not(.consultation-shell) > section.site-section--compact {
 }
 
 .package-catalog-section,
+.package-contact-section {
+	background: linear-gradient(145deg, #f1f4ef 0%, #f8f6f1 100%);
+}
+
+.package-steps-section {
+	background: linear-gradient(145deg, #fbf8f3 0%, #f5f0e9 100%);
+}
+
 .package-guidance-section,
-.package-steps-section,
-.package-contact-section,
 #package-faq {
-	background: #fffafa;
+	background: linear-gradient(145deg, #f8f1f1 0%, #f6f3ef 100%);
 }
 
 .package-guidance-eyebrow {
@@ -3784,17 +3790,18 @@ header[data-home] .mobile-drawer {
 }
 
 .home-system-section {
+	background-color: #f1f4ef;
 	background-image:
 		radial-gradient(
 			circle,
 			transparent 8px,
-			rgba(210, 135, 152, 0.1) 8.5px,
+			rgba(166, 126, 138, 0.055) 8.5px,
 			transparent 9.5px
 		),
 		radial-gradient(
 			circle,
 			transparent 8px,
-			rgba(210, 135, 152, 0.1) 8.5px,
+			rgba(166, 126, 138, 0.055) 8.5px,
 			transparent 9.5px
 		);
 	background-position:
@@ -3828,6 +3835,26 @@ header[data-home] .mobile-drawer {
 .home-dashboard-scroll-stage.is-scroll-linked
 	[data-home-dashboard-scroll-image] {
 	will-change: transform;
+}
+
+.home-system-section {
+	padding-block: clamp(4rem, 6vw, 5rem);
+}
+
+.home-dashboard-scroll-pin {
+	gap: clamp(2.5rem, 5vw, 4rem);
+}
+
+.home-dashboard-scroll-stage {
+	padding-block: clamp(0.5rem, 1.5vw, 1.5rem);
+}
+
+#home-preparation ul {
+	gap: 1rem;
+}
+
+#home-preparation ul > li {
+	margin-block: 0;
 }
 
 .home-preparation-title,
@@ -3933,6 +3960,75 @@ header[data-home] .mobile-drawer {
 	margin-top: auto;
 }
 
+:root {
+	--page-surface-ivory: #fbf8f3;
+	--page-surface-sage: #f1f4ef;
+	--page-surface-rose: #f8f1f1;
+	--page-surface-linen: #f5f0e9;
+}
+
+main:not(.consultation-shell) {
+	background-color: var(--page-surface-ivory);
+}
+
+#home-venues,
+#home-preparation {
+	background-color: var(--page-surface-sage);
+}
+
+#home-packages,
+#home-articles {
+	background-color: var(--page-surface-ivory);
+}
+
+#home-checklist,
+#home-faq {
+	background-color: var(--page-surface-rose);
+}
+
+main:has(#our-story) > section#our-story,
+main:has(#our-story) > section:nth-of-type(4),
+main:has(#our-story) > section:nth-of-type(7) {
+	background-color: var(--page-surface-ivory);
+}
+
+main:has(#our-story) > section:nth-of-type(3) {
+	background-color: var(--page-surface-sage);
+}
+
+main:has(#our-story) > section:nth-of-type(5) {
+	background-color: var(--page-surface-rose);
+}
+
+main:has(#venueList) > section:last-of-type,
+main:has([data-vendor-card]) > section:last-of-type {
+	background-color: var(--page-surface-rose);
+}
+
+main:has(#venueList) > section:nth-of-type(2),
+main:has([data-vendor-card]) > section:nth-of-type(2) {
+	background-color: var(--page-surface-sage);
+}
+
+main:has(#faqSearch) > section:nth-of-type(2) {
+	background: linear-gradient(180deg, #fbf8f3 0%, #f1f4ef 100%);
+}
+
+.consultation-page {
+	background:
+		radial-gradient(
+			ellipse at 12% 14%,
+			rgba(183, 159, 128, 0.17),
+			transparent 30rem
+		),
+		radial-gradient(
+			ellipse at 88% 82%,
+			rgba(210, 166, 174, 0.12),
+			transparent 32rem
+		),
+		linear-gradient(135deg, #fbf8f3 0%, #f1f4ef 55%, #f8f1f1 100%);
+}
+
 @keyframes venueSkeletonShimmer {
 	to {
 		transform: translateX(100%);
@@ -3940,7 +4036,7 @@ header[data-home] .mobile-drawer {
 }
 
 .home-testimonials-section {
-	background: #f3f8fa;
+	background: linear-gradient(135deg, #f1f4ef 0%, #f8f1f1 100%);
 }
 
 .home-testimonials-heading h2 {
