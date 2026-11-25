@@ -1,0 +1,18 @@
+[Unit]
+Description=Sagita Wedding Astro frontend
+After=network.target
+
+[Service]
+Type=simple
+User=sagita
+Group=sagita
+WorkingDirectory=/var/www/sagita-wedding/fe
+EnvironmentFile=/var/www/sagita-wedding/fe/.env
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

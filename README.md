@@ -20,6 +20,7 @@ Panduan lengkap untuk developer baru: arsitektur, instalasi, konfigurasi, alur k
 - [10. Perintah Sehari-hari](#10-perintah-sehari-hari)
 - [11. Troubleshooting](#11-troubleshooting)
 - [12. Catatan untuk Developer Baru](#12-catatan-untuk-developer-baru)
+- [13. Deployment Produksi](#13-deployment-produksi)
 
 ---
 
@@ -174,7 +175,7 @@ Siapkan database **pilih salah satu**:
 **Opsi A — Import dump (paling cepat, data lengkap):**
 
 ```bash
-# Buat database bernama `sagita` di phpMyAdmin, lalu import file "sagita (3).sql"
+# Buat database bernama `sagita` di phpMyAdmin, lalu import file "sagita.sql"
 php artisan migrate          # pastikan tidak ada migrasi yang tertinggal
 ```
 
@@ -242,7 +243,14 @@ Untuk mode produksi: `npm run build` lalu `npm start`.
 <details>
 <summary><strong>Akun setelah seed</strong> (klik untuk membuka)</summary>
 
-Seeder sengaja **tidak membuat akun admin/user dengan password statis**. Setelah migrasi + seed, daftar lewat `http://localhost:8000/register`, lalu beri role `super-admin`/`admin` melalui Management Access. Seeder hanya membuat satu author konten internal dengan password random yang tidak disimpan atau ditampilkan.
+Seeder sengaja **tidak membuat akun admin/user dengan password statis**. Setelah migrasi + seed, daftar lewat `http://localhost:8000/register`, lalu berikan role awal lewat Tinker karena Management Access hanya bisa dibuka admin:
+
+```php
+$user = \App\Models\User::where('email', 'email-yang-didaftarkan')->firstOrFail();
+$user->assignRole('super-admin');
+```
+
+Seeder hanya membuat satu author konten internal dengan password random yang tidak disimpan atau ditampilkan.
 
 </details>
 
@@ -275,6 +283,8 @@ Seeder yang dijalankan `DatabaseSeeder`: `Permission`, `Role`, `Menu`, `Route`, 
 
 > [!WARNING]
 > Jangan pernah commit file `.env` (keduanya sudah ada di `.gitignore`). Gunakan `.env.example` sebagai referensi.
+
+Untuk konfigurasi server Linux produksi, lihat [panduan deployment produksi](deploy/production/README.md).
 
 ---
 
@@ -447,3 +457,9 @@ npm run dev                   # aset Vite panel admin (atau: npm run build)
 - Perubahan konten di panel admin langsung tampil di website publik (batch API tanpa cache konten).
 - `fe/README.md` berisi aturan kerapian yang lebih rinci khusus front-end; `be/README.md` masih berisi template default Laravel.
 - Seluruh file `.env` bersifat lokal dan tidak boleh masuk Git.
+
+---
+
+## 13. Deployment Produksi
+
+Konfigurasi dan langkah instalasi native Linux (Apache + PHP-FPM + MySQL + Node/systemd), termasuk template environment, vhost, worker queue, scheduler, HTTPS, dan inisialisasi database tersedia di [deploy/production/README.md](deploy/production/README.md). File di [deploy/apache/](deploy/apache/) hanya untuk host lokal `.test`.

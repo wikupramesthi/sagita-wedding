@@ -14,6 +14,7 @@ class RegistrationTest extends TestCase
     public function test_new_users_can_register_and_get_user_role(): void
     {
         Role::create(['name' => 'user', 'guard_name' => 'web']);
+        $initialSessionId = session()->getId();
 
         $response = $this->post('/register', [
             'name' => 'Test User',
@@ -23,6 +24,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
+        $this->assertNotSame($initialSessionId, session()->getId());
         $response->assertRedirect(route('dashboard.index', absolute: false));
 
         $user = User::where('email', 'test@example.com')->first();

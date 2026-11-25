@@ -5,9 +5,10 @@ import type { SessionUser } from "../types/index.js";
  * Lapisan session untuk frontend publik.
  *
  * Login terjadi di backend Laravel (Google OAuth). Cookie session-nya
- * dibuat untuk host backend, tapi cookie tidak dibatasi port — sehingga
- * browser juga mengirimkannya ke FE. FE meneruskan header Cookie itu ke
- * endpoint web backend secara server-ke-server, lalu membaca JSON-nya.
+ * dibuat untuk host backend dan tidak dibatasi port. Jika FE dan BE memakai
+ * subdomain berbeda di produksi, atur SESSION_DOMAIN ke domain induknya agar
+ * browser mengirim cookie ke FE juga. FE meneruskan header Cookie ke endpoint
+ * web backend secara server-ke-server, lalu membaca JSON-nya.
  *
  * Konsekuensinya: TIDAK ada CORS dan tidak perlu mendekripsi cookie
  * Laravel di Node (isinya terenkripsi APP_KEY).

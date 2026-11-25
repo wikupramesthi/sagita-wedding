@@ -1,0 +1,18 @@
+[Unit]
+Description=Sagita Wedding Laravel queue worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sagita
+Group=www-data
+WorkingDirectory=/var/www/sagita-wedding/be
+ExecStart=/usr/bin/php artisan queue:work database --sleep=3 --tries=3 --timeout=90
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=120
+UMask=0007
+
+[Install]
+WantedBy=multi-user.target

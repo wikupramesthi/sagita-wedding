@@ -33,6 +33,11 @@ class GoogleController extends Controller
                     ->with('error', 'Login Google gagal. Google tidak memberikan alamat email. Silakan coba lagi.');
             }
 
+            if (! filter_var($googleUser->getRaw()['email_verified'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                return redirect()->route('login')
+                    ->with('error', 'Login Google gagal. Gunakan akun dengan alamat email yang sudah terverifikasi.');
+            }
+
             // Cek user berdasarkan email
             $user = User::where('email', $googleUser->getEmail())->first();
 
