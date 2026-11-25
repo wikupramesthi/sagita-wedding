@@ -2536,7 +2536,8 @@ header[data-home] .mobile-drawer {
 	padding: 0.5rem 0;
 	z-index: 60;
 }
-.lang-dropdown a {
+.lang-dropdown a,
+.lang-dropdown button {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
@@ -2544,8 +2545,13 @@ header[data-home] .mobile-drawer {
 	font-size: 0.875rem;
 	color: #6c5a4a;
 	transition: background 0.15s;
+	text-align: left;
 }
-.lang-dropdown a:hover {
+.lang-dropdown button {
+	cursor: pointer;
+}
+.lang-dropdown a:hover,
+.lang-dropdown button:hover {
 	background: #f8f6f2;
 }
 .lang-dropdown a.active {

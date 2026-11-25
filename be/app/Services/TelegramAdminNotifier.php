@@ -11,6 +11,7 @@ use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Str;
 use LogicException;
+use RuntimeException;
 
 class TelegramAdminNotifier
 {
@@ -25,6 +26,23 @@ class TelegramAdminNotifier
             ],
             route('user.index'),
             'Lihat data pelanggan'
+        ));
+    }
+
+    public function successfulLogin(User $user, string $ip): void
+    {
+        $this->send($this->message(
+            'Login Berhasil',
+            'Akun berhasil masuk ke aplikasi Sagita Wedding.',
+            [
+                'Nama' => $user->name,
+                'Email' => $user->email,
+                'Peran' => $user->getRoleNames()->implode(', ') ?: 'Belum diatur',
+                'Alamat IP' => $ip,
+                'Waktu' => now()->format('d M Y, H:i:s'),
+            ],
+            route('dashboard.index'),
+            'Buka dashboard admin'
         ));
     }
 
@@ -253,7 +271,11 @@ class TelegramAdminNotifier
             throw new LogicException('Telegram is enabled but TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured.');
         }
 
-        SendTelegramMessage::dispatch($message);
+        try {
+            (new SendTelegramMessage($message))->handle();
+        } catch (RuntimeException $exception) {
+            report($exception);
+        }
     }
 
     private function message(

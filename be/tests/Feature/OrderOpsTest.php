@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\SendTelegramMessage;
 use App\Models\AuditLog;
 use App\Models\Package\Package;
 use App\Models\Package\PackageOption;
@@ -13,9 +12,10 @@ use App\Models\UserPackage;
 use App\Notifications\OrderSlaReminderNotification;
 use Database\Seeders\RouteSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -104,7 +104,9 @@ class OrderOpsTest extends TestCase
 
     public function test_approve_with_same_idempotency_key_is_processed_once(): void
     {
-        Queue::fake();
+        Http::fake([
+            'api.telegram.org/*' => Http::response(['ok' => true, 'result' => []]),
+        ]);
         config([
             'services.telegram.enabled' => true,
             'services.telegram.bot_token' => 'test-token',
@@ -122,9 +124,9 @@ class OrderOpsTest extends TestCase
 
         $this->assertSame(1, Payment::where('order_uuid', $this->order->uuid)->count());
         $this->assertSame(1, UserPackage::where('order_uuid', $this->order->uuid)->count());
-        Queue::assertPushed(SendTelegramMessage::class, 1);
-        Queue::assertPushed(SendTelegramMessage::class, fn (SendTelegramMessage $job): bool => str_contains(
-            $job->message,
+        Http::assertSentCount(1);
+        Http::assertSent(fn (Request $request): bool => str_contains(
+            $request['text'],
             '<b>Pembayaran Berhasil Diverifikasi</b>'
         ));
     }

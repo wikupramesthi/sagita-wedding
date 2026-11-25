@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\SendTelegramMessage;
 use App\Mail\ConsultationReceivedMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -169,9 +169,11 @@ class ContactControllerTest extends TestCase
         });
     }
 
-    public function test_new_contact_consultation_queues_telegram_notification(): void
+    public function test_new_contact_consultation_sends_telegram_notification_immediately(): void
     {
-        Queue::fake();
+        Http::fake([
+            'api.telegram.org/*' => Http::response(['ok' => true, 'result' => []]),
+        ]);
         config([
             'services.telegram.enabled' => true,
             'services.telegram.bot_token' => 'test-token',
@@ -192,9 +194,9 @@ class ContactControllerTest extends TestCase
             ])
             ->assertCreated();
 
-        Queue::assertPushed(SendTelegramMessage::class, fn (SendTelegramMessage $job): bool => str_contains(
-            $job->message,
+        Http::assertSent(fn (Request $request): bool => str_contains(
+            $request['text'],
             '<b>Permintaan Konsultasi Baru</b>'
-        ) && str_contains($job->message, 'calon@example.test'));
+        ) && str_contains($request['text'], 'calon@example.test'));
     }
 }

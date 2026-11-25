@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Jobs\SendTelegramMessage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Queue;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -15,7 +15,9 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register_and_get_user_role(): void
     {
-        Queue::fake();
+        Http::fake([
+            'api.telegram.org/*' => Http::response(['ok' => true, 'result' => []]),
+        ]);
         config([
             'services.telegram.enabled' => true,
             'services.telegram.bot_token' => 'test-token',
@@ -39,8 +41,8 @@ class RegistrationTest extends TestCase
         $user = User::where('email', 'test@example.com')->first();
         $this->assertNotNull($user);
         $this->assertTrue($user->hasRole('user'));
-        Queue::assertPushed(SendTelegramMessage::class, fn (SendTelegramMessage $job): bool => str_contains(
-            $job->message,
+        Http::assertSent(fn (Request $request): bool => str_contains(
+            $request['text'],
             'Pelanggan Baru Terdaftar'
         ));
     }

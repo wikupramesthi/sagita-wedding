@@ -35,6 +35,15 @@ const [data, faqData] = await Promise.all([
 	getPageBatch("faq").catch(() => null),
 ]);
 const items = Array.isArray(data?.packages) ? data.packages : [];
+const isPopularPackage = (pkg: any) =>
+	pkg?.is_popular === true || pkg?.is_popular === 1 || pkg?.is_popular === "1";
+const displayItems = [...items];
+const popularIndex = displayItems.findIndex(isPopularPackage);
+const recommendedIndex = Math.floor(displayItems.length / 2);
+if (popularIndex >= 0 && popularIndex !== recommendedIndex) {
+	const [recommendedPackage] = displayItems.splice(popularIndex, 1);
+	displayItems.splice(recommendedIndex, 0, recommendedPackage);
+}
 const packageFaqGroups = getHomeFaqs(faqData?.faqs, lang);
 const meta = data?.meta || {};
 const search = params.search;
@@ -152,36 +161,44 @@ const packageGuidanceItems = [
 	metaDescription={isID
 		? "Jelajahi paket pernikahan Sagita Wedding Planner dan temukan layanan yang sesuai dengan rencana, kebutuhan, dan hari istimewa Anda."
 		: "Explore Sagita Wedding Planner packages and find wedding planning services that fit your plans, priorities, and celebration."}
+	heroNav={true}
 >
 	<main id="isi" class="antialiased bg-sand-50">
-		<section class="relative overflow-hidden bg-sand-100 text-sage-900">
+		<section class="relative overflow-hidden text-sand-50">
 			<div
-				class="pointer-events-none absolute -right-24 -top-32 h-96 w-96 rounded-full bg-sand-200 blur-3xl"
+				class="absolute inset-0"
+				style="background:
+				  radial-gradient(ellipse 60% 50% at 12% 8%, rgba(183, 159, 128, 0.28) 0%, transparent 60%),
+				  radial-gradient(ellipse 50% 60% at 90% 100%, var(--color-sage-900) 0%, transparent 70%),
+				  linear-gradient(135deg, var(--color-sage-700) 0%, var(--color-sage-800) 55%, var(--color-sage-900) 100%)"
 				aria-hidden="true"
 			></div>
 			<div
-				class="pointer-events-none absolute -bottom-40 left-1/4 h-80 w-80 rounded-full bg-terracotta-100 blur-3xl"
+				class="absolute inset-0 opacity-[0.06] mix-blend-overlay pointer-events-none"
+				style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3C/svg%3E&quot;)"
 				aria-hidden="true"
 			></div>
+			<div class="hero-shimmer"></div>
 
-			<div class="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-				<p class="text-xs font-semibold uppercase tracking-[0.28em] text-terracotta-600">
+			<div class="site-container relative z-10 pb-28 pt-28 text-center sm:pb-32 sm:pt-32">
+				<span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-sand-100 backdrop-blur-sm anim-fade-in">
+					<span class="h-1.5 w-1.5 rounded-full bg-gold-light"></span>
 					Sagita Wedding Planner
-				</p>
+				</span>
 
-				<h1 class="mt-5 max-w-3xl font-display text-4xl font-bold leading-[1.05] sm:text-5xl lg:text-6xl">
-					{t.packagesTitleA}
-					<span class="text-terracotta-600">{t.packagesTitleB}</span>
+				<h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight anim-slide-up sm:text-5xl lg:text-6xl">
+					<span class="block">{t.packagesTitleA}</span>
+					<span class="block font-light italic text-gold-light">{t.packagesTitleB}</span>
 				</h1>
 
-				<p class="mt-6 max-w-2xl text-sm leading-relaxed text-stone-500 sm:text-base">
+				<p class="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-sand-100/80 anim-fade-in sm:text-base" style="animation-delay:.3s">
 					{t.packagesDesc}
 				</p>
 
-				<div class="mt-8 flex flex-wrap items-center gap-3">
+				<div class="mt-8 flex flex-wrap items-center justify-center gap-3 anim-fade-in" style="animation-delay:.42s">
 					<a
 						href="#daftar-paket"
-						class="inline-flex items-center gap-2 rounded-full bg-sage-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sage-800"
+						class="inline-flex items-center gap-2 rounded-full bg-sand-50 px-6 py-3 text-sm font-semibold text-sage-900 transition hover:bg-white"
 					>
 						{txt("Lihat daftar paket", "Explore packages")}
 						<Icon name="arrow" size="h-4 w-4" />
@@ -190,43 +207,18 @@ const packageGuidanceItems = [
 						href={waLink}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="inline-flex items-center gap-2 rounded-full border border-sage-200 bg-white px-6 py-3 text-sm font-semibold text-sage-700 transition hover:bg-sage-50"
+						class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-sand-50 transition hover:bg-white/10"
 					>
 						<Icon name="whatsapp" size="h-4 w-4" />
 						{txt("Tanya via WhatsApp", "Ask on WhatsApp")}
 					</a>
 				</div>
 
-				<dl class="mt-12 grid max-w-3xl grid-cols-2 gap-4 border-t border-sand-300 pt-8 sm:grid-cols-4">
-					<div>
-						<dt class="text-[11px] uppercase tracking-wider text-stone-500">
-							{txt("Paket tersedia", "Packages")}
-						</dt>
-						<dd class="mt-1 font-display text-3xl font-bold">{Number(totalPackages) || 0}</dd>
-					</div>
-					<div>
-						<dt class="text-[11px] uppercase tracking-wider text-stone-500">
-							{txt("Biaya tersembunyi", "Hidden fees")}
-						</dt>
-						<dd class="mt-1 font-display text-3xl font-bold">{txt("Nol", "None")}</dd>
-					</div>
-					<div>
-						<dt class="text-[11px] uppercase tracking-wider text-stone-500">
-							{txt("Konsultasi", "Consultation")}
-						</dt>
-						<dd class="mt-1 font-display text-3xl font-bold">{txt("Gratis", "Free")}</dd>
-					</div>
-					<div>
-						<dt class="text-[11px] uppercase tracking-wider text-stone-500">
-							{txt("Fleksibel", "Flexible")}
-						</dt>
-						<dd class="mt-1 font-display text-3xl font-bold">100%</dd>
-					</div>
-				</dl>
 			</div>
+			<div class="pointer-events-none absolute inset-x-0 bottom-0 h-20" style="z-index:0;background:linear-gradient(to top, #fffefd, transparent)" aria-hidden="true"></div>
 		</section>
 
-		<section class="package-filter-section relative z-10 -mt-6">
+		<section class="package-filter-section relative z-10 -mt-20">
 			<div class="site-container">
 			<form action="/packages" method="GET" class="package-filter-form rounded-2xl border border-stone-200 bg-white shadow-sm">
 				<div class="package-filter-grid grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-12">
@@ -352,12 +344,11 @@ const packageGuidanceItems = [
 							items.length >= 4 ? "xl:grid-cols-4" : items.length === 3 ? "xl:grid-cols-3" : items.length === 2 ? "xl:grid-cols-2" : "mx-auto max-w-md xl:grid-cols-1",
 						]}
 					>
-						{items.map((pkg: any) => {
+						{displayItems.map((pkg: any) => {
 							const options = Array.isArray(pkg.options) ? pkg.options : [];
 							const features = Array.isArray(pkg.features) ? pkg.features : [];
 							const addons = Array.isArray(pkg.addons) ? pkg.addons : [];
-							const isPopular =
-								pkg.is_popular === true || pkg.is_popular === 1 || pkg.is_popular === "1";
+							const isPopular = isPopularPackage(pkg);
 							const hasCover = typeof pkg.cover_url === "string" && pkg.cover_url.length > 0;
 							const pricedOptions = options
 								.map((option: any) => ({
@@ -729,7 +720,7 @@ const packageGuidanceItems = [
 					<div class="package-contact-copy flex flex-col justify-center p-7 sm:p-10 lg:p-16">
 						<img
 							class="package-contact-decoration"
-							src="/images/mawar-kiri.webp"
+							src="/img/mawar-kiri.webp"
 							alt=""
 							aria-hidden="true"
 							loading="lazy"
@@ -768,7 +759,7 @@ const packageGuidanceItems = [
 					</div>
 					<div class="package-contact-image">
 						<img
-							src="/images/bg-kontak.jpg"
+							src="/img/bg-kontak.jpg"
 							alt={txt("Pasangan pengantin di hari pernikahan", "A couple celebrating their wedding day")}
 							loading="lazy"
 							decoding="async"
