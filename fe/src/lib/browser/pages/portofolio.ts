@@ -475,7 +475,7 @@ document
 			const jeda = target.classList.toggle("sw-dijeda");
 			tombolJeda.setAttribute("aria-pressed", String(jeda));
 			tombolJeda.setAttribute("aria-label", jeda ? labelLanjut : label);
-			tombolJeda.innerHTML = `<svg aria-hidden="true" class="sw-ikon"><use href="#i-${jeda ? "play" : "pause"}"></use></svg>`;
+			tombolJeda.innerHTML = `<svg aria-hidden="true" class="sw-ikon"><use href="#sw-i-${jeda ? "play" : "pause"}"></use></svg>`;
 		});
 	});
 
