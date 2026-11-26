@@ -75,6 +75,7 @@ let blogPosts: unknown[] = [];
 let blogDetailPost: unknown = null;
 let homePackages: unknown[] = [];
 let homeFaqs: unknown[] = [];
+let faqPageData: unknown[] = [];
 let cmsPages = false;
 let homeVenues: unknown = [
 	{
@@ -111,7 +112,7 @@ const getPageBatch = vi.fn(
 			case "contact":
 				return { faqs: [] };
 			case "faq":
-				return { faqs: [], categories: [] };
+				return { faqs: faqPageData, categories: [] };
 			case "vendors":
 				return {
 					vendors: [
@@ -248,6 +249,7 @@ beforeEach(() => {
 	blogDetailPost = null;
 	homePackages = [];
 	cmsPages = false;
+	faqPageData = [];
 	homeFaqs = [
 		{
 			uuid: "4b9411a3-ccc5-44fd-bc24-e8dc7065773c",
@@ -788,6 +790,28 @@ describe("pageScript wiring", () => {
 		expect(policy.text).toMatch(
 			/<h1\b[^>]*>\s*CMS kebijakan-privasi\s*<\/h1>/,
 		);
+	});
+
+	it("portofolio memakai FAQ dari API dan kontak WhatsApp terkonfigurasi", async () => {
+		faqPageData = [
+			{
+				uuid: "faq-api-1",
+				kategori: "Paket & Layanan",
+				question: "Pertanyaan khusus dari FAQ API?",
+				answer: "Jawaban khusus dari FAQ API.",
+			},
+		];
+
+		const res = await request(app)
+			.get("/portofolio")
+			.set("Cookie", "locale=id");
+
+		expect(res.status).toBe(200);
+		expect(res.text).toContain("Pertanyaan khusus dari FAQ API?");
+		expect(res.text).toContain("Jawaban khusus dari FAQ API.");
+		expect(res.text).not.toContain("Berapa lama undangan aktif?");
+		expect(res.text).toContain('href="https://api.whatsapp.com/send/?phone=');
+		expect(res.text).not.toContain("6289666613131");
 	});
 
 	it("beranda menampilkan venue dari data batch", async () => {

@@ -61,6 +61,21 @@ describe("kualitas frontend", () => {
 		);
 	});
 
+	it("tautan WhatsApp portofolio menggunakan kontak terkonfigurasi", () => {
+		expect(
+			portfolio.match(/href=\{contactLinks\.whatsappLink\}/g),
+		).toHaveLength(2);
+		expect(portfolio).not.toContain("6289666613131");
+	});
+
+	it("galeri penerima tamu dan referensi asetnya dihapus dari portofolio", () => {
+		expect(portfolio).not.toContain("sw-bt__kolase");
+		expect(portfolio).not.toContain("gb-selfie-checkin.webp");
+		expect(portfolio).not.toContain("gb-print-ticket.webp");
+		expect(portfolio).not.toContain("gb-pencatatan-hadiah.webp");
+		expect(portfolio).not.toContain("gb-table-food-souvenir.webp");
+	});
+
 	it("sidebar detail blog sticky dan tetap turun di bawah konten di mobile", () => {
 		expect(customCss).toContain(".blog-detail-aside");
 		expect(customCss).toContain("position: sticky");
