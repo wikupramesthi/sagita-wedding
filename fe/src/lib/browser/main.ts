@@ -143,19 +143,15 @@ import "./lib/sita-chat";
 	);
 	if (!actions || !hero || !("IntersectionObserver" in window)) return;
 
-	const revealBoundary = window.innerHeight * 0.4;
 	const heroBounds = hero.getBoundingClientRect();
 	actions.toggleAttribute(
 		"data-in-hero",
-		heroBounds.top < revealBoundary && heroBounds.bottom > 0,
+		heroBounds.top < window.innerHeight && heroBounds.bottom > 0,
 	);
 
-	new IntersectionObserver(
-		([entry]) => {
-			actions.toggleAttribute("data-in-hero", entry.isIntersecting);
-		},
-		{ rootMargin: "0px 0px -60% 0px" },
-	).observe(hero);
+	new IntersectionObserver(([entry]) => {
+		actions.toggleAttribute("data-in-hero", entry.isIntersecting);
+	}).observe(hero);
 })();
 
 /* ---------- 2. modal booking ---------- */

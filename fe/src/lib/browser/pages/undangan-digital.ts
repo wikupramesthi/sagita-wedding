@@ -588,9 +588,6 @@ document.querySelectorAll<HTMLElement>(".sw-marquee").forEach((marquee) => {
 });
 
 const ctaHP = document.querySelector<HTMLElement>(".sw-cta-hp");
-const hero =
-	document.querySelector<HTMLElement>(".sw-hero") ||
-	document.querySelector<HTMLElement>("[data-hero]");
 if (ctaHP && "IntersectionObserver" in window) {
 	const zona = new Map<Element, boolean>();
 	const perbaruiCTA = () => {
@@ -654,16 +651,6 @@ if (angka && !reduceMotion && "IntersectionObserver" in window) {
 		},
 		{ threshold: 0.4 },
 	).observe(angka);
-}
-
-const waMelayang = document.querySelector<HTMLElement>(".sw-wa-melayang");
-if (waMelayang && hero && "IntersectionObserver" in window) {
-	new IntersectionObserver(
-		([entri]) => {
-			waMelayang.classList.toggle("sw-di-hero", entri.isIntersecting);
-		},
-		{ rootMargin: "0px 0px -60% 0px" },
-	).observe(hero);
 }
 
 siap = true;

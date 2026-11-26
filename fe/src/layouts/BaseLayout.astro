@@ -68,7 +68,7 @@ const { lang, nonce } = Astro.locals;
 				const bounds = hero.getBoundingClientRect();
 				actions.toggleAttribute(
 					"data-in-hero",
-					bounds.top < window.innerHeight * 0.4 && bounds.bottom > 0,
+					bounds.top < window.innerHeight && bounds.bottom > 0,
 				);
 			})();
 		</script>
