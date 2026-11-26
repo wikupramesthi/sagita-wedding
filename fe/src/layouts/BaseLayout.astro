@@ -3,6 +3,8 @@ import AnalyticsConsent from "../components/AnalyticsConsent.astro";
 import Footer from "../components/Footer.astro";
 import Head from "../components/Head.astro";
 import Navbar from "../components/Navbar.astro";
+import SitaChat from "../components/SitaChat.astro";
+import WhatsappFloat from "../components/WhatsappFloat.astro";
 
 interface Props {
 	title?: string;
@@ -35,7 +37,7 @@ const {
 	htmlClass,
 	...headProps
 } = Astro.props;
-const { lang } = Astro.locals;
+const { lang, nonce } = Astro.locals;
 ---
 
 <!doctype html>
@@ -47,6 +49,29 @@ const { lang } = Astro.locals;
 		{showNavbar && <Navbar heroNav={headProps.heroNav} heroNavLight={headProps.heroNavLight} />}
 		<slot />
 		{showFooter && <Footer />}
+		<aside
+			class="contact-actions"
+			data-contact-actions
+			aria-label={lang === "en" ? "Contact options" : "Pilihan kontak"}
+		>
+			<SitaChat />
+			<WhatsappFloat />
+		</aside>
+		<script is:inline nonce={nonce}>
+			(() => {
+				const actions = document.querySelector("[data-contact-actions]");
+				const hero = document.querySelector(
+					"main > section:first-of-type, .sw-hero, [data-hero]",
+				);
+				if (!actions || !hero) return;
+
+				const bounds = hero.getBoundingClientRect();
+				actions.toggleAttribute(
+					"data-in-hero",
+					bounds.top < window.innerHeight * 0.4 && bounds.bottom > 0,
+				);
+			})();
+		</script>
 		<script>
 			import "../lib/browser/telemetry";
 			import "../lib/browser/main";

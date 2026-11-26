@@ -134,6 +134,30 @@ import "./lib/sita-chat";
 	}
 })();
 
+/* ---------- floating contact actions ---------- */
+
+(() => {
+	const actions = document.querySelector<HTMLElement>("[data-contact-actions]");
+	const hero = document.querySelector<HTMLElement>(
+		"main > section:first-of-type, .sw-hero, [data-hero]",
+	);
+	if (!actions || !hero || !("IntersectionObserver" in window)) return;
+
+	const revealBoundary = window.innerHeight * 0.4;
+	const heroBounds = hero.getBoundingClientRect();
+	actions.toggleAttribute(
+		"data-in-hero",
+		heroBounds.top < revealBoundary && heroBounds.bottom > 0,
+	);
+
+	new IntersectionObserver(
+		([entry]) => {
+			actions.toggleAttribute("data-in-hero", entry.isIntersecting);
+		},
+		{ rootMargin: "0px 0px -60% 0px" },
+	).observe(hero);
+})();
+
 /* ---------- 2. modal booking ---------- */
 
 const BOOKING_FOCUSABLE =

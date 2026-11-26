@@ -1,8 +1,6 @@
 ---
 import AccessibilityWidget from "./AccessibilityWidget.astro";
 import BookingModal from "./BookingModal.astro";
-import SitaChat from "./SitaChat.astro";
-import WhatsappFloat from "./WhatsappFloat.astro";
 
 const { site, t } = Astro.locals;
 const navLabels = t.nav as unknown as Record<string, string>;
@@ -255,8 +253,6 @@ const socialLinks = [
 </footer>
 
 <aside aria-label={t.footerWidgetsLabel || "Kontak dan aksesibilitas"}>
-	<SitaChat />
-	<WhatsappFloat />
 	<AccessibilityWidget />
 	<BookingModal />
 </aside>

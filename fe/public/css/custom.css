@@ -735,19 +735,29 @@ main :where(h2, h3, h4) {
 	z-index: 999;
 
 	transition:
-		transform 0.25s ease,
-		box-shadow 0.25s ease;
+		transform 0.6s cubic-bezier(0.32, 0.72, 0, 1),
+		box-shadow 0.5s cubic-bezier(0.32, 0.72, 0, 1),
+		visibility 0s;
 }
 
 .whatsapp-float svg {
 	width: 30px;
 	height: 30px;
+	transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .whatsapp-float:hover {
 	color: #fff;
 	transform: translateY(-3px);
 	box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+}
+
+.whatsapp-float:hover svg {
+	transform: scale(1.06) rotate(-6deg);
+}
+
+.whatsapp-float:active {
+	transform: scale(0.97);
 }
 
 @media (max-width: 640px) {
@@ -761,6 +771,34 @@ main :where(h2, h3, h4) {
 	.whatsapp-float svg {
 		width: 28px;
 		height: 28px;
+	}
+}
+
+@media (min-width: 900px) {
+	.contact-actions[data-in-hero] .sita-chat-toggle,
+	.contact-actions[data-in-hero] .whatsapp-float {
+		transform: translateY(calc(100% + 40px));
+		visibility: hidden;
+		transition:
+			transform 0.6s cubic-bezier(0.32, 0.72, 0, 1),
+			visibility 0s linear 0.6s;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.whatsapp-float,
+	.whatsapp-float svg {
+		animation: none;
+		transition: none;
+	}
+
+	.contact-actions[data-in-hero]
+		.sita-chat:not(.sita-chat--open)
+		.sita-chat-toggle,
+	.contact-actions[data-in-hero] .whatsapp-float {
+		transform: none;
+		visibility: visible;
+		transition: none;
 	}
 }
 
