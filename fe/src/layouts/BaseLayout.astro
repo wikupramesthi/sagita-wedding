@@ -38,6 +38,7 @@ const {
 	...headProps
 } = Astro.props;
 const { lang, nonce } = Astro.locals;
+const lightHeroNav = headProps.heroNavLight ?? headProps.heroNav;
 ---
 
 <!doctype html>
@@ -45,8 +46,12 @@ const { lang, nonce } = Astro.locals;
 	<head>
 		<Head {...headProps} />
 	</head>
-	<body>
-		{showNavbar && <Navbar heroNav={headProps.heroNav} heroNavLight={headProps.heroNavLight} />}
+	<body class="site-public">
+		<div class="page-loader" data-page-loader role="status" aria-live="polite" aria-atomic="true">
+			<span class="page-loader__ring" aria-hidden="true"></span>
+			<span class="page-loader__label">{lang === "en" ? "Loading page…" : "Memuat halaman…"}</span>
+		</div>
+		{showNavbar && <Navbar heroNav={headProps.heroNav} heroNavLight={lightHeroNav} />}
 		<slot />
 		{showFooter && <Footer />}
 		<aside

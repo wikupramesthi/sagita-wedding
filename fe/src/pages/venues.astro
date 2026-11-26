@@ -70,10 +70,10 @@ const venueGuidanceItems = [
 			<div
 				class="absolute inset-0"
 				style="background:
-          radial-gradient(ellipse 58% 48% at 12% 10%, rgba(183, 159, 128, 0.14) 0%, transparent 68%),
-          radial-gradient(ellipse 52% 48% at 88% 88%, rgba(183, 159, 128, 0.08) 0%, transparent 70%),
-          radial-gradient(ellipse 36% 38% at 72% 26%, rgba(250, 248, 244, 0.88) 0%, transparent 74%),
-          linear-gradient(135deg, #fffefd 0%, #faf8f5 52%, #f5f2ee 100%)"
+          radial-gradient(ellipse 58% 48% at 12% 10%, rgba(207, 36, 69, 0.06) 0%, transparent 68%),
+          radial-gradient(ellipse 52% 48% at 88% 88%, rgba(166, 126, 138, 0.08) 0%, transparent 70%),
+          radial-gradient(ellipse 36% 38% at 72% 26%, rgba(255, 255, 255, 0.55) 0%, transparent 74%),
+          linear-gradient(135deg, var(--page-surface-ivory) 0%, var(--page-surface-sage) 52%, var(--page-surface-rose) 100%)"
 			></div>
 			<div
 				class="absolute inset-0 opacity-[0.06] mix-blend-overlay pointer-events-none"
@@ -87,13 +87,13 @@ const venueGuidanceItems = [
 					{t.venuesEyebrow}
 				</span>
 				<h1 class="mt-7 max-w-4xl font-display text-4xl leading-[1.08] tracking-tight anim-slide-up sm:text-5xl lg:text-6xl">
-					<span>{t.venuesTitle}{" "}</span><span class="font-light italic text-sand-700">{t.venuesTitleItalic}</span>
+					Dipercaya para artis di hari spesialnya
 				</h1>
-				<p class="mt-5 max-w-2xl text-sm leading-relaxed text-sand-700 anim-fade-in sm:text-base">
+				<p class="mt-5 max-w-2xl text-sm leading-relaxed text-stone-warm anim-fade-in sm:text-base">
 					{t.venuesDescription}
 				</p>
 			</div>
-			<div class="absolute inset-x-0 bottom-0 h-14" style="background:linear-gradient(to top, #fffefd, transparent)"></div>
+			<div class="absolute inset-x-0 bottom-0 h-14" style="background:linear-gradient(to top, var(--site-surface), transparent)"></div>
 		</section>
 
 		<section class="site-container pt-4 pb-12 sm:pt-2 sm:pb-16" aria-label={t.nav.venues}>

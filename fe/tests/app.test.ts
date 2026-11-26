@@ -783,8 +783,7 @@ describe("pageScript wiring", () => {
 
 	it("beranda menampilkan venue dari data batch", async () => {
 		const res = await request(app).get("/").set("Cookie", "locale=id");
-		expect(res.text).toContain("Hari istimewa,");
-		expect(res.text).toContain("dirancang dengan penuh makna.");
+		expect(res.text).toContain("Dipercaya para artis di hari spesialnya");
 		expect(res.text).toContain(
 			"Dari konsep hingga pelaksanaan, setiap detail kami persiapkan untuk mencerminkan cerita dan impian Anda.",
 		);

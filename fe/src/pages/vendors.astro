@@ -47,22 +47,21 @@ const categoryCount = (category: string): number =>
 	<main>
 		<section
 			class="relative isolate overflow-hidden"
-			style="background: radial-gradient(ellipse 42% 85% at 82% 45%, rgba(183,159,128,.20) 0%, transparent 76%), radial-gradient(ellipse 40% 70% at 4% 92%, rgba(207,187,160,.18) 0%, transparent 74%), linear-gradient(125deg, #fbf9f6 0%, #f6f1ea 54%, #eee7de 100%)"
+			style="background: radial-gradient(ellipse 42% 85% at 82% 45%, rgba(207,36,69,.07) 0%, transparent 76%), radial-gradient(ellipse 40% 70% at 4% 92%, rgba(166,126,138,.08) 0%, transparent 74%), linear-gradient(125deg, var(--page-surface-ivory) 0%, var(--page-surface-sage) 54%, var(--page-surface-rose) 100%)"
 		>
-			<div aria-hidden="true" class="absolute -right-32 -top-36 h-[34rem] w-[34rem] rounded-full border border-[#b79f80]/20"></div>
-			<div aria-hidden="true" class="absolute -right-16 -top-20 h-[25rem] w-[25rem] rounded-full border border-[#b79f80]/20"></div>
-			<div aria-hidden="true" class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/35 to-transparent"></div>
+			<div aria-hidden="true" class="absolute -right-32 -top-36 h-[34rem] w-[34rem] rounded-full border border-terracotta-100"></div>
+			<div aria-hidden="true" class="absolute -right-16 -top-20 h-[25rem] w-[25rem] rounded-full border border-terracotta-100"></div>
+			<div aria-hidden="true" class="absolute inset-x-0 bottom-0 h-24" style="background:linear-gradient(to top, var(--site-surface), transparent)"></div>
 			<div
 				class="site-container relative mx-auto grid items-center gap-10 pb-14 pt-24 sm:pb-20 sm:pt-28 lg:grid-cols-2 lg:gap-16 lg:pb-16 lg:pt-32"
 				style="position:relative;z-index:1;padding-top:clamp(7rem,14vh,8rem)"
 			>
 				<div class="max-w-3xl">
-					<p class="mb-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#89745f]">
+					<p class="mb-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-terracotta-600">
 						{t.vendorsPage.eyebrow}
 					</p>
-					<h1 class="font-display text-4xl leading-[1.08] tracking-tight text-[#403a34] sm:text-5xl lg:text-[3.25rem] xl:text-6xl">
-						{t.vendorsPage.titleA}
-						<span class="block italic font-light text-[#89745f]">{t.vendorsPage.titleB}</span>
+					<h1 class="font-display text-4xl leading-[1.08] tracking-tight text-sage-900 sm:text-5xl lg:text-[3.25rem] xl:text-6xl">
+						Dipercaya para artis di hari spesialnya
 					</h1>
 					<p class="mt-6 max-w-2xl text-base leading-relaxed text-stone-warm sm:text-lg">
 						{t.vendorsPage.description}
@@ -78,12 +77,12 @@ const categoryCount = (category: string): number =>
 
 				<div
 					class="relative mx-auto flex min-h-72 w-full items-center justify-center overflow-hidden rounded-[2rem] border border-white/75 px-7 py-10 shadow-[0_24px_70px_rgba(64,58,52,0.12)] lg:min-h-[25rem]"
-					style="background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(250,247,242,.78) 55%, rgba(239,231,220,.82))"
+					style="background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(253,243,244,.78) 55%, rgba(244,229,232,.82))"
 				>
-					<div aria-hidden="true" class="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#b79f80]/15 blur-2xl"></div>
-					<div aria-hidden="true" class="absolute -bottom-20 -left-16 h-52 w-52 rounded-full bg-[#cfbba0]/20 blur-2xl"></div>
-					<div aria-hidden="true" class="absolute inset-4 rounded-[1.5rem] border border-[#b79f80]/15"></div>
-					<svg aria-hidden="true" viewBox="0 0 420 440" fill="none" style="position:absolute;z-index:0;pointer-events:none;width:100%;height:100%;right:-15%;top:0;color:#89745f;opacity:.24">
+					<div aria-hidden="true" class="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-terracotta-100 blur-2xl"></div>
+					<div aria-hidden="true" class="absolute -bottom-20 -left-16 h-52 w-52 rounded-full bg-terracotta-100 blur-2xl"></div>
+					<div aria-hidden="true" class="absolute inset-4 rounded-[1.5rem] border border-terracotta-100"></div>
+					<svg aria-hidden="true" viewBox="0 0 420 440" fill="none" style="position:absolute;z-index:0;pointer-events:none;width:100%;height:100%;right:-15%;top:0;color:#a67e8a;opacity:.24">
 						<path d="M383 432C341 367 336 309 291 260C247 211 215 174 207 115C202 79 207 47 222 16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
 						<path d="M328 361C285 360 254 339 236 303C270 296 302 314 328 361ZM292 264C250 264 221 242 205 208C242 201 273 220 292 264ZM240 183C202 172 183 144 178 107C213 111 235 138 240 183ZM207 116C174 101 160 72 163 38C195 48 211 76 207 116Z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round" />
 						<path d="M322 352C341 311 372 294 410 296C399 331 369 351 322 352ZM282 249C303 210 335 195 372 200C358 234 327 252 282 249ZM231 169C261 140 295 135 328 149C309 179 276 188 231 169ZM204 104C237 83 270 85 299 104C275 130 241 132 204 104Z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round" />

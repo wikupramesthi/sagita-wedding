@@ -164,34 +164,27 @@ const packageGuidanceItems = [
 	heroNav={true}
 >
 	<main id="isi" class="antialiased bg-sand-50">
-		<section class="relative overflow-hidden text-sand-50">
+		<section class="relative overflow-hidden bg-sand-50 text-sage-900">
 			<div
 				class="absolute inset-0"
 				style="background:
-				  radial-gradient(ellipse 60% 50% at 12% 8%, rgba(183, 159, 128, 0.28) 0%, transparent 60%),
-				  radial-gradient(ellipse 50% 60% at 90% 100%, var(--color-sand-900) 0%, transparent 70%),
-				  linear-gradient(135deg, var(--color-sand-700) 0%, var(--color-sand-800) 55%, var(--color-sand-900) 100%)"
-				aria-hidden="true"
-			></div>
-			<div
-				class="absolute inset-0 opacity-[0.06] mix-blend-overlay pointer-events-none"
-				style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3C/svg%3E&quot;)"
+				  radial-gradient(ellipse 60% 50% at 12% 8%, rgba(207, 36, 69, 0.07) 0%, transparent 60%),
+				  radial-gradient(ellipse 50% 60% at 90% 100%, rgba(166, 126, 138, 0.08) 0%, transparent 70%)"
 				aria-hidden="true"
 			></div>
 			<div class="hero-shimmer"></div>
 
 			<div class="site-container relative z-10 pb-28 pt-28 text-center sm:pb-32 sm:pt-32">
-				<span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-sand-100 backdrop-blur-sm anim-fade-in">
-					<span class="h-1.5 w-1.5 rounded-full bg-gold-light"></span>
+				<span class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white/70 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-sand-700 backdrop-blur-sm anim-fade-in">
+					<span class="h-1.5 w-1.5 rounded-full bg-terracotta-600"></span>
 					Sagita Wedding Planner
 				</span>
 
 				<h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight anim-slide-up sm:text-5xl lg:text-6xl">
-					<span class="block">{t.packagesTitleA}</span>
-					<span class="block font-light italic text-gold-light">{t.packagesTitleB}</span>
+					Dipercaya para artis di hari spesialnya
 				</h1>
 
-				<p class="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-sand-100/80 anim-fade-in sm:text-base" style="animation-delay:.3s">
+				<p class="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-stone-warm anim-fade-in sm:text-base" style="animation-delay:.3s">
 					{t.packagesDesc}
 				</p>
 
@@ -207,7 +200,7 @@ const packageGuidanceItems = [
 						href={waLink}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-sand-50 transition hover:bg-white/10"
+						class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white/70 px-6 py-3 text-sm font-semibold text-sage-800 transition hover:bg-white"
 					>
 						<Icon name="whatsapp" size="h-4 w-4" />
 						{txt("Tanya via WhatsApp", "Ask on WhatsApp")}
@@ -215,7 +208,7 @@ const packageGuidanceItems = [
 				</div>
 
 			</div>
-			<div class="pointer-events-none absolute inset-x-0 bottom-0 h-20" style="z-index:0;background:linear-gradient(to top, #fffefd, transparent)" aria-hidden="true"></div>
+			<div class="pointer-events-none absolute inset-x-0 bottom-0 h-20" style="z-index:0;background:linear-gradient(to top, var(--site-surface), transparent)" aria-hidden="true"></div>
 		</section>
 
 		<section class="package-filter-section relative z-10 -mt-20">

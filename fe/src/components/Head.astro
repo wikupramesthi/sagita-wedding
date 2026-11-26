@@ -199,7 +199,7 @@ if (breadcrumbs?.length) {
 }
 
 const jsonLdText = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
-const styleVersion = `${assetV}-elegant-palette-v3`;
+const styleVersion = `${assetV}-unified-public-theme-v4`;
 ---
 
 <meta charset="UTF-8" />
@@ -277,5 +277,125 @@ const styleVersion = `${assetV}-elegant-palette-v3`;
 			if (saved === "true" || (!saved && prefers))
 				document.documentElement.classList.add("dark");
 		} catch (e) {}
+	})();
+</script>
+
+<script is:inline nonce={nonce}>
+	(() => {
+		const KEY = "sagita-page-loading";
+		const CLASS = "is-page-loading";
+		const root = document.documentElement;
+		let safety = 0;
+
+		const getFlag = () => {
+			try {
+				return sessionStorage.getItem(KEY) === "1";
+			} catch {
+				return false;
+			}
+		};
+		const clearFlag = () => {
+			try {
+				sessionStorage.removeItem(KEY);
+			} catch {}
+		};
+		const mark = () => {
+			try {
+				sessionStorage.setItem(KEY, "1");
+			} catch {}
+		};
+		const hide = () => {
+			if (safety) {
+				window.clearTimeout(safety);
+				safety = 0;
+			}
+			root.classList.remove(CLASS);
+			root.removeAttribute("aria-busy");
+			clearFlag();
+		};
+		const show = () => {
+			root.classList.add(CLASS);
+			root.setAttribute("aria-busy", "true");
+			if (!safety) safety = window.setTimeout(hide, 6000);
+		};
+		const hideWhenReady = () => {
+			window.requestAnimationFrame(() => window.requestAnimationFrame(hide));
+		};
+
+		if (getFlag()) {
+			show();
+			if (document.readyState === "loading") {
+				document.addEventListener("DOMContentLoaded", hideWhenReady, {
+					once: true,
+				});
+			} else {
+				hideWhenReady();
+			}
+			window.addEventListener("load", hide, { once: true });
+		}
+
+		window.addEventListener("pageshow", (event) => {
+			if (event.persisted) hideWhenReady();
+		});
+
+		document.addEventListener("click", (event) => {
+			if (
+				event.defaultPrevented ||
+				event.button !== 0 ||
+				event.metaKey ||
+				event.ctrlKey ||
+				event.shiftKey ||
+				event.altKey
+			)
+				return;
+			const target = event.target;
+			if (!(target instanceof Element)) return;
+			const anchor = target.closest("a[href]");
+			if (
+				!(anchor instanceof HTMLAnchorElement) ||
+				anchor.hasAttribute("download") ||
+				"noPageLoader" in anchor.dataset
+			)
+				return;
+			if (anchor.target && anchor.target !== "_self") return;
+			let url;
+			try {
+				url = new URL(anchor.href, window.location.href);
+			} catch {
+				return;
+			}
+			if (
+				url.origin !== window.location.origin ||
+				!/^https?:$/.test(url.protocol)
+			)
+				return;
+			if (
+				url.pathname === window.location.pathname &&
+				url.search === window.location.search
+			)
+				return;
+			mark();
+			show();
+		});
+
+		document.addEventListener("submit", (event) => {
+			const form = event.target;
+			if (
+				event.defaultPrevented ||
+				!(form instanceof HTMLFormElement) ||
+				(form.method && form.method.toLowerCase() !== "get") ||
+				"noPageLoader" in form.dataset
+			)
+				return;
+			let url;
+			try {
+				url = new URL(form.action || window.location.href, window.location.href);
+			} catch {
+				return;
+			}
+			if (url.origin !== window.location.origin) return;
+			mark();
+			show();
+		});
 	})();
 </script>

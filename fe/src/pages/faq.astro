@@ -31,39 +31,33 @@ const waLink = contactLinks.whatsappLink || "#";
 	heroNav={true}
 >
 	<main class="min-h-screen bg-sand-50 antialiased">
-		<section class="relative overflow-hidden text-sand-50">
+		<section class="relative overflow-hidden bg-sand-50 text-sage-900">
 			<div
 				class="absolute inset-0"
 				style="background:
-				  radial-gradient(ellipse 60% 50% at 12% 8%, rgba(183, 159, 128, 0.28) 0%, transparent 60%),
-				  radial-gradient(ellipse 50% 60% at 90% 100%, var(--color-sage-900) 0%, transparent 70%),
-				  linear-gradient(135deg, var(--color-sage-700) 0%, var(--color-sage-800) 55%, var(--color-sage-900) 100%)"
-			></div>
-			<div
-				class="absolute inset-0 opacity-[0.06] mix-blend-overlay pointer-events-none"
-				style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;)"
+				  radial-gradient(ellipse 60% 50% at 12% 8%, rgba(207, 36, 69, 0.07) 0%, transparent 60%),
+				  radial-gradient(ellipse 50% 60% at 90% 100%, rgba(166, 126, 138, 0.08) 0%, transparent 70%)"
 			></div>
 			<div class="hero-shimmer"></div>
 
 			<div class="site-container relative pb-28 pt-28 text-center sm:pb-32 sm:pt-32">
-				<span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-sand-100 backdrop-blur-sm anim-fade-in">
-					<span class="h-1.5 w-1.5 rounded-full bg-gold-light"></span>
+				<span class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white/70 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-sand-700 backdrop-blur-sm anim-fade-in">
+					<span class="h-1.5 w-1.5 rounded-full bg-terracotta-600"></span>
 					{L.badge}
 				</span>
 				<h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight anim-slide-up sm:text-5xl lg:text-6xl">
-					<span class="block">{L.titleA}</span>
-					<span class="block font-light italic text-gold-light">{L.titleB}</span>
+					Dipercaya para artis di hari spesialnya
 				</h1>
-				<p class="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-sand-100/80 anim-fade-in sm:text-base" style="animation-delay:.3s">
+				<p class="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-stone-warm anim-fade-in sm:text-base" style="animation-delay:.3s">
 					{L.heroDesc}
 				</p>
-				<div class="mt-7 inline-flex items-center gap-4 rounded-full border border-white/15 bg-white/5 px-5 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-sand-100/90 anim-fade-in sm:gap-6 sm:text-xs" style="animation-delay:.42s">
+				<div class="mt-7 inline-flex items-center gap-4 rounded-full border border-sand-300 bg-white/70 px-5 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-sage-800 anim-fade-in sm:gap-6 sm:text-xs" style="animation-delay:.42s">
 					<span>{allFaqs.length} {L.questionsLabel}</span>
-					<span class="h-3 w-px bg-white/25"></span>
+					<span class="h-3 w-px bg-sand-300"></span>
 					<span>{categoryList.length} {L.topicsCountLabel}</span>
 				</div>
 			</div>
-			<div class="absolute inset-x-0 bottom-0 h-20" style="background:linear-gradient(to top, #fffefd, transparent)"></div>
+			<div class="absolute inset-x-0 bottom-0 h-20" style="background:linear-gradient(to top, var(--site-surface), transparent)"></div>
 		</section>
 
 		<section class="site-container relative z-10 -mt-20 pb-20">
