@@ -1,4 +1,5 @@
 ---
+import Icon from "../components/Icon.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getPageBatch } from "../lib/services/batchService.js";
 
@@ -12,12 +13,47 @@ interface VenueItem {
 	google_maps_url?: string;
 }
 
-const { lang, t } = Astro.locals;
+const { lang, t, contactLinks } = Astro.locals;
 const isID = lang === "id";
+const txt = (id: string, en: string) => (isID ? id : en);
 const data = await getPageBatch("venues");
 const venues: VenueItem[] = Array.isArray(data?.venues)
 	? (data.venues as VenueItem[])
 	: [];
+const venueGuidanceItems = [
+	{
+		icon: "map-pin",
+		title: txt("Kapasitas tamu", "Guest capacity"),
+		description: txt(
+			"Pastikan kapasitas venue sesuai dengan perkiraan jumlah tamu.",
+			"Check that the venue capacity suits your estimated guest count.",
+		),
+	},
+	{
+		icon: "spark",
+		title: txt("Fasilitas venue", "Venue facilities"),
+		description: txt(
+			"Kenali fasilitas yang tersedia dan kebutuhan tambahan untuk acara.",
+			"Review the included facilities and anything else your event may need.",
+		),
+	},
+	{
+		icon: "map-pin",
+		title: txt("Lokasi dan akses", "Location and access"),
+		description: txt(
+			"Pertimbangkan akses, area parkir, dan kenyamanan lokasi bagi tamu.",
+			"Consider access, parking, and convenience for your guests.",
+		),
+	},
+	{
+		icon: "clock",
+		title: txt("Ketersediaan tanggal", "Date availability"),
+		description: txt(
+			"Konfirmasikan jadwal venue sebelum menetapkan tanggal acara.",
+			"Confirm venue availability before setting your event date.",
+		),
+	},
+];
 ---
 
 <BaseLayout
@@ -29,7 +65,7 @@ const venues: VenueItem[] = Array.isArray(data?.venues)
 	heroNavLight={true}
 	htmlClass="min-h-screen bg-sand-50 antialiased"
 >
-	<main>
+	<main class="antialiased">
 		<section class="relative overflow-hidden text-sage-900">
 			<div
 				class="absolute inset-0"
@@ -190,12 +226,107 @@ const venues: VenueItem[] = Array.isArray(data?.venues)
 			}
 		</section>
 
-		<section class="bg-sand-100/70 px-6 py-14 text-center sm:py-16">
-			<h2 class="font-display text-2xl text-sage-900">{t.venueClosingTitle}</h2>
-			<p class="mx-auto mt-3 max-w-2xl text-stone-warm">{t.venueClosingDescription}</p>
-			<a href="/formulir-konsultasi" class="mt-6 inline-flex min-h-12 items-center rounded-full bg-sage-800 px-7 text-sm font-semibold text-white transition hover:bg-sage-900">
-				{t.consultationCta}
-			</a>
+		<section class="package-guidance-section site-section" aria-labelledby="venue-guidance-title">
+			<div class="site-container">
+				<div class="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+					<div>
+						<p class="package-guidance-eyebrow">{txt("PANDUAN VENUE", "VENUE GUIDE")}</p>
+						<h2
+							id="venue-guidance-title"
+							class="package-guidance-title mt-4 max-w-sm font-display text-sage-950"
+						>
+							<span class="block">{txt("Yang perlu", "Good to")}</span>
+							<span class="italic text-terracotta-600">{txt("kamu tahu", "know")}</span>
+						</h2>
+						<p class="package-guidance-description mt-5 max-w-sm">
+							{txt(
+								"Ada pertanyaan soal kapasitas, fasilitas, atau tanggal venue? Tim kami siap membantu lewat WhatsApp.",
+								"Questions about capacity, facilities, or venue availability? Our team is happy to help via WhatsApp.",
+							)}
+						</p>
+						<a
+							href={contactLinks.whatsappShortLink}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="package-guidance-link mt-5 inline-flex items-center gap-2 font-semibold"
+						>
+							{txt("Tanya tim kami", "Ask our team")}
+							<Icon name="arrow" size="h-4 w-4" />
+						</a>
+					</div>
+
+					<div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+						{
+							venueGuidanceItems.map((item) => (
+								<article class="package-guidance-item border-t pt-4">
+									<div class="flex items-center gap-3">
+										<span class="package-guidance-icon grid h-8 w-8 place-items-center rounded-lg">
+											<Icon name={item.icon} size="h-4 w-4" />
+										</span>
+										<h3 class="package-guidance-item-title font-bold text-sage-900">{item.title}</h3>
+									</div>
+									<p class="package-guidance-item-description mt-2">{item.description}</p>
+								</article>
+							))
+						}
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="package-contact-section site-section">
+			<div class="site-container">
+				<div class="package-contact-card mx-auto grid overflow-hidden rounded-[28px] lg:grid-cols-[1.05fr_0.95fr]">
+					<div class="package-contact-copy flex flex-col justify-center p-7 sm:p-10 lg:p-16">
+						<img
+							class="package-contact-decoration"
+							src="/img/mawar-kiri.webp"
+							alt=""
+							aria-hidden="true"
+							loading="lazy"
+							decoding="async"
+						/>
+						<h2 class="package-contact-title font-display text-3xl leading-[1.12] text-sage-950 sm:text-4xl lg:text-5xl">
+							{txt("Belum yakin venue mana yang", "Not sure which venue")}
+							{" "}
+							<span class="italic text-terracotta-600">{txt("tepat", "feels right")}</span>?
+						</h2>
+						<p class="mt-5 max-w-lg text-sm leading-relaxed text-stone-600 sm:text-base">
+							{txt(
+								"Ceritakan perkiraan jumlah tamu, lokasi, dan suasana yang diinginkan. Tim kami siap membantu menemukan venue yang sesuai.",
+								"Tell us your guest estimate, preferred location, and the atmosphere you have in mind. Our team can help you find a fitting venue.",
+							)}
+						</p>
+						<div class="mt-6 flex flex-wrap items-center gap-3">
+							<a
+								href={contactLinks.whatsappShortLink}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="package-contact-whatsapp inline-flex min-h-12 items-center gap-3 rounded-full py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition"
+							>
+								{txt("Tanya via WhatsApp", "Ask via WhatsApp")}
+								<span class="grid h-9 w-9 place-items-center rounded-full bg-white text-terracotta-600">
+									<Icon name="whatsapp" size="h-4 w-4" />
+								</span>
+							</a>
+							<a
+								href={venues.length ? "#venueList" : "/formulir-konsultasi"}
+								class="package-contact-gallery inline-flex min-h-12 items-center justify-center rounded-full border px-5 py-3 text-sm font-semibold transition"
+							>
+								{venues.length ? txt("Lihat daftar venue", "Browse venues") : t.consultationCta}
+							</a>
+						</div>
+					</div>
+					<div class="package-contact-image">
+						<img
+							src="/img/bg-kontak.jpg"
+							alt={txt("Pasangan merayakan hari pernikahan", "A couple celebrating their wedding day")}
+							loading="lazy"
+							decoding="async"
+						/>
+					</div>
+				</div>
+			</div>
 		</section>
 	</main>
 </BaseLayout>
