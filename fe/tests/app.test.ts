@@ -685,6 +685,9 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('"@type":"BlogPosting"');
 		expect(res.text).toContain("blog-detail-main");
 		expect(res.text).toContain("blog-detail-aside");
+		expect(res.text).toMatch(
+			/<h1\b[^>]*>\s*Panduan Memilih Venue\s*<\/h1>/,
+		);
 		expect(res.text).toContain("Berita populer");
 		expect(res.text).toContain("Rekomendasi venue");
 		expect(res.text).toContain('href="/venues#venue-venue-uji"');
@@ -778,6 +781,12 @@ describe("pageScript wiring", () => {
 		);
 		expect(consultation.text).toContain(
 			"<p>Konten CMS formulir-konsultasi</p>",
+		);
+
+		const policy = await request(app).get("/pages/kebijakan-privasi");
+		expect(policy.status).toBe(200);
+		expect(policy.text).toMatch(
+			/<h1\b[^>]*>\s*CMS kebijakan-privasi\s*<\/h1>/,
 		);
 	});
 
@@ -1389,6 +1398,7 @@ describe("not found", () => {
 
 		expect(res.status).toBe(404);
 		expect(res.text).toContain("Mencari halaman yang tepat?");
+		expect(res.text).toContain("Momen yang Anda Cari Belum Kami Temukan");
 		expect(res.text).toContain("Mulai konsultasi");
 		expect(res.text).toContain('href="/formulir-konsultasi"');
 		expect(res.text).toContain("Deskripsi uji.");

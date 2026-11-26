@@ -67,12 +67,27 @@ if (panggung && produk.length && produk.length === lapis.length) {
 	const hemat =
 		Boolean(koneksi?.saveData) || /2g|3g/.test(koneksi?.effectiveType || "");
 	const bolehVideo = !reduceMotion && !hemat;
+	let siapIdle = false;
+	let izinVideo = false;
+	const jalankanSaatIdle = (fn: () => void) => {
+		const idleWindow = window as Window & {
+			requestIdleCallback?: (
+				cb: () => void,
+				opts?: { timeout: number },
+			) => number;
+		};
+		if (typeof idleWindow.requestIdleCallback === "function") {
+			idleWindow.requestIdleCallback(fn, { timeout: 1500 });
+		} else {
+			window.setTimeout(fn, 800);
+		}
+	};
 	const videoKe = (i: number) => {
 		const video = lapis[i].querySelector<HTMLVideoElement>("video");
-		if (!video || !bolehVideo) return null;
+		if (!video || !bolehVideo || !izinVideo) return null;
 		if (!video.getAttribute("src")) {
 			video.muted = true;
-			video.preload = "auto";
+			video.preload = "metadata";
 			const sumber = window.matchMedia("(max-width: 899px)").matches
 				? video.dataset.srcHp
 				: video.dataset.src;
@@ -95,6 +110,14 @@ if (panggung && produk.length && produk.length === lapis.length) {
 	let bingkai = 0;
 	let terakhir = performance.now();
 	let jeda = 0;
+	const aktifkanVideo = () => {
+		if (!siapIdle || !terlihat || document.hidden || izinVideo) return;
+		izinVideo = true;
+		gambarKe(aktif);
+		videoKe(aktif);
+		terakhir = performance.now();
+		mulai();
+	};
 	const mulai = () => {
 		if (!berjalan || !terlihat || document.hidden) return;
 		const video = videoKe(aktif);
@@ -208,18 +231,30 @@ if (panggung && produk.length && produk.length === lapis.length) {
 			([entri]) => {
 				terlihat = entri.isIntersecting;
 				berjalan = terlihat;
-				if (berjalan) mulai();
-				else henti();
+				if (berjalan) {
+					aktifkanVideo();
+					mulai();
+				} else henti();
 			},
 			{ threshold: 0.15 },
 		).observe(panggung);
 	}
 	document.addEventListener("visibilitychange", () => {
 		if (document.hidden) henti();
-		else mulai();
+		else {
+			aktifkanVideo();
+			mulai();
+		}
 	});
-	if (document.readyState === "complete") window.setTimeout(mulai, 0);
-	else window.addEventListener("load", mulai, { once: true });
+	const siapkanVideo = () => {
+		mulai();
+		jalankanSaatIdle(() => {
+			siapIdle = true;
+			aktifkanVideo();
+		});
+	};
+	if (document.readyState === "complete") siapkanVideo();
+	else window.addEventListener("load", siapkanVideo, { once: true });
 }
 
 const sorotan = document.querySelector<HTMLElement>(".sw-ds-bb");

@@ -11,6 +11,7 @@ const baseLayout = read("../src/layouts/BaseLayout.astro");
 const navbar = read("../src/components/Navbar.astro");
 const blogDetail = read("../src/pages/blog/[slug].astro");
 const portfolio = read("../src/pages/portofolio.astro");
+const portfolioScript = read("../src/lib/browser/pages/portofolio.ts");
 const analyticsConsent = read("../src/components/AnalyticsConsent.astro");
 const exploreLinks = read("../src/components/ExploreLinks.astro");
 const middleware = read("../src/middleware.ts");
@@ -46,6 +47,18 @@ describe("kualitas frontend", () => {
 		expect(navbar).not.toContain("text-white/30");
 		expect(customCss).toContain(".mobile-drawer a");
 		expect(customCss).toContain(".mobile-drawer a.bg-sage-800");
+	});
+
+	it("video hero portofolio baru dimuat setelah halaman idle", () => {
+		expect(portfolio).toContain('preload="none"');
+		expect(portfolio).toContain('fetchpriority="high"');
+		expect(portfolioScript).toContain("let izinVideo = false");
+		expect(portfolioScript).toContain("requestIdleCallback");
+		expect(portfolioScript).toContain('video.preload = "metadata"');
+		expect(portfolioScript).not.toContain('video.preload = "auto"');
+		expect(portfolioScript).toContain(
+			"if (!video || !bolehVideo || !izinVideo) return null;",
+		);
 	});
 
 	it("sidebar detail blog sticky dan tetap turun di bawah konten di mobile", () => {

@@ -66,6 +66,13 @@ const fiturPaket = (pkg: any) =>
 		.sw-lp .sw-hero__grid {
 			padding-top: calc(var(--nav-h) + 40px) !important;
 		}
+		html.sw-lp-html header[data-home]:not(.scrolled) > div > nav {
+			background: rgba(255, 254, 252, 0.62);
+			border-color: rgba(183, 159, 128, 0.24);
+			box-shadow: 0 8px 26px rgba(64, 58, 52, 0.06);
+			backdrop-filter: blur(14px);
+			-webkit-backdrop-filter: blur(14px);
+		}
 		.sw-lp #sw-judul-hero {
 			display: grid;
 			gap: 0.12em;
