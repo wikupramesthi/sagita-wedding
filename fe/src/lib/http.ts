@@ -166,7 +166,7 @@ export function securityHeaders(nonce: string): Record<string, string> {
 		"object-src 'none'",
 		`script-src 'self' 'nonce-${nonce}' ${GA_SCRIPT} https://www.tiktok.com https://*.ttwstatic.com`,
 		"script-src-attr 'none'",
-		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.ttwstatic.com",
 		"font-src 'self' https://fonts.gstatic.com",
 		`img-src 'self' data: https: ${new URL(env.API_URL).origin}${env.IS_PROD ? "" : " http:"}`,
 		"frame-src 'self' https://www.google.com https://maps.google.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.tiktok.com",

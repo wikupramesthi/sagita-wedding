@@ -999,7 +999,7 @@ async function answerPackages(
 							]
 						: []),
 					{
-						label: locale === "id" ? "Galeri" : "Gallery",
+						label: locale === "id" ? "Portofolio" : "Portfolio",
 						href: "/portofolio",
 					},
 				],

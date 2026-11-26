@@ -18,7 +18,6 @@ export const BATCH_CONTRACT: Record<BatchPage, readonly string[]> = {
 	"package-detail": ["package"],
 	vendors: ["vendors", "meta"],
 	events: ["events", "meta"],
-	gallery: ["gallery"],
 	contact: ["faqs"],
 	faq: ["faqs", "categories"],
 	"page-detail": ["page"],

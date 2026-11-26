@@ -9,8 +9,8 @@
 	"scripts": {
 		"dev": "astro dev",
 		"build": "npm run lint && npm run typecheck && npm run build:css && astro build",
-		"build:css": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify",
-		"watch:css": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch",
+		"build:css": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --minify && esbuild ./public/css/custom.css --minify --outfile=./public/css/custom.min.css",
+		"watch:css": "concurrently \"tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch\" \"esbuild ./public/css/custom.css --minify --outfile=./public/css/custom.min.css --watch\"",
 		"preview": "astro preview",
 		"start": "cross-env NODE_ENV=production ASTRO_NODE_AUTOSTART=disabled node ./scripts/serve.mjs",
 		"typecheck": "astro check",

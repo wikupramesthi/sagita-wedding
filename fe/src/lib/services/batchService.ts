@@ -12,7 +12,6 @@ export const SUPPORTED_BATCH_PAGES = [
 	"package-detail",
 	"vendors",
 	"events",
-	"gallery",
 	"contact",
 	"faq",
 	"page-detail",

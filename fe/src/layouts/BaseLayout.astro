@@ -28,16 +28,18 @@ interface Props {
 	heroNavLight?: boolean;
 	showNavbar?: boolean;
 	showFooter?: boolean;
+	showContactActions?: boolean;
 	htmlClass?: string;
 }
 
 const {
 	showNavbar = true,
 	showFooter = true,
+	showContactActions = true,
 	htmlClass,
 	...headProps
 } = Astro.props;
-const { lang, nonce } = Astro.locals;
+const { lang } = Astro.locals;
 const lightHeroNav = headProps.heroNavLight ?? headProps.heroNav;
 ---
 
@@ -47,36 +49,25 @@ const lightHeroNav = headProps.heroNavLight ?? headProps.heroNav;
 		<Head {...headProps} />
 	</head>
 	<body class="site-public">
-		<div class="page-loader" data-page-loader role="status" aria-live="polite" aria-atomic="true">
+		<div class="page-loader" role="status" aria-live="polite" aria-atomic="true">
 			<span class="page-loader__ring" aria-hidden="true"></span>
 			<span class="page-loader__label">{lang === "en" ? "Loading page…" : "Memuat halaman…"}</span>
 		</div>
 		{showNavbar && <Navbar heroNav={headProps.heroNav} heroNavLight={lightHeroNav} />}
 		<slot />
 		{showFooter && <Footer />}
-		<aside
-			class="contact-actions"
-			data-contact-actions
-			aria-label={lang === "en" ? "Contact options" : "Pilihan kontak"}
-		>
-			<SitaChat />
-			<WhatsappFloat />
-		</aside>
-		<script is:inline nonce={nonce}>
-			(() => {
-				const actions = document.querySelector("[data-contact-actions]");
-				const hero = document.querySelector(
-					"main > section:first-of-type, .sw-hero, [data-hero]",
-				);
-				if (!actions || !hero) return;
-
-				const bounds = hero.getBoundingClientRect();
-				actions.toggleAttribute(
-					"data-in-hero",
-					bounds.top < window.innerHeight && bounds.bottom > 0,
-				);
-			})();
-		</script>
+		{
+			showContactActions && (
+				<aside
+					class="contact-actions"
+					data-contact-actions
+					aria-label={lang === "en" ? "Contact options" : "Pilihan kontak"}
+				>
+					<SitaChat />
+					<WhatsappFloat />
+				</aside>
+			)
+		}
 		<script>
 			import "../lib/browser/telemetry";
 			import "../lib/browser/main";

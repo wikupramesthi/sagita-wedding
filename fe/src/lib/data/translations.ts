@@ -556,9 +556,6 @@ const rawTranslations = {
 		latestClasses: "Latest classes",
 		contactDesc:
 			"Have a question? We're here to listen, guide, and help you find what feels right for your journey.",
-		galleryTitle: "Our Gallery",
-		galleryDesc:
-			"Explore moments, spaces, and experiences created to inspire comfort, balance, and tranquility. Click to enlarge.",
 		notFoundTitle: "Looking for something?",
 		notFoundDesc:
 			"The page you're looking for may have moved or the address may be incorrect. Return to our home page or talk with our team about your wedding plans.",
@@ -653,10 +650,6 @@ const rawTranslations = {
 					desc: "More than a studio — a place to belong, connect, and grow together.",
 				},
 			],
-			galleryEyebrow: "Life at the studio",
-			galleryTitle: "Moments",
-			galleryTitleItalic: "worth keeping",
-			galleryCta: "View Gallery",
 			articlesEyebrow: "Stories & tips",
 			articlesTitle: "From the",
 			articlesTitleItalic: "blog",
@@ -1065,9 +1058,6 @@ const rawTranslations = {
 		latestClasses: "Kelas terbaru",
 		contactDesc:
 			"Punya pertanyaan? Kami di sini untuk mendengarkan, membimbing, dan membantu menemukan apa yang terasa cocok bagi perjalananmu.",
-		galleryTitle: "Galeri Kami",
-		galleryDesc:
-			"Jelajahi momen, ruang, dan pengalaman yang diciptakan untuk menginspirasi kenyamanan, keseimbangan, dan ketenangan. Klik untuk memperbesar.",
 		notFoundTitle: "Mencari halaman yang tepat?",
 		notFoundDesc:
 			"Halaman yang Anda cari tidak ditemukan atau alamatnya mungkin sudah berubah. Silakan kembali ke beranda atau konsultasikan rencana pernikahan Anda bersama tim Sagita Wedding Planner.",
@@ -1163,10 +1153,6 @@ const rawTranslations = {
 					desc: "Lebih dari sekadar studio — tempat untuk memiliki, terhubung, dan tumbuh bersama.",
 				},
 			],
-			galleryEyebrow: "Keseharian di studio",
-			galleryTitle: "Momen",
-			galleryTitleItalic: "yang layak dikenang",
-			galleryCta: "Lihat Galeri",
 			articlesEyebrow: "Cerita & tips",
 			articlesTitle: "Dari",
 			articlesTitleItalic: "blog",

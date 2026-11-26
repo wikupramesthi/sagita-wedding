@@ -48,12 +48,6 @@ const STATIC_URLS: {
 		priority: "0.7",
 		batchPage: "events",
 	},
-	{
-		path: "/gallery",
-		changefreq: "monthly",
-		priority: "0.5",
-		batchPage: "gallery",
-	},
 	{ path: "/portofolio", changefreq: "monthly", priority: "0.5" },
 	{ path: "/faq", changefreq: "monthly", priority: "0.6", batchPage: "faq" },
 	{

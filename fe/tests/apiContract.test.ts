@@ -34,7 +34,6 @@ describe("API contract", () => {
 			"package-detail",
 			"vendors",
 			"events",
-			"gallery",
 			"contact",
 			"faq",
 			"page-detail",

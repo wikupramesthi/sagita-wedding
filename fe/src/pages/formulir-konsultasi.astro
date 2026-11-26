@@ -1,5 +1,4 @@
 ---
-import AccessibilityWidget from "../components/AccessibilityWidget.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { firstString, metaFrom, optionalCmsPage } from "../lib/pageData.js";
 
@@ -160,6 +159,7 @@ const copy =
 	metaDescription={metaDescription}
 	showNavbar={false}
 	showFooter={false}
+	showContactActions={false}
 	htmlClass="consultation-page min-h-screen antialiased"
 >
 	<main class="consultation-shell">
@@ -356,7 +356,6 @@ const copy =
 		</div>
 	</dialog>
 
-	<AccessibilityWidget />
 </BaseLayout>
 
 <script>

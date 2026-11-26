@@ -38,9 +38,9 @@ describe("http hardening", () => {
 	});
 
 	it("mengizinkan skrip TikTok Embed yang disajikan dari ttwstatic", () => {
-		expect(securityHeaders("test-nonce")["Content-Security-Policy"]).toContain(
-			"https://*.ttwstatic.com",
-		);
+		const csp = securityHeaders("test-nonce")["Content-Security-Policy"];
+		expect(csp).toMatch(/script-src [^;]*https:\/\/\*\.ttwstatic\.com/);
+		expect(csp).toMatch(/style-src [^;]*https:\/\/\*\.ttwstatic\.com/);
 	});
 });
 

@@ -56,8 +56,6 @@ const getPageBatch = vi.fn(
 				};
 			case "events":
 				return { events: [], meta: {} };
-			case "gallery":
-				return { gallery: [] };
 			case "vendors":
 				return { vendors: [] };
 			case "blog":

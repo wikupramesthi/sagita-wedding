@@ -1,15 +1,6 @@
 export const $ = (id: string): HTMLElement | null =>
 	document.getElementById(id);
 
-export function escapeHtml(s: unknown): string {
-	return String(s ?? "")
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#x27;");
-}
-
 export function lockScroll() {
 	document.body.style.overflow = "hidden";
 }

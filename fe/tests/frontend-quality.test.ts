@@ -36,7 +36,7 @@ describe("kualitas frontend", () => {
 			'href={`/css/output.css?v=${styleVersion}`} as="style"',
 		);
 		expect(head).toContain(
-			'href={`/css/custom.css?v=${styleVersion}`} as="style"',
+			'href={`/css/custom.min.css?v=${styleVersion}`} as="style"',
 		);
 		expect(head).toContain('href={heroPreload} fetchpriority="high"');
 		expect(head).toContain("?v=${styleVersion}");

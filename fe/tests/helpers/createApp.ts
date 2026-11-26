@@ -41,7 +41,6 @@ import Blog from "../../src/pages/blog.astro";
 import Events from "../../src/pages/event.astro";
 import Faq from "../../src/pages/faq.astro";
 import FormulirKonsultasi from "../../src/pages/formulir-konsultasi.astro";
-import Gallery from "../../src/pages/gallery.astro";
 import * as Healthz from "../../src/pages/healthz.js";
 import Home from "../../src/pages/index.astro";
 import PackageDetail from "../../src/pages/packages/[slug].astro";
@@ -73,7 +72,6 @@ const pageRoutes: { pattern: RegExp; component: any; params?: string[] }[] = [
 	{ pattern: /^\/blog$/, component: Blog },
 	{ pattern: /^\/blog\/([^/]+)$/, component: ArticleDetail, params: ["slug"] },
 	{ pattern: /^\/event$/, component: Events },
-	{ pattern: /^\/gallery$/, component: Gallery },
 	{ pattern: /^\/portofolio$/, component: Portofolio },
 	{ pattern: /^\/vendors$/, component: Vendors },
 	{ pattern: /^\/pages\/([^/]+)$/, component: CmsPage, params: ["slug"] },

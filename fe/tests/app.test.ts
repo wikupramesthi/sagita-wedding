@@ -443,7 +443,7 @@ describe("consultation form", () => {
 			/type="module"[^>]+src="[^"]+\.astro\?astro&type=script/,
 		);
 		expect(res.text).toMatch(/\/css\/output\.css\?v=[^"]+/);
-		expect(res.text).toMatch(/\/css\/custom\.css\?v=[^"]+/);
+		expect(res.text).toMatch(/\/css\/custom\.min\.css\?v=[^"]+/);
 	});
 });
 

@@ -54,7 +54,7 @@ describe("Sita database answers", () => {
 		expect(result.cards[0].image).toBe("https://cdn.example.test/mawar.jpg");
 		expect(result.cards[0].actions).toEqual([
 			{ label: "Lihat paket", href: "/packages/paket-wedding-mawar" },
-			{ label: "Galeri", href: "/portofolio" },
+			{ label: "Portofolio", href: "/portofolio" },
 		]);
 		expect(result.offerContact).toBe(true);
 	});

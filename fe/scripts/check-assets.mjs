@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 const LIMITS = {
 	"public/css/output.css": 120 * 1024,
-	"public/css/custom.css": 80 * 1024,
+	"public/css/custom.min.css": 80 * 1024,
 };
 
 const JS_TOTAL_LIMIT = 150 * 1024;

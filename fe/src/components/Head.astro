@@ -61,6 +61,8 @@ const description = String(
 const keywords = metaKeywords || seo.keywords || site.metaKeywords || "";
 const robotsValue = robots || seo.robots || "index, follow";
 const canonical = currentUrl || siteUrl;
+const usesPinyonScript =
+	currentPath === "/portofolio" || currentPath.endsWith("/portofolio/");
 const languageUrl = (code: string) =>
 	`${siteUrl}${currentPath}${code === "en" ? "" : `?lang=${encodeURIComponent(code)}`}`;
 const absoluteUrl = (value: unknown, fallback = "") => {
@@ -262,11 +264,13 @@ const styleVersion = `${assetV}-unified-public-theme-v7`;
 />
 <link rel="preload" href="/fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="preload" href="/fonts/pinyon-script-latin.woff2" as="font" type="font/woff2" crossorigin />
+{usesPinyonScript && (
+	<link rel="preload" href="/fonts/pinyon-script-latin.woff2" as="font" type="font/woff2" crossorigin />
+)}
 <link rel="preload" href={`/css/output.css?v=${styleVersion}`} as="style" />
 <link rel="stylesheet" href={`/css/output.css?v=${styleVersion}`} />
-<link rel="preload" href={`/css/custom.css?v=${styleVersion}`} as="style" />
-<link rel="stylesheet" href={`/css/custom.css?v=${styleVersion}`} />
+<link rel="preload" href={`/css/custom.min.css?v=${styleVersion}`} as="style" />
+<link rel="stylesheet" href={`/css/custom.min.css?v=${styleVersion}`} />
 <link rel="stylesheet" href={`/css/sita-chat.css?v=${assetV}-sita-widget-v18`} />
 
 <script is:inline nonce={nonce}>
@@ -353,8 +357,7 @@ const styleVersion = `${assetV}-unified-public-theme-v7`;
 			const anchor = target.closest("a[href]");
 			if (
 				!(anchor instanceof HTMLAnchorElement) ||
-				anchor.hasAttribute("download") ||
-				"noPageLoader" in anchor.dataset
+				anchor.hasAttribute("download")
 			)
 				return;
 			if (anchor.target && anchor.target !== "_self") return;
@@ -383,8 +386,7 @@ const styleVersion = `${assetV}-unified-public-theme-v7`;
 			if (
 				event.defaultPrevented ||
 				!(form instanceof HTMLFormElement) ||
-				(form.method && form.method.toLowerCase() !== "get") ||
-				"noPageLoader" in form.dataset
+				(form.method && form.method.toLowerCase() !== "get")
 			)
 				return;
 			let url;

@@ -15,7 +15,8 @@
 			"!dist",
 			"!.astro",
 			"!public/js",
-			"!public/css/output.css"
+			"!public/css/output.css",
+			"!public/css/custom.min.css"
 		]
 	},
 	"formatter": {
