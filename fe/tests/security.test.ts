@@ -3,6 +3,7 @@ import {
 	clientIp,
 	rateLimitHeaders,
 	readJson,
+	securityHeaders,
 	takeRateLimit,
 } from "../src/lib/http.js";
 import { sanitizeRichHtml } from "../src/lib/utils/sanitize.js";
@@ -34,6 +35,12 @@ describe("http hardening", () => {
 		const headers = rateLimitHeaders(result, 7);
 		expect(headers["RateLimit-Limit"]).toBe("7");
 		expect(Number(headers["RateLimit-Reset"])).toBeGreaterThan(0);
+	});
+
+	it("mengizinkan skrip TikTok Embed yang disajikan dari ttwstatic", () => {
+		expect(securityHeaders("test-nonce")["Content-Security-Policy"]).toContain(
+			"https://*.ttwstatic.com",
+		);
 	});
 });
 
