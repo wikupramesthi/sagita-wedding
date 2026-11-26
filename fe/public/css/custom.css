@@ -2532,14 +2532,6 @@ header[data-home].scrolled > div > nav {
 	border-color: rgba(183, 159, 128, var(--nav-border-opacity, 0));
 }
 
-body.site-public header[data-home] > div > nav {
-	background: rgba(255, 252, 252, 0.9);
-	border-color: rgba(215, 154, 166, 0.24);
-	box-shadow: 0 8px 26px rgba(68, 43, 52, 0.1);
-	backdrop-filter: blur(16px);
-	-webkit-backdrop-filter: blur(16px);
-}
-
 header[data-home] .logo-main {
 	filter: none;
 	transition:

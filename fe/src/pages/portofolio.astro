@@ -60,20 +60,6 @@ const fiturPaket = (pkg: any) =>
 	.sw-lp .sw-hero__grid{padding-top:clamp(1.5rem,4vw,3rem)!important}
 	</style>
 	<style is:inline>
-		html.sw-lp-html #navbar nav {
-			background: rgba(255, 254, 252, 0.94);
-			box-shadow: 0 8px 26px rgba(64, 58, 52, 0.08);
-			backdrop-filter: blur(18px);
-			-webkit-backdrop-filter: blur(18px);
-		}
-		@media (min-width: 640px) {
-			html.sw-lp-html #navbar nav {
-				transform: translateY(-12px);
-				padding-top: 19px;
-				padding-bottom: 19px;
-				border-radius: 24px;
-			}
-		}
 		.sw-lp .sw-hero {
 			padding-top: 0 !important;
 		}
@@ -82,28 +68,29 @@ const fiturPaket = (pkg: any) =>
 		}
 		.sw-lp #sw-judul-hero {
 			display: grid;
-			gap: 0.02em;
+			gap: 0.12em;
 			line-height: 0.96;
 		}
 		.sw-lp #sw-judul-hero .sw-hero__judul-emphasis {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: baseline;
-			column-gap: 0.12em;
+			display: grid;
+			justify-items: start;
+			gap: 0.12em;
 		}
 		.sw-lp #sw-judul-hero .sw-hero__judul-script {
 			color: #f43f5e;
 			font-family: var(--font-script);
 			font-size: 1.12em;
 			font-weight: 400;
-			line-height: 0.9;
+			line-height: 1;
 		}
 		.sw-lp #sw-judul-hero .sw-hero__judul-accent {
+			display: block;
 			color: #171717;
 			font-family: var(--font-sans);
 			font-size: 0.58em;
 			font-weight: 800;
 			letter-spacing: -0.04em;
+			line-height: 1.15;
 		}
 		@media (max-width: 640px) {
 			.sw-lp #sw-judul-hero .sw-hero__judul-script {

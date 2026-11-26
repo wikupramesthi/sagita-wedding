@@ -163,6 +163,23 @@ const packageGuidanceItems = [
 		: "Explore Sagita Wedding Planner packages and find wedding planning services that fit your plans, priorities, and celebration."}
 	heroNav={true}
 >
+	<style>
+		.package-hero-whatsapp {
+			border-color: #0a6b38;
+			background-color: #0a6b38;
+			color: #fff;
+		}
+
+		.package-hero-whatsapp:hover {
+			border-color: #07542b;
+			background-color: #07542b;
+		}
+
+		.package-hero-whatsapp:focus-visible {
+			outline: 2px solid #0a6b38;
+			outline-offset: 3px;
+		}
+	</style>
 	<main id="isi" class="antialiased bg-sand-50">
 		<section class="relative overflow-hidden bg-sand-50 text-sage-900">
 			<div
@@ -181,7 +198,7 @@ const packageGuidanceItems = [
 				</span>
 
 				<h1 class="mt-6 font-display text-4xl leading-[1.08] tracking-tight anim-slide-up sm:text-5xl lg:text-6xl">
-					Dipercaya para artis di hari spesialnya
+					Mengabadikan Janji dalam Momen Penuh Cinta
 				</h1>
 
 				<p class="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-stone-warm anim-fade-in sm:text-base" style="animation-delay:.3s">
@@ -200,7 +217,7 @@ const packageGuidanceItems = [
 						href={waLink}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="inline-flex items-center gap-2 rounded-full border border-sand-300 bg-white/70 px-6 py-3 text-sm font-semibold text-sage-800 transition hover:bg-white"
+						class="package-hero-whatsapp inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold shadow-sm transition-colors"
 					>
 						<Icon name="whatsapp" size="h-4 w-4" />
 						{txt("Tanya via WhatsApp", "Ask on WhatsApp")}

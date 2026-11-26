@@ -184,10 +184,7 @@ const navLabels = t.nav as unknown as Record<string, string>;
 
 		<div
 			id="mobileNav"
-			class:list={[
-				"mobile-drawer hidden lg:hidden mt-2 rounded-2xl border px-4 py-4 space-y-1",
-				isHeroPage ? "" : "bg-white border-sand-200",
-			]}
+			class="mobile-drawer hidden lg:hidden mt-2 rounded-2xl border border-sand-200 bg-white px-4 py-4 space-y-1"
 		>
 			{
 				nav.map((item) => (
@@ -197,9 +194,7 @@ const navLabels = t.nav as unknown as Record<string, string>;
 							"block px-4 py-3 rounded-xl text-sm font-medium",
 							currentPath === item.href
 								? "bg-sage-800 text-white"
-								: isHeroPage
-									? "hover:bg-white/10"
-									: "hover:bg-sand-100",
+								: "hover:bg-sand-100",
 						]}
 					>
 						{navLabels[item.key] || item.label}
@@ -207,16 +202,13 @@ const navLabels = t.nav as unknown as Record<string, string>;
 				))
 			}
 			<div
-				class:list={[
-					"flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 mt-2 border-t",
-					isHeroPage ? "border-white/15" : "border-sand-100",
-				]}
+				class="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 mt-2 border-t border-sand-100"
 			>
 				{
 					languages.map((item, i) => (
 						<>
 							{i > 0 && (
-								<span class={isHeroPage ? "text-white/30" : "text-sand-300"}>|</span>
+								<span class="text-sand-300">|</span>
 							)}
 							<a href={`?lang=${item.code}`} class:list={["text-sm", lang === item.code && "font-bold"]}>
 								{item.flag} {item.label}

@@ -783,9 +783,9 @@ describe("pageScript wiring", () => {
 
 	it("beranda menampilkan venue dari data batch", async () => {
 		const res = await request(app).get("/").set("Cookie", "locale=id");
-		expect(res.text).toContain("Dipercaya para artis di hari spesialnya");
+		expect(res.text).toContain("Sebuah Hari Istimewa untuk Kisah Selamanya");
 		expect(res.text).toContain(
-			"Dari konsep hingga pelaksanaan, setiap detail kami persiapkan untuk mencerminkan cerita dan impian Anda.",
+			"Kami percaya bahwa setiap kisah cinta memiliki cerita yang istimewa. Bersama kami, wujudkan pernikahan impian dengan perencanaan matang, elegan, dan perhatian pada setiap detail.",
 		);
 		expect(res.text).toContain('href="#home-planning-summary"');
 		expect(res.text).toContain('id="home-planning-summary"');
@@ -810,6 +810,20 @@ describe("pageScript wiring", () => {
 		expect(res.text).not.toContain('href="/classes"');
 		expect(res.text).toContain('id="accessibilityWidget"');
 		expect(res.text).toContain('aria-controls="accessibilityPanel"');
+	});
+
+	it("beranda dengan slider memakai teks header putih di atas overlay gelap", async () => {
+		homeSliderBanners = [
+			{ posisi: "slider", gambar: "https://example.test/wedding-hero.webp" },
+		];
+
+		const res = await request(app).get("/").set("Cookie", "locale=id");
+
+		expect(res.status).toBe(200);
+		expect(res.text).toContain('data-hero-overlay="true"');
+		expect(res.text).toContain(
+			'class="font-display tracking-tight text-white"',
+		);
 	});
 
 	it("beranda menyembunyikan konten CMS sebelum konten wedding disetujui", async () => {

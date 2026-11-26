@@ -791,7 +791,7 @@ const rawTranslations = {
 		heroLine1: "Hari istimewa,",
 		heroLine2: "dirancang dengan penuh makna.",
 		heroSub:
-			"Dari konsep hingga pelaksanaan, setiap detail kami persiapkan untuk mencerminkan cerita dan impian Anda.",
+			"Kami percaya bahwa setiap kisah cinta memiliki cerita yang istimewa. Bersama kami, wujudkan pernikahan impian dengan perencanaan matang, elegan, dan perhatian pada setiap detail.",
 		heroBookClass: "Pesan Kelas Pertamamu",
 		heroSliderControls: "Kontrol gambar utama",
 		heroSlidePrevious: "Slide sebelumnya",

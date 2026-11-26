@@ -8,7 +8,9 @@ const customCss = read("../public/css/custom.css");
 const inputCss = read("../public/css/input.css");
 const head = read("../src/components/Head.astro");
 const baseLayout = read("../src/layouts/BaseLayout.astro");
+const navbar = read("../src/components/Navbar.astro");
 const blogDetail = read("../src/pages/blog/[slug].astro");
+const portfolio = read("../src/pages/portofolio.astro");
 const analyticsConsent = read("../src/components/AnalyticsConsent.astro");
 const exploreLinks = read("../src/components/ExploreLinks.astro");
 const middleware = read("../src/middleware.ts");
@@ -21,6 +23,29 @@ describe("kualitas frontend", () => {
 		expect(customCss).toContain(".home-packages-section");
 		expect(customCss).toContain(".blog-grid");
 		expect(customCss).toContain(".blog-detail-layout");
+	});
+
+	it("header hero transparan sampai halaman discroll", () => {
+		expect(customCss).toContain(
+			"rgba(255, 254, 252, var(--nav-surface-opacity, 0))",
+		);
+		expect(customCss).not.toContain(
+			"body.site-public header[data-home] > div > nav",
+		);
+		expect(portfolio).toContain("heroNav={true}");
+		expect(portfolio).not.toContain("html.sw-lp-html #navbar nav");
+		expect(portfolio).not.toContain("rgba(255, 254, 252, 0.94)");
+	});
+
+	it("drawer mobile memakai latar terang dan teks gelap di semua halaman", () => {
+		expect(navbar).toContain("border border-sand-200 bg-white");
+		expect(navbar).toContain("border-sand-100");
+		expect(navbar).toContain("hover:bg-sand-100");
+		expect(navbar).not.toContain("hover:bg-white/10");
+		expect(navbar).not.toContain("border-white/15");
+		expect(navbar).not.toContain("text-white/30");
+		expect(customCss).toContain(".mobile-drawer a");
+		expect(customCss).toContain(".mobile-drawer a.bg-sage-800");
 	});
 
 	it("sidebar detail blog sticky dan tetap turun di bawah konten di mobile", () => {
