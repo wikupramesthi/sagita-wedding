@@ -12,7 +12,7 @@ window.setTimeout(() => {
 document
 	.querySelectorAll<HTMLImageElement | HTMLVideoElement>("[data-src]")
 	.forEach((el) => {
-		if (el instanceof HTMLVideoElement && el.dataset.srcHp) return;
+		if (el instanceof HTMLVideoElement && "srcHp" in el.dataset) return;
 		const src = el.dataset.src;
 		if (src) el.src = src;
 		const srcset = el.dataset.srcset;

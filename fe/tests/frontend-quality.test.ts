@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const read = (path: string) =>
@@ -75,6 +75,29 @@ describe("kualitas frontend", () => {
 		expect(portfolioScript).toContain(
 			"if (!video || !bolehVideo || !izinVideo) return null;",
 		);
+		expect(portfolioScript).toContain('"srcHp" in el.dataset');
+	});
+
+	it("hero portofolio memakai poster WebP dan video varian HP yang tersedia", () => {
+		for (const nama of ["undangan", "buku-tamu", "photobooth"]) {
+			for (const lebar of [480, 720]) {
+				const path = `../public/img/portofolio/landing/hero3/${nama}-${lebar}.webp`;
+				expect(existsSync(new URL(path, import.meta.url))).toBe(true);
+				expect(portfolio).toContain(`${nama}-${lebar}.webp`);
+			}
+			expect(portfolio).not.toContain(`${nama}-1080.webp`);
+		}
+		for (const nomor of [1, 2, 3]) {
+			const path = `../public/img/portofolio/landing/hero/video${nomor}-hp.mp4`;
+			expect(existsSync(new URL(path, import.meta.url))).toBe(true);
+			expect(portfolio).toContain(`video${nomor}-hp.mp4`);
+		}
+		expect(portfolio).toContain(
+			'poster="/img/portofolio/landing/hero3/undangan-480.webp"',
+		);
+		expect(read("../scripts/check-assets.mjs")).toContain(
+			"HERO_VIDEO_TOTAL_LIMIT",
+		);
 	});
 
 	it("spacing section memakai rhythm global yang seragam", () => {
@@ -102,6 +125,14 @@ describe("kualitas frontend", () => {
 		expect(portfolio).not.toContain("gb-print-ticket.webp");
 		expect(portfolio).not.toContain("gb-pencatatan-hadiah.webp");
 		expect(portfolio).not.toContain("gb-table-food-souvenir.webp");
+	});
+
+	it("copy koordinasi hari H portofolio berfokus pada layanan wedding organizer", () => {
+		expect(portfolio).toContain("Rencana acara tersusun");
+		expect(portfolio).toContain("Vendor terkoordinasi");
+		expect(portfolio).toContain("Kamu fokus menikmati momen");
+		expect(portfolio).not.toContain("Tim WO memindai QR");
+		expect(portfolio).not.toContain("selfie check-in");
 	});
 
 	it("sidebar detail blog sticky dan tetap turun di bawah konten di mobile", () => {

@@ -1,5 +1,6 @@
 ---
 import HomeFaqSection from "../components/HomeFaqSection.astro";
+import HomePortfolioSection from "../components/HomePortfolioSection.astro";
 import HomeTestimonials from "../components/HomeTestimonials.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getHomeFaqs } from "../lib/data/faqContent.js";
@@ -413,6 +414,7 @@ const heroBackground = sliderBanners.length
 							</a>
 						</div>
 					</section>
+					<HomePortfolioSection isID={isID} />
 				</>
 			)
 		}

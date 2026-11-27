@@ -8,6 +8,8 @@ const LIMITS = {
 
 const JS_TOTAL_LIMIT = 150 * 1024;
 const JS_FILE_LIMIT = 60 * 1024;
+const HERO_VIDEO_DIR = "public/img/portofolio/landing/hero";
+const HERO_VIDEO_TOTAL_LIMIT = 9 * 1024 * 1024;
 
 function sizeOf(path) {
 	try {
@@ -21,6 +23,16 @@ function listJs(dir) {
 	try {
 		return readdirSync(dir, { recursive: true })
 			.filter((entry) => String(entry).endsWith(".js"))
+			.map((entry) => join(dir, String(entry)));
+	} catch {
+		return [];
+	}
+}
+
+function listVideos(dir) {
+	try {
+		return readdirSync(dir)
+			.filter((entry) => String(entry).endsWith(".mp4"))
 			.map((entry) => join(dir, String(entry)));
 	} catch {
 		return [];
@@ -57,8 +69,19 @@ if (jsTotal > JS_TOTAL_LIMIT) {
 	);
 }
 
+const heroVideos = listVideos(HERO_VIDEO_DIR);
+const heroVideoTotal = heroVideos.reduce(
+	(sum, path) => sum + statSync(path).size,
+	0,
+);
+if (heroVideoTotal > HERO_VIDEO_TOTAL_LIMIT) {
+	failures.push(
+		`total video hero ${(heroVideoTotal / 1024 / 1024).toFixed(2)}MB melebihi batas ${(HERO_VIDEO_TOTAL_LIMIT / 1024 / 1024).toFixed(0)}MB`,
+	);
+}
+
 console.log(
-	`Asset budget: CSS ${(sizeOf("public/css/output.css") / 1024).toFixed(1)}KB, JS ${(jsTotal / 1024).toFixed(1)}KB (${jsFiles.length} file, dist/client)`,
+	`Asset budget: CSS ${(sizeOf("public/css/output.css") / 1024).toFixed(1)}KB, JS ${(jsTotal / 1024).toFixed(1)}KB (${jsFiles.length} file, dist/client), video hero ${(heroVideoTotal / 1024 / 1024).toFixed(2)}MB (${heroVideos.length} file)`,
 );
 
 if (failures.length) {

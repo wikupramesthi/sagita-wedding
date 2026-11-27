@@ -26,14 +26,6 @@ const copy = isID
 			hero: "Kami mendampingi setiap langkah persiapan, menyatukan detail dan orang-orang di balik perayaan yang terasa personal.",
 			learn: "Kenali pendekatan kami",
 			consult: "Mulai konsultasi",
-			visualEyebrow: "HARI YANG BERARTI",
-			visualTitle: "Cerita Anda, dirangkai dengan penuh perhatian.",
-			visualNote: "Dari percakapan pertama hingga hari perayaan",
-			stats: [
-				{ value: "01", label: "Pendekatan personal" },
-				{ value: "02", label: "Koordinasi menyeluruh" },
-				{ value: "03", label: "Dukungan hari-H" },
-			],
 			aboutEyebrow: "Cerita kami",
 			aboutTitle: "Perencanaan yang memberi ruang untuk menikmati setiap momen",
 			aboutP1:
@@ -131,14 +123,6 @@ const copy = isID
 			hero: "We bring the details and the people behind your celebration together, with thoughtful support at every step.",
 			learn: "Discover our approach",
 			consult: "Start a consultation",
-			visualEyebrow: "A DAY THAT MATTERS",
-			visualTitle: "Your story, brought together with care.",
-			visualNote: "From the first conversation to the celebration",
-			stats: [
-				{ value: "01", label: "Personal approach" },
-				{ value: "02", label: "End-to-end coordination" },
-				{ value: "03", label: "Wedding-day support" },
-			],
 			aboutEyebrow: "Our story",
 			aboutTitle: "Planning that leaves room to enjoy every moment",
 			aboutP1:
@@ -295,39 +279,25 @@ const valueIconStyles = [
 						</a>
 						<a
 							href="/formulir-konsultasi"
-							class="inline-flex items-center gap-3 rounded-full border border-sand-300 px-8 py-3.5 text-sm text-sage-800 transition hover:border-sage-700 hover:bg-sand-100">{copy.consult}</a>
+							class="inline-flex items-center gap-3 rounded-full bg-sage-800 px-8 py-3.5 text-sm font-medium text-white transition hover:bg-sage-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-700"
+							>{copy.consult}</a
+						>
 					</div>
 				</div>
 
 				<div class="mx-auto w-full max-w-md anim-fade-in lg:max-w-none">
-					<div
-						class="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[2rem] border border-sand-200 shadow-[0_24px_70px_rgba(68,43,52,0.12)]"
-						style="background:radial-gradient(ellipse at 50% 42%,rgba(207,36,69,.08),transparent 44%),linear-gradient(145deg,rgba(255,255,255,.9),rgba(253,243,244,.9) 55%,rgba(244,229,232,.82))"
-					>
-						<div class="absolute h-[82%] w-[66%] rounded-[48%] border border-sand-300"></div>
-						<div class="absolute h-[68%] w-[53%] rounded-[48%] border border-terracotta-100 rotate-[-18deg]"></div>
-						<svg class="absolute h-[78%] w-[70%] text-terracotta-600/45" viewBox="0 0 320 280" fill="none" aria-hidden="true">
-							<path d="M160 256C143 219 147 190 130 158C112 124 102 94 109 52M160 256C177 218 175 184 195 151C215 119 224 87 213 45" stroke="currentColor" stroke-width="1.2"></path>
-							<path d="M134 167C105 164 88 146 84 119C112 121 130 138 134 167ZM113 111C88 101 78 81 82 56C105 66 117 85 113 111ZM187 161C215 155 233 137 238 111C210 114 192 132 187 161ZM211 104C236 93 246 72 240 48C217 59 207 79 211 104Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path>
-							<path d="M160 110C145 94 146 75 160 58C174 75 175 94 160 110ZM160 110C141 106 132 91 135 72C153 75 163 89 160 110ZM160 110C179 106 188 91 185 72C167 75 157 89 160 110Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path>
-							<circle cx="160" cy="111" r="3" fill="currentColor"></circle>
-						</svg>
-						<div class="relative z-10 max-w-xs px-6 text-center">
-							<p class="text-[10px] font-medium uppercase tracking-[0.28em] text-sand-700">{copy.visualEyebrow}</p>
-							<p class="mt-5 font-display text-3xl italic leading-tight text-sage-900 sm:text-4xl">{copy.visualTitle}</p>
-							<span class="mx-auto mt-6 block h-px w-12 bg-terracotta-400/70"></span>
-							<p class="mt-4 text-xs tracking-wide text-stone-warm">{copy.visualNote}</p>
-						</div>
-						<span class="absolute -bottom-16 -right-10 h-48 w-48 rounded-full border border-sand-300/70"></span>
-						<span class="absolute -bottom-10 -right-4 h-32 w-32 rounded-full border border-sand-300/70"></span>
-					</div>
-					<div class="mt-5 grid grid-cols-3 gap-3 sm:gap-4">
-						{copy.stats.map((stat) => (
-							<div class="rounded-2xl border border-sand-200 bg-white/70 px-2 py-4 text-center backdrop-blur-sm sm:px-3 sm:py-5">
-								<div class="font-display text-xl leading-none text-terracotta-600 sm:text-2xl">{stat.value}</div>
-								<div class="mt-2 text-[9px] leading-snug text-stone-warm sm:text-[10px]">{stat.label}</div>
-							</div>
-						))}
+					<div class="relative aspect-[4/3] overflow-hidden rounded-[2rem] border border-sand-200 shadow-[0_24px_70px_rgba(68,43,52,0.12)]">
+						<img
+							src="/img/bg-about.webp"
+							alt={isID
+								? "Pengantin wanita mengenakan busana adat pernikahan"
+								: "A bride wearing traditional wedding attire"}
+							width="1440"
+							height="1440"
+							fetchpriority="high"
+							decoding="async"
+							class="h-full w-full object-cover"
+						/>
 					</div>
 				</div>
 			</div>

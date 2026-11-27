@@ -687,9 +687,7 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain('"@type":"BlogPosting"');
 		expect(res.text).toContain("blog-detail-main");
 		expect(res.text).toContain("blog-detail-aside");
-		expect(res.text).toMatch(
-			/<h1\b[^>]*>\s*Panduan Memilih Venue\s*<\/h1>/,
-		);
+		expect(res.text).toMatch(/<h1\b[^>]*>\s*Panduan Memilih Venue\s*<\/h1>/);
 		expect(res.text).toContain("Berita populer");
 		expect(res.text).toContain("Rekomendasi venue");
 		expect(res.text).toContain('href="/venues#venue-venue-uji"');
@@ -787,9 +785,7 @@ describe("pageScript wiring", () => {
 
 		const policy = await request(app).get("/pages/kebijakan-privasi");
 		expect(policy.status).toBe(200);
-		expect(policy.text).toMatch(
-			/<h1\b[^>]*>\s*CMS kebijakan-privasi\s*<\/h1>/,
-		);
+		expect(policy.text).toMatch(/<h1\b[^>]*>\s*CMS kebijakan-privasi\s*<\/h1>/);
 	});
 
 	it("portofolio memakai FAQ dari API dan kontak WhatsApp terkonfigurasi", async () => {
@@ -874,6 +870,12 @@ describe("pageScript wiring", () => {
 		expect(res.text).toContain("VENUE PILIHAN UNTUK PERAYAAN ANDA");
 		expect(res.text).toContain("Pilihan Venue");
 		expect(res.text).toContain("untuk Anda");
+		expect(res.text).toContain("home-portfolio-title");
+		expect(res.text).toContain("Setiap Momen");
+		expect(res.text).toContain("Lihat portofolio");
+		expect(res.text.indexOf('id="home-venues"')).toBeLessThan(
+			res.text.indexOf('id="home-portfolio-title"'),
+		);
 		expect(res.text).toContain(
 			"home-venues-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4",
 		);
@@ -956,9 +958,7 @@ describe("pageScript wiring", () => {
 
 		expect(res.status).toBe(200);
 		const articlesPosition = res.text.indexOf('id="home-articles"');
-		const testimonialsPosition = res.text.indexOf(
-			'class="home-testimonials-section',
-		);
+		const testimonialsPosition = res.text.indexOf("home-testimonials-section");
 		const dashboardPosition = res.text.indexOf('id="home-preparation"');
 		const checklistPosition = res.text.indexOf('id="home-checklist"');
 		expect(testimonialsPosition).toBeGreaterThan(articlesPosition);
@@ -1074,7 +1074,7 @@ describe("pageScript wiring", () => {
 		expect(res.text.match(/<article data-home-package-slug=/g)).toHaveLength(3);
 		expect(intimatePosition).toBeLessThan(popularPosition);
 		expect(popularPosition).toBeLessThan(signaturePosition);
-		expect(res.text).toContain("PALING DIMINATI");
+		expect(res.text).toContain("REKOMENDASI");
 		expect(res.text).toContain("Rp 25.000.000");
 		expect(res.text).toContain("Koordinasi hari pernikahan");
 		expect(res.text).toContain('href="/packages/favorit"');
@@ -1189,7 +1189,7 @@ describe("pageScript wiring", () => {
 		expect(navbar).not.toContain('href="/faq"');
 		expect(res.text).toContain('id="home-faq"');
 		expect(res.text.indexOf('id="home-faq"')).toBeGreaterThan(
-			res.text.indexOf('class="home-testimonials-section'),
+			res.text.indexOf("home-testimonials-section"),
 		);
 		expect(res.text).not.toContain(
 			'<p class="font-sans text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-3">INFORMASI UNTUK ANDA</p>',
@@ -1397,13 +1397,23 @@ describe("pageScript wiring", () => {
 		expect(response.text).toMatch(
 			/<h1\b[^>]*>\s*Kisah Indah di Balik Setiap Pernikahan\s*<\/h1>/,
 		);
+		expect(response.text).toMatch(
+			/href="\/formulir-konsultasi" class="[^"]*bg-sage-800[^"]*"[^>]*>(?:Mulai konsultasi|Start a consultation)<\/a>/,
+		);
+		expect(response.text).toContain('src="/img/bg-about.webp"');
+		expect(response.text).not.toContain(
+			"Your story, brought together with care.",
+		);
+		expect(response.text).not.toContain("Pendekatan personal");
+		expect(response.text).not.toContain("Koordinasi menyeluruh");
+		expect(response.text).not.toContain("Dukungan hari-H");
 	});
 
 	it("halaman About menampilkan layanan wedding planner dan SEO yang sesuai", async () => {
 		const response = await request(app).get("/about");
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("About Sagita Wedding Planner");
-		expect(response.text).toContain('data-hero-overlay="true"');
+		expect(response.text).not.toContain('data-hero-overlay="true"');
 		expect(response.text).toContain("Vendor coordination");
 		expect(response.text).toContain(
 			"<title>About Sagita Wedding Planner | Wedding Organizer</title>",

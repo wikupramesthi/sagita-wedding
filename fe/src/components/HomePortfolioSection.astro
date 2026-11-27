@@ -1,0 +1,423 @@
+---
+interface Props {
+	isID: boolean;
+}
+
+const { isID } = Astro.props;
+const photos = [
+	{
+		name: "Adhea & Vicky",
+		src: "/img/portofolio/ipx/2e26c520-ac2b-11f1-8aea-ef8a42717073.jpeg",
+	},
+	{
+		name: "Alin & Aldi",
+		src: "/img/portofolio/ipx/915de1f0-f882-11ee-b17f-470510f0efd9.jpeg",
+	},
+	{
+		name: "Mekar & Versa",
+		src: "/img/portofolio/ipx/34d84440-842c-11ee-a51c-dd70d172ce77.jpg",
+	},
+	{
+		name: "Yumi & Leo",
+		src: "/img/portofolio/ipx/895a06d0-adf7-11ee-85af-39d6db81b515.jpg",
+	},
+	{
+		name: "Cindy & Jaewoung",
+		src: "/img/portofolio/ipx/b6f8fc70-ce6e-11ef-a62a-a5af7598b4ab.jpg",
+	},
+	{
+		name: "Rika & Hendra",
+		src: "/img/portofolio/ipx/a8411240-336e-11ee-9c7e-1b899468a894.jpg",
+	},
+	{
+		name: "Zahra & Recky",
+		src: "/img/portofolio/ipx/c5b5a330-baac-11ed-beec-438fd447980a.jpeg",
+	},
+	{
+		name: "Anggun & Juvi",
+		src: "/img/portofolio/ipx/68d641c0-1b36-11ee-b6e4-f13e1d37c693.jpeg",
+	},
+];
+---
+
+<section
+	aria-labelledby="home-portfolio-title"
+	class="home-portfolio sw-bahagia"
+	data-home-portfolio
+>
+	<div class="sw-wrap sw-bahagia__kepala">
+		<div class="sw-kepala">
+			<h2 id="home-portfolio-title">
+				{
+					isID ? (
+						<>
+							Setiap Momen{" "}
+							<span class="sw-t-script">Memiliki Ceritanya</span>{" "}
+							<span class="sw-t-bold">Sendiri</span>
+						</>
+					) : (
+						<>
+							Every Moment <span class="sw-t-script">Has Its Own</span>{" "}
+							<span class="sw-t-bold">Story</span>
+						</>
+					)
+				}
+			</h2>
+			<p class="sw-lp-lead">
+				{isID
+					? "Kumpulan momen penuh cinta, kebahagiaan, dan keindahan yang telah kami rangkai bersama setiap pasangan. Temukan inspirasi dari kisah nyata yang menjadi kenangan indah selamanya."
+					: "A collection of moments filled with love, joy, and beauty, thoughtfully brought together with every couple. Find inspiration in real stories that become cherished memories."}
+			</p>
+		</div>
+		<div class="sw-bahagia__aksi">
+			<button
+				type="button"
+				aria-pressed="false"
+				aria-label={isID ? "Jeda gerakan portofolio" : "Pause portfolio motion"}
+				data-aria-jeda={isID ? "Jeda gerakan portofolio" : "Pause portfolio motion"}
+				data-aria-lanjut={isID
+					? "Lanjutkan gerakan portofolio"
+					: "Resume portfolio motion"}
+				data-home-portfolio-pause
+				class="sw-bukti__jeda"
+			>
+				<svg
+					aria-hidden="true"
+					class="sw-ikon"
+					viewBox="0 0 24 24"
+					fill="currentColor"
+					data-pause-icon
+				>
+					<path d="M7 5h3v14H7zM14 5h3v14h-3z"></path>
+				</svg>
+				<svg
+					aria-hidden="true"
+					class="sw-ikon"
+					viewBox="0 0 24 24"
+					fill="currentColor"
+					data-play-icon
+					style="display:none"
+				>
+					<path d="M8 5.5v13l10-6.5z"></path>
+				</svg>
+			</button>
+			<a href="/portofolio" class="sw-tautan-panah">
+				{isID ? "Lihat portofolio" : "View portfolio"}
+				<svg
+					aria-hidden="true"
+					class="sw-ikon"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.8"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M7 17 17 7M7 7h10v10"></path>
+				</svg>
+			</a>
+		</div>
+	</div>
+
+	<div
+		role="region"
+		aria-label={isID ? "Portofolio pasangan" : "Couple portfolio"}
+		class="sw-marquee sw-marquee--porto"
+		data-home-portfolio-marquee
+	>
+		<div class="sw-marquee__jalur">
+			{
+				[...photos, ...photos].map((photo, index) => {
+					const duplicate = index >= photos.length;
+					return (
+						<a
+							href="/portofolio"
+							class="sw-porto"
+							aria-hidden={duplicate ? "true" : undefined}
+							tabindex={duplicate ? -1 : undefined}
+						>
+							<figure>
+								<div class="sw-porto__gbr">
+									<img
+										src={photo.src}
+										alt=""
+										loading="lazy"
+										decoding="async"
+										width="360"
+										height="480"
+									/>
+								</div>
+								<figcaption>{photo.name}</figcaption>
+							</figure>
+						</a>
+					);
+				})
+			}
+		</div>
+	</div>
+</section>
+
+<script>
+	document
+		.querySelectorAll<HTMLElement>("[data-home-portfolio]")
+		.forEach((section) => {
+			const marquee = section.querySelector<HTMLElement>(
+				"[data-home-portfolio-marquee]",
+			);
+			const button = section.querySelector<HTMLButtonElement>(
+				"[data-home-portfolio-pause]",
+			);
+			const pauseIcon = button?.querySelector<SVGElement>("[data-pause-icon]");
+			const playIcon = button?.querySelector<SVGElement>("[data-play-icon]");
+			if (!marquee || !button || !pauseIcon || !playIcon) return;
+
+			button.addEventListener("click", () => {
+				const paused = button.getAttribute("aria-pressed") !== "true";
+				marquee.classList.toggle("sw-dijeda", paused);
+				button.setAttribute("aria-pressed", String(paused));
+				button.setAttribute(
+					"aria-label",
+					paused
+						? (button.dataset.ariaLanjut ?? "")
+						: (button.dataset.ariaJeda ?? ""),
+				);
+				pauseIcon.style.display = paused ? "none" : "";
+				playIcon.style.display = paused ? "" : "none";
+			});
+		});
+</script>
+
+<style>
+	.home-portfolio {
+		--portfolio-bg: #fffcfc;
+		--portfolio-bg-sunk: #faf1f2;
+		--portfolio-ink: #1b1416;
+		--portfolio-ink-secondary: #55474b;
+		--portfolio-accent: #cf2445;
+		--portfolio-brand: #f63854;
+		--portfolio-line: rgba(27, 20, 22, 0.16);
+		--portfolio-shadow: 0 14px 30px -18px rgba(120, 30, 50, 0.3);
+		--portfolio-ease: cubic-bezier(0.32, 0.72, 0, 1);
+		overflow: hidden;
+		background: var(--portfolio-bg);
+		color: var(--portfolio-ink);
+		font-family: var(--font-body, "Plus Jakarta Sans", sans-serif);
+	}
+
+	.home-portfolio.sw-bahagia {
+		padding-block: clamp(3rem, 6vw, 5rem) clamp(5rem, 10vw, 8.5rem);
+	}
+
+	.home-portfolio .sw-wrap {
+		width: 100%;
+		max-width: 1240px;
+		margin-inline: auto;
+		padding-inline: clamp(1rem, 4vw, 2.5rem);
+	}
+
+	.home-portfolio .sw-bahagia__kepala {
+		display: flex;
+		align-items: end;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 1.5rem;
+		margin-bottom: 2rem;
+	}
+
+	.home-portfolio .sw-kepala {
+		display: grid;
+		max-width: 48rem;
+		gap: 1.1rem;
+	}
+
+	.home-portfolio h2 {
+		margin: 0;
+		color: var(--portfolio-ink);
+		font-family: var(--font-display, "Cormorant Garamond", Georgia, serif);
+		font-size: clamp(2rem, 4vw, 3.25rem);
+		font-weight: 500;
+		line-height: 1.08;
+	}
+
+	.home-portfolio .sw-t-script {
+		display: inline-block;
+		padding: 0.08em 0.08em 0.16em 0;
+		color: var(--portfolio-brand);
+		font-family: var(--font-script, "Pinyon Script", cursive);
+		font-size: 1.15em;
+		font-weight: 400;
+		line-height: 0.9;
+	}
+
+	.home-portfolio .sw-t-bold {
+		font-family: var(--font-body, "Plus Jakarta Sans", sans-serif);
+		font-size: 0.8em;
+		font-weight: 800;
+		letter-spacing: -0.04em;
+	}
+
+	.home-portfolio .sw-lp-lead {
+		max-width: 56ch;
+		margin: 0;
+		color: var(--portfolio-ink-secondary);
+		font-size: clamp(1rem, 1.2vw, 1.12rem);
+		line-height: 1.65;
+	}
+
+	.home-portfolio .sw-bahagia__aksi {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.home-portfolio .sw-bukti__jeda {
+		display: grid;
+		width: 2.75rem;
+		height: 2.75rem;
+		place-items: center;
+		border: 0;
+		border-radius: 999px;
+		background: #fff;
+		box-shadow: inset 0 0 0 1px var(--portfolio-line);
+		color: var(--portfolio-ink);
+		cursor: pointer;
+	}
+
+	.home-portfolio .sw-ikon {
+		width: 1.25em;
+		height: 1.25em;
+		flex: none;
+	}
+
+	.home-portfolio .sw-tautan-panah {
+		display: inline-flex;
+		min-height: 44px;
+		align-items: center;
+		gap: 0.45rem;
+		color: var(--portfolio-accent);
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.home-portfolio .sw-tautan-panah:hover {
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+
+	.home-portfolio .sw-marquee {
+		overflow: hidden;
+		contain: paint;
+		-webkit-mask-image: linear-gradient(
+			90deg,
+			transparent,
+			#000 7%,
+			#000 93%,
+			transparent
+		);
+		mask-image: linear-gradient(
+			90deg,
+			transparent,
+			#000 7%,
+			#000 93%,
+			transparent
+		);
+	}
+
+	.home-portfolio .sw-marquee__jalur {
+		display: flex;
+		width: max-content;
+		gap: 1rem;
+		animation: home-portfolio-marquee 70s linear infinite;
+	}
+
+	.home-portfolio .sw-marquee:hover .sw-marquee__jalur,
+	.home-portfolio .sw-marquee:focus-within .sw-marquee__jalur,
+	.home-portfolio .sw-marquee.sw-dijeda .sw-marquee__jalur {
+		animation-play-state: paused;
+	}
+
+	.home-portfolio .sw-porto {
+		display: block;
+		width: clamp(160px, 16vw, 220px);
+		flex: none;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.home-portfolio .sw-porto:focus-visible {
+		outline: 2px solid var(--portfolio-accent);
+		outline-offset: 4px;
+	}
+
+	.home-portfolio .sw-porto figure {
+		display: grid;
+		margin: 0;
+		gap: 0.5rem;
+	}
+
+	.home-portfolio .sw-porto__gbr {
+		aspect-ratio: 3 / 4;
+		overflow: hidden;
+		border-radius: 1.2rem;
+		background: var(--portfolio-bg-sunk);
+		box-shadow: var(--portfolio-shadow);
+	}
+
+	.home-portfolio .sw-porto img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 1.2s var(--portfolio-ease);
+	}
+
+	.home-portfolio .sw-porto:hover img {
+		transform: scale(1.05);
+	}
+
+	.home-portfolio .sw-porto figcaption {
+		padding-inline: 0.2rem;
+		color: var(--portfolio-ink);
+		font-family: var(--font-display, "Cormorant Garamond", Georgia, serif);
+		font-size: 1.2rem;
+		font-style: italic;
+		line-height: 1.2;
+	}
+
+	@keyframes home-portfolio-marquee {
+		to {
+			transform: translateX(calc(-50% - 0.5rem));
+		}
+	}
+
+	@media (max-width: 640px) {
+		.home-portfolio .sw-porto {
+			width: clamp(160px, 52vw, 220px);
+		}
+
+		.home-portfolio .sw-bahagia__aksi {
+			width: 100%;
+			justify-content: flex-end;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.home-portfolio .sw-bukti__jeda {
+			display: none;
+		}
+
+		.home-portfolio .sw-marquee {
+			overflow-x: auto;
+			-webkit-mask-image: none;
+			mask-image: none;
+			scrollbar-width: none;
+		}
+
+		.home-portfolio .sw-marquee__jalur {
+			animation: none;
+		}
+
+		.home-portfolio .sw-marquee__jalur > [aria-hidden="true"] {
+			display: none;
+		}
+	}
+</style>

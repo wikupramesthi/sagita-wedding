@@ -47,6 +47,7 @@
 		"vitest": "^5.1.1"
 	},
 	"devDependencies": {
-		"@types/html-minifier-terser": "^7.0.2"
+		"@types/html-minifier-terser": "^7.0.2",
+		"esbuild": "^0.28.2"
 	}
 }
