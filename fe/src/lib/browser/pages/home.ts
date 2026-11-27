@@ -101,13 +101,11 @@ if (testimonialContainer && testimonialDataElement) {
 				"0",
 			);
 
-			if (window.matchMedia("(max-width: 639px)").matches) {
-				activePanel.scrollIntoView({
-					block: "nearest",
-					inline: "nearest",
-					behavior: prefersReducedMotion.matches ? "auto" : "smooth",
-				});
-			}
+			activePanel.scrollIntoView({
+				block: "nearest",
+				inline: "nearest",
+				behavior: prefersReducedMotion.matches ? "auto" : "smooth",
+			});
 		}
 
 		testimonialPanels.forEach((panel, index) => {

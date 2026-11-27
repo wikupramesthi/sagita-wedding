@@ -793,6 +793,15 @@ describe("pageScript wiring", () => {
 	});
 
 	it("portofolio memakai FAQ dari API dan kontak WhatsApp terkonfigurasi", async () => {
+		homeTestimonials = [
+			{
+				id: "portfolio-testimonial-1",
+				nama: "Pasangan API",
+				jabatan: "Jabatan API",
+				foto: "/img/testimonials/api.webp",
+				isi_testimoni: "Testimoni berasal dari API.",
+			},
+		];
 		faqPageData = [
 			{
 				uuid: "faq-api-1",
@@ -807,6 +816,39 @@ describe("pageScript wiring", () => {
 			.set("Cookie", "locale=id");
 
 		expect(res.status).toBe(200);
+		expect(res.text).toContain(
+			'Setiap Momen <span class="sw-t-script">Memiliki Ceritanya</span> <span class="sw-t-bold">Sendiri</span>',
+		);
+		expect(res.text).toContain(
+			"Kumpulan momen penuh cinta, kebahagiaan, dan keindahan",
+		);
+		expect(res.text).toContain(
+			"Temukan inspirasi dari kisah nyata yang menjadi kenangan indah selamanya.",
+		);
+		expect(res.text).not.toContain(
+			"Undangan pilihan dari pasangan yang sudah memakai Our Wedding.",
+		);
+		expect(res.text).toContain(
+			'<h2 id="sw-judul-testi">Momen <span class="sw-t-script">Spesial</span> Cerita <span class="sw-t-bold">Tak Terlupakan</span></h2>',
+		);
+		expect(res.text).toContain("Empat langkah menuju");
+		expect(res.text).toContain("Ceritakan rencanamu");
+		expect(res.text.match(/class="package-step-card\b/g)).toHaveLength(4);
+		expect(res.text).not.toContain("Photobooth AI");
+		expect(res.text.match(/class="sw-poster"/g)).toHaveLength(1);
+		expect(res.text).toContain('src="/img/testimonials/api.webp"');
+		expect(res.text).toContain("Pasangan API");
+		expect(res.text).toContain("Testimoni berasal dari API.");
+		expect(res.text).toContain("Jabatan API");
+		expect(res.text).toMatch(
+			/<span class="sw-poster__kaki">\s*<span role="img" aria-label="Rating 5 dari 5" class="sw-bintang">★★★★★<\/span>\s*<span>Jabatan API<\/span>\s*<\/span>/,
+		);
+		expect(res.text).toContain('aria-label="Rating 5 dari 5"');
+		expect(res.text).toContain("★★★★★");
+		expect(res.text).toContain(
+			".sw-poster__kutip{display:-webkit-box;-webkit-line-clamp:2;",
+		);
+		expect(res.text).not.toContain("Niken &amp; Dion");
 		expect(res.text).toContain("Pertanyaan khusus dari FAQ API?");
 		expect(res.text).toContain("Jawaban khusus dari FAQ API.");
 		expect(res.text).not.toContain("Berapa lama undangan aktif?");
@@ -1106,9 +1148,9 @@ describe("pageScript wiring", () => {
 
 		const res = await request(app).get("/").set("Cookie", "locale=id");
 		expect(res.status).toBe(200);
-		expect(
-			res.text.indexOf('class="home-testimonials-section'),
-		).toBeGreaterThan(res.text.indexOf('id="home-packages"'));
+		expect(res.text.indexOf("home-testimonials-section")).toBeGreaterThan(
+			res.text.indexOf('id="home-packages"'),
+		);
 		expect(res.text).toContain("CERITA PERNIKAHAN");
 		expect(res.text).toContain("Dengarkan kisah");
 		expect(res.text).toContain("pasangan ini");
@@ -1347,6 +1389,14 @@ describe("pageScript wiring", () => {
 			expect(res.status, path).toBe(404);
 			expect(res.headers.location, path).toBeUndefined();
 		}
+	});
+
+	it("halaman About menampilkan judul hero yang diminta", async () => {
+		const response = await request(app).get("/about");
+		expect(response.status).toBe(200);
+		expect(response.text).toMatch(
+			/<h1\b[^>]*>\s*Kisah Indah di Balik Setiap Pernikahan\s*<\/h1>/,
+		);
 	});
 
 	it("halaman About menampilkan layanan wedding planner dan SEO yang sesuai", async () => {

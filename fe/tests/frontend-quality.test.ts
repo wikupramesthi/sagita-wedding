@@ -11,7 +11,9 @@ const baseLayout = read("../src/layouts/BaseLayout.astro");
 const navbar = read("../src/components/Navbar.astro");
 const blogDetail = read("../src/pages/blog/[slug].astro");
 const portfolio = read("../src/pages/portofolio.astro");
+const vendors = read("../src/pages/vendors.astro");
 const portfolioScript = read("../src/lib/browser/pages/portofolio.ts");
+const homeScript = read("../src/lib/browser/pages/home.ts");
 const analyticsConsent = read("../src/components/AnalyticsConsent.astro");
 const exploreLinks = read("../src/components/ExploreLinks.astro");
 const middleware = read("../src/middleware.ts");
@@ -24,6 +26,20 @@ describe("kualitas frontend", () => {
 		expect(customCss).toContain(".home-packages-section");
 		expect(customCss).toContain(".blog-grid");
 		expect(customCss).toContain(".blog-detail-layout");
+	});
+
+	it("carousel testimoni membesarkan foto aktif dengan lima foto pilihan", () => {
+		expect(customCss).toContain("flex: 1 0 calc(11% - 0.275rem)");
+		expect(customCss).toContain("flex: 4 0 calc(45% - 1.125rem)");
+		expect(customCss).toContain("flex: 1 0 calc(15% - 0.225rem)");
+		expect(customCss).toContain("flex: 4 0 calc(55% - 0.825rem)");
+		expect(customCss).toContain("flex: 0 0 100%");
+		expect(customCss).toContain("scroll-snap-type: x mandatory");
+		expect(customCss).toMatch(
+			/\.home-testimonial-panel:hover \.home-testimonial-panel__image\s*\{[^}]*filter:\s*grayscale\(0\)/,
+		);
+		expect(homeScript).toContain("activePanel.scrollIntoView");
+		expect(homeScript).not.toContain("orderedPanels");
 	});
 
 	it("header hero transparan sampai halaman discroll", () => {
@@ -59,6 +75,18 @@ describe("kualitas frontend", () => {
 		expect(portfolioScript).toContain(
 			"if (!video || !bolehVideo || !izinVideo) return null;",
 		);
+	});
+
+	it("spacing section memakai rhythm global yang seragam", () => {
+		expect(customCss).toContain("main:not(.consultation-shell)");
+		expect(customCss).toContain(
+			"> section:not(.relative.overflow-hidden):not(.blog-hero)",
+		);
+		expect(customCss).toContain("> section.site-section--compact");
+		expect(customCss).not.toContain(':not([class*="py-"])');
+		expect(vendors).toContain("pb-14 pt-28 sm:pb-20 sm:pt-32");
+		expect(vendors).not.toContain("padding-top:clamp(7rem,14vh,8rem)");
+		expect(vendors).not.toContain("lg:py-14");
 	});
 
 	it("tautan WhatsApp portofolio menggunakan kontak terkonfigurasi", () => {
